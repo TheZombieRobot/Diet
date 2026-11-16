@@ -170,6 +170,8 @@ object GroupSync {
             p.getString("vlat", null)?.toDoubleOrNull(), p.getString("vlon", null)?.toDoubleOrNull(),
             p.getString("owner", null)?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
             p.getString("osalt", null)?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
+            p.getString("tk", null) ?: "",
+            p.getString("tks", null)?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
         )
         followingState.value = p.boolOf("following")
         if (CrewClock.now(c) > g.expiresAtMs) {
@@ -215,10 +217,15 @@ object GroupSync {
     val newest = mutableStateOf<GigGroup?>(null)
 
     /** Returns the new crew. It only becomes the main crew if it's the soonest (see [set]). */
-    fun startNew(c: Context, name: String, startsAtSec: Long = 0L, venue: String = "", venueLat: Double? = null, venueLon: Double? = null): GigGroup {
+    fun startNew(
+        c: Context, name: String, startsAtSec: Long = 0L, venue: String = "", venueLat: Double? = null, venueLon: Double? = null,
+        /** The show's official ticket page, from Discover; signed by us as the crew's maker (docs/DISCOVER_APP.md). */
+        tickets: String = "",
+    ): GigGroup {
         // The creator owns the crew: only they can remove people (see RekeyPolicy).
         val owner = nz.waveformlabs.moshpoint.core.CrewKeys.generate()
-        val g = GigGroup.createOwned(name, System.currentTimeMillis(), owner.pub, startsAtSec = startsAtSec, venue = venue, venueLat = venueLat, venueLon = venueLon)
+        val made = GigGroup.createOwned(name, System.currentTimeMillis(), owner.pub, startsAtSec = startsAtSec, venue = venue, venueLat = venueLat, venueLon = venueLon)
+        val g = if (tickets.isBlank()) made else made.withTickets(tickets, owner)
         Identity.adopt(c.applicationContext, g, owner)
         set(c.applicationContext, g, following = false)
         return g
@@ -314,6 +321,9 @@ object GroupSync {
             .putString("vlon", g.venueLon?.toString())
             .putString("owner", g.ownerPub?.takeIf { g.owned }?.let { Base64.encodeToString(it, Base64.NO_WRAP) })
             .putString("osalt", g.ownerSalt?.takeIf { g.owned }?.let { Base64.encodeToString(it, Base64.NO_WRAP) })
+            // The maker's ticket link (docs/DISCOVER_APP.md); null removes it.
+            .putString("tk", g.ticketLink)
+            .putString("tks", g.ticketsSig?.takeIf { g.ticketLink != null }?.let { Base64.encodeToString(it, Base64.NO_WRAP) })
             .putBoolean("following", following)
             .remove("members")
             .remove("rally")
@@ -413,6 +423,7 @@ object GroupSync {
         val app = c.applicationContext
         group.value?.let {
             CrewChat.forget(app, it)
+            nz.waveformlabs.moshpoint.discover.HypeTickets.forget(app, it)
             PrivateMessages.forget(app, it)
             Identity.forget(app, it)
         }
@@ -425,6 +436,7 @@ object GroupSync {
     /** Drop a crew waiting in Up next. */
     fun leave(c: Context, e: Crews.Entry) {
         CrewChat.forget(c.applicationContext, e.group)
+        nz.waveformlabs.moshpoint.discover.HypeTickets.forget(c.applicationContext, e.group)
         PrivateMessages.forget(c.applicationContext, e.group)
         Identity.forget(c.applicationContext, e.group)
         Crews.remove(c.applicationContext, e.id)

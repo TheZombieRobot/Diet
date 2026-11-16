@@ -16,17 +16,23 @@ import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.Invite
 import nz.waveformlabs.moshpoint.core.InviteRelay
 import nz.waveformlabs.moshpoint.core.LatLon
+import nz.waveformlabs.moshpoint.core.ShowStart
+import nz.waveformlabs.moshpoint.discover.DiscoverClient
+import nz.waveformlabs.moshpoint.discover.DiscoverPlanned
+import nz.waveformlabs.moshpoint.discover.DiscoverWhere
 import nz.waveformlabs.moshpoint.crew.Bump
 import nz.waveformlabs.moshpoint.crew.CrewRekey
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.gigs.GigArchive
-import nz.waveformlabs.moshpoint.gigs.GigSearch
 import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.sharing.Sharing
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.home.BumpDialog
 import nz.waveformlabs.moshpoint.ui.home.PlanGigSheet
+import nz.waveformlabs.moshpoint.ui.home.PlanSearch
+import nz.waveformlabs.moshpoint.ui.home.PlannedGig
+import nz.waveformlabs.moshpoint.watch.Entitlements
 import nz.waveformlabs.moshpoint.ui.settings.InviteConfirmDialog
 import nz.waveformlabs.moshpoint.venue.VenueLookup
 
@@ -39,21 +45,25 @@ import nz.waveformlabs.moshpoint.venue.VenueLookup
 @NonRestartableComposable
 internal fun NightDialogs(a: MainActivity) {
     if (a.home.planGig) {
+        // Moshpoint+ members get smart search; free users type it in, with a quiet Moshpoint+ card
+        // (docs/DISCOVER_APP.md). Only the country and at most the region go to the relay.
+        val member = Entitlements.plus(a)
+        val search = if (member && DiscoverClient.available && !DiscoverClient.closedRecently(a)) {
+            val country = DiscoverWhere.country(a)
+            val region = DiscoverWhere.region(a, country, a.lastKnownLocation()?.let { LatLon(it.latitude, it.longitude) })
+            PlanSearch(
+                country = country,
+                regionName = DiscoverWhere.regionName(a, country, region),
+                suggest = { q -> DiscoverClient.suggest(country, q, region).also { if (it === DiscoverClient.Answer.Closed) DiscoverClient.noteClosed(a) } },
+                startOf = { show -> ShowStart.of(show, country, java.time.ZoneId.systemDefault()) },
+            )
+        } else {
+            null
+        }
         PlanGigSheet(
-            search = if (GigSearch.available) ({ q -> GigSearch.search(q) }) else null,
-            onPick = { name, at, venue, lat, lon ->
-                if (at < System.currentTimeMillis() / 1000 - 3600) {
-                    a.toast(Txt.s(R.string.main_time_passed))
-                    return@PlanGigSheet
-                }
-                a.home.planGig = false
-                val made = GroupSync.startNew(a, name, at, venue, lat, lon)
-                val isMain = GroupSync.group.value?.key?.contentEquals(made.key) == true
-                if (isMain && !GroupSync.sleeping) a.home.setVisibility(true)
-                if (!isMain) a.toast(Txt.s(R.string.main_added_up_next, made.name))
-                a.invites.qrCrew = made
-                a.invites.showGroupQr = true
-            },
+            member = member,
+            search = search,
+            onPick = { p -> startPlannedCrew(a, p) },
             onClose = { a.home.planGig = false },
             lookupVenue = { text ->
                 val near = a.lastKnownLocation()?.let { LatLon(it.latitude, it.longitude) }
@@ -195,3 +205,22 @@ private fun SharedInviteDialog(a: MainActivity, text: String) {
     }
 }
 
+/**
+ * Start the crew for a planned gig (Plan a gig, or Plan it on Coming up): the crew for that
+ * night, with the show's ticket link signed by us as its maker, then its invite. A gig more than
+ * an hour gone is refused.
+ */
+internal fun startPlannedCrew(a: MainActivity, p: PlannedGig) {
+    if (p.startsAtSec < System.currentTimeMillis() / 1000 - 3600) {
+        a.toast(Txt.s(R.string.main_time_passed))
+        return
+    }
+    a.home.planGig = false
+    val made = GroupSync.startNew(a, p.name, p.startsAtSec, p.venue, p.lat, p.lon, p.tickets)
+    DiscoverPlanned.remember(a, p.showId, nz.waveformlabs.moshpoint.gigs.GigArchive.idFor(made))
+    val isMain = GroupSync.group.value?.key?.contentEquals(made.key) == true
+    if (isMain && !GroupSync.sleeping) a.home.setVisibility(true)
+    if (!isMain) a.toast(Txt.s(R.string.main_added_up_next, made.name))
+    a.invites.qrCrew = made
+    a.invites.showGroupQr = true
+}

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">Har biljett ✓</string>
+    <string name="hype_no_ticket">Ingen biljett än</string>
+    <string name="hype_wakes_up">vaknar på dagen</string>
+    <string name="hype_get_tickets">Köp biljetter</string>
+    <string name="hype_my_ticket">Jag har min biljett</string>
+    <string name="hype_my_ticket_sub">Dina kompisar ser en bock</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">Bjud in kompisar</string>
+    <string name="hype_nudge_title">Alla har biljett 🎟️</string>
+    <string name="hype_nudge_text">Hela gruppen till %1$s har biljetter. Vi ses där!</string>
+    <string name="plan_type_it_in">SKRIV IN DIN SPELNING</string>
+    <string name="plan_venue_hint">Ställe och ort</string>
+    <string name="plus_card_title">Sök alla spelningar i världen, se vad som är på gång nära dig</string>
+    <string name="plus_card_text">Skriv en bokstav så finns spelningen där, med datum, ställe och biljettlänk.</string>
+    <string name="plus_card_more">Vad ingår i Moshpoint+</string>
+    <string name="plus_info_title">Vad ingår i Moshpoint+</string>
+    <string name="plus_info_search_title">Smart sökning</string>
+    <string name="plus_info_search_text">Skriv en bokstav så finns varje spelning i världen där, största först, med datum, ställe och biljettlänk.</string>
+    <string name="plus_info_coming_title">På gång nära dig</string>
+    <string name="plus_info_coming_text">Ett år av spelningar nära dig, i hela landet och de stora som är värda resan.</string>
+    <string name="plus_info_map_title">Kartor över stället offline</string>
+    <string name="plus_info_map_text">Satellitkartan över stället, sparad i mobilen för när täckningen försvinner.</string>
+    <string name="plus_info_watch_title">Hitta dem från handleden</string>
+    <string name="plus_info_watch_text">En pil på klockan som vibrerar varmare och kallare.</string>
+    <string name="plus_info_soon_title">KOMMER SNART</string>
+    <string name="plus_info_soon_text">Moshpoint+ går inte att köpa än. Att skriva in spelningen, grupper, chatt och att hitta kompisarna förblir gratis.</string>
+    <string name="plus_info_back">Tillbaka till planen</string>
+    <string name="search_hint">Band eller artist</string>
+    <string name="search_clear">Rensa</string>
+    <string name="search_near">NÄRA DIG</string>
+    <string name="search_near_region">NÄRA DIG · %1$s</string>
+    <string name="search_elsewhere">PÅ ANDRA HÅLL I %1$s</string>
+    <string name="search_worldwide">I HELA VÄRLDEN</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d spelning i %2$s</item>
+        <item quantity="other">%1$d spelningar i %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d spelning i världen</item>
+        <item quantity="other">%1$d spelningar i världen</item>
+    </plurals>
+    <string name="search_next">nästa %1$s</string>
+    <string name="search_getting_list">Hämtar listan…</string>
+    <string name="search_type_own">Skriv in din egen spelning</string>
+    <string name="search_type_own_sub">Finns den inte? Lägg till den själv</string>
+    <string name="plan_tickets_from">Biljettlänk: %1$s</string>
+    <string name="plan_tickets_remove">Ta bort biljettlänken</string>
+    <string name="coming_title">På gång nära dig</string>
+    <string name="coming_search">Sök spelningar</string>
+    <string name="coming_near">Nära mig</string>
+    <string name="coming_near_region">Nära mig (%1$s)</string>
+    <string name="coming_country">Hela landet</string>
+    <string name="coming_travel">Värt resan</string>
+    <string name="coming_plan_it">Planera</string>
+    <string name="coming_planned">Planerad ✓</string>
+    <string name="coming_km">%1$s km bort</string>
+    <string name="coming_empty">Inget listat här än.</string>
+    <string name="coming_failed">Kunde inte ladda spelningar just nu.</string>
+</resources>

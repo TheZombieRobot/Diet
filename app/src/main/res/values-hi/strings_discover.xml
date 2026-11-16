@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">टिकट मिल गया ✓</string>
+    <string name="hype_no_ticket">अभी टिकट नहीं</string>
+    <string name="hype_wakes_up">शो वाले दिन जागेगा</string>
+    <string name="hype_get_tickets">टिकट लें</string>
+    <string name="hype_my_ticket">मेरा टिकट हो गया</string>
+    <string name="hype_my_ticket_sub">दोस्तों को ✓ दिखेगा</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">दोस्तों को बुलाएँ</string>
+    <string name="hype_nudge_title">सबके पास टिकट है 🎟️</string>
+    <string name="hype_nudge_text">%1$s के लिए पूरे ग्रुप के पास टिकट है। वहीं मिलते हैं!</string>
+    <string name="plan_type_it_in">अपना शो खुद लिखें</string>
+    <string name="plan_venue_hint">जगह और शहर</string>
+    <string name="plus_card_title">दुनिया भर के हर शो को खोजें, देखें आपके पास क्या आ रहा है</string>
+    <string name="plus_card_text">एक अक्षर लिखें और शो सामने है, तारीख, जगह और टिकट लिंक के साथ।</string>
+    <string name="plus_card_more">Moshpoint+ में क्या है</string>
+    <string name="plus_info_title">Moshpoint+ में क्या है</string>
+    <string name="plus_info_search_title">स्मार्ट सर्च</string>
+    <string name="plus_info_search_text">एक अक्षर लिखें और दुनिया भर का हर शो सामने, सबसे बड़े पहले, तारीख, जगह और टिकट लिंक के साथ।</string>
+    <string name="plus_info_coming_title">आपके पास आने वाले शो</string>
+    <string name="plus_info_coming_text">आपके पास, पूरे देश में, और वो बड़े शो जिनके लिए सफ़र बनता है, पूरे एक साल के।</string>
+    <string name="plus_info_map_title">ऑफ़लाइन वेन्यू मैप</string>
+    <string name="plus_info_map_text">वेन्यू का सैटेलाइट मैप, आपके फ़ोन में सेव, ताकि सिग्नल जाए तब भी काम आए।</string>
+    <string name="plus_info_watch_title">कलाई से ढूँढें</string>
+    <string name="plus_info_watch_text">घड़ी पर एक तीर जो पास-दूर होने पर वाइब्रेट करता है।</string>
+    <string name="plus_info_soon_title">जल्द आ रहा है</string>
+    <string name="plus_info_soon_text">Moshpoint+ अभी खरीदा नहीं जा सकता। अपना शो लिखना, ग्रुप, चैट और दोस्तों को ढूँढना फ़्री रहेगा।</string>
+    <string name="plus_info_back">प्लान पर वापस</string>
+    <string name="search_hint">बैंड या आर्टिस्ट</string>
+    <string name="search_clear">साफ़ करें</string>
+    <string name="search_near">आपके पास</string>
+    <string name="search_near_region">आपके पास · %1$s</string>
+    <string name="search_elsewhere">%1$s में और कहीं</string>
+    <string name="search_worldwide">दुनिया भर में</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%2$s में %1$d शो</item>
+        <item quantity="other">%2$s में %1$d शो</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">दुनिया भर में %1$d शो</item>
+        <item quantity="other">दुनिया भर में %1$d शो</item>
+    </plurals>
+    <string name="search_next">अगला %1$s</string>
+    <string name="search_getting_list">लिस्ट आ रही है…</string>
+    <string name="search_type_own">अपना शो खुद लिखें</string>
+    <string name="search_type_own_sub">लिस्ट में नहीं? खुद जोड़ें</string>
+    <string name="plan_tickets_from">टिकट लिंक: %1$s</string>
+    <string name="plan_tickets_remove">टिकट लिंक हटाएँ</string>
+    <string name="coming_title">आपके पास आने वाले शो</string>
+    <string name="coming_search">शो खोजें</string>
+    <string name="coming_near">मेरे पास</string>
+    <string name="coming_near_region">मेरे पास (%1$s)</string>
+    <string name="coming_country">पूरा देश</string>
+    <string name="coming_travel">सफ़र के लायक</string>
+    <string name="coming_plan_it">प्लान करें</string>
+    <string name="coming_planned">प्लान हो गया ✓</string>
+    <string name="coming_km">%1$s किमी दूर</string>
+    <string name="coming_empty">यहाँ अभी कुछ नहीं है।</string>
+    <string name="coming_failed">अभी शो लोड नहीं हो सके।</string>
+</resources>

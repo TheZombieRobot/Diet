@@ -64,6 +64,8 @@ class HomeCrew(
     val flareNotes: Map<String, String> = emptyMap(),
     /** The line about the venue's offline map (see VenueMaps); null = no line. */
     val venueMap: VenueMaps.Status? = null,
+    /** A planned crew's hype group while it sleeps (docs/DISCOVER_APP.md); null = the plain Coming up view. */
+    val hype: HypeView? = null,
 )
 
 /** Other nights: crews coming up, and gigs kept on this phone. */
@@ -74,6 +76,8 @@ class HomeGigs(
     val pastGigs: List<GigArchive.Summary> = emptyList(),
     /** Tonight's gig (it's the crew, not a past gig). */
     val currentGigId: String? = null,
+    /** "Coming up near you" in the No crew state, for Moshpoint+ members (docs/DISCOVER_APP.md); null = the Plan a gig row. */
+    val comingUp: ComingUpView? = null,
 )
 
 /** What you can change about yourself and this phone. */
@@ -126,6 +130,10 @@ class HomeCrewActions(
     /** Is this crew mate blocked on this phone? Then "Unblock Sam" is offered instead. */
     val isBlocked: (String) -> Boolean = { false },
     val onUnblock: (String) -> Unit = {},
+    /** Get tickets in the hype group: open the crew's ticket link (docs/DISCOVER_APP.md). */
+    val onTickets: (String) -> Unit = {},
+    /** "I've got my ticket" in the hype group. */
+    val onMyTicket: (Boolean) -> Unit = {},
 )
 
 /** Starting, planning and joining crews, and adding people. */
@@ -154,4 +162,10 @@ class HomeInviteActions(
 class HomeGigActions(
     val onOpenGig: (GigArchive.Summary) -> Unit = {},
     val onOpenUpNext: (String) -> Unit = {},
+    /** Coming up's chips: `near`, `country`, `travel`. */
+    val onComingScope: (String) -> Unit = {},
+    /** Plan it: a planned crew for that show, filled in. */
+    val onPlanShow: (nz.waveformlabs.moshpoint.core.DiscoverShow) -> Unit = {},
+    /** A show that already has a crew ("Planned ✓"): open that crew. */
+    val onOpenPlanned: (String) -> Unit = {},
 )

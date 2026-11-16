@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">มีบัตรแล้ว ✓</string>
+    <string name="hype_no_ticket">ยังไม่มีบัตร</string>
+    <string name="hype_wakes_up">จะตื่นในวันคอน</string>
+    <string name="hype_get_tickets">ซื้อบัตร</string>
+    <string name="hype_my_ticket">ฉันมีบัตรแล้ว</string>
+    <string name="hype_my_ticket_sub">เพื่อนจะเห็นเครื่องหมายถูก</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">ชวนเพื่อน</string>
+    <string name="hype_nudge_title">ทุกคนมีบัตรแล้ว 🎟️</string>
+    <string name="hype_nudge_text">ทั้งแก๊งสำหรับ %1$s มีบัตรครบแล้ว เจอกันที่งาน!</string>
+    <string name="plan_type_it_in">พิมพ์คอนของคุณเอง</string>
+    <string name="plan_venue_hint">สถานที่และเมือง</string>
+    <string name="plus_card_title">ค้นหาทุกคอนทั่วโลก ดูว่ามีอะไรใกล้คุณ</string>
+    <string name="plus_card_text">พิมพ์ตัวอักษรเดียว คอนก็โผล่ พร้อมวันที่ สถานที่ และลิงก์ซื้อบัตร</string>
+    <string name="plus_card_more">Moshpoint+ มีอะไรบ้าง</string>
+    <string name="plus_info_title">Moshpoint+ มีอะไรบ้าง</string>
+    <string name="plus_info_search_title">ค้นหาอัจฉริยะ</string>
+    <string name="plus_info_search_text">พิมพ์ตัวอักษรเดียว ทุกคอนทั่วโลกก็โผล่ เรียงจากใหญ่สุด พร้อมวันที่ สถานที่ และลิงก์ซื้อบัตร</string>
+    <string name="plus_info_coming_title">คอนใกล้คุณ</string>
+    <string name="plus_info_coming_text">คอนตลอดปีใกล้คุณ ทั่วประเทศ และคอนใหญ่ที่คุ้มค่าแก่การเดินทาง</string>
+    <string name="plus_info_map_title">แผนที่สถานที่แบบออฟไลน์</string>
+    <string name="plus_info_map_text">แผนที่ดาวเทียมของสถานที่ เก็บไว้ในมือถือเผื่อสัญญาณหาย</string>
+    <string name="plus_info_watch_title">หาเพื่อนจากข้อมือ</string>
+    <string name="plus_info_watch_text">ลูกศรบนนาฬิกาที่สั่นบอกว่าใกล้หรือไกล</string>
+    <string name="plus_info_soon_title">เร็ว ๆ นี้</string>
+    <string name="plus_info_soon_text">ยังซื้อ Moshpoint+ ไม่ได้ การพิมพ์คอน แก๊ง แชท และการหาเพื่อนยังฟรีเหมือนเดิม</string>
+    <string name="plus_info_back">กลับไปที่แผน</string>
+    <string name="search_hint">วงหรือศิลปิน</string>
+    <string name="search_clear">ล้าง</string>
+    <string name="search_near">ใกล้คุณ</string>
+    <string name="search_near_region">ใกล้คุณ · %1$s</string>
+    <string name="search_elsewhere">ที่อื่นใน %1$s</string>
+    <string name="search_worldwide">ทั่วโลก</string>
+    <plurals name="search_shows_in">
+        <item quantity="other">%1$d คอนใน%2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="other">%1$d คอนทั่วโลก</item>
+    </plurals>
+    <string name="search_next">ถัดไป %1$s</string>
+    <string name="search_getting_list">กำลังโหลดรายการ…</string>
+    <string name="search_type_own">พิมพ์คอนเอง</string>
+    <string name="search_type_own_sub">ไม่มีในรายการ? เพิ่มเอง</string>
+    <string name="plan_tickets_from">ลิงก์ซื้อบัตร: %1$s</string>
+    <string name="plan_tickets_remove">ลบลิงก์ซื้อบัตร</string>
+    <string name="coming_title">คอนใกล้คุณ</string>
+    <string name="coming_search">ค้นหาคอน</string>
+    <string name="coming_near">ใกล้ฉัน</string>
+    <string name="coming_near_region">ใกล้ฉัน (%1$s)</string>
+    <string name="coming_country">ทั้งประเทศ</string>
+    <string name="coming_travel">คุ้มค่าแก่การเดินทาง</string>
+    <string name="coming_plan_it">วางแผน</string>
+    <string name="coming_planned">วางแผนแล้ว ✓</string>
+    <string name="coming_km">ห่าง %1$s กม.</string>
+    <string name="coming_empty">ยังไม่มีอะไรที่นี่</string>
+    <string name="coming_failed">โหลดคอนไม่ได้ในตอนนี้</string>
+</resources>

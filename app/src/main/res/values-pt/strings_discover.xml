@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">Tenho ingresso ✓</string>
+    <string name="hype_no_ticket">Ainda sem ingresso</string>
+    <string name="hype_wakes_up">acorda no dia do show</string>
+    <string name="hype_get_tickets">Comprar ingressos</string>
+    <string name="hype_my_ticket">Já tenho meu ingresso</string>
+    <string name="hype_my_ticket_sub">Mostra um ✓ pros seus amigos</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">Convidar amigos</string>
+    <string name="hype_nudge_title">Todo mundo tem ingresso 🎟️</string>
+    <string name="hype_nudge_text">Sua galera toda pro %1$s tem ingresso. Até lá!</string>
+    <string name="plan_type_it_in">DIGITE SEU SHOW</string>
+    <string name="plan_venue_hint">Local e cidade</string>
+    <string name="plus_card_title">Busque qualquer show do mundo, veja o que vem aí perto de você</string>
+    <string name="plus_card_text">Digite uma letra e o show aparece, com data, local e link dos ingressos.</string>
+    <string name="plus_card_more">O que tem no Moshpoint+</string>
+    <string name="plus_info_title">O que tem no Moshpoint+</string>
+    <string name="plus_info_search_title">Busca inteligente</string>
+    <string name="plus_info_search_text">Digite uma letra e todo show do mundo aparece, os maiores primeiro, com data, local e link dos ingressos.</string>
+    <string name="plus_info_coming_title">Em breve perto de você</string>
+    <string name="plus_info_coming_text">Um ano de shows perto de você, no país inteiro, e os grandes que valem a viagem.</string>
+    <string name="plus_info_map_title">Mapas do local offline</string>
+    <string name="plus_info_map_text">O mapa de satélite do local, salvo no seu celular pra quando o sinal cair.</string>
+    <string name="plus_info_watch_title">Ache a galera pelo pulso</string>
+    <string name="plus_info_watch_text">Uma seta no relógio que vibra mais quente ou mais frio.</string>
+    <string name="plus_info_soon_title">EM BREVE</string>
+    <string name="plus_info_soon_text">O Moshpoint+ ainda não está à venda. Digitar seu show, a galera, o chat e achar seus amigos continuam de graça.</string>
+    <string name="plus_info_back">Voltar ao plano</string>
+    <string name="search_hint">Banda ou artista</string>
+    <string name="search_clear">Limpar</string>
+    <string name="search_near">PERTO DE VOCÊ</string>
+    <string name="search_near_region">PERTO DE VOCÊ · %1$s</string>
+    <string name="search_elsewhere">EM OUTROS LUGARES · %1$s</string>
+    <string name="search_worldwide">NO MUNDO</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d show · %2$s</item>
+        <item quantity="many">%1$d shows · %2$s</item>
+        <item quantity="other">%1$d shows · %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d show no mundo</item>
+        <item quantity="many">%1$d shows no mundo</item>
+        <item quantity="other">%1$d shows no mundo</item>
+    </plurals>
+    <string name="search_next">próximo %1$s</string>
+    <string name="search_getting_list">Buscando a lista…</string>
+    <string name="search_type_own">Digite seu próprio show</string>
+    <string name="search_type_own_sub">Não achou? Adicione na mão</string>
+    <string name="plan_tickets_from">Link dos ingressos: %1$s</string>
+    <string name="plan_tickets_remove">Remover o link dos ingressos</string>
+    <string name="coming_title">Em breve perto de você</string>
+    <string name="coming_search">Buscar shows</string>
+    <string name="coming_near">Perto de mim</string>
+    <string name="coming_near_region">Perto de mim (%1$s)</string>
+    <string name="coming_country">Todo o país</string>
+    <string name="coming_travel">Vale a viagem</string>
+    <string name="coming_plan_it">Planejar</string>
+    <string name="coming_planned">Planejado ✓</string>
+    <string name="coming_km">a %1$s km</string>
+    <string name="coming_empty">Ainda não tem nada aqui.</string>
+    <string name="coming_failed">Não deu pra carregar os shows agora.</string>
+</resources>

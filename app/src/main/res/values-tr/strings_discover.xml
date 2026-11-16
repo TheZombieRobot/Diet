@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">Biletim var ✓</string>
+    <string name="hype_no_ticket">Henüz bileti yok</string>
+    <string name="hype_wakes_up">konser günü uyanır</string>
+    <string name="hype_get_tickets">Bilet al</string>
+    <string name="hype_my_ticket">Biletimi aldım</string>
+    <string name="hype_my_ticket_sub">Arkadaşlarına bir tik gösterir</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">Arkadaş davet et</string>
+    <string name="hype_nudge_title">Herkesin bileti var 🎟️</string>
+    <string name="hype_nudge_text">%1$s için tüm ekibinin bileti var. Orada görüşürüz!</string>
+    <string name="plan_type_it_in">KONSERİNİ YAZ</string>
+    <string name="plan_venue_hint">Mekân ve şehir</string>
+    <string name="plus_card_title">Dünyadaki her konseri ara, yakınında ne var gör</string>
+    <string name="plus_card_text">Bir harf yaz, konser tarihi, mekânı ve bilet bağlantısıyla karşında.</string>
+    <string name="plus_card_more">Moshpoint+\'ta neler var</string>
+    <string name="plus_info_title">Moshpoint+\'ta neler var</string>
+    <string name="plus_info_search_title">Akıllı arama</string>
+    <string name="plus_info_search_text">Bir harf yaz, dünyadaki her konser en büyükleri önde, tarih, mekân ve bilet bağlantısıyla karşında.</string>
+    <string name="plus_info_coming_title">Yakınındaki konserler</string>
+    <string name="plus_info_coming_text">Yakınında, tüm ülkede ve yolculuğa değecek büyük konserler, bir yıl boyunca.</string>
+    <string name="plus_info_map_title">Çevrimdışı mekân haritaları</string>
+    <string name="plus_info_map_text">Mekânın uydu haritası, şebeke çekmediğinde diye telefonunda kayıtlı.</string>
+    <string name="plus_info_watch_title">Bileğinden bul</string>
+    <string name="plus_info_watch_text">Saatinde yaklaştıkça titreşen bir ok.</string>
+    <string name="plus_info_soon_title">ÇOK YAKINDA</string>
+    <string name="plus_info_soon_text">Moshpoint+ henüz satışta değil. Konserini yazmak, ekipler, sohbet ve arkadaşlarını bulmak ücretsiz kalıyor.</string>
+    <string name="plus_info_back">Plana dön</string>
+    <string name="search_hint">Grup ya da sanatçı</string>
+    <string name="search_clear">Temizle</string>
+    <string name="search_near">YAKININDA</string>
+    <string name="search_near_region">YAKININDA · %1$s</string>
+    <string name="search_elsewhere">%1$s · DİĞER YERLER</string>
+    <string name="search_worldwide">DÜNYA ÇAPINDA</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%2$s · %1$d konser</item>
+        <item quantity="other">%2$s · %1$d konser</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">dünya çapında %1$d konser</item>
+        <item quantity="other">dünya çapında %1$d konser</item>
+    </plurals>
+    <string name="search_next">sıradaki %1$s</string>
+    <string name="search_getting_list">Liste alınıyor…</string>
+    <string name="search_type_own">Konserini kendin yaz</string>
+    <string name="search_type_own_sub">Listede yok mu? Kendin ekle</string>
+    <string name="plan_tickets_from">Bilet bağlantısı: %1$s</string>
+    <string name="plan_tickets_remove">Bilet bağlantısını kaldır</string>
+    <string name="coming_title">Yakınındaki konserler</string>
+    <string name="coming_search">Konser ara</string>
+    <string name="coming_near">Yakınımda</string>
+    <string name="coming_near_region">Yakınımda (%1$s)</string>
+    <string name="coming_country">Tüm ülke</string>
+    <string name="coming_travel">Yolculuğa değer</string>
+    <string name="coming_plan_it">Planla</string>
+    <string name="coming_planned">Planlandı ✓</string>
+    <string name="coming_km">%1$s km uzakta</string>
+    <string name="coming_empty">Burada henüz bir şey yok.</string>
+    <string name="coming_failed">Konserler şu an yüklenemedi.</string>
+</resources>

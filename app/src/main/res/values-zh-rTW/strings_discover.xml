@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">有票了 ✓</string>
+    <string name="hype_no_ticket">還沒票</string>
+    <string name="hype_wakes_up">演出當天喚醒</string>
+    <string name="hype_get_tickets">買票</string>
+    <string name="hype_my_ticket">我有票了</string>
+    <string name="hype_my_ticket_sub">朋友會看到一個勾</string>
+    <string name="hype_chat_line">%1$s：%2$s</string>
+    <string name="hype_invite_mates">揪朋友</string>
+    <string name="hype_nudge_title">大家都有票了 🎟️</string>
+    <string name="hype_nudge_text">%1$s 的小隊全員都有票了。到時見！</string>
+    <string name="plan_type_it_in">手動輸入演出</string>
+    <string name="plan_venue_hint">場館和城市</string>
+    <string name="plus_card_title">搜尋全球所有演出，看看附近有什麼</string>
+    <string name="plus_card_text">輸入一個字，演出就出現了，附上日期、場館和購票連結。</string>
+    <string name="plus_card_more">Moshpoint+ 有什麼</string>
+    <string name="plus_info_title">Moshpoint+ 有什麼</string>
+    <string name="plus_info_search_title">智慧搜尋</string>
+    <string name="plus_info_search_text">輸入一個字，全球演出依規模從大到小列出，附上日期、場館和購票連結。</string>
+    <string name="plus_info_coming_title">附近即將登場</string>
+    <string name="plus_info_coming_text">一年內你附近、全國各地，以及值得專程前往的大型演出。</string>
+    <string name="plus_info_map_title">離線場館地圖</string>
+    <string name="plus_info_map_text">場館的衛星地圖存在手機裡，沒訊號也能看。</string>
+    <string name="plus_info_watch_title">從手腕找人</string>
+    <string name="plus_info_watch_text">手錶上的箭頭，靠近或遠離時會震動提示。</string>
+    <string name="plus_info_soon_title">即將推出</string>
+    <string name="plus_info_soon_text">Moshpoint+ 尚未開賣。手動輸入演出、小隊、聊天和找朋友都繼續免費。</string>
+    <string name="plus_info_back">回到計畫</string>
+    <string name="search_hint">樂團或藝人</string>
+    <string name="search_clear">清除</string>
+    <string name="search_near">你附近</string>
+    <string name="search_near_region">你附近 · %1$s</string>
+    <string name="search_elsewhere">%1$s其他地區</string>
+    <string name="search_worldwide">全球</string>
+    <plurals name="search_shows_in">
+        <item quantity="other">%2$s有 %1$d 場演出</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="other">全球 %1$d 場演出</item>
+    </plurals>
+    <string name="search_next">下一場 %1$s</string>
+    <string name="search_getting_list">正在取得清單…</string>
+    <string name="search_type_own">自己輸入演出</string>
+    <string name="search_type_own_sub">沒找到？手動新增</string>
+    <string name="plan_tickets_from">購票連結：%1$s</string>
+    <string name="plan_tickets_remove">移除購票連結</string>
+    <string name="coming_title">附近即將登場</string>
+    <string name="coming_search">搜尋演出</string>
+    <string name="coming_near">我附近</string>
+    <string name="coming_near_region">我附近（%1$s）</string>
+    <string name="coming_country">全國</string>
+    <string name="coming_travel">值得專程去</string>
+    <string name="coming_plan_it">計畫</string>
+    <string name="coming_planned">已計畫 ✓</string>
+    <string name="coming_km">%1$s 公里外</string>
+    <string name="coming_empty">這裡暫時還沒有演出。</string>
+    <string name="coming_failed">暫時無法載入演出。</string>
+</resources>

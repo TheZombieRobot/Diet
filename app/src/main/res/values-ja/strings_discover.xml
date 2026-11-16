@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">チケット確保 ✓</string>
+    <string name="hype_no_ticket">チケット未確保</string>
+    <string name="hype_wakes_up">当日に起動</string>
+    <string name="hype_get_tickets">チケットを買う</string>
+    <string name="hype_my_ticket">チケットを確保した</string>
+    <string name="hype_my_ticket_sub">仲間にチェックが表示されます</string>
+    <string name="hype_chat_line">%1$s：%2$s</string>
+    <string name="hype_invite_mates">仲間を招待</string>
+    <string name="hype_nudge_title">全員チケット確保 🎟️</string>
+    <string name="hype_nudge_text">%1$sのクルー全員がチケットを確保しました。当日会おう！</string>
+    <string name="plan_type_it_in">ライブを入力</string>
+    <string name="plan_venue_hint">会場と都市</string>
+    <string name="plus_card_title">世界中のライブを検索、近くの予定もチェック</string>
+    <string name="plus_card_text">1文字入力するだけで、日付・会場・チケットリンク付きでライブが出てきます。</string>
+    <string name="plus_card_more">Moshpoint+でできること</string>
+    <string name="plus_info_title">Moshpoint+でできること</string>
+    <string name="plus_info_search_title">スマート検索</string>
+    <string name="plus_info_search_text">1文字入力するだけで、世界中のライブが規模の大きい順に、日付・会場・チケットリンク付きで表示されます。</string>
+    <string name="plus_info_coming_title">近くの公演</string>
+    <string name="plus_info_coming_text">近くの公演、全国の公演、遠征する価値のある大型公演を1年分。</string>
+    <string name="plus_info_map_title">オフライン会場マップ</string>
+    <string name="plus_info_map_text">会場の衛星マップをスマホに保存。電波がなくても使えます。</string>
+    <string name="plus_info_watch_title">手首で仲間を探す</string>
+    <string name="plus_info_watch_text">ウォッチの矢印が、近づくと振動で知らせます。</string>
+    <string name="plus_info_soon_title">近日公開</string>
+    <string name="plus_info_soon_text">Moshpoint+はまだ購入できません。ライブの入力、クルー、チャット、仲間探しは無料のままです。</string>
+    <string name="plus_info_back">プランに戻る</string>
+    <string name="search_hint">バンド・アーティスト名</string>
+    <string name="search_clear">クリア</string>
+    <string name="search_near">近くの公演</string>
+    <string name="search_near_region">近くの公演 · %1$s</string>
+    <string name="search_elsewhere">%1$sのその他の地域</string>
+    <string name="search_worldwide">世界</string>
+    <plurals name="search_shows_in">
+        <item quantity="other">%2$sで%1$d公演</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="other">世界で%1$d公演</item>
+    </plurals>
+    <string name="search_next">次は%1$s</string>
+    <string name="search_getting_list">リストを取得中…</string>
+    <string name="search_type_own">自分でライブを入力</string>
+    <string name="search_type_own_sub">見つからない？手入力で追加</string>
+    <string name="plan_tickets_from">チケットリンク：%1$s</string>
+    <string name="plan_tickets_remove">チケットリンクを削除</string>
+    <string name="coming_title">近くの公演</string>
+    <string name="coming_search">ライブを検索</string>
+    <string name="coming_near">近く</string>
+    <string name="coming_near_region">近く（%1$s）</string>
+    <string name="coming_country">全国</string>
+    <string name="coming_travel">遠征する価値あり</string>
+    <string name="coming_plan_it">計画する</string>
+    <string name="coming_planned">計画済み ✓</string>
+    <string name="coming_km">%1$s km先</string>
+    <string name="coming_empty">まだ何も掲載されていません。</string>
+    <string name="coming_failed">今はライブを読み込めません。</string>
+</resources>

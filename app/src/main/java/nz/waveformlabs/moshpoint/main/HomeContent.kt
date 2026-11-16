@@ -20,6 +20,16 @@ import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.crew.Crews
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.debug.DebugStatus
+import androidx.compose.runtime.LaunchedEffect
+import nz.waveformlabs.moshpoint.core.LatLon
+import nz.waveformlabs.moshpoint.core.ShowStart
+import nz.waveformlabs.moshpoint.core.TicketLink
+import nz.waveformlabs.moshpoint.discover.ComingUp
+import nz.waveformlabs.moshpoint.discover.DiscoverWhere
+import nz.waveformlabs.moshpoint.discover.HypeData
+import nz.waveformlabs.moshpoint.ui.home.PlannedGig
+import nz.waveformlabs.moshpoint.watch.Entitlements
+import nz.waveformlabs.moshpoint.discover.HypeTickets
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.friends.Friendship
 import nz.waveformlabs.moshpoint.gigs.GigArchive
@@ -53,6 +63,11 @@ import nz.waveformlabs.moshpoint.venue.VenueMaps
 @Composable
 @NonRestartableComposable
 internal fun HomeContent(a: MainActivity) {
+    // "Coming up near you" (docs/DISCOVER_APP.md): Moshpoint+ members, no crew, a relay that has
+    // Discover. Asked with the country and at most the region; the position stays on the phone.
+    val showComing = GroupSync.group.value == null && Entitlements.plus(a) && ComingUp.offered(a)
+    val coarse = { a.lastKnownLocation()?.let { LatLon(it.latitude, it.longitude) } }
+    if (showComing) LaunchedEffect(ComingUp.scope.value) { ComingUp.load(a, coarse()) }
     FriendsScreen(
         me = HomeMe(
             visible = a.home.visibleToMates,
@@ -92,6 +107,10 @@ internal fun HomeContent(a: MainActivity) {
             crewSleeping = a.home.homeNow > 0 && GroupSync.sleeping,
             meetUp = GroupSync.rally.value?.name,
             venueMap = VenueMaps.status.value,
+            // A planned crew asleep until the day shows its hype group (docs/DISCOVER_APP.md).
+            hype = GroupSync.group.value?.takeIf { a.home.homeNow > 0 && GroupSync.sleeping && !GroupSync.following }?.let {
+                HypeData.view(a, it, a.home.homeNow)
+            },
         ),
         gigs = HomeGigs(
             upNext = Crews.others.map { e ->
@@ -108,6 +127,7 @@ internal fun HomeContent(a: MainActivity) {
             },
             pastGigs = GigArchive.gigs,
             currentGigId = GroupSync.group.value?.let(GigArchive::idFor),
+            comingUp = if (showComing) ComingUp.view(a) else null,
         ),
         scanned = a.invites.scanned,
         meActions = HomeMeActions(
@@ -161,6 +181,8 @@ internal fun HomeContent(a: MainActivity) {
             onRemovePhoto = PhotoStore::remove,
             onClearGigGroup = { a.home.recap = NightStats.get(a) },
             onKeepFriend = { id -> a.toast(Friendship.request(a, id)) },
+            onTickets = { url -> HypeData.openTickets(a, url) },
+            onMyTicket = { has -> GroupSync.group.value?.let { HypeTickets.set(a, it, has) } },
             // "Message Sam" in a crew mate's options, and a count on their face (docs/PRIVATE_MESSAGES.md).
             onMessage = if (GroupSync.group.value != null && !GroupSync.following) ({ id -> a.chat.messageMate(id) }) else null,
             canMessage = a.chat::canMessageMate,
@@ -247,6 +269,23 @@ internal fun HomeContent(a: MainActivity) {
         ),
         gigActions = HomeGigActions(
             onOpenUpNext = { id -> a.chat.openChat(id) },
+            onComingScope = { scope -> ComingUp.choose(a, scope, coarse()) },
+            onPlanShow = { show ->
+                val country = DiscoverWhere.country(a)
+                startPlannedCrew(
+                    a,
+                    PlannedGig(
+                        name = show.artist.ifBlank { show.name }.take(40),
+                        startsAtSec = ShowStart.of(show, country, java.time.ZoneId.systemDefault()),
+                        venue = listOf(show.venue, show.city).filter { it.isNotBlank() }.distinct().joinToString(", ").take(60),
+                        lat = show.lat, lon = show.lon,
+                        tickets = TicketLink.clean(show.tickets).orEmpty(),
+                        showId = show.id,
+                    ),
+                )
+            },
+            // A planned show's crew: the main one is the home itself; one in Up next opens its chat.
+            onOpenPlanned = { id -> a.chat.openChat(id) },
             onOpenGig = { g ->
                 a.story.archiveGig = g
                 a.story.archiveItems = emptyList()

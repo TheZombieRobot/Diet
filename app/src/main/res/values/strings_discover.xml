@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <!-- Discover and hype (docs/DISCOVER_APP.md). Under a crew mate's face in the hype group (HypeGroup.png): they've ticked "I've got my ticket". Short: it wraps under a 70 dp face. -->
+    <string name="hype_got_ticket">Got my ticket ✓</string>
+    <!-- Under a crew mate's face in the hype group: no tick yet. -->
+    <string name="hype_no_ticket">No ticket yet</string>
+    <!-- After the crew count under the countdown ("5 in the crew · wakes up on the day"): the crew sleeps (no battery) until gig day. -->
+    <string name="hype_wakes_up">wakes up on the day</string>
+    <!-- The button on the show card: opens the show's official ticket page in the browser. -->
+    <string name="hype_get_tickets">Get tickets</string>
+    <!-- Your own switch under the faces in the hype group. -->
+    <string name="hype_my_ticket">I\'ve got my ticket</string>
+    <!-- Under "I've got my ticket": what the switch does. -->
+    <string name="hype_my_ticket_sub">Shows a tick to your mates</string>
+    <!-- The crew chat row's newest line: who, then what they said ("Sam: Barrier or balcony?"). -->
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <!-- The button at the bottom of the hype group: shows the crew's invite (QR and link). -->
+    <string name="hype_invite_mates">Invite mates</string>
+    <!-- Notification to the crew's maker, once, when everyone in the crew has ticked "I've got my ticket". -->
+    <string name="hype_nudge_title">Everyone\'s got a ticket 🎟️</string>
+    <!-- Under that title. %1$s is the gig ("Ivory Tide"). -->
+    <string name="hype_nudge_text">Your whole crew for %1$s has tickets. See you there!</string>
+    <!-- Plan a gig (FreeView.png): small capitals over the hand-entry fields. -->
+    <string name="plan_type_it_in">TYPE YOUR GIG IN</string>
+    <!-- Grey hint inside the empty "Where (optional)" field. -->
+    <string name="plan_venue_hint">Venue and town</string>
+    <!-- The quiet Moshpoint+ card under Start the crew, for free users. No price, no Upgrade button. -->
+    <string name="plus_card_title">Search every show worldwide, see what\'s coming near you</string>
+    <!-- Under that title. -->
+    <string name="plus_card_text">Type one letter and the gig\'s there, with its date, venue and ticket link.</string>
+    <!-- The card's link (amber, with a chevron): opens the explanation. Keep "Moshpoint+" as it is. -->
+    <string name="plus_card_more">What\'s in Moshpoint+</string>
+    <!-- Title of the explanation page (no billing yet). Keep "Moshpoint+" as it is. -->
+    <string name="plus_info_title">What\'s in Moshpoint+</string>
+    <!-- Explanation page, first item. -->
+    <string name="plus_info_search_title">Smart search</string>
+    <!-- Under "Smart search". -->
+    <string name="plus_info_search_text">Type one letter and every show worldwide is there, biggest first, with its date, venue and ticket link.</string>
+    <!-- Explanation page, second item (the home card of the same name). -->
+    <string name="plus_info_coming_title">Coming up near you</string>
+    <!-- Under "Coming up near you". -->
+    <string name="plus_info_coming_text">A year of shows near you, the whole country, and the big ones worth travelling for.</string>
+    <!-- Explanation page, third item. -->
+    <string name="plus_info_map_title">Venue maps offline</string>
+    <!-- Under "Venue maps offline". -->
+    <string name="plus_info_map_text">The venue\'s satellite map, kept on your phone for when the signal drops.</string>
+    <!-- Explanation page, fourth item (the watch app). -->
+    <string name="plus_info_watch_title">Find them from your wrist</string>
+    <!-- Under "Find them from your wrist". -->
+    <string name="plus_info_watch_text">An arrow on your watch that buzzes warmer and colder.</string>
+    <!-- Small capitals over the note that Moshpoint+ can't be bought yet (no billing). -->
+    <string name="plus_info_soon_title">COMING SOON</string>
+    <!-- Under COMING SOON. Keep "Moshpoint+" as it is. -->
+    <string name="plus_info_soon_text">Moshpoint+ isn\'t on sale yet. Typing your gig in, crews, chat and finding your mates stay free.</string>
+    <!-- Button at the bottom of the explanation: back to Plan a gig, with what was typed kept. -->
+    <string name="plus_info_back">Back to the plan</string>
+    <!-- Grey hint in the empty smart-search box (members). The relay matches the start of an act's name or of any word in it. -->
+    <string name="search_hint">Band or artist</string>
+    <!-- What a screen reader says for the ✕ in the search box. -->
+    <string name="search_clear">Clear</string>
+    <!-- Small capitals over the first group of suggestions: acts with a show in your region. -->
+    <string name="search_near">NEAR YOU</string>
+    <!-- The same with the region's name ("NEAR YOU · NORTH ISLAND"). -->
+    <string name="search_near_region">NEAR YOU · %1$s</string>
+    <!-- Second group: the rest of the country. %1$s is the country ("NEW ZEALAND"), in capitals where the script has them. -->
+    <string name="search_elsewhere">ELSEWHERE IN %1$s</string>
+    <!-- Third group: acts with no show in your country. -->
+    <string name="search_worldwide">WORLDWIDE</string>
+    <!-- Under an act's name: how many shows it has in the country (%2$s, "New Zealand"). Followed by the next one ("· next Sat 13 Mar, Auckland"). -->
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d show in %2$s</item>
+        <item quantity="other">%1$d shows in %2$s</item>
+    </plurals>
+    <!-- Under an act with no show in your country: how many it has worldwide. Followed by the next one. -->
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d show worldwide</item>
+        <item quantity="other">%1$d shows worldwide</item>
+    </plurals>
+    <!-- After that count when there's more than one: the soonest ("next Sat 13 Mar, Auckland"). -->
+    <string name="search_next">next %1$s</string>
+    <!-- While the relay builds this country's list for the first time (about a minute). -->
+    <string name="search_getting_list">Getting the list…</string>
+    <!-- Pinned under the suggestions: back to typing the gig in by hand. -->
+    <string name="search_type_own">Type your own gig</string>
+    <!-- Under "Type your own gig". -->
+    <string name="search_type_own_sub">Not listed? Add it by hand</string>
+    <!-- Under the venue once a show was picked: the ticket page's site ("ticketmaster.co.nz"). It travels with the crew's invite. -->
+    <string name="plan_tickets_from">Ticket link: %1$s</string>
+    <!-- What a screen reader says for the ✕ next to the ticket link. -->
+    <string name="plan_tickets_remove">Remove the ticket link</string>
+    <!-- Title of the card under Start a crew in the No crew state (members). -->
+    <string name="coming_title">Coming up near you</string>
+    <!-- What a screen reader says for the card's round search button (it opens Plan a gig). -->
+    <string name="coming_search">Search shows</string>
+    <!-- First chip: shows in your region. -->
+    <string name="coming_near">Near me</string>
+    <!-- The same chip with the region's name ("Near me (North Island)"). -->
+    <string name="coming_near_region">Near me (%1$s)</string>
+    <!-- Second chip: everything in the country. -->
+    <string name="coming_country">Whole country</string>
+    <!-- Third chip: big shows abroad within 3 to 4 hours' flight. -->
+    <string name="coming_travel">Worth travelling for</string>
+    <!-- The button under each show: starts a planned crew for it, filled in. -->
+    <string name="coming_plan_it">Plan it</string>
+    <!-- The same button once this phone has a crew for the show; it opens that crew. -->
+    <string name="coming_planned">Planned ✓</string>
+    <!-- Under a show worth travelling for: how far it is ("2,150 km away"). -->
+    <string name="coming_km">%1$s km away</string>
+    <!-- When the relay knows no shows for that chip. -->
+    <string name="coming_empty">Nothing listed here yet.</string>
+    <!-- When there's no internet or the relay didn't answer. -->
+    <string name="coming_failed">Couldn\'t load shows right now.</string>
+</resources>

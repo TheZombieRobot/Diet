@@ -1493,4 +1493,83 @@ class CourierSimTest {
         w.run(120)
         assertTrue(b.has(id))
     }
+
+    // ---- "Got my ticket" (docs/DISCOVER_APP.md) ----
+
+    private fun ticketFrom(p: Phone, t: Long, has: Boolean = true) = group.sealTicket(GigGroup.Ticket(t, has), p.signer)
+
+    private fun postTicket(p: Phone, t: Long = p.now / 1000, has: Boolean = true): Long {
+        val m = assertNotNull(p.courier.post(crewId, ticketFrom(p, t, has), p.now))
+        assertEquals(Courier.KIND_TICKET, m.kind)
+        assertEquals(has, m.ticket?.has)
+        p.courier.tick(p.now)
+        return m.id
+    }
+
+    @Test fun aTicketTickGoesToTheChatMailboxAndOlderBuildsSkipIt() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        val id = postTicket(a)
+        w.run(5)
+        assertEquals(Courier.State.SENT, a.state(id))
+        val onRelay = w.relay.get(crewId, chatBox)
+        assertEquals(listOf(id), onRelay.mapNotNull { group.openTicket(it)?.id })
+        assertTrue(w.relay.get(crewId, Courier.Box.PING).isEmpty() && w.relay.get(crewId, Courier.Box.PIN).isEmpty())
+        // Older builds read the chat mailbox as pings, history bundles and direct messages: it's none of those.
+        val me = CrewKeys.generate()
+        assertTrue(onRelay.all { group.openPing(it) == null && group.openRally(it) == null && group.openHistory(it) == null && group.openDirect(it, me) == null && group.openHere(it) == null })
+        // A mate fetching the mailbox gets it.
+        val b = Phone("B", w, group)
+        b.online = true
+        w.run(30)
+        assertTrue(b.has(id))
+        assertEquals(Courier.Route.INTERNET, b.routes[id])
+        assertTrue(b.got.first { it.id == id }.ticket!!.has)
+    }
+
+    @Test fun ticketTicksGoByBluetoothBetweenCrewPhonesOnlyAndTheNewestWins() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        w.link(a, b)
+        val t = a.now / 1000
+        val tick = postTicket(a, t)
+        w.run(60)
+        assertTrue(b.has(tick), "B got it with no signal anywhere")
+        assertEquals(Courier.Route.BLUETOOTH, b.routes[tick])
+        // Unticked: a newer message, and it wins.
+        val untick = postTicket(a, TicketRule.stamp(a.now / 1000, t), has = false)
+        w.run(60)
+        assertTrue(b.has(untick))
+        assertFalse(b.got.first { it.id == untick }.ticket!!.has)
+        // The old tick again, from a phone that was out of range, and a far-future one: neither counts.
+        MessagePacket.split(ticketFrom(a, t - 600), 5).forEach { w.broadcast(a, it.encode()) }
+        MessagePacket.split(ticketFrom(a, a.now / 1000 + 10 * 365 * 86_400L), 5).forEach { w.broadcast(a, it.encode()) }
+        w.run(30)
+        assertEquals(listOf(tick, untick), b.got.map { it.id })
+        // Never through strangers' phones: a tick is never urgent, like chat.
+        val s = Phone("S", w, null)
+        val c = Phone("C", w, group)
+        w.link(a, s)
+        w.link(s, c)
+        val again = postTicket(a, TicketRule.stamp(a.now / 1000, a.now / 1000), has = true)
+        w.run(240)
+        assertTrue(b.has(again))
+        assertFalse(c.has(again), "C is only reachable through a stranger")
+    }
+
+    @Test fun ourTicketTickIsSignedAgainUnderTheCrewsNewKey() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        val id = postTicket(a)
+        w.run(5)
+        assertEquals(Courier.State.SENT, a.state(id))
+        val fresh = group.moved(ByteArray(32) { (it + 9).toByte() })
+        a.moveTo(fresh)
+        w.run(5)
+        // The new key's chat mailbox gets it, with the same id.
+        assertEquals(listOf(id), w.relay.get(crewIdOf(fresh), chatBox).mapNotNull { fresh.openTicket(it)?.id })
+    }
 }

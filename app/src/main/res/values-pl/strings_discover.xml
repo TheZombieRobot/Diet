@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">Mam bilet ✓</string>
+    <string name="hype_no_ticket">Jeszcze bez biletu</string>
+    <string name="hype_wakes_up">obudzi się w dniu koncertu</string>
+    <string name="hype_get_tickets">Kup bilety</string>
+    <string name="hype_my_ticket">Mam swój bilet</string>
+    <string name="hype_my_ticket_sub">Znajomi zobaczą ptaszek</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">Zaproś znajomych</string>
+    <string name="hype_nudge_title">Wszyscy mają bilety 🎟️</string>
+    <string name="hype_nudge_text">Cała twoja ekipa na %1$s ma bilety. Do zobaczenia!</string>
+    <string name="plan_type_it_in">WPISZ SWÓJ KONCERT</string>
+    <string name="plan_venue_hint">Miejsce i miasto</string>
+    <string name="plus_card_title">Szukaj każdego koncertu na świecie, zobacz, co nadchodzi w okolicy</string>
+    <string name="plus_card_text">Wpisz jedną literę i koncert już jest, z datą, miejscem i linkiem do biletów.</string>
+    <string name="plus_card_more">Co jest w Moshpoint+</string>
+    <string name="plus_info_title">Co jest w Moshpoint+</string>
+    <string name="plus_info_search_title">Inteligentne wyszukiwanie</string>
+    <string name="plus_info_search_text">Wpisz jedną literę i masz każdy koncert na świecie, największe najpierw, z datą, miejscem i linkiem do biletów.</string>
+    <string name="plus_info_coming_title">Nadchodzące w okolicy</string>
+    <string name="plus_info_coming_text">Rok koncertów w okolicy, w całym kraju i te wielkie, dla których warto pojechać.</string>
+    <string name="plus_info_map_title">Mapy miejsc offline</string>
+    <string name="plus_info_map_text">Satelitarna mapa miejsca zapisana w telefonie na wypadek braku zasięgu.</string>
+    <string name="plus_info_watch_title">Znajdź ich z nadgarstka</string>
+    <string name="plus_info_watch_text">Strzałka na zegarku, która wibruje cieplej i zimniej.</string>
+    <string name="plus_info_soon_title">JUŻ WKRÓTCE</string>
+    <string name="plus_info_soon_text">Moshpoint+ nie jest jeszcze w sprzedaży. Wpisywanie koncertu, ekipy, czat i szukanie znajomych pozostają za darmo.</string>
+    <string name="plus_info_back">Wróć do planu</string>
+    <string name="search_hint">Zespół lub artysta</string>
+    <string name="search_clear">Wyczyść</string>
+    <string name="search_near">W POBLIŻU</string>
+    <string name="search_near_region">W POBLIŻU · %1$s</string>
+    <string name="search_elsewhere">GDZIE INDZIEJ · %1$s</string>
+    <string name="search_worldwide">NA ŚWIECIE</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d koncert · %2$s</item>
+        <item quantity="few">%1$d koncerty · %2$s</item>
+        <item quantity="many">%1$d koncertów · %2$s</item>
+        <item quantity="other">%1$d koncertu · %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d koncert na świecie</item>
+        <item quantity="few">%1$d koncerty na świecie</item>
+        <item quantity="many">%1$d koncertów na świecie</item>
+        <item quantity="other">%1$d koncertu na świecie</item>
+    </plurals>
+    <string name="search_next">najbliższy %1$s</string>
+    <string name="search_getting_list">Pobieram listę…</string>
+    <string name="search_type_own">Wpisz koncert sam</string>
+    <string name="search_type_own_sub">Nie ma na liście? Dodaj ręcznie</string>
+    <string name="plan_tickets_from">Link do biletów: %1$s</string>
+    <string name="plan_tickets_remove">Usuń link do biletów</string>
+    <string name="coming_title">Nadchodzące w okolicy</string>
+    <string name="coming_search">Szukaj koncertów</string>
+    <string name="coming_near">W pobliżu</string>
+    <string name="coming_near_region">W pobliżu (%1$s)</string>
+    <string name="coming_country">Cały kraj</string>
+    <string name="coming_travel">Warto pojechać</string>
+    <string name="coming_plan_it">Zaplanuj</string>
+    <string name="coming_planned">Zaplanowane ✓</string>
+    <string name="coming_km">%1$s km stąd</string>
+    <string name="coming_empty">Na razie nic tu nie ma.</string>
+    <string name="coming_failed">Nie udało się teraz wczytać koncertów.</string>
+</resources>

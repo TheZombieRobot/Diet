@@ -177,7 +177,7 @@ internal fun FaceImage(f: Friend, size: Dp, live: Boolean, dim: Boolean = !live,
 /** One crew face: the face, name, then distance (live) or when they were last seen. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, onFind: (() -> Unit)?, onOptions: (() -> Unit)?) {
+private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, onFind: (() -> Unit)?, onOptions: (() -> Unit)?, bright: Boolean = false) {
     val findLabel = stringResource(R.string.home_find_name, f.name)
     val optionsLabel = stringResource(R.string.home_face_options)
     val battery = status.battery?.let { stringResource(R.string.home_face_battery, it) }
@@ -195,13 +195,13 @@ private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, o
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box {
-            FaceImage(f, 70.dp, status.live)
+            FaceImage(f, 70.dp, status.live, dim = !status.live && !bright)
             UnreadBadge(badge, Modifier.align(Alignment.TopEnd))
         }
         Spacer(Modifier.height(8.dp))
         Text(
             f.name,
-            style = HomeType.Label.copy(fontSize = 14.sp.capScale(), color = if (status.live) Mosh.Text else Mosh.TextDim),
+            style = HomeType.Label.copy(fontSize = 14.sp.capScale(), color = if (status.live || bright) Mosh.Text else Mosh.TextDim),
             maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(2.dp))
@@ -261,8 +261,12 @@ internal fun CrewTiles(
     badges: Map<String, Int> = emptyMap(),
     flares: Map<String, String> = emptyMap(),
     modifier: Modifier = Modifier,
+    /** The hype group (docs/DISCOVER_APP.md): who has a ticket, by friend id. Then that's the caption, and nobody is dimmed. */
+    tickets: Map<String, Boolean>? = null,
 ) {
     val atVenue = stringResource(R.string.crew_at_venue)
+    val gotTicket = stringResource(R.string.hype_got_ticket)
+    val noTicket = stringResource(R.string.hype_no_ticket)
     // A steady order: re-sorted when someone joins or leaves, goes live or not, or moves to
     // another distance band, never on every sync, and never while a finger is on the strip
     // (a face mustn't jump away as it's tapped). Newcomers wait at the end until then.
@@ -292,7 +296,10 @@ internal fun CrewTiles(
     ) {
         items(sorted, key = { it.id }) { f ->
             val note = notes[f.id]
-            val status = if (note != null) {
+            val status = if (tickets != null) {
+                val has = tickets[f.id] == true
+                FaceStatus(has, if (has) gotTicket else noTicket, if (has) Mosh.Lime else Mosh.TextFaint, false, null)
+            } else if (note != null) {
                 FaceStatus(note == atVenue, note, if (note == atVenue) Mosh.Lime else Mosh.TextDim, false, null)
             } else {
                 faceStatus(seen[f.id], nowSec, distances[f.id])
@@ -301,6 +308,7 @@ internal fun CrewTiles(
                 f, status, flares[f.id], badges[f.id] ?: 0,
                 onFind = onFind?.let { find -> { find(f.id) } },
                 onOptions = onOptions?.let { options -> { options(f) } },
+                bright = tickets != null,
             )
         }
     }

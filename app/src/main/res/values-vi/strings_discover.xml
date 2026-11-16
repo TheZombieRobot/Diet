@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">Có vé rồi ✓</string>
+    <string name="hype_no_ticket">Chưa có vé</string>
+    <string name="hype_wakes_up">thức dậy vào ngày diễn</string>
+    <string name="hype_get_tickets">Mua vé</string>
+    <string name="hype_my_ticket">Mình có vé rồi</string>
+    <string name="hype_my_ticket_sub">Bạn bè sẽ thấy dấu tích</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">Rủ bạn bè</string>
+    <string name="hype_nudge_title">Ai cũng có vé rồi 🎟️</string>
+    <string name="hype_nudge_text">Cả nhóm đi %1$s đều có vé rồi. Hẹn gặp ở đó!</string>
+    <string name="plan_type_it_in">TỰ NHẬP BUỔI DIỄN</string>
+    <string name="plan_venue_hint">Địa điểm và thành phố</string>
+    <string name="plus_card_title">Tìm mọi buổi diễn trên thế giới, xem sắp có gì gần bạn</string>
+    <string name="plus_card_text">Gõ một chữ là có ngay buổi diễn, kèm ngày, địa điểm và link mua vé.</string>
+    <string name="plus_card_more">Moshpoint+ có gì</string>
+    <string name="plus_info_title">Moshpoint+ có gì</string>
+    <string name="plus_info_search_title">Tìm kiếm thông minh</string>
+    <string name="plus_info_search_text">Gõ một chữ là có mọi buổi diễn trên thế giới, lớn nhất trước, kèm ngày, địa điểm và link mua vé.</string>
+    <string name="plus_info_coming_title">Sắp diễn ra gần bạn</string>
+    <string name="plus_info_coming_text">Một năm buổi diễn gần bạn, khắp cả nước, và những show lớn đáng để đi xa.</string>
+    <string name="plus_info_map_title">Bản đồ địa điểm ngoại tuyến</string>
+    <string name="plus_info_map_text">Bản đồ vệ tinh của địa điểm, lưu trên điện thoại phòng khi mất sóng.</string>
+    <string name="plus_info_watch_title">Tìm bạn từ cổ tay</string>
+    <string name="plus_info_watch_text">Mũi tên trên đồng hồ rung khi gần hơn hay xa hơn.</string>
+    <string name="plus_info_soon_title">SẮP RA MẮT</string>
+    <string name="plus_info_soon_text">Moshpoint+ chưa bán. Tự nhập buổi diễn, nhóm, chat và tìm bạn bè vẫn miễn phí.</string>
+    <string name="plus_info_back">Quay lại kế hoạch</string>
+    <string name="search_hint">Ban nhạc hoặc nghệ sĩ</string>
+    <string name="search_clear">Xóa</string>
+    <string name="search_near">GẦN BẠN</string>
+    <string name="search_near_region">GẦN BẠN · %1$s</string>
+    <string name="search_elsewhere">NƠI KHÁC Ở %1$s</string>
+    <string name="search_worldwide">TOÀN THẾ GIỚI</string>
+    <plurals name="search_shows_in">
+        <item quantity="other">%1$d buổi diễn ở %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="other">%1$d buổi diễn trên thế giới</item>
+    </plurals>
+    <string name="search_next">gần nhất %1$s</string>
+    <string name="search_getting_list">Đang tải danh sách…</string>
+    <string name="search_type_own">Tự nhập buổi diễn</string>
+    <string name="search_type_own_sub">Không có? Tự thêm</string>
+    <string name="plan_tickets_from">Link mua vé: %1$s</string>
+    <string name="plan_tickets_remove">Xóa link mua vé</string>
+    <string name="coming_title">Sắp diễn ra gần bạn</string>
+    <string name="coming_search">Tìm buổi diễn</string>
+    <string name="coming_near">Gần tôi</string>
+    <string name="coming_near_region">Gần tôi (%1$s)</string>
+    <string name="coming_country">Cả nước</string>
+    <string name="coming_travel">Đáng để đi xa</string>
+    <string name="coming_plan_it">Lên kế hoạch</string>
+    <string name="coming_planned">Đã lên kế hoạch ✓</string>
+    <string name="coming_km">cách %1$s km</string>
+    <string name="coming_empty">Chưa có gì ở đây.</string>
+    <string name="coming_failed">Hiện không tải được buổi diễn.</string>
+</resources>

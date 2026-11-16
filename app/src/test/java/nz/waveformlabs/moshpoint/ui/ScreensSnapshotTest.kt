@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asImageBitmap
@@ -23,6 +24,8 @@ import nz.waveformlabs.moshpoint.ui.home.AddSheetContent
 import nz.waveformlabs.moshpoint.ui.home.CrewMenuContent
 import nz.waveformlabs.moshpoint.ui.home.FriendsListContent
 import nz.waveformlabs.moshpoint.ui.home.HomeDivider
+import nz.waveformlabs.moshpoint.ui.home.PlanGigContent
+import nz.waveformlabs.moshpoint.ui.home.PlusInfoContent
 import nz.waveformlabs.moshpoint.ui.home.SectionTitle
 import nz.waveformlabs.moshpoint.ui.home.UpNextCard
 import nz.waveformlabs.moshpoint.ui.home.UpNextRow
@@ -473,6 +476,183 @@ open class ScreensSnapshotTest {
                 upNext = HomeFixtures.upNext().drop(1), pinnedPlan = "Meet at the gate, 6pm",
             )
         }
+    }
+
+    // ---- The hype group (docs/DISCOVER_APP.md, HypeGroup.png): a planned crew asleep until the day ----
+    // Made-up act, venue and link; Rae and Sam have tickets, Jo and Kai don't yet.
+
+    private fun hypeView(link: Boolean = true, mine: Boolean = false, days: Int = 117) = nz.waveformlabs.moshpoint.ui.home.HypeView(
+        days = days, name = "Ivory Tide", venue = "Tidewater Arena, Auckland",
+        whenText = nz.waveformlabs.moshpoint.discover.HypeData.whenText(HomeFixtures.MAR_13_SHOWN),
+        ticketLink = if (link) "https://tickets.example.com/ivory-tide" else null,
+        ticks = mapOf("rae" to true, "sam" to true),
+        mine = mine,
+        chatFrom = "Sam", chatText = "Barrier or balcony?", chatFace = HomeFixtures.sam,
+    )
+
+    private fun snapHype(link: Boolean = true, mine: Boolean = false, days: Int = 117) = snap {
+        MoshTheme {
+            HomeUnderTest(
+                groupName = "Ivory Tide", crewKeys = setOf(HomeFixtures.rae.key, HomeFixtures.sam.key, HomeFixtures.jo.key),
+                seen = emptyMap(), distances = emptyMap(), pings = emptyList(), meetUp = null, chatUnread = 3,
+                crewSleeping = true, upNext = emptyList(), hype = hypeView(link, mine, days),
+            )
+        }
+    }
+
+    /** The hype group: countdown, the show with Get tickets, who has a ticket, your toggle, chat, Invite mates. */
+    @Test fun hypeGroup() = snapHype()
+
+    /** Ticked yourself; a show typed in by hand has no ticket link; tomorrow. */
+    @Test fun hypeGroupTicked() = snapHype(link = false, mine = true, days = 1)
+
+    @Test fun smallPhoneHypeGroup() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5))
+        snapHype()
+    }
+
+    @Test fun largeFontHypeGroup() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.PIXEL_5).copy(fontScale = 1.3f))
+        snapHype()
+    }
+
+    @Test fun smallPhoneLargeFontHypeGroup() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        snapHype()
+    }
+
+    // ---- Plan a gig, free (docs/DISCOVER_APP.md, FreeView.png) ----
+
+    /** A sheet opened all the way over the no-crew home: as tall as its contents, from the top on a small phone (it scrolls there). */
+    private fun snapSheet(panel: @androidx.compose.runtime.Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) = snap {
+        MoshTheme {
+            androidx.compose.foundation.layout.BoxWithConstraints(androidx.compose.ui.Modifier.fillMaxSize()) {
+                HomeUnderTest(
+                    friends = HomeFixtures.friendsOnly, groupName = null, crewKeys = emptySet(), seen = emptyMap(),
+                    pings = emptyList(), meetUp = null, chatUnread = 0,
+                )
+                androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().background(Mosh.Scrim))
+                // The contents scroll by themselves in the height the sheet gets (as on the phone).
+                androidx.compose.foundation.layout.Box(
+                    androidx.compose.ui.Modifier.align(androidx.compose.ui.Alignment.BottomCenter).heightIn(max = maxHeight - 32.dp),
+                ) { nz.waveformlabs.moshpoint.ui.home.SheetFrame(content = panel) }
+            }
+        }
+    }
+
+    private fun planForm() = nz.waveformlabs.moshpoint.ui.home.PlanForm(HomeFixtures.MAR_13_SHOWN).apply { name = "Ivory Tide" }
+
+    private fun snapPlanFree() = snapSheet {
+        PlanGigContent(planForm(), member = false, search = null, onPick = {}, lookupVenue = null, onWhatsPlus = {})
+    }
+
+    /** Plan a gig for a free user: who's playing, the date and time, the venue, Start the crew, then the quiet Moshpoint+ card. */
+    @Test fun planGigFree() = snapPlanFree()
+
+    @Test fun smallPhonePlanGigFree() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5))
+        snapPlanFree()
+    }
+
+    @Test fun largeFontPlanGigFree() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.PIXEL_5).copy(fontScale = 1.3f))
+        snapPlanFree()
+    }
+
+    // ---- Smart search, members (docs/DISCOVER_APP.md, SmartSearch.png). Made-up acts and venues. ----
+
+    private fun show(artist: String, date: String, city: String, country: String = "NZ") = nz.waveformlabs.moshpoint.core.DiscoverShow(
+        artist.lowercase(), artist, artist, date, "19:30", 0L, "Tidewater Arena", city, "north", country, -36.85, 174.76,
+        "https://tickets.example.com/${artist.lowercase().replace(' ', '-')}",
+    )
+
+    private fun act(artist: String, shows: Int, next: nz.waveformlabs.moshpoint.core.DiscoverShow) =
+        nz.waveformlabs.moshpoint.core.Suggestion(artist, 0.8, shows, shows, next)
+
+    private val suggestions = nz.waveformlabs.moshpoint.core.SuggestAnswer(
+        "NZ", "I", "north", true,
+        near = listOf(act("Ivory Tide", 3, show("Ivory Tide", "2027-03-13", "Auckland")), act("Inkwell Saints", 1, show("Inkwell Saints", "2027-01-22", "Wellington"))),
+        elsewhere = listOf(act("Idle Comets", 2, show("Idle Comets", "2027-02-06", "Christchurch")), act("Iris Undertow", 1, show("Iris Undertow", "2027-04-15", "Dunedin"))),
+        worldwide = listOf(act("Indigo Parade", 40, show("Indigo Parade", "2027-04-09", "Tokyo", "JP")), act("Ice Harbour", 18, show("Ice Harbour", "2027-03-20", "Sydney", "AU"))),
+    )
+
+    private val planSearch = nz.waveformlabs.moshpoint.ui.home.PlanSearch(
+        "NZ", "North Island", suggest = { nz.waveformlabs.moshpoint.discover.DiscoverClient.Answer.Ok(suggestions) }, startOf = { HomeFixtures.MAR_13 },
+    )
+
+    private fun snapSearch() = snapSheet {
+        val form = nz.waveformlabs.moshpoint.ui.home.PlanForm(HomeFixtures.MAR_13).apply { query = "I"; answer = suggestions }
+        PlanGigContent(form, member = true, search = planSearch, onPick = {}, lookupVenue = null, onWhatsPlus = {})
+    }
+
+    /** "I" typed: near you, elsewhere in New Zealand, worldwide; "Type your own gig" pinned underneath. */
+    @Test fun smartSearch() = snapSearch()
+
+    @Test fun smallPhoneLargeFontSmartSearch() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        snapSearch()
+    }
+
+    /** A show picked: the plan is filled in (name, date, venue) with its ticket link, ready for Start the crew. */
+    @Test fun smartSearchPicked() = snapSheet {
+        val form = nz.waveformlabs.moshpoint.ui.home.PlanForm(HomeFixtures.MAR_13_SHOWN)
+        form.fill(suggestions.near[0].next!!, "Ivory Tide", HomeFixtures.MAR_13_SHOWN)
+        PlanGigContent(form, member = true, search = planSearch, onPick = {}, lookupVenue = null, onWhatsPlus = {})
+    }
+
+    // ---- Coming up near you, members (docs/DISCOVER_APP.md, ComingUp.png). Made-up acts and venues. ----
+
+    private fun gig(id: String, artist: String, date: String, venue: String, city: String, km: Int = 0) = nz.waveformlabs.moshpoint.core.DiscoverShow(
+        id, artist, artist, date, "19:30", 0L, venue, city, "north", "NZ", km = km,
+    )
+
+    private fun comingUp(scope: String = "near") = nz.waveformlabs.moshpoint.ui.home.ComingUpView(
+        scope = scope, regionName = "North Island",
+        shows = if (scope == "travel") listOf(
+            gig("harbour", "Ice Harbour", "2027-03-20", "Harbourside Stadium", "Sydney", km = 2150),
+            gig("lantern", "Lantern Fields", "2027-01-09", "Bayside Park", "Melbourne", km = 2640),
+            gig("indigo", "Indigo Parade", "2027-04-09", "Riverside Dome", "Brisbane", km = 2290),
+        ) else listOf(
+            gig("velvet", "Velvet Moa", "2026-12-04", "The Boatshed", "Tauranga"),
+            gig("ivory", "Ivory Tide", "2027-03-13", "Tidewater Arena", "Auckland"),
+            gig("glass", "Glass Kites", "2027-04-10", "Riverside Hall", "Hamilton"),
+        ),
+        status = nz.waveformlabs.moshpoint.ui.home.ComingStatus.READY,
+        planned = mapOf("ivory" to "crew-ivory"),
+    )
+
+    private fun snapComingUp(scope: String = "near") = snap {
+        MoshTheme {
+            HomeUnderTest(
+                friends = HomeFixtures.friendsOnly, groupName = null, crewKeys = emptySet(),
+                seen = mapOf("rae" to HomeFixtures.seen(30), "sam" to HomeFixtures.seen(50), "alex" to HomeFixtures.seen(100)),
+                pings = emptyList(), meetUp = null, chatUnread = 0, comingUp = comingUp(scope),
+            )
+        }
+    }
+
+    /** No crew tonight, a member: the Coming up card under Start a crew; one show already planned. */
+    @Test fun homeComingUpNearYou() = snapComingUp()
+
+    /** Worth travelling for: big shows abroad, with how far they are. */
+    @Test fun homeComingUpTravel() = snapComingUp("travel")
+
+    @Test fun smallPhoneHomeComingUpNearYou() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5))
+        snapComingUp()
+    }
+
+    @Test fun largeFontHomeComingUpNearYou() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.PIXEL_5).copy(fontScale = 1.3f))
+        snapComingUp()
+    }
+
+    /** "What's in Moshpoint+": what it adds, and that it can't be bought yet. */
+    @Test fun plusInfo() = snapSheet { PlusInfoContent(onBack = {}) }
+
+    @Test fun smallPhoneLargeFontPlusInfo() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        snapSheet { PlusInfoContent(onBack = {}) }
     }
 
     /** Following from home: where they are (at the venue / how far from it), the latest alerts, the story, the map. */
