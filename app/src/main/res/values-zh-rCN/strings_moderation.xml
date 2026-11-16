@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">屏蔽 %1$s</string>
+    <string name="mod_unblock_name">取消屏蔽 %1$s</string>
+    <string name="mod_block_title">要屏蔽 %1$s 吗？</string>
+    <string name="mod_block_text">你在这台手机上将看不到对方的消息、照片和视频，对方的私信也不会再送到你这里。对方不会收到通知，并会留在小队中。</string>
+    <string name="mod_block_owner">这个小队是你创建的，所以你也可以把 %1$s 移出小队。</string>
+    <string name="mod_remove_name">将 %1$s 移出小队</string>
+    <string name="mod_block">屏蔽</string>
+    <string name="mod_blocked_done">已在这台手机上屏蔽 %1$s。</string>
+    <string name="mod_unblocked_done">已取消屏蔽 %1$s。</string>
+    <string name="mod_blocked_people">已屏蔽的人</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="other">已屏蔽 %d 人</item>
+    </plurals>
+    <string name="mod_blocked_none">还没有屏蔽任何人。要屏蔽某人，长按对方的头像或其中一条消息，或打开对方的照片。</string>
+    <string name="mod_blocked_about">被屏蔽的人的消息、照片和视频会在这台手机上隐藏，他们的私信会被丢弃。对方不会收到通知。</string>
+    <string name="mod_unblock">取消屏蔽</string>
+    <string name="mod_thread_blocked">你已屏蔽 %1$s。对方的消息已隐藏，新消息也不会送达。点按即可取消屏蔽。</string>
+    <string name="mod_report_or_block">举报或屏蔽</string>
+    <string name="mod_rules_title">发布之前</string>
+    <string name="mod_rules_intro">小队聊天、照片、视频和私信都是为你的小队准备的。请遵守以下规则：</string>
+    <string name="mod_rules_harassment">禁止骚扰、欺凌和仇恨言论。</string>
+    <string name="mod_rules_illegal">禁止任何违法内容，严禁任何涉及未满 18 岁者的色情内容。</string>
+    <string name="mod_rules_threats">禁止威胁和暴力。</string>
+    <string name="mod_rules_reports">小队里的任何人都可以举报你发布的内容。举报会把对方看到的内容发送给 Moshpoint，并可能被审核。违反这些规则可能会被 Moshpoint 封禁。</string>
+    <string name="mod_rules_agree">我同意</string>
+    <string name="mod_report_message">举报这条消息</string>
+    <string name="mod_report_photo">举报这张照片</string>
+    <string name="mod_report_clip">举报这个视频</string>
+    <string name="mod_report_name">举报 %1$s</string>
+    <string name="mod_report_why">出了什么问题？</string>
+    <string name="mod_reason_harassment">骚扰或欺凌</string>
+    <string name="mod_reason_hate">仇恨</string>
+    <string name="mod_reason_sexual">色情内容</string>
+    <string name="mod_reason_violence">暴力或威胁</string>
+    <string name="mod_reason_spam">垃圾信息</string>
+    <string name="mod_reason_other">其他</string>
+    <string name="mod_report_note">添加备注（可选）</string>
+    <string name="mod_report_e2e">消息经过端到端加密，Moshpoint 看不到。所以举报会发送你能看到的内容：</string>
+    <string name="mod_report_sends_message">这条消息</string>
+    <string name="mod_report_sends_photo">这张照片（缩小）及其说明</string>
+    <string name="mod_report_sends_clip">这个视频的几帧画面（缩小）及其说明</string>
+    <string name="mod_report_sends_who">%1$s 的名字和其在这个小队中的密钥、代表小队的代码（不是小队名）以及时间</string>
+    <string name="mod_report_sends_note">你的备注（如有）</string>
+    <string name="mod_report_kept">举报会保留 90 天。%1$s 不会知道是谁举报的。</string>
+    <string name="mod_report_block_too">同时屏蔽 %1$s</string>
+    <string name="mod_report_send">发送举报</string>
+    <string name="mod_report_sending">正在发送…</string>
+    <string name="mod_report_sent">举报已发送。感谢你照顾好自己的小队。</string>
+    <string name="mod_report_failed">举报发送失败。请检查网络连接后重试。</string>
+    <string name="mod_report_limit">这台手机的举报次数过多，请稍后再试。</string>
+</resources>

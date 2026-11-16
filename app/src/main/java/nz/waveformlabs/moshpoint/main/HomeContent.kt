@@ -25,6 +25,9 @@ import nz.waveformlabs.moshpoint.friends.Friendship
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.map.LocationBook
+import nz.waveformlabs.moshpoint.moderation.Blocks
+import nz.waveformlabs.moshpoint.moderation.Moderation
+import nz.waveformlabs.moshpoint.moderation.Person
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.profile.AvatarSync
@@ -69,7 +72,7 @@ internal fun HomeContent(a: MainActivity) {
             seen = LocationBook.seen,
             nowSec = a.home.homeNow / 1000,
             pings = GroupSync.pings,
-            moments = Moments.items,
+            moments = Blocks.visibleMoments(Moments.items),
             checkInBy = GroupSync.myCheckInBy.value.takeIf { it > 0 }?.let {
                 DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it * 1000))
             },
@@ -184,6 +187,20 @@ internal fun HomeContent(a: MainActivity) {
                 }
             },
             onOpenMoment = a.momentFlow::view,
+            // Report and block from a crew mate's options (docs/REPORT_BLOCK.md).
+            onReport = if (GroupSync.group.value != null) ({ id ->
+                FriendsRepository.byId(id)?.let { Person.ofFriend(it) }?.let { Moderation.report.value = Moderation.Subject(it) }
+            }) else null,
+            onBlock = if (GroupSync.group.value != null) ({ id ->
+                FriendsRepository.byId(id)?.let { Person.ofFriend(it) }?.let { Moderation.confirmBlock.value = Moderation.Subject(it) }
+            }) else null,
+            isBlocked = { id -> FriendsRepository.byId(id)?.let { Person.ofFriend(it) }?.let { p -> Blocks.list.value.blocksPerson(p.tag, p.crewId, p.name) } == true },
+            onUnblock = { id ->
+                FriendsRepository.byId(id)?.let { Person.ofFriend(it) }?.let { p ->
+                    Blocks.unblockPerson(a, p)
+                    a.toast(Txt.s(R.string.mod_unblocked_done, p.name))
+                }
+            },
             onOpenMap = { a.map.openMap() },
             // The crew menu's "Reset the invite": as on the QR screen, only the owner resets an owned crew.
             onResetInvite = GroupSync.group.value?.takeIf { !GroupSync.following && CrewRekey.mayRemove(a, it) }?.let { g ->

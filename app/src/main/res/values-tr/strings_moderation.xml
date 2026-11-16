@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">Engelle: %1$s</string>
+    <string name="mod_unblock_name">Engeli kaldır: %1$s</string>
+    <string name="mod_block_title">%1$s engellensin mi?</string>
+    <string name="mod_block_text">Bu kişinin mesajlarını, fotoğraflarını ve videolarını bu telefonda görmezsin; özel mesajları da sana ulaşmaz. Kişiye haber verilmez ve ekipte kalır.</string>
+    <string name="mod_block_owner">Bu ekibi sen kurdun; istersen bu kişiyi (%1$s) ekipten de çıkarabilirsin.</string>
+    <string name="mod_remove_name">Ekipten çıkar: %1$s</string>
+    <string name="mod_block">Engelle</string>
+    <string name="mod_blocked_done">%1$s bu telefonda engellendi.</string>
+    <string name="mod_unblocked_done">Engel kaldırıldı: %1$s</string>
+    <string name="mod_blocked_people">Engellenen kişiler</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d kişi engellendi</item>
+        <item quantity="other">%d kişi engellendi</item>
+    </plurals>
+    <string name="mod_blocked_none">Engellenen kimse yok. Birini engellemek için yüzüne ya da mesajlarından birine basılı tut veya fotoğrafını aç.</string>
+    <string name="mod_blocked_about">Bu kişilerin mesajları, fotoğrafları ve videoları bu telefonda gizlenir; özel mesajları silinir. Kendilerine haber verilmez.</string>
+    <string name="mod_unblock">Engeli kaldır</string>
+    <string name="mod_thread_blocked">%1$s engellendi. Mesajları gizli ve yenileri sana ulaşmıyor. Engeli kaldırmak için dokun.</string>
+    <string name="mod_report_or_block">Şikayet et veya engelle</string>
+    <string name="mod_rules_title">Paylaşmadan önce</string>
+    <string name="mod_rules_intro">Ekip sohbeti, fotoğraflar, videolar ve özel mesajlar ekibin için. Şu kurallara uy:</string>
+    <string name="mod_rules_harassment">Taciz, zorbalık ve nefret yok.</string>
+    <string name="mod_rules_illegal">Yasa dışı hiçbir şey yok; 18 yaş altındakileri içeren cinsel hiçbir şey yok.</string>
+    <string name="mod_rules_threats">Tehdit ve şiddet yok.</string>
+    <string name="mod_rules_reports">Ekibindeki herkes paylaştığın şeyi şikayet edebilir. Şikayet, o kişinin gördüğünü Moshpoint\'e gönderir ve incelenebilir. Bu kuralları çiğneyen kişi Moshpoint\'te engellenebilir.</string>
+    <string name="mod_rules_agree">Kabul ediyorum</string>
+    <string name="mod_report_message">Bu mesajı şikayet et</string>
+    <string name="mod_report_photo">Bu fotoğrafı şikayet et</string>
+    <string name="mod_report_clip">Bu videoyu şikayet et</string>
+    <string name="mod_report_name">Şikayet et: %1$s</string>
+    <string name="mod_report_why">Sorun ne?</string>
+    <string name="mod_reason_harassment">Taciz veya zorbalık</string>
+    <string name="mod_reason_hate">Nefret</string>
+    <string name="mod_reason_sexual">Cinsel içerik</string>
+    <string name="mod_reason_violence">Şiddet veya tehdit</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Başka bir şey</string>
+    <string name="mod_report_note">Not ekle (isteğe bağlı)</string>
+    <string name="mod_report_e2e">Mesajlar uçtan uca şifrelidir, yani Moshpoint onları göremez. Şikayetin, senin görebildiklerini gönderir:</string>
+    <string name="mod_report_sends_message">Bu mesaj</string>
+    <string name="mod_report_sends_photo">Bu fotoğraf, küçültülmüş hâliyle, açıklamasıyla birlikte</string>
+    <string name="mod_report_sends_clip">Bu videodan birkaç kare, küçültülmüş hâliyle, açıklamasıyla birlikte</string>
+    <string name="mod_report_sends_who">Kişinin adı (%1$s) ve bu ekipteki anahtarı, ekip için bir kod (adı değil) ve saat</string>
+    <string name="mod_report_sends_note">Eklersen notun</string>
+    <string name="mod_report_kept">Şikayetler 90 gün saklanır. %1$s, şikayeti kimin yaptığını öğrenmez.</string>
+    <string name="mod_report_block_too">Ayrıca engelle: %1$s</string>
+    <string name="mod_report_send">Şikayeti gönder</string>
+    <string name="mod_report_sending">Gönderiliyor…</string>
+    <string name="mod_report_sent">Şikayet gönderildi. Ekibini kolladığın için teşekkürler.</string>
+    <string name="mod_report_failed">Şikayet gönderilemedi. Bağlantını kontrol edip tekrar dene.</string>
+    <string name="mod_report_limit">Bu telefondan çok fazla şikayet gönderildi. Daha sonra tekrar dene.</string>
+</resources>

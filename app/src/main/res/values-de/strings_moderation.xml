@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">%1$s blockieren</string>
+    <string name="mod_unblock_name">Blockierung von %1$s aufheben</string>
+    <string name="mod_block_title">%1$s blockieren?</string>
+    <string name="mod_block_text">Du siehst die Nachrichten, Fotos und Clips dieser Person auf diesem Handy nicht mehr, und ihre privaten Nachrichten erreichen dich nicht. Sie erfährt nichts davon und bleibt in der Crew.</string>
+    <string name="mod_block_owner">Du hast diese Crew erstellt, also kannst du %1$s auch aus ihr entfernen.</string>
+    <string name="mod_remove_name">%1$s aus der Crew entfernen</string>
+    <string name="mod_block">Blockieren</string>
+    <string name="mod_blocked_done">%1$s ist auf diesem Handy blockiert.</string>
+    <string name="mod_unblocked_done">%1$s ist nicht mehr blockiert.</string>
+    <string name="mod_blocked_people">Blockierte Personen</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d Person blockiert</item>
+        <item quantity="other">%d Personen blockiert</item>
+    </plurals>
+    <string name="mod_blocked_none">Niemand ist blockiert. Um jemanden zu blockieren, halte das Gesicht oder eine Nachricht der Person gedrückt oder öffne ihr Foto.</string>
+    <string name="mod_blocked_about">Nachrichten, Fotos und Clips blockierter Personen sind auf diesem Handy ausgeblendet, und ihre privaten Nachrichten werden verworfen. Sie erfahren nichts davon.</string>
+    <string name="mod_unblock">Freigeben</string>
+    <string name="mod_thread_blocked">Du hast %1$s blockiert. Die Nachrichten sind ausgeblendet, und neue erreichen dich nicht. Tippe, um die Blockierung aufzuheben.</string>
+    <string name="mod_report_or_block">Melden oder blockieren</string>
+    <string name="mod_rules_title">Bevor du postest</string>
+    <string name="mod_rules_intro">Crew-Chat, Fotos, Clips und private Nachrichten sind für deine Crew. Halte dich an diese Regeln:</string>
+    <string name="mod_rules_harassment">Keine Belästigung, kein Mobbing, kein Hass.</string>
+    <string name="mod_rules_illegal">Nichts Illegales und nichts Sexuelles mit Personen unter 18.</string>
+    <string name="mod_rules_threats">Keine Drohungen und keine Gewalt.</string>
+    <string name="mod_rules_reports">Alle in deiner Crew können melden, was du postest. Eine Meldung schickt Moshpoint, was die Person gesehen hat, und sie kann geprüft werden. Wer gegen diese Regeln verstößt, kann bei Moshpoint gesperrt werden.</string>
+    <string name="mod_rules_agree">Einverstanden</string>
+    <string name="mod_report_message">Diese Nachricht melden</string>
+    <string name="mod_report_photo">Dieses Foto melden</string>
+    <string name="mod_report_clip">Diesen Clip melden</string>
+    <string name="mod_report_name">%1$s melden</string>
+    <string name="mod_report_why">Was ist das Problem?</string>
+    <string name="mod_reason_harassment">Belästigung oder Mobbing</string>
+    <string name="mod_reason_hate">Hass</string>
+    <string name="mod_reason_sexual">Sexuelle Inhalte</string>
+    <string name="mod_reason_violence">Gewalt oder Drohungen</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Etwas anderes</string>
+    <string name="mod_report_note">Notiz hinzufügen (optional)</string>
+    <string name="mod_report_e2e">Nachrichten sind Ende-zu-Ende-verschlüsselt, Moshpoint kann sie also nicht sehen. Deine Meldung schickt, was du sehen kannst:</string>
+    <string name="mod_report_sends_message">Diese Nachricht</string>
+    <string name="mod_report_sends_photo">Dieses Foto, verkleinert, mit Bildunterschrift</string>
+    <string name="mod_report_sends_clip">Ein paar Bilder aus diesem Clip, verkleinert, mit Bildunterschrift</string>
+    <string name="mod_report_sends_who">Den Namen von %1$s und den Schlüssel der Person in dieser Crew, einen Code für die Crew (nicht ihren Namen) und die Uhrzeit</string>
+    <string name="mod_report_sends_note">Deine Notiz, falls du eine schreibst</string>
+    <string name="mod_report_kept">Meldungen werden 90 Tage aufbewahrt. %1$s erfährt nicht, wer gemeldet hat.</string>
+    <string name="mod_report_block_too">%1$s auch blockieren</string>
+    <string name="mod_report_send">Meldung senden</string>
+    <string name="mod_report_sending">Wird gesendet…</string>
+    <string name="mod_report_sent">Meldung gesendet. Danke, dass du auf deine Crew achtest.</string>
+    <string name="mod_report_failed">Die Meldung konnte nicht gesendet werden. Prüf deine Verbindung und versuch es noch mal.</string>
+    <string name="mod_report_limit">Zu viele Meldungen von diesem Handy. Versuch es später noch mal.</string>
+</resources>

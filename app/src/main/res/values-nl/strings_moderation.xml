@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">%1$s blokkeren</string>
+    <string name="mod_unblock_name">%1$s deblokkeren</string>
+    <string name="mod_block_title">%1$s blokkeren?</string>
+    <string name="mod_block_text">Je ziet hun berichten, foto\'s en clips niet meer op deze telefoon, en hun privéberichten komen niet meer bij je aan. Die persoon krijgt geen melding en blijft in de crew.</string>
+    <string name="mod_block_owner">Jij hebt deze crew gemaakt, dus je kunt %1$s er ook uit verwijderen.</string>
+    <string name="mod_remove_name">%1$s uit de crew verwijderen</string>
+    <string name="mod_block">Blokkeren</string>
+    <string name="mod_blocked_done">%1$s is geblokkeerd op deze telefoon.</string>
+    <string name="mod_unblocked_done">%1$s is gedeblokkeerd.</string>
+    <string name="mod_blocked_people">Geblokkeerde mensen</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d persoon geblokkeerd</item>
+        <item quantity="other">%d mensen geblokkeerd</item>
+    </plurals>
+    <string name="mod_blocked_none">Niemand is geblokkeerd. Om iemand te blokkeren, houd je hun gezicht of een van hun berichten ingedrukt, of open je hun foto.</string>
+    <string name="mod_blocked_about">Hun berichten, foto\'s en clips zijn verborgen op deze telefoon, en hun privéberichten worden genegeerd. Ze krijgen geen melding.</string>
+    <string name="mod_unblock">Deblokkeren</string>
+    <string name="mod_thread_blocked">Je hebt %1$s geblokkeerd. Hun berichten zijn verborgen en nieuwe komen niet aan. Tik om te deblokkeren.</string>
+    <string name="mod_report_or_block">Melden of blokkeren</string>
+    <string name="mod_rules_title">Voordat je iets plaatst</string>
+    <string name="mod_rules_intro">De crewchat, foto\'s, clips en privéberichten zijn voor je crew. Houd je aan deze regels:</string>
+    <string name="mod_rules_harassment">Geen intimidatie, pesten of haat.</string>
+    <string name="mod_rules_illegal">Niets illegaals, en niets seksueels met iemand onder de 18.</string>
+    <string name="mod_rules_threats">Geen bedreigingen of geweld.</string>
+    <string name="mod_rules_reports">Iedereen in je crew kan melden wat je plaatst. Een melding stuurt Moshpoint wat die persoon zag, en die kan worden bekeken. Wie deze regels breekt, kan bij Moshpoint worden geblokkeerd.</string>
+    <string name="mod_rules_agree">Akkoord</string>
+    <string name="mod_report_message">Dit bericht melden</string>
+    <string name="mod_report_photo">Deze foto melden</string>
+    <string name="mod_report_clip">Deze clip melden</string>
+    <string name="mod_report_name">%1$s melden</string>
+    <string name="mod_report_why">Wat is er aan de hand?</string>
+    <string name="mod_reason_harassment">Intimidatie of pesten</string>
+    <string name="mod_reason_hate">Haat</string>
+    <string name="mod_reason_sexual">Seksuele inhoud</string>
+    <string name="mod_reason_violence">Geweld of bedreigingen</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Iets anders</string>
+    <string name="mod_report_note">Voeg een notitie toe (optioneel)</string>
+    <string name="mod_report_e2e">Berichten zijn end-to-end versleuteld, dus Moshpoint kan ze niet zien. Je melding stuurt wat jij kunt zien:</string>
+    <string name="mod_report_sends_message">Dit bericht</string>
+    <string name="mod_report_sends_photo">Deze foto, kleiner, met het bijschrift</string>
+    <string name="mod_report_sends_clip">Een paar beelden uit deze clip, kleiner, met het bijschrift</string>
+    <string name="mod_report_sends_who">De naam van %1$s en hun sleutel in deze crew, een code voor de crew (niet de naam) en de tijd</string>
+    <string name="mod_report_sends_note">Je notitie, als je er een toevoegt</string>
+    <string name="mod_report_kept">Meldingen worden 90 dagen bewaard. %1$s hoort niet wie de melding deed.</string>
+    <string name="mod_report_block_too">%1$s ook blokkeren</string>
+    <string name="mod_report_send">Melding versturen</string>
+    <string name="mod_report_sending">Versturen…</string>
+    <string name="mod_report_sent">Melding verstuurd. Bedankt dat je op je crew let.</string>
+    <string name="mod_report_failed">De melding kon niet worden verstuurd. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="mod_report_limit">Te veel meldingen vanaf deze telefoon. Probeer het later opnieuw.</string>
+</resources>

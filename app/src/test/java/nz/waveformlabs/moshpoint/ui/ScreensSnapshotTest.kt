@@ -30,6 +30,11 @@ import nz.waveformlabs.moshpoint.ui.home.dotLine
 import nz.waveformlabs.moshpoint.ui.map.MapPlace
 import nz.waveformlabs.moshpoint.ui.map.MapScreen
 import nz.waveformlabs.moshpoint.ui.moments.StoryScreen
+import nz.waveformlabs.moshpoint.ui.moderation.BlockConfirmContent
+import nz.waveformlabs.moshpoint.ui.moderation.BlockedPeopleContent
+import nz.waveformlabs.moshpoint.ui.moderation.CommunityRulesContent
+import nz.waveformlabs.moshpoint.ui.moderation.PersonMenuContent
+import nz.waveformlabs.moshpoint.ui.moderation.ReportContent
 import nz.waveformlabs.moshpoint.ui.settings.AcknowledgementsContent
 import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
 import nz.waveformlabs.moshpoint.ui.settings.SettingsContent
@@ -728,6 +733,91 @@ open class ScreensSnapshotTest {
                 }
             }
         }
+    }
+
+    // ---- Block (docs/REPORT_BLOCK.md) ----
+
+    /** Holding someone's message, or their photo's "Block": the menu (Report joins it later). */
+    @Test fun moderationMenu() = dialog {
+        PersonMenuContent("Jo", blocked = false, onBlock = {}, onUnblock = {}, onClose = {})
+    }
+
+    /** "Block Jo?": what it does; the crew's maker is offered removal too. */
+    @Test fun blockConfirm() = dialog {
+        BlockConfirmContent("Jo", canRemove = true, onBlock = {}, onRemove = {}, onCancel = {})
+    }
+
+    @Test fun smallPhoneLargeFontBlockConfirm() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        blockConfirm()
+    }
+
+    private val blockedSample = listOf(
+        nz.waveformlabs.moshpoint.core.Blocked(1L, "", "Jo", "c1", "Laneway crew", 2),
+        nz.waveformlabs.moshpoint.core.Blocked(2L, "", "Bevan Featherstonehaugh", "c2", "The Midnight Lantern Parade After-Party Crew", 1),
+    )
+
+    /** Settings → Blocked people, with Unblock. */
+    @Test fun blockedPeople() = dialog {
+        BlockedPeopleContent(blockedSample, onUnblock = {}, onClose = {})
+    }
+
+    @Test fun smallPhoneLargeFontBlockedPeople() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        blockedPeople()
+    }
+
+    /** Settings → Blocked people when nobody is: how to block someone. */
+    @Test fun blockedPeopleEmpty() = dialog {
+        BlockedPeopleContent(emptyList(), onUnblock = {}, onClose = {})
+    }
+
+    // ---- Report (docs/REPORT_BLOCK.md) ----
+
+    private val reportReasons: List<String> @androidx.compose.runtime.Composable get() = listOf(
+        nz.waveformlabs.moshpoint.R.string.mod_reason_harassment, nz.waveformlabs.moshpoint.R.string.mod_reason_hate,
+        nz.waveformlabs.moshpoint.R.string.mod_reason_sexual, nz.waveformlabs.moshpoint.R.string.mod_reason_violence,
+        nz.waveformlabs.moshpoint.R.string.mod_reason_spam, nz.waveformlabs.moshpoint.R.string.mod_reason_other,
+    ).map { stringResource(it) }
+
+    /** Holding someone's message: Report, then Block. */
+    @Test fun moderationMenuWithReport() = dialog {
+        PersonMenuContent("Jo", blocked = false, onBlock = {}, onUnblock = {}, onClose = {}, reportLabel = stringResource(nz.waveformlabs.moshpoint.R.string.mod_report_message))
+    }
+
+    /** Reporting a message: a reason picked, what the phone sends, and "Also block". */
+    @Test fun reportSheet() = dialog {
+        ReportContent(
+            title = stringResource(nz.waveformlabs.moshpoint.R.string.mod_report_message), name = "Jo",
+            sends = stringResource(nz.waveformlabs.moshpoint.R.string.mod_report_sends_message),
+            reasons = reportReasons, reason = 3, onReason = {}, note = "", onNote = {},
+            blockToo = true, onBlockToo = {}, sending = false, onSend = {}, onCancel = {},
+        )
+    }
+
+    @Test fun smallPhoneLargeFontReportSheet() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        reportSheet()
+    }
+
+    /** Reporting a clip: nothing picked yet, so Send waits. */
+    @Test fun reportSheetClip() = dialog {
+        ReportContent(
+            title = stringResource(nz.waveformlabs.moshpoint.R.string.mod_report_clip), name = "Jo",
+            sends = stringResource(nz.waveformlabs.moshpoint.R.string.mod_report_sends_clip),
+            reasons = reportReasons, reason = null, onReason = {}, note = "", onNote = {},
+            blockToo = null, onBlockToo = {}, sending = false, onSend = {}, onCancel = {},
+        )
+    }
+
+    // ---- Community rules (docs/REPORT_BLOCK.md) ----
+
+    /** "Before you post": once, before the first chat message, photo, clip or private message. */
+    @Test fun communityRules() = dialog { CommunityRulesContent({}, {}, {}) }
+
+    @Test fun smallPhoneLargeFontCommunityRules() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        communityRules()
     }
 
     /** Right-to-left set on Compose itself: the renderer's own setting doesn't reach every screen. */

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">Bloquer %1$s</string>
+    <string name="mod_unblock_name">Débloquer %1$s</string>
+    <string name="mod_block_title">Bloquer %1$s ?</string>
+    <string name="mod_block_text">Tu ne verras plus ses messages, photos ou vidéos sur ce téléphone, et ses messages privés ne t\'arriveront plus. Cette personne n\'est pas prévenue et reste dans la crew.</string>
+    <string name="mod_block_owner">Tu as créé cette crew, tu peux donc aussi en retirer %1$s.</string>
+    <string name="mod_remove_name">Retirer %1$s de la crew</string>
+    <string name="mod_block">Bloquer</string>
+    <string name="mod_blocked_done">Tu as bloqué %1$s sur ce téléphone.</string>
+    <string name="mod_unblocked_done">Tu as débloqué %1$s.</string>
+    <string name="mod_blocked_people">Personnes bloquées</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d personne bloquée</item>
+        <item quantity="many">%d personnes bloquées</item>
+        <item quantity="other">%d personnes bloquées</item>
+    </plurals>
+    <string name="mod_blocked_none">Personne n\'est bloqué. Pour bloquer quelqu\'un, appuie longuement sur son visage ou sur un de ses messages, ou ouvre sa photo.</string>
+    <string name="mod_blocked_about">Leurs messages, photos et vidéos sont masqués sur ce téléphone, et leurs messages privés sont ignorés. Ces personnes ne sont pas prévenues.</string>
+    <string name="mod_unblock">Débloquer</string>
+    <string name="mod_thread_blocked">Tu as bloqué %1$s. Ses messages sont masqués et les nouveaux ne t\'arrivent pas. Touche pour débloquer.</string>
+    <string name="mod_report_or_block">Signaler ou bloquer</string>
+    <string name="mod_rules_title">Avant de publier</string>
+    <string name="mod_rules_intro">Le chat de la crew, les photos, les vidéos et les messages privés sont pour ta crew. Respecte ces règles :</string>
+    <string name="mod_rules_harassment">Pas de harcèlement, d\'intimidation ni de haine.</string>
+    <string name="mod_rules_illegal">Rien d\'illégal, et rien de sexuel impliquant des moins de 18 ans.</string>
+    <string name="mod_rules_threats">Pas de menaces ni de violence.</string>
+    <string name="mod_rules_reports">Tout le monde dans ta crew peut signaler ce que tu publies. Un signalement envoie à Moshpoint ce que la personne a vu, et il peut être examiné. Enfreindre ces règles peut te faire bloquer de Moshpoint.</string>
+    <string name="mod_rules_agree">J\'accepte</string>
+    <string name="mod_report_message">Signaler ce message</string>
+    <string name="mod_report_photo">Signaler cette photo</string>
+    <string name="mod_report_clip">Signaler cette vidéo</string>
+    <string name="mod_report_name">Signaler %1$s</string>
+    <string name="mod_report_why">Quel est le problème ?</string>
+    <string name="mod_reason_harassment">Harcèlement ou intimidation</string>
+    <string name="mod_reason_hate">Haine</string>
+    <string name="mod_reason_sexual">Contenu sexuel</string>
+    <string name="mod_reason_violence">Violence ou menaces</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Autre chose</string>
+    <string name="mod_report_note">Ajouter une note (facultatif)</string>
+    <string name="mod_report_e2e">Les messages sont chiffrés de bout en bout : Moshpoint ne peut pas les voir. Ton signalement envoie ce que tu vois :</string>
+    <string name="mod_report_sends_message">Ce message</string>
+    <string name="mod_report_sends_photo">Cette photo, en plus petit, avec sa légende</string>
+    <string name="mod_report_sends_clip">Quelques images de cette vidéo, en plus petit, avec sa légende</string>
+    <string name="mod_report_sends_who">Le nom de %1$s et sa clé dans cette crew, un code pour la crew (pas son nom) et l\'heure</string>
+    <string name="mod_report_sends_note">Ta note, si tu en ajoutes une</string>
+    <string name="mod_report_kept">Les signalements sont conservés 90 jours. %1$s ne sait pas qui a fait le signalement.</string>
+    <string name="mod_report_block_too">Bloquer aussi %1$s</string>
+    <string name="mod_report_send">Envoyer le signalement</string>
+    <string name="mod_report_sending">Envoi…</string>
+    <string name="mod_report_sent">Signalement envoyé. Merci de veiller sur ta crew.</string>
+    <string name="mod_report_failed">Le signalement n\'a pas pu être envoyé. Vérifie ta connexion et réessaie.</string>
+    <string name="mod_report_limit">Trop de signalements depuis ce téléphone. Réessaie plus tard.</string>
+</resources>

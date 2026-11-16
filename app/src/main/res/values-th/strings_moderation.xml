@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">บล็อก %1$s</string>
+    <string name="mod_unblock_name">เลิกบล็อก %1$s</string>
+    <string name="mod_block_title">บล็อก %1$s ไหม</string>
+    <string name="mod_block_text">คุณจะไม่เห็นข้อความ รูป หรือคลิปของเขาบนมือถือเครื่องนี้ และข้อความส่วนตัวของเขาจะส่งมาไม่ถึงคุณ เขาจะไม่รู้และยังอยู่ในแก๊งตามเดิม</string>
+    <string name="mod_block_owner">คุณเป็นคนสร้างแก๊งนี้ เลยนำ %1$s ออกจากแก๊งได้ด้วย</string>
+    <string name="mod_remove_name">นำ %1$s ออกจากแก๊ง</string>
+    <string name="mod_block">บล็อก</string>
+    <string name="mod_blocked_done">บล็อก %1$s บนมือถือเครื่องนี้แล้ว</string>
+    <string name="mod_unblocked_done">เลิกบล็อก %1$s แล้ว</string>
+    <string name="mod_blocked_people">คนที่บล็อกไว้</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="other">บล็อกไว้ %d คน</item>
+    </plurals>
+    <string name="mod_blocked_none">ยังไม่ได้บล็อกใคร ถ้าจะบล็อกใคร ให้กดค้างที่หน้าหรือข้อความของเขา หรือเปิดรูปของเขา</string>
+    <string name="mod_blocked_about">ข้อความ รูป และคลิปของคนเหล่านี้จะถูกซ่อนบนมือถือเครื่องนี้ และข้อความส่วนตัวของเขาจะถูกทิ้ง เขาจะไม่รู้</string>
+    <string name="mod_unblock">เลิกบล็อก</string>
+    <string name="mod_thread_blocked">คุณบล็อก %1$s ไว้ ข้อความของเขาถูกซ่อน และข้อความใหม่จะส่งมาไม่ถึง แตะเพื่อเลิกบล็อก</string>
+    <string name="mod_report_or_block">รายงานหรือบล็อก</string>
+    <string name="mod_rules_title">ก่อนโพสต์</string>
+    <string name="mod_rules_intro">แชทแก๊ง รูป คลิป และข้อความส่วนตัวมีไว้สำหรับแก๊งของคุณ ทำตามกฎนี้:</string>
+    <string name="mod_rules_harassment">ห้ามคุกคาม กลั่นแกล้ง หรือแสดงความเกลียดชัง</string>
+    <string name="mod_rules_illegal">ห้ามมีสิ่งผิดกฎหมาย และห้ามมีเนื้อหาทางเพศที่เกี่ยวกับผู้ที่อายุต่ำกว่า 18 ปี</string>
+    <string name="mod_rules_threats">ห้ามข่มขู่หรือใช้ความรุนแรง</string>
+    <string name="mod_rules_reports">ทุกคนในแก๊งรายงานสิ่งที่คุณโพสต์ได้ การรายงานจะส่งสิ่งที่เขาเห็นไปให้ Moshpoint และอาจถูกตรวจสอบ ถ้าทำผิดกฎนี้ อาจถูกบล็อกจาก Moshpoint</string>
+    <string name="mod_rules_agree">ยอมรับ</string>
+    <string name="mod_report_message">รายงานข้อความนี้</string>
+    <string name="mod_report_photo">รายงานรูปนี้</string>
+    <string name="mod_report_clip">รายงานคลิปนี้</string>
+    <string name="mod_report_name">รายงาน %1$s</string>
+    <string name="mod_report_why">มีปัญหาอะไร</string>
+    <string name="mod_reason_harassment">คุกคามหรือกลั่นแกล้ง</string>
+    <string name="mod_reason_hate">ความเกลียดชัง</string>
+    <string name="mod_reason_sexual">เนื้อหาทางเพศ</string>
+    <string name="mod_reason_violence">ความรุนแรงหรือข่มขู่</string>
+    <string name="mod_reason_spam">สแปม</string>
+    <string name="mod_reason_other">อย่างอื่น</string>
+    <string name="mod_report_note">เพิ่มโน้ต (ไม่บังคับ)</string>
+    <string name="mod_report_e2e">ข้อความเข้ารหัสแบบต้นทางถึงปลายทาง Moshpoint จึงมองไม่เห็น การรายงานจะส่งสิ่งที่คุณเห็น:</string>
+    <string name="mod_report_sends_message">ข้อความนี้</string>
+    <string name="mod_report_sends_photo">รูปนี้ แบบย่อขนาด พร้อมคำบรรยาย</string>
+    <string name="mod_report_sends_clip">ภาพนิ่งบางเฟรมจากคลิปนี้ แบบย่อขนาด พร้อมคำบรรยาย</string>
+    <string name="mod_report_sends_who">ชื่อและคีย์ของ %1$s ในแก๊งนี้ รหัสของแก๊ง (ไม่ใช่ชื่อแก๊ง) และเวลา</string>
+    <string name="mod_report_sends_note">โน้ตของคุณ ถ้าเพิ่มไว้</string>
+    <string name="mod_report_kept">รายงานจะเก็บไว้ 90 วัน %1$s จะไม่รู้ว่าใครเป็นคนรายงาน</string>
+    <string name="mod_report_block_too">บล็อก %1$s ด้วย</string>
+    <string name="mod_report_send">ส่งรายงาน</string>
+    <string name="mod_report_sending">กำลังส่ง…</string>
+    <string name="mod_report_sent">ส่งรายงานแล้ว ขอบคุณที่ช่วยดูแลแก๊ง</string>
+    <string name="mod_report_failed">ส่งรายงานไม่สำเร็จ ตรวจสอบการเชื่อมต่อแล้วลองใหม่</string>
+    <string name="mod_report_limit">มือถือเครื่องนี้รายงานมากเกินไป ลองใหม่ภายหลัง</string>
+</resources>

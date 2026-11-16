@@ -85,7 +85,7 @@ internal fun ColumnScope.LocationDisclosureContent(onPrivacy: () -> Unit, onCont
         Point(Mosh.Violet, stringResource(R.string.play_disclosure_bluetooth))
         PrivacyPolicyLink(onPrivacy, Modifier.padding(start = 10.dp))
     }
-    Buttons(
+    DialogButtons(
         confirm = stringResource(R.string.play_disclosure_continue), confirmColour = Mosh.Lime, onConfirm = onContinue,
         dismiss = stringResource(R.string.main_not_now), onDismiss = onNotNow,
     )
@@ -106,12 +106,12 @@ private fun Point(colour: Color, text: String) {
  * room for both. A plain Row would squeeze the second one until its word broke in two.
  */
 @Composable
-private fun ColumnScope.Buttons(confirm: String, confirmColour: Color, onConfirm: () -> Unit, dismiss: String, onDismiss: () -> Unit) {
+internal fun ColumnScope.DialogButtons(confirm: String, confirmColour: Color, onConfirm: () -> Unit, dismiss: String, onDismiss: () -> Unit, confirmEnabled: Boolean = true) {
     Spacer(Modifier.height(8.dp))
     Layout(
         content = {
             TextButton(onClick = onDismiss) { Text(dismiss, style = Mosh.Label) }
-            TextButton(onClick = onConfirm) { Text(confirm, style = Mosh.Label.copy(color = confirmColour)) }
+            TextButton(onClick = onConfirm, enabled = confirmEnabled) { Text(confirm, style = Mosh.Label.copy(color = if (confirmEnabled) confirmColour else Mosh.TextFaint)) }
         },
         modifier = Modifier.align(Alignment.End),
     ) { measurables, constraints ->
@@ -156,7 +156,7 @@ internal fun ColumnScope.InviteConfirmContent(title: String, body: String, note:
             Text(note, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.Amber))
         }
     }
-    Buttons(confirm = confirm, confirmColour = Mosh.Lime, onConfirm = onConfirm, dismiss = stringResource(R.string.main_not_now), onDismiss = onDismiss)
+    DialogButtons(confirm = confirm, confirmColour = Mosh.Lime, onConfirm = onConfirm, dismiss = stringResource(R.string.main_not_now), onDismiss = onDismiss)
 }
 
 @Composable

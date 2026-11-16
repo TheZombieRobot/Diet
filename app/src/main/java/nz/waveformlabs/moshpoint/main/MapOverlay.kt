@@ -31,6 +31,7 @@ import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.map.HerePins
 import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.map.Spots
+import nz.waveformlabs.moshpoint.moderation.Blocks
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.ui.ago
 import nz.waveformlabs.moshpoint.ui.map.MapMoment
@@ -113,7 +114,7 @@ internal fun MapOverlay(a: MainActivity) {
                     Spots.add(name, lat, lon)
                 }
             },
-            moments = Moments.items.mapNotNull { m ->
+            moments = Blocks.visibleMoments(Moments.items).mapNotNull { m ->
                 val lat = m.lat ?: return@mapNotNull null
                 val lon = m.lon ?: return@mapNotNull null
                 val icon = MomentIcons.icons[m.key] ?: return@mapNotNull null // on the map once it's made

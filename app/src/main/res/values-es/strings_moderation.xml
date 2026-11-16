@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">Bloquear a %1$s</string>
+    <string name="mod_unblock_name">Desbloquear a %1$s</string>
+    <string name="mod_block_title">¿Bloquear a %1$s?</string>
+    <string name="mod_block_text">No verás sus mensajes, fotos ni clips en este teléfono, y sus mensajes privados no te llegarán. No se le avisa y sigue en el grupo.</string>
+    <string name="mod_block_owner">Creaste este grupo, así que también puedes sacar a %1$s.</string>
+    <string name="mod_remove_name">Sacar a %1$s del grupo</string>
+    <string name="mod_block">Bloquear</string>
+    <string name="mod_blocked_done">Bloqueaste a %1$s en este teléfono.</string>
+    <string name="mod_unblocked_done">Desbloqueaste a %1$s.</string>
+    <string name="mod_blocked_people">Personas bloqueadas</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d persona bloqueada</item>
+        <item quantity="many">%d personas bloqueadas</item>
+        <item quantity="other">%d personas bloqueadas</item>
+    </plurals>
+    <string name="mod_blocked_none">No hay nadie bloqueado. Para bloquear a alguien, mantén presionada su cara o uno de sus mensajes, o abre su foto.</string>
+    <string name="mod_blocked_about">Sus mensajes, fotos y clips se ocultan en este teléfono, y sus mensajes privados se descartan. No se les avisa.</string>
+    <string name="mod_unblock">Desbloquear</string>
+    <string name="mod_thread_blocked">Bloqueaste a %1$s. Sus mensajes están ocultos y los nuevos no te llegan. Toca para desbloquear.</string>
+    <string name="mod_report_or_block">Reportar o bloquear</string>
+    <string name="mod_rules_title">Antes de publicar</string>
+    <string name="mod_rules_intro">El chat del grupo, las fotos, los clips y los mensajes privados son para tu grupo. Sigue estas reglas:</string>
+    <string name="mod_rules_harassment">Nada de acoso, bullying ni odio.</string>
+    <string name="mod_rules_illegal">Nada ilegal, y nada sexual que involucre a menores de 18.</string>
+    <string name="mod_rules_threats">Nada de amenazas ni violencia.</string>
+    <string name="mod_rules_reports">Cualquiera de tu grupo puede reportar lo que publicas. Un reporte le envía a Moshpoint lo que vio esa persona, y se puede revisar. Romper estas reglas puede hacer que te bloqueen en Moshpoint.</string>
+    <string name="mod_rules_agree">Acepto</string>
+    <string name="mod_report_message">Reportar este mensaje</string>
+    <string name="mod_report_photo">Reportar esta foto</string>
+    <string name="mod_report_clip">Reportar este clip</string>
+    <string name="mod_report_name">Reportar a %1$s</string>
+    <string name="mod_report_why">¿Cuál es el problema?</string>
+    <string name="mod_reason_harassment">Acoso o bullying</string>
+    <string name="mod_reason_hate">Odio</string>
+    <string name="mod_reason_sexual">Contenido sexual</string>
+    <string name="mod_reason_violence">Violencia o amenazas</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Otra cosa</string>
+    <string name="mod_report_note">Agrega una nota (opcional)</string>
+    <string name="mod_report_e2e">Los mensajes tienen cifrado de extremo a extremo, así que Moshpoint no puede verlos. Tu reporte envía lo que tú puedes ver:</string>
+    <string name="mod_report_sends_message">Este mensaje</string>
+    <string name="mod_report_sends_photo">Esta foto, más pequeña, con su descripción</string>
+    <string name="mod_report_sends_clip">Algunos fotogramas de este clip, más pequeños, con su descripción</string>
+    <string name="mod_report_sends_who">El nombre de %1$s y su clave en este grupo, un código del grupo (no su nombre) y la hora</string>
+    <string name="mod_report_sends_note">Tu nota, si agregas una</string>
+    <string name="mod_report_kept">Los reportes se guardan 90 días. A %1$s no se le dice quién lo reportó.</string>
+    <string name="mod_report_block_too">Bloquear también a %1$s</string>
+    <string name="mod_report_send">Enviar reporte</string>
+    <string name="mod_report_sending">Enviando…</string>
+    <string name="mod_report_sent">Reporte enviado. Gracias por cuidar a tu grupo.</string>
+    <string name="mod_report_failed">No se pudo enviar el reporte. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="mod_report_limit">Demasiados reportes desde este teléfono. Inténtalo más tarde.</string>
+</resources>

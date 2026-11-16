@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">حظر %1$s</string>
+    <string name="mod_unblock_name">إلغاء حظر %1$s</string>
+    <string name="mod_block_title">حظر %1$s؟</string>
+    <string name="mod_block_text">لن ترى رسائله أو صوره أو مقاطعه على هذا الهاتف، ولن تصلك رسائله الخاصة. لا يتم إبلاغه ويبقى في الشلة.</string>
+    <string name="mod_block_owner">أنت من أنشأ هذه الشلة، لذا يمكنك أيضًا إزالة %1$s منها.</string>
+    <string name="mod_remove_name">إزالة %1$s من الشلة</string>
+    <string name="mod_block">حظر</string>
+    <string name="mod_blocked_done">تم حظر %1$s على هذا الهاتف.</string>
+    <string name="mod_unblocked_done">تم إلغاء حظر %1$s.</string>
+    <string name="mod_blocked_people">الأشخاص المحظورون</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="zero">لا أحد محظور</item>
+        <item quantity="one">شخص واحد محظور</item>
+        <item quantity="two">شخصان محظوران</item>
+        <item quantity="few">%d أشخاص محظورين</item>
+        <item quantity="many">%d شخصًا محظورًا</item>
+        <item quantity="other">%d شخص محظور</item>
+    </plurals>
+    <string name="mod_blocked_none">لا يوجد أحد محظور. لحظر شخص، اضغط مطولًا على وجهه أو على إحدى رسائله، أو افتح صورته.</string>
+    <string name="mod_blocked_about">رسائلهم وصورهم ومقاطعهم مخفية على هذا الهاتف، ورسائلهم الخاصة تُحذف. لا يتم إبلاغهم.</string>
+    <string name="mod_unblock">إلغاء الحظر</string>
+    <string name="mod_thread_blocked">لقد حظرت %1$s. رسائله مخفية والجديدة لا تصلك. اضغط لإلغاء الحظر.</string>
+    <string name="mod_report_or_block">إبلاغ أو حظر</string>
+    <string name="mod_rules_title">قبل أن تنشر</string>
+    <string name="mod_rules_intro">دردشة الشلة والصور والمقاطع والرسائل الخاصة لشلتك. التزم بهذه القواعد:</string>
+    <string name="mod_rules_harassment">لا تحرش ولا تنمر ولا كراهية.</string>
+    <string name="mod_rules_illegal">لا شيء غير قانوني، ولا شيء جنسي يشمل أي شخص دون 18 عامًا.</string>
+    <string name="mod_rules_threats">لا تهديد ولا عنف.</string>
+    <string name="mod_rules_reports">يمكن لأي شخص في شلتك الإبلاغ عما تنشره. يرسل البلاغ إلى Moshpoint ما رآه، وقد تتم مراجعته. مخالفة هذه القواعد قد تؤدي إلى حظرك من Moshpoint.</string>
+    <string name="mod_rules_agree">أوافق</string>
+    <string name="mod_report_message">الإبلاغ عن هذه الرسالة</string>
+    <string name="mod_report_photo">الإبلاغ عن هذه الصورة</string>
+    <string name="mod_report_clip">الإبلاغ عن هذا المقطع</string>
+    <string name="mod_report_name">الإبلاغ عن %1$s</string>
+    <string name="mod_report_why">ما المشكلة؟</string>
+    <string name="mod_reason_harassment">تحرش أو تنمر</string>
+    <string name="mod_reason_hate">كراهية</string>
+    <string name="mod_reason_sexual">محتوى جنسي</string>
+    <string name="mod_reason_violence">عنف أو تهديد</string>
+    <string name="mod_reason_spam">رسائل مزعجة</string>
+    <string name="mod_reason_other">شيء آخر</string>
+    <string name="mod_report_note">أضف ملاحظة (اختياري)</string>
+    <string name="mod_report_e2e">الرسائل مشفرة بين الطرفين، لذا لا يستطيع Moshpoint رؤيتها. يرسل بلاغك ما تراه أنت:</string>
+    <string name="mod_report_sends_message">هذه الرسالة</string>
+    <string name="mod_report_sends_photo">هذه الصورة، بحجم أصغر، مع وصفها</string>
+    <string name="mod_report_sends_clip">بضع لقطات من هذا المقطع، بحجم أصغر، مع وصفه</string>
+    <string name="mod_report_sends_who">اسم %1$s ومفتاحه في هذه الشلة، ورمز للشلة (ليس اسمها)، والوقت</string>
+    <string name="mod_report_sends_note">ملاحظتك، إن أضفتها</string>
+    <string name="mod_report_kept">تُحفظ البلاغات لمدة 90 يومًا. لا يعرف %1$s من أبلغ عنه.</string>
+    <string name="mod_report_block_too">حظر %1$s أيضًا</string>
+    <string name="mod_report_send">إرسال البلاغ</string>
+    <string name="mod_report_sending">جارٍ الإرسال…</string>
+    <string name="mod_report_sent">تم إرسال البلاغ. شكرًا لاهتمامك بشلتك.</string>
+    <string name="mod_report_failed">تعذر إرسال البلاغ. تحقق من اتصالك وحاول مرة أخرى.</string>
+    <string name="mod_report_limit">بلاغات كثيرة من هذا الهاتف. حاول لاحقًا.</string>
+</resources>

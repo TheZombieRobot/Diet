@@ -146,6 +146,10 @@ class Relay(val config: RelayConfig) : AutoCloseable {
     val avatars = AvatarStore(File(config.dataDir, "avatars"), config.avatarTtlMs, config.avatarMaxBytes, config.avatarMaxCount, clock)
     val limits = Limits(config.limits, clock)
     val tokens = InstallTokens(config.tokenSecret ?: InstallTokens.secret({ null }, config.dataDir), clock)
+    /** Reports of objectionable content, how often a phone may send one, and the owner's admin token. */
+    val reports = ReportStore(File(config.dataDir, "reports"), config.reportTtlMs, config.reportMaxCount, clock)
+    val reportLimits = ReportLimits(clock)
+    val admin = AdminAuth(config.adminToken)
     /** Uploads being received, everyone together and per address. */
     val uploads = Semaphore(config.maxUploads)
     val uploaders = PerKey(config.maxUploadsPerAddress)
@@ -193,6 +197,8 @@ class Relay(val config: RelayConfig) : AutoCloseable {
         files.sweep()
         avatars.sweep()
         limits.sweep()
+        reports.sweep()
+        reportLimits.sweep()
     }
 
     /** Sweep every minute and log the totals (counts and sizes only) every ten. */

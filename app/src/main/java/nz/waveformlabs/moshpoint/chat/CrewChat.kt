@@ -556,30 +556,32 @@ object CrewChat {
         if (signed.sender == 0L) return null // unsigned: could be anyone
         val mine = signed.sender == myTag(c, g)
         rememberKey(c, g, signed.pub)
+        // Someone blocked on this phone: kept (so unblocking brings it back), never announced.
+        val hidden = nz.waveformlabs.moshpoint.moderation.Blocks.now(c).hidesLine(signed.sender, signed.kind, mine)
         val p = signed.copy(from = displayName(c, g, signed.sender, signed.from))
         // A time in the future here (their clock is wrong) sorts at when it arrived.
         val at = MessageClock.sortTime(p.timeSec, System.currentTimeMillis() / 1000)
         return when (p.kind) {
             GigGroup.Ping.CHAT -> {
                 val added = add(c, g, Line(p.from, at, p.text, mine, sender = p.sender, proof = proofOf(signed), id = idOf(signed)))
-                if (added && !mine) p.text else null
+                if (added && !mine && !hidden) p.text else null
             }
             GigGroup.Ping.JOIN -> {
                 val added = add(c, g, Line(p.from, at, "", mine, GigGroup.Ping.JOIN, p.sender, id = idOf(signed)))
-                if (added && !mine) Txt.s(R.string.crew_notif_joined) else null
+                if (added && !mine && !hidden) Txt.s(R.string.crew_notif_joined) else null
             }
             GigGroup.Ping.FLARE -> {
                 if (!isMain(g) || mine) return null
                 val until = p.timeSec + p.minutes.coerceIn(1, 120) * 60L
                 if (until < System.currentTimeMillis() / 1000) return null
                 flares[p.from] = Flare(p.from, p.text, until, p.lat, p.lon)
-                if (add(c, g, Line(p.from, at, p.text, false, GigGroup.Ping.FLARE, p.sender, id = idOf(signed)))) {
+                if (add(c, g, Line(p.from, at, p.text, false, GigGroup.Ping.FLARE, p.sender, id = idOf(signed))) && !hidden) {
                     Txt.p(R.plurals.crew_notif_flare, p.minutes, p.text, p.minutes)
                 } else null
             }
             GigGroup.Ping.PLAN -> {
                 val note = takePlan(c, g, p.from, p.sender, p.timeSec - p.minutes * 60L, p.text, p.timeSec, mine, proofOf(signed))
-                if (mine) null else note
+                if (mine || hidden) null else note
             }
             else -> null
         }
@@ -611,7 +613,7 @@ object CrewChat {
                 name, MessageClock.sortTime(hl.timeSec, System.currentTimeMillis() / 1000), hl.text, mine, hl.kind, hl.sender,
                 proof = proofOf(hl), id = if (hl.id != 0L) GigGroup.idText(hl.id) else "",
             )
-            if (add(c, g, l) && !mine && hl.kind == GigGroup.Ping.CHAT) added += l
+            if (add(c, g, l) && !mine && hl.kind == GigGroup.Ping.CHAT && !nz.waveformlabs.moshpoint.moderation.Blocks.hidesLine(c, l)) added += l
         }
         h.plan?.let { pl ->
             takePlan(c, g, displayName(c, g, pl.sender, pl.from), pl.sender, pl.timeSec - pl.minutes * 60L, pl.text, pl.timeSec, pl.sender == me, proofOf(pl))
@@ -699,7 +701,8 @@ object CrewChat {
             lines.addAll(trimmed)
         }
         writeLines(c, id, trimmed)
-        if (!l.mine && !(open && onScreen)) {
+        // A line from someone blocked on this phone is kept but hidden: it never counts as unread.
+        if (!l.mine && !(open && onScreen) && !nz.waveformlabs.moshpoint.moderation.Blocks.hidesLine(c, l)) {
             val n = unreadFor(c, g) + 1
             unread[id] = n
             prefs(c, id).edit().putInt("unread", n).apply()

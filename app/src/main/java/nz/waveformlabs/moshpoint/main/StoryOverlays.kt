@@ -16,6 +16,9 @@ import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.gigs.GigArchive
+import nz.waveformlabs.moshpoint.moderation.Blocks
+import nz.waveformlabs.moshpoint.moderation.Moderation
+import nz.waveformlabs.moshpoint.moderation.Person
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.ui.moments.StoryScreen
@@ -36,7 +39,8 @@ internal fun StoryOverlays(a: MainActivity) {
             fadeOut(tween(200)),
     ) {
         StoryScreen(
-            items = Moments.items,
+            // Photos and clips from someone blocked on this phone are hidden (docs/REPORT_BLOCK.md).
+            items = Blocks.visibleMoments(Moments.items),
             nowSec = a.home.homeNow / 1000,
             colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },
             onShare = if (GroupSync.following) null else a.momentFlow::start,
@@ -50,14 +54,15 @@ internal fun StoryOverlays(a: MainActivity) {
             myName = a.home.myName,
             onRefresh = { GroupSync.group.value?.let { g -> Moments.refreshNow(a, g) } },
             onSaveOne = { m -> a.story.saveToPhone(listOf(m), GroupSync.group.value?.name ?: Txt.s(R.string.main_gig_fallback)) },
-            onSaveAll = { a.story.saveToPhone(Moments.items.toList(), GroupSync.group.value?.name ?: Txt.s(R.string.main_gig_fallback)) },
+            onSaveAll = { a.story.saveToPhone(Blocks.visibleMoments(Moments.items).toList(), GroupSync.group.value?.name ?: Txt.s(R.string.main_gig_fallback)) },
+            onReportOrBlock = { m -> Person.ofMoment(a, m)?.let { Moderation.ask(Moderation.Subject(it, Moderation.Moment(m))) } },
             onAddFromPhone = GroupSync.group.value?.let { g -> { a.story.startRoll(GigArchive.idFor(g), g.name) } },
             live = GroupSync.group.value != null && !GroupSync.sleeping,
         )
     }
     a.story.archiveGig?.let { g ->
         StoryScreen(
-            items = a.story.archiveItems,
+            items = Blocks.visibleMoments(a.story.archiveItems, g.id),
             nowSec = a.home.homeNow / 1000,
             colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },
             onShare = null,

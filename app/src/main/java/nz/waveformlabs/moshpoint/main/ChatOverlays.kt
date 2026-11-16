@@ -20,6 +20,9 @@ import nz.waveformlabs.moshpoint.crew.Crews
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.locate.RelayClient
+import nz.waveformlabs.moshpoint.moderation.Blocks
+import nz.waveformlabs.moshpoint.moderation.Moderation
+import nz.waveformlabs.moshpoint.moderation.Person
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
@@ -61,8 +64,9 @@ internal fun ChatOverlays(a: MainActivity) {
         }
         CrewChatScreen(
             crewName = chatCrew.name,
-            lines = CrewChat.lines,
-            plan = CrewChat.plan.value,
+            // Someone blocked on this phone: their lines and plan are hidden (docs/REPORT_BLOCK.md).
+            lines = Blocks.visibleLines(CrewChat.lines),
+            plan = CrewChat.plan.value?.takeUnless { Blocks.list.value.blocksTag(it.sender) },
             flares = CrewChat.flares.values.filter { it.untilSec > a.home.homeNow / 1000 }.sortedBy { it.untilSec },
             myName = VisibilityPrefs.myName(a).ifBlank { "Mate" },
             nowSec = a.home.homeNow / 1000,
@@ -85,8 +89,9 @@ internal fun ChatOverlays(a: MainActivity) {
                 a.home.setVisibility(true)
                 a.toast(Txt.s(R.string.main_now_main_crew, waiting.group.name))
             }) else null,
-            onSend = { CrewChat.send(a, it) },
-            onSetPlan = { CrewChat.setPlan(a, it) },
+            // The community rules first, once (docs/REPORT_BLOCK.md).
+            onSend = { text -> Moderation.beforePosting(a) { CrewChat.send(a, text) } },
+            onSetPlan = { text -> Moderation.beforePosting(a) { CrewChat.setPlan(a, text) } },
             onFlare = { vibe ->
                 val loc = a.lastKnownLocation()
                 CrewChat.flare(a, vibe, loc?.latitude, loc?.longitude)
@@ -108,6 +113,9 @@ internal fun ChatOverlays(a: MainActivity) {
                 else FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.let { PhotoStore.photos[it.id] }
             },
             colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },
+            onLineOptions = { l ->
+                Person.ofLine(a, chatCrew, l)?.let { Moderation.ask(Moderation.Subject(it, Moderation.Message(l.text, l.timeSec, private = false))) }
+            },
         )
     }
     // A private thread slides in like the crew chat, over whatever was open (docs/PRIVATE_MESSAGES.md).
@@ -140,7 +148,7 @@ internal fun ChatOverlays(a: MainActivity) {
             nowSec = a.home.homeNow / 1000,
             myName = VisibilityPrefs.myName(a).ifBlank { Txt.s(R.string.crew_default_name) },
             muted = PrivateMessages.muted.value,
-            onSend = { PrivateMessages.send(a, it) },
+            onSend = { text -> Moderation.beforePosting(a) { PrivateMessages.send(a, text) } },
             onBack = { PrivateMessages.close() },
             onMute = { PrivateMessages.setMuted(a, it) },
             onRetry = { PrivateMessages.retry(a, it) },
@@ -148,6 +156,17 @@ internal fun ChatOverlays(a: MainActivity) {
             face = mate?.let { PhotoStore.photos[it.id] },
             myFace = PhotoStore.photos[PhotoStore.ME],
             colour = mate?.color,
+            blocked = PrivateMessages.blocked.value,
+            onUnblock = {
+                val who = Person(pm.name, pm.mate, null, pm.crewId, pmCrew?.name.orEmpty())
+                Blocks.unblockPerson(a, who)
+                a.toast(Txt.s(R.string.mod_unblocked_done, pm.name))
+            },
+            onOptions = { l ->
+                val pub = pmCrew?.let { PrivateMessages.mateOf(a, it, pm.mate)?.pub }
+                val who = Person(pm.name, pm.mate, pub, pm.crewId, pmCrew?.name.orEmpty())
+                Moderation.ask(Moderation.Subject(who, l?.let { Moderation.Message(it.text, it.timeSec, private = true) }))
+            },
         )
     }
 }

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">Chặn %1$s</string>
+    <string name="mod_unblock_name">Bỏ chặn %1$s</string>
+    <string name="mod_block_title">Chặn %1$s?</string>
+    <string name="mod_block_text">Bạn sẽ không thấy tin nhắn, ảnh hay clip của họ trên điện thoại này, và tin nhắn riêng của họ sẽ không đến được với bạn. Họ không được báo và vẫn ở trong nhóm.</string>
+    <string name="mod_block_owner">Bạn đã tạo nhóm này, nên bạn cũng có thể xóa %1$s khỏi nhóm.</string>
+    <string name="mod_remove_name">Xóa %1$s khỏi nhóm</string>
+    <string name="mod_block">Chặn</string>
+    <string name="mod_blocked_done">Đã chặn %1$s trên điện thoại này.</string>
+    <string name="mod_unblocked_done">Đã bỏ chặn %1$s.</string>
+    <string name="mod_blocked_people">Người bị chặn</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="other">Đã chặn %d người</item>
+    </plurals>
+    <string name="mod_blocked_none">Chưa chặn ai. Để chặn ai đó, nhấn giữ khuôn mặt hoặc một tin nhắn của họ, hoặc mở ảnh của họ.</string>
+    <string name="mod_blocked_about">Tin nhắn, ảnh và clip của họ bị ẩn trên điện thoại này, và tin nhắn riêng của họ bị bỏ qua. Họ không được báo.</string>
+    <string name="mod_unblock">Bỏ chặn</string>
+    <string name="mod_thread_blocked">Bạn đã chặn %1$s. Tin nhắn của họ bị ẩn và tin mới không đến được với bạn. Nhấn để bỏ chặn.</string>
+    <string name="mod_report_or_block">Báo cáo hoặc chặn</string>
+    <string name="mod_rules_title">Trước khi đăng</string>
+    <string name="mod_rules_intro">Chat nhóm, ảnh, clip và tin nhắn riêng là dành cho nhóm của bạn. Hãy giữ các quy tắc sau:</string>
+    <string name="mod_rules_harassment">Không quấy rối, bắt nạt hay thù ghét.</string>
+    <string name="mod_rules_illegal">Không có gì phạm pháp, và không có gì tình dục liên quan đến người dưới 18 tuổi.</string>
+    <string name="mod_rules_threats">Không đe dọa hay bạo lực.</string>
+    <string name="mod_rules_reports">Bất kỳ ai trong nhóm đều có thể báo cáo nội dung bạn đăng. Báo cáo gửi cho Moshpoint những gì họ đã thấy và có thể được xem xét. Vi phạm các quy tắc này có thể khiến bạn bị chặn khỏi Moshpoint.</string>
+    <string name="mod_rules_agree">Tôi đồng ý</string>
+    <string name="mod_report_message">Báo cáo tin nhắn này</string>
+    <string name="mod_report_photo">Báo cáo ảnh này</string>
+    <string name="mod_report_clip">Báo cáo clip này</string>
+    <string name="mod_report_name">Báo cáo %1$s</string>
+    <string name="mod_report_why">Có vấn đề gì?</string>
+    <string name="mod_reason_harassment">Quấy rối hoặc bắt nạt</string>
+    <string name="mod_reason_hate">Thù ghét</string>
+    <string name="mod_reason_sexual">Nội dung tình dục</string>
+    <string name="mod_reason_violence">Bạo lực hoặc đe dọa</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Lý do khác</string>
+    <string name="mod_report_note">Thêm ghi chú (không bắt buộc)</string>
+    <string name="mod_report_e2e">Tin nhắn được mã hóa đầu cuối nên Moshpoint không xem được. Báo cáo của bạn gửi những gì bạn thấy:</string>
+    <string name="mod_report_sends_message">Tin nhắn này</string>
+    <string name="mod_report_sends_photo">Ảnh này, thu nhỏ, kèm chú thích</string>
+    <string name="mod_report_sends_clip">Vài khung hình từ clip này, thu nhỏ, kèm chú thích</string>
+    <string name="mod_report_sends_who">Tên và khóa của %1$s trong nhóm này, một mã của nhóm (không phải tên nhóm) và thời gian</string>
+    <string name="mod_report_sends_note">Ghi chú của bạn, nếu có</string>
+    <string name="mod_report_kept">Báo cáo được lưu trong 90 ngày. %1$s không được biết ai đã báo cáo.</string>
+    <string name="mod_report_block_too">Chặn luôn %1$s</string>
+    <string name="mod_report_send">Gửi báo cáo</string>
+    <string name="mod_report_sending">Đang gửi…</string>
+    <string name="mod_report_sent">Đã gửi báo cáo. Cảm ơn bạn đã để ý đến nhóm.</string>
+    <string name="mod_report_failed">Không gửi được báo cáo. Kiểm tra kết nối và thử lại.</string>
+    <string name="mod_report_limit">Quá nhiều báo cáo từ điện thoại này. Thử lại sau.</string>
+</resources>

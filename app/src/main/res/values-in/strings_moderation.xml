@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">Blokir %1$s</string>
+    <string name="mod_unblock_name">Buka blokir %1$s</string>
+    <string name="mod_block_title">Blokir %1$s?</string>
+    <string name="mod_block_text">Kamu nggak akan lihat pesan, foto, atau video dia di HP ini, dan pesan pribadinya nggak akan sampai ke kamu. Dia nggak dikasih tahu dan tetap di geng.</string>
+    <string name="mod_block_owner">Kamu yang bikin geng ini, jadi kamu juga bisa mengeluarkan %1$s dari geng.</string>
+    <string name="mod_remove_name">Keluarkan %1$s dari geng</string>
+    <string name="mod_block">Blokir</string>
+    <string name="mod_blocked_done">%1$s diblokir di HP ini.</string>
+    <string name="mod_unblocked_done">Blokir %1$s sudah dibuka.</string>
+    <string name="mod_blocked_people">Orang yang diblokir</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="other">%d orang diblokir</item>
+    </plurals>
+    <string name="mod_blocked_none">Belum ada yang diblokir. Untuk memblokir seseorang, tekan lama wajahnya atau salah satu pesannya, atau buka fotonya.</string>
+    <string name="mod_blocked_about">Pesan, foto, dan video mereka disembunyikan di HP ini, dan pesan pribadi mereka dibuang. Mereka nggak dikasih tahu.</string>
+    <string name="mod_unblock">Buka blokir</string>
+    <string name="mod_thread_blocked">Kamu memblokir %1$s. Pesannya disembunyikan dan pesan baru nggak sampai ke kamu. Ketuk untuk buka blokir.</string>
+    <string name="mod_report_or_block">Laporkan atau blokir</string>
+    <string name="mod_rules_title">Sebelum posting</string>
+    <string name="mod_rules_intro">Chat geng, foto, video, dan pesan pribadi itu untuk geng kamu. Ikuti aturan ini:</string>
+    <string name="mod_rules_harassment">Dilarang melecehkan, merundung, atau menyebar kebencian.</string>
+    <string name="mod_rules_illegal">Dilarang yang ilegal, dan dilarang konten seksual yang melibatkan siapa pun di bawah 18 tahun.</string>
+    <string name="mod_rules_threats">Dilarang mengancam atau melakukan kekerasan.</string>
+    <string name="mod_rules_reports">Siapa pun di geng kamu bisa melaporkan postinganmu. Laporan mengirim ke Moshpoint apa yang mereka lihat, dan bisa ditinjau. Melanggar aturan ini bisa bikin kamu diblokir dari Moshpoint.</string>
+    <string name="mod_rules_agree">Saya setuju</string>
+    <string name="mod_report_message">Laporkan pesan ini</string>
+    <string name="mod_report_photo">Laporkan foto ini</string>
+    <string name="mod_report_clip">Laporkan video ini</string>
+    <string name="mod_report_name">Laporkan %1$s</string>
+    <string name="mod_report_why">Ada masalah apa?</string>
+    <string name="mod_reason_harassment">Pelecehan atau perundungan</string>
+    <string name="mod_reason_hate">Kebencian</string>
+    <string name="mod_reason_sexual">Konten seksual</string>
+    <string name="mod_reason_violence">Kekerasan atau ancaman</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Lainnya</string>
+    <string name="mod_report_note">Tambah catatan (opsional)</string>
+    <string name="mod_report_e2e">Pesan dienkripsi end-to-end, jadi Moshpoint nggak bisa melihatnya. Laporanmu mengirim apa yang kamu lihat:</string>
+    <string name="mod_report_sends_message">Pesan ini</string>
+    <string name="mod_report_sends_photo">Foto ini, diperkecil, dengan keterangannya</string>
+    <string name="mod_report_sends_clip">Beberapa frame dari video ini, diperkecil, dengan keterangannya</string>
+    <string name="mod_report_sends_who">Nama %1$s dan kuncinya di geng ini, kode untuk geng (bukan namanya), dan waktunya</string>
+    <string name="mod_report_sends_note">Catatanmu, kalau kamu menambahkannya</string>
+    <string name="mod_report_kept">Laporan disimpan selama 90 hari. %1$s nggak dikasih tahu siapa yang melapor.</string>
+    <string name="mod_report_block_too">Blokir %1$s juga</string>
+    <string name="mod_report_send">Kirim laporan</string>
+    <string name="mod_report_sending">Mengirim…</string>
+    <string name="mod_report_sent">Laporan terkirim. Makasih sudah menjaga gengmu.</string>
+    <string name="mod_report_failed">Laporan nggak bisa dikirim. Cek koneksimu dan coba lagi.</string>
+    <string name="mod_report_limit">Terlalu banyak laporan dari HP ini. Coba lagi nanti.</string>
+</resources>

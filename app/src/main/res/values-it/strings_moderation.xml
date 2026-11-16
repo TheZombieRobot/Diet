@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">Blocca %1$s</string>
+    <string name="mod_unblock_name">Sblocca %1$s</string>
+    <string name="mod_block_title">Bloccare %1$s?</string>
+    <string name="mod_block_text">Non vedrai più i suoi messaggi, le foto o le clip su questo telefono, e i suoi messaggi privati non ti arriveranno. La persona non riceve avvisi e resta nel gruppo.</string>
+    <string name="mod_block_owner">Hai creato tu questo gruppo, quindi puoi anche rimuovere %1$s.</string>
+    <string name="mod_remove_name">Rimuovi %1$s dal gruppo</string>
+    <string name="mod_block">Blocca</string>
+    <string name="mod_blocked_done">Hai bloccato %1$s su questo telefono.</string>
+    <string name="mod_unblocked_done">Hai sbloccato %1$s.</string>
+    <string name="mod_blocked_people">Persone bloccate</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d persona bloccata</item>
+        <item quantity="many">%d persone bloccate</item>
+        <item quantity="other">%d persone bloccate</item>
+    </plurals>
+    <string name="mod_blocked_none">Nessuna persona bloccata. Per bloccare qualcuno, tieni premuto sul suo volto o su un suo messaggio, oppure apri una sua foto.</string>
+    <string name="mod_blocked_about">I loro messaggi, foto e clip sono nascosti su questo telefono, e i loro messaggi privati vengono scartati. Non ricevono avvisi.</string>
+    <string name="mod_unblock">Sblocca</string>
+    <string name="mod_thread_blocked">Hai bloccato %1$s. I suoi messaggi sono nascosti e quelli nuovi non ti arrivano. Tocca per sbloccare.</string>
+    <string name="mod_report_or_block">Segnala o blocca</string>
+    <string name="mod_rules_title">Prima di pubblicare</string>
+    <string name="mod_rules_intro">La chat del gruppo, le foto, le clip e i messaggi privati sono per il tuo gruppo. Rispetta queste regole:</string>
+    <string name="mod_rules_harassment">Niente molestie, bullismo o odio.</string>
+    <string name="mod_rules_illegal">Niente di illegale e niente di sessuale che coinvolga minori di 18 anni.</string>
+    <string name="mod_rules_threats">Niente minacce o violenza.</string>
+    <string name="mod_rules_reports">Chiunque nel tuo gruppo può segnalare quello che pubblichi. Una segnalazione invia a Moshpoint ciò che ha visto quella persona, e può essere esaminata. Chi viola queste regole può essere bloccato da Moshpoint.</string>
+    <string name="mod_rules_agree">Accetto</string>
+    <string name="mod_report_message">Segnala questo messaggio</string>
+    <string name="mod_report_photo">Segnala questa foto</string>
+    <string name="mod_report_clip">Segnala questa clip</string>
+    <string name="mod_report_name">Segnala %1$s</string>
+    <string name="mod_report_why">Qual è il problema?</string>
+    <string name="mod_reason_harassment">Molestie o bullismo</string>
+    <string name="mod_reason_hate">Odio</string>
+    <string name="mod_reason_sexual">Contenuti sessuali</string>
+    <string name="mod_reason_violence">Violenza o minacce</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Altro</string>
+    <string name="mod_report_note">Aggiungi una nota (facoltativa)</string>
+    <string name="mod_report_e2e">I messaggi sono crittografati end-to-end, quindi Moshpoint non può vederli. La segnalazione invia ciò che vedi tu:</string>
+    <string name="mod_report_sends_message">Questo messaggio</string>
+    <string name="mod_report_sends_photo">Questa foto, rimpicciolita, con la sua didascalia</string>
+    <string name="mod_report_sends_clip">Alcuni fotogrammi di questa clip, rimpiccioliti, con la sua didascalia</string>
+    <string name="mod_report_sends_who">Il nome di %1$s e la sua chiave in questo gruppo, un codice del gruppo (non il nome) e l\'ora</string>
+    <string name="mod_report_sends_note">La tua nota, se ne aggiungi una</string>
+    <string name="mod_report_kept">Le segnalazioni vengono conservate per 90 giorni. %1$s non saprà chi ha fatto la segnalazione.</string>
+    <string name="mod_report_block_too">Blocca anche %1$s</string>
+    <string name="mod_report_send">Invia segnalazione</string>
+    <string name="mod_report_sending">Invio in corso…</string>
+    <string name="mod_report_sent">Segnalazione inviata. Grazie per tenere d\'occhio il tuo gruppo.</string>
+    <string name="mod_report_failed">Impossibile inviare la segnalazione. Controlla la connessione e riprova.</string>
+    <string name="mod_report_limit">Troppe segnalazioni da questo telefono. Riprova più tardi.</string>
+</resources>

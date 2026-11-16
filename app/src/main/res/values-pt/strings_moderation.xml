@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">Bloquear %1$s</string>
+    <string name="mod_unblock_name">Desbloquear %1$s</string>
+    <string name="mod_block_title">Bloquear %1$s?</string>
+    <string name="mod_block_text">Você não vai ver as mensagens, fotos ou clipes dessa pessoa neste celular, e as mensagens privadas dela não vão chegar até você. Ela não fica sabendo e continua na galera.</string>
+    <string name="mod_block_owner">Você criou essa galera, então também pode tirar %1$s dela.</string>
+    <string name="mod_remove_name">Tirar %1$s da galera</string>
+    <string name="mod_block">Bloquear</string>
+    <string name="mod_blocked_done">Você bloqueou %1$s neste celular.</string>
+    <string name="mod_unblocked_done">Você desbloqueou %1$s.</string>
+    <string name="mod_blocked_people">Pessoas bloqueadas</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d pessoa bloqueada</item>
+        <item quantity="many">%d pessoas bloqueadas</item>
+        <item quantity="other">%d pessoas bloqueadas</item>
+    </plurals>
+    <string name="mod_blocked_none">Ninguém bloqueado. Pra bloquear alguém, toque e segure no rosto ou numa mensagem da pessoa, ou abra a foto dela.</string>
+    <string name="mod_blocked_about">As mensagens, fotos e clipes dessas pessoas ficam ocultos neste celular, e as mensagens privadas delas são descartadas. Elas não ficam sabendo.</string>
+    <string name="mod_unblock">Desbloquear</string>
+    <string name="mod_thread_blocked">Você bloqueou %1$s. As mensagens estão ocultas e as novas não chegam até você. Toque pra desbloquear.</string>
+    <string name="mod_report_or_block">Denunciar ou bloquear</string>
+    <string name="mod_rules_title">Antes de postar</string>
+    <string name="mod_rules_intro">O chat da galera, as fotos, os clipes e as mensagens privadas são pra sua galera. Siga estas regras:</string>
+    <string name="mod_rules_harassment">Nada de assédio, bullying ou ódio.</string>
+    <string name="mod_rules_illegal">Nada ilegal e nada sexual envolvendo menores de 18 anos.</string>
+    <string name="mod_rules_threats">Nada de ameaças ou violência.</string>
+    <string name="mod_rules_reports">Qualquer pessoa da sua galera pode denunciar o que você posta. A denúncia envia pro Moshpoint o que a pessoa viu, e pode ser analisada. Quem quebra essas regras pode ser bloqueado no Moshpoint.</string>
+    <string name="mod_rules_agree">Concordo</string>
+    <string name="mod_report_message">Denunciar esta mensagem</string>
+    <string name="mod_report_photo">Denunciar esta foto</string>
+    <string name="mod_report_clip">Denunciar este clipe</string>
+    <string name="mod_report_name">Denunciar %1$s</string>
+    <string name="mod_report_why">Qual é o problema?</string>
+    <string name="mod_reason_harassment">Assédio ou bullying</string>
+    <string name="mod_reason_hate">Ódio</string>
+    <string name="mod_reason_sexual">Conteúdo sexual</string>
+    <string name="mod_reason_violence">Violência ou ameaças</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Outra coisa</string>
+    <string name="mod_report_note">Adicione uma nota (opcional)</string>
+    <string name="mod_report_e2e">As mensagens têm criptografia de ponta a ponta, então o Moshpoint não consegue ver. Sua denúncia envia o que você vê:</string>
+    <string name="mod_report_sends_message">Esta mensagem</string>
+    <string name="mod_report_sends_photo">Esta foto, menor, com a legenda</string>
+    <string name="mod_report_sends_clip">Alguns quadros deste clipe, menores, com a legenda</string>
+    <string name="mod_report_sends_who">O nome de %1$s e a chave da pessoa nesta galera, um código da galera (não o nome) e o horário</string>
+    <string name="mod_report_sends_note">Sua nota, se você adicionar uma</string>
+    <string name="mod_report_kept">As denúncias ficam guardadas por 90 dias. %1$s não fica sabendo quem denunciou.</string>
+    <string name="mod_report_block_too">Bloquear %1$s também</string>
+    <string name="mod_report_send">Enviar denúncia</string>
+    <string name="mod_report_sending">Enviando…</string>
+    <string name="mod_report_sent">Denúncia enviada. Valeu por cuidar da sua galera.</string>
+    <string name="mod_report_failed">Não deu pra enviar a denúncia. Confira sua conexão e tente de novo.</string>
+    <string name="mod_report_limit">Muitas denúncias deste celular. Tente de novo mais tarde.</string>
+</resources>

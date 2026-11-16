@@ -127,6 +127,11 @@ class MomentFlow(
 
     private fun sendClip(caption: String) {
         val f = momentClip ?: return
+        // The community rules first, once (docs/REPORT_BLOCK.md); the clip goes once they're agreed to.
+        if (!nz.waveformlabs.moshpoint.moderation.Moderation.agreed(activity)) {
+            nz.waveformlabs.moshpoint.moderation.Moderation.rules.value = { sendClip(caption) }
+            return
+        }
         sendingMoment = true
         activity.lifecycleScope.launch {
             val loc = lastLocation()
@@ -200,6 +205,11 @@ class MomentFlow(
 
     private fun sendMoment(caption: String) {
         val photo = momentPhoto ?: return
+        // The community rules first, once (docs/REPORT_BLOCK.md); the photo goes once they're agreed to.
+        if (!nz.waveformlabs.moshpoint.moderation.Moderation.agreed(activity)) {
+            nz.waveformlabs.moshpoint.moderation.Moderation.rules.value = { sendMoment(caption) }
+            return
+        }
         sendingMoment = true
         activity.lifecycleScope.launch {
             val loc = lastLocation()
@@ -315,6 +325,12 @@ class MomentFlow(
                 onMap = if (m.lat != null) ({ viewingMoment = null; openMap() }) else null,
                 onFind = if (friend != null && !m.mine) ({ viewingMoment = null; findFriend(friend.id) }) else null,
                 onClose = { viewingMoment = null },
+                onReportOrBlock = if (m.mine) null else ({
+                    viewingMoment = null
+                    nz.waveformlabs.moshpoint.moderation.Person.ofMoment(activity, m)?.let {
+                        nz.waveformlabs.moshpoint.moderation.Moderation.ask(nz.waveformlabs.moshpoint.moderation.Moderation.Subject(it, nz.waveformlabs.moshpoint.moderation.Moderation.Moment(m)))
+                    }
+                }),
             )
         }
     }

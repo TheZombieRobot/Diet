@@ -72,6 +72,11 @@ internal fun PrivateChatScreen(
     myFace: ImageBitmap? = null,
     /** Their colour (ARGB), so their name and ring match the map and tiles. */
     colour: Int? = null,
+    /** Blocked on this phone (docs/REPORT_BLOCK.md): their messages are hidden; the note on top unblocks. */
+    blocked: Boolean = false,
+    onUnblock: () -> Unit = {},
+    /** Tapping their name (null), or holding one of their messages (that line): block (and report) them. Null = not offered. */
+    onOptions: ((CrewChat.Line?) -> Unit)? = null,
 ) {
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null // false in screenshot tests
     if (hasBack) BackHandler(onBack = onBack)
@@ -82,7 +87,7 @@ internal fun PrivateChatScreen(
     Column(Modifier.fillMaxSize().background(Mosh.Ground).statusBarsPadding().navigationBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = onBack) { Text("‹", style = Mosh.Heading.copy(fontSize = 28.sp)) }
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f).then(if (onOptions != null) Modifier.clickable { onOptions(null) } else Modifier)) {
                 Text(name, style = Mosh.Heading.copy(fontSize = 20.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 // Wraps rather than being cut short: "only you two can read it" is the point of the line,
                 // and in German, Spanish, French, Dutch, Polish... it doesn't fit beside the button.
@@ -107,6 +112,13 @@ internal fun PrivateChatScreen(
                     style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.Text),
                     modifier = Modifier.fillMaxWidth().background(Mosh.Amber.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
                         .border(1.dp, Mosh.Amber.copy(alpha = 0.5f), RoundedCornerShape(14.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
+                )
+            }
+            if (blocked) {
+                Text(
+                    stringResource(R.string.mod_thread_blocked, name),
+                    style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim),
+                    modifier = Modifier.fillMaxWidth().clickable(onClick = onUnblock).padding(vertical = 2.dp),
                 )
             }
             if (muted) {
@@ -153,6 +165,7 @@ internal fun PrivateChatScreen(
                         colour = if (l.mine) null else ring,
                         myName = myName,
                         onRetry = onRetry,
+                        onOptions = onOptions,
                     )
                 }
             }

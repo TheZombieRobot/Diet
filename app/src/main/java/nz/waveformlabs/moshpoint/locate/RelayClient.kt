@@ -374,6 +374,28 @@ object RelayClient {
         }
     }
 
+    /**
+     * A report of objectionable content (docs/REPORT_BLOCK.md), as JSON, to this build's relay: the
+     * free one or the paid one, whichever the app uses. The HTTP status (201 = stored, 429 = too
+     * many from this phone), 0 if the relay couldn't be reached, -1 with no relay of our own (the
+     * public ntfy.sh fallback takes no reports).
+     */
+    suspend fun postReport(json: ByteArray): Int = withContext(Dispatchers.IO) {
+        if (!ownServer) return@withContext -1
+        runCatching {
+            val c = URL("$base/v1/report").openConnection() as HttpURLConnection
+            c.requestMethod = "POST"
+            c.doOutput = true
+            c.connectTimeout = 15_000
+            c.readTimeout = 20_000
+            c.setRequestProperty("Content-Type", "application/json")
+            c.outputStream.use { it.write(json) }
+            val code = c.responseCode
+            c.disconnect()
+            code
+        }.getOrDefault(0)
+    }
+
     private fun ownPut(url: String, body: ByteArray, timeout: Int, use: RelayUse): PutResult =
         exchange(use, message = true) {
             val c = URL(url).openConnection() as HttpURLConnection

@@ -860,6 +860,64 @@ memory or less** matters most; a recent flagship as well if you have one.
 The meminfo numbers before and after, anything that froze or stuttered, any photo that didn't
 appear, and any screen that looks different from before.
 
+## 4j. Report and block (two phones, a third for one test, 30 min)
+
+Google Play's User Generated Content policy: report, block, and community rules before the first
+post. How it works and why: `docs/REPORT_BLOCK.md`; reading reports: `docs/MODERATION.md`.
+
+Set up: A, B and C in the same crew (A made it), all **Go live**, with signal. A build with our
+own relay (reports don't go through ntfy.sh). Fresh installs, or clear the app's data, so the
+community rules haven't been agreed to yet.
+
+### Community rules, once
+
+- [ ] On B, open the crew chat and send "hi": **Before you post** appears with three rules, the
+  note that reports may be reviewed and the **Privacy policy** link (it opens). Tap **Not now**:
+  nothing is sent. Send again, tap **I agree**: "hi" goes at once.
+- [ ] B sends a photo (Share a moment) and a private message to A: no rules screen again.
+- [ ] On C, the first thing sent is a photo: the rules show over the photo's Send; I agree sends it.
+
+### Block
+
+- [ ] On A, hold one of B's chat bubbles: a menu with B's name, **Report this message** and
+  **Block B**. Tap **Block B**: "Block B?" explains (hidden on this phone, private messages
+  dropped, B isn't told and stays in the crew) and, since A made the crew, offers **Remove B from
+  the crew** (don't tap it yet). Tap **Block**: a toast; B's lines vanish from A's chat.
+- [ ] B sends a chat line, a private message to A and a photo: on A nothing shows, nothing
+  notifies, and no unread count appears (B's face, the chat button). C sees all of B's posts as
+  usual. B's phone shows its messages as sent, as normal.
+- [ ] B presses **Need help**: A still gets the alert, and its chat line shows.
+- [ ] A opens B's private thread (B's options → Message B): "You blocked B…" at the top, only A's
+  own messages. Tap the note: B is unblocked; B's earlier chat lines and photos come back, but
+  the private messages sent while blocked never arrive (they were dropped).
+- [ ] A blocks B again from B's face (options → **Block B**), then **Settings → Blocked people**:
+  B, with the crew's name, and **Unblock**. Unblock: the list is empty and says how to block.
+- [ ] From a photo: open one of C's photos (home or Story): **Report or block** → **Block C** →
+  Block: C's photos and clips disappear from the home screen, the Story and the map.
+- [ ] A blocks B, then taps **Remove B from the crew** in "Block B?": the usual "Remove B from the
+  crew?" comes up; Remove works as from the home screen. (C, who didn't make the crew, never sees
+  that offer.)
+
+### Report
+
+- [ ] On A, hold one of C's messages → **Report this message**: the sheet lists six reasons, a
+  note box, and exactly what will be sent (this message, C's name and key, a crew code, the time,
+  the note) and that reports are kept 90 days. **Send report** stays grey until a reason is picked.
+  Pick **Spam**, write a note, tick **Also block C**, Send: "Report sent…", and C is blocked.
+- [ ] Report a photo and a clip (from **Report or block**) and a person (options → **Report C**).
+- [ ] Turn on airplane mode and report something: "The report couldn't be sent…"; nothing else
+  changes.
+- [ ] On a computer, read them (docs/MODERATION.md): four reports, newest first; the photo report
+  has one JPEG, the clip's has up to four frames; no reporter address or id anywhere. Delete one:
+  204, and it's gone from the list. A wrong token: 401.
+- [ ] Send 6 reports quickly from one phone: the 6th says "Too many reports from this phone…".
+
+### What to send back for this part
+
+- Screenshots of the rules, the menu, "Block B?", Blocked people and the report sheet on a small
+  phone with large text, and the JSON of one report (with the images removed).
+- For each test: worked or not, and anything confusing in the words.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).

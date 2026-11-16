@@ -19,6 +19,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.response.respondText
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
@@ -59,6 +60,8 @@ import kotlin.system.exitProcess
  * - `POST /v1/install`    -> an install token, sent back as `X-Moshpoint-Token` for limits of its own.
  * - `POST /v1/batch`      several puts and gets (with cursors) in one request (see [Batch]).
  * - `POST /v1/heldsince`  chat lookups that return only what's new since a cursor.
+ * - `POST /v1/report`     a report of objectionable content (Reports.kt), kept 90 days.
+ * - `GET /v1/admin/reports`, `DELETE /v1/admin/reports/{id}`  the owner's, with MOSHPOINT_ADMIN_TOKEN.
  */
 fun Application.moshpoint(
     relay: Relay,
@@ -162,8 +165,55 @@ fun Application.moshpoint(
         }
     }
 
+    /**
+     * The owner's admin routes: off (404, as if they weren't there) when no MOSHPOINT_ADMIN_TOKEN
+     * is set; 401 without the right token. False once answered.
+     */
+    suspend fun ApplicationCall.admin(): Boolean {
+        if (!relay.admin.enabled) {
+            respondText("not found", status = HttpStatusCode.NotFound)
+            return false
+        }
+        if (!charge(write = false)) return false
+        if (!relay.admin.allows(request.headers["Authorization"])) {
+            respondText("unauthorized", status = HttpStatusCode.Unauthorized)
+            return false
+        }
+        return true
+    }
+
     routing {
         get("/healthz") { call.respondText("ok") }
+
+        // A report of objectionable content: what the reporter's phone could see (Reports.kt).
+        post("/v1/report") {
+            if (!call.charge(write = true)) return@post
+            if (!relay.reportLimits.allow(call.client())) {
+                call.response.headers.append("Retry-After", "3600")
+                call.response.headers.append("X-Moshpoint-Limit", "reports")
+                return@post call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
+            }
+            if (relay.lowOnDisk()) return@post call.respondText("full", status = HttpStatusCode.ServiceUnavailable)
+            val body = call.small(ReportRules.MAX_BODY) ?: return@post call.respondText("cut off", status = HttpStatusCode.BadRequest)
+            val report = ReportRules.parse(body, relay.clock() / 1000) ?: return@post call.respondText("bad report", status = HttpStatusCode.BadRequest)
+            val id = withContext(Dispatchers.IO) { relay.reports.add(report) } ?: return@post call.respondText("full", status = HttpStatusCode.ServiceUnavailable)
+            call.respondText(org.json.JSONObject().put("id", id).toString(), ContentType.Application.Json, HttpStatusCode.Created)
+        }
+
+        // The owner reads and clears reports with the admin token (docs/MODERATION.md).
+        get("/v1/admin/reports") {
+            if (!call.admin()) return@get
+            val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceIn(1, 500) ?: 100
+            val list = withContext(Dispatchers.IO) { relay.reports.list(limit) }
+            call.respondText(org.json.JSONArray(list).toString(), ContentType.Application.Json)
+        }
+
+        delete("/v1/admin/reports/{id}") {
+            if (!call.admin()) return@delete
+            val id = call.parameters["id"].orEmpty()
+            val gone = withContext(Dispatchers.IO) { relay.reports.delete(id) }
+            if (gone) call.respondText("", status = HttpStatusCode.NoContent) else call.respondText("not found", status = HttpStatusCode.NotFound)
+        }
 
         put("/v1/box/{id}") {
             if (!call.charge(write = true)) return@put

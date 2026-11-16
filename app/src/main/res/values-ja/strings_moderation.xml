@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">%1$sをブロック</string>
+    <string name="mod_unblock_name">%1$sのブロックを解除</string>
+    <string name="mod_block_title">%1$sをブロックしますか？</string>
+    <string name="mod_block_text">このスマホでは相手のメッセージ、写真、動画が表示されなくなり、プライベートメッセージも届かなくなります。相手には通知されず、クルーにも残ります。</string>
+    <string name="mod_block_owner">このクルーを作ったのはあなたなので、%1$sをクルーから外すこともできます。</string>
+    <string name="mod_remove_name">%1$sをクルーから外す</string>
+    <string name="mod_block">ブロック</string>
+    <string name="mod_blocked_done">このスマホで%1$sをブロックしました。</string>
+    <string name="mod_unblocked_done">%1$sのブロックを解除しました。</string>
+    <string name="mod_blocked_people">ブロック中の人</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="other">%d人をブロック中</item>
+    </plurals>
+    <string name="mod_blocked_none">ブロック中の人はいません。ブロックするには、相手の顔かメッセージを長押しするか、写真を開いてください。</string>
+    <string name="mod_blocked_about">ブロックした人のメッセージ、写真、動画はこのスマホで非表示になり、プライベートメッセージは破棄されます。相手には通知されません。</string>
+    <string name="mod_unblock">解除</string>
+    <string name="mod_thread_blocked">%1$sをブロック中です。メッセージは非表示で、新しいメッセージも届きません。タップして解除。</string>
+    <string name="mod_report_or_block">報告またはブロック</string>
+    <string name="mod_rules_title">投稿する前に</string>
+    <string name="mod_rules_intro">クルーチャット、写真、動画、プライベートメッセージはクルーのためのものです。次のルールを守ってください：</string>
+    <string name="mod_rules_harassment">嫌がらせ、いじめ、ヘイトは禁止。</string>
+    <string name="mod_rules_illegal">違法なもの、18歳未満が関わる性的なものは禁止。</string>
+    <string name="mod_rules_threats">脅迫や暴力は禁止。</string>
+    <string name="mod_rules_reports">クルーの誰でもあなたの投稿を報告できます。報告すると、その人が見た内容がMoshpointに送られ、確認されることがあります。ルールに違反すると、Moshpointの利用をブロックされることがあります。</string>
+    <string name="mod_rules_agree">同意する</string>
+    <string name="mod_report_message">このメッセージを報告</string>
+    <string name="mod_report_photo">この写真を報告</string>
+    <string name="mod_report_clip">この動画を報告</string>
+    <string name="mod_report_name">%1$sを報告</string>
+    <string name="mod_report_why">どんな問題ですか？</string>
+    <string name="mod_reason_harassment">嫌がらせ・いじめ</string>
+    <string name="mod_reason_hate">ヘイト</string>
+    <string name="mod_reason_sexual">性的なコンテンツ</string>
+    <string name="mod_reason_violence">暴力・脅迫</string>
+    <string name="mod_reason_spam">スパム</string>
+    <string name="mod_reason_other">その他</string>
+    <string name="mod_report_note">メモを追加（任意）</string>
+    <string name="mod_report_e2e">メッセージはエンドツーエンドで暗号化されているため、Moshpointには見えません。報告では、あなたに見えているものを送ります：</string>
+    <string name="mod_report_sends_message">このメッセージ</string>
+    <string name="mod_report_sends_photo">この写真（縮小）とキャプション</string>
+    <string name="mod_report_sends_clip">この動画の数コマ（縮小）とキャプション</string>
+    <string name="mod_report_sends_who">%1$sの名前とこのクルーでのキー、クルーを表すコード（名前ではありません）、日時</string>
+    <string name="mod_report_sends_note">メモ（追加した場合）</string>
+    <string name="mod_report_kept">報告は90日間保存されます。%1$sに報告者は知らされません。</string>
+    <string name="mod_report_block_too">%1$sもブロックする</string>
+    <string name="mod_report_send">報告を送信</string>
+    <string name="mod_report_sending">送信中…</string>
+    <string name="mod_report_sent">報告を送信しました。クルーを気にかけてくれてありがとう。</string>
+    <string name="mod_report_failed">報告を送信できませんでした。接続を確認して、もう一度お試しください。</string>
+    <string name="mod_report_limit">このスマホからの報告が多すぎます。しばらくしてからお試しください。</string>
+</resources>

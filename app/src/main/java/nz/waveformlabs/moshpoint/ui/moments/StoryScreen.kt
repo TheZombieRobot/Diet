@@ -157,6 +157,8 @@ fun StoryScreen(
     onDelete: (() -> Unit)? = null,
     /** Add photos/videos from this phone's camera roll taken during the gig. */
     onAddFromPhone: (() -> Unit)? = null,
+    /** Someone else's photo or clip, opened: report it or block them (docs/REPORT_BLOCK.md). Null = not offered. */
+    onReportOrBlock: ((Moments.Item) -> Unit)? = null,
 ) {
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null
     if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
@@ -320,6 +322,9 @@ fun StoryScreen(
                             if (m.lat != null) {
                                 TextButton(onClick = { open = null; onMap(m) }) { Text(stringResource(R.string.find_on_the_map), style = Mosh.Label.copy(color = Mosh.Cyan)) }
                             }
+                        }
+                        if (onReportOrBlock != null && !m.mine) {
+                            TextButton(onClick = { open = null; onReportOrBlock(m) }) { Text(stringResource(R.string.mod_report_or_block), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextDim)) }
                         }
                     }
                 }
