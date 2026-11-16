@@ -19,6 +19,42 @@ Two values that look like keys but are meant to be public:
 
 **Paid versus free:** API keys go only on the production relay, which serves Moshpoint+ members. The free relay has no keys at all (ROADMAP.md, Moshpoint+).
 
+## Fill-in checklist
+
+Every key the project will need, with a one-word placeholder.
+
+**Never replace a placeholder in this file.** The repo is public, and every save on GitHub's website is a commit, so a real value typed here is published at once and stays in the history even after it's changed back. Ignoring a file later doesn't help either: `.gitignore` only affects new local files, never one already in the repo. Paste each real value into the place in the last column instead. Those are private boxes, and GitHub's works from a phone.
+
+**Paid-only server (Moshpoint+). The free server never gets these:**
+
+| Name | Placeholder | Get it from | Paste the real value into |
+|---|---|---|---|
+| `TICKETMASTER_KEY` | INSERTTICKETMASTERKEYHERE | developer.ticketmaster.com → My Apps → Consumer Key | The paid relay's Fly secrets |
+| `SEATGEEK_CLIENT_ID` | INSERTSEATGEEKCLIENTIDHERE | seatgeek.com/account/develop | The paid relay's Fly secrets |
+| `BANDSINTOWN_APP_ID` | INSERTBANDSINTOWNAPPIDHERE | Bandsintown's API application (check the commercial terms) | The paid relay's Fly secrets |
+
+**Both servers:**
+
+| Name | Placeholder | Get it from | Paste the real value into |
+|---|---|---|---|
+| `MOSHPOINT_TOKEN_SECRET` | INSERTTOKENSECRETHERE | Generate: `openssl rand -hex 32` | That relay's Fly secrets (a different one per relay) |
+| `MOSHPOINT_CONTACT` | INSERTCONTACTEMAILHERE | Your support email | That relay's Fly secrets |
+
+**Building and publishing the app (GitHub → repo → Settings → Secrets and variables → Actions):**
+
+| Name | Placeholder | Get it from | Paste the real value into |
+|---|---|---|---|
+| `MOSHPOINT_KEYSTORE` | INSERTKEYSTOREBASE64HERE | Your Play upload keystore, base64-encoded | Secrets tab |
+| `MOSHPOINT_KEYSTORE_PASSWORD` | INSERTKEYSTOREPASSWORDHERE | Chosen when you create the keystore | Secrets tab |
+| `MOSHPOINT_KEY_ALIAS` | INSERTKEYALIASHERE | Chosen when you create the keystore | Secrets tab |
+| `MOSHPOINT_KEY_PASSWORD` | INSERTKEYPASSWORDHERE | Chosen when you create the keystore | Secrets tab |
+| `RELEASES_TOKEN` (optional) | INSERTRELEASESTOKENHERE | A GitHub fine-grained token for the builds repo | Secrets tab |
+| `MOSHPOINT_SERVER` | INSERTRELAYADDRESSHERE | e.g. https://moshpoint-relay.fly.dev (not a secret) | Variables tab |
+
+**Later, with billing:**
+- A Google Play service account, for checking purchases on the paid relay: its JSON goes in that relay's Fly secrets.
+- A Mapbox token for satellite maps: designed with billing so free builds can't use it.
+
 ## What stops a leak
 
 1. **No slot for one.** The app has no build setting for an API key: gig search goes through the relay. `gradle.properties` holds no key fields.

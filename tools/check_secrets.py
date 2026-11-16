@@ -72,7 +72,8 @@ BARE_ASSIGN = re.compile(r"(?i)^\s*[\w.\-]*(" + NAMES + r")[\w.\-]*\s*[:=]\s*([^
 URL_KEY = re.compile(r"(?i)[?&](apikey|api_key|client_id|client_secret|app_id|app_secret|access_token|token|key)=([A-Za-z0-9_\-]{16,})")
 AUTH_HEADER = re.compile(r"(?i)authorization[\"']?\s*[:=,]\s*[\"']?(bearer|basic|token)\s+([A-Za-z0-9_\-.=+/]{16,})")
 
-PLACEHOLDER = re.compile(r"(?i)example|your|xxx|changeme|placeholder|dummy|redacted|sample|<|>|\*|\.\.\.|\[secret\]|^(.)\1+$")
+# Placeholders such as INSERTTICKETMASTERKEYHERE (docs/SECRETS.md, fill-in checklist) are fine.
+PLACEHOLDER = re.compile(r"(?i)example|your|xxx|changeme|placeholder|dummy|redacted|sample|^insert.*here$|<|>|\*|\.\.\.|\[secret\]|^(.)\1+$")
 
 
 def looks_literal(v: str) -> bool:
