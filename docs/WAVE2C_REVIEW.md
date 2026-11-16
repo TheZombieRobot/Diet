@@ -12,17 +12,19 @@ _Keep this section current: whoever picks this up next starts here._
 
 - **Stage:** F1 to F5 fixed, each with its failing core test committed first (all 642 core
   tests pass locally; `RelayClient.kt` type-checks locally against core with small Android
-  stubs; the one-line change in `OfflineMessages.post` (F5) is checked only by CI). CI run 343
-  (head `82a3105`, F1 to F4): core and server tests, both app builds and all watch screenshots
-  green; the phone screenshots were still rendering. A sixth change (a share of the free relay's
-  minute kept for safety pings) was asked for, then withdrawn as not wanted (owner): it was
-  reverted in full, and the public relay's budget is as merged. The run on the head after the
-  revert checks F1 to F5.
-- **Exact next step:** when that run ends: both jobs green, then compare the screenshots:
+  stubs; the one-line change in `OfflineMessages.post` (F5) is checked only by CI). A sixth
+  change (a share of the free relay's minute kept for safety pings) was asked for, then
+  withdrawn as not wanted (owner): it was reverted in full (`fb56dec`), no CI ran on it, and the
+  public relay's budget is as merged.
+- **CI:** run 343 (head `82a3105`, F1 to F4) green: core and server tests, debug and release
+  builds of the phone and the watch, screenshots, lint. Its screenshots are identical to
+  `ui-screenshots` and `ui-screenshots-watch` (for `17caa74`): 2,320 phone and 798 watch images,
+  every path and git blob hash the same. Run 346 (head `fb56dec`, F1 to F5) is the final check.
+- **Exact next step:** when run 346 ends: both jobs green, then compare the screenshots again:
   `git fetch origin ui-screenshots ui-screenshots-claude-wave2c-review ui-screenshots-watch
   ui-screenshots-watch-claude-wave2c-review` and `git ls-tree -r` of each pair (every blob hash
   the same). Then send the report to the session that started this review.
-- **Last green CI run:** none on this branch yet (the merged work's last green run is 341).
+- **Last green CI run:** 343 (F1 to F4; head `82a3105`).
 
 ## Findings
 
