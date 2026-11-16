@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">Inviter des potes</string>
     <string name="hype_nudge_title">Tout le monde a son billet 🎟️</string>
     <string name="hype_nudge_text">Toute ta crew pour %1$s a ses billets. À bientôt là-bas !</string>
+    <string name="plan_type_it_in">SAISIS TON CONCERT</string>
+    <string name="plan_venue_hint">Salle et ville</string>
+    <string name="plus_card_title">Cherche n\'importe quel concert dans le monde, vois ce qui arrive près de chez toi</string>
+    <string name="plus_card_text">Tape une lettre et le concert est là, avec sa date, sa salle et le lien des billets.</string>
+    <string name="plus_card_more">Ce qu\'il y a dans Moshpoint+</string>
+    <string name="plus_info_title">Ce qu\'il y a dans Moshpoint+</string>
+    <string name="plus_info_search_title">Recherche maline</string>
+    <string name="plus_info_search_text">Tape une lettre et chaque concert du monde est là, les plus gros d\'abord, avec date, salle et lien des billets.</string>
+    <string name="plus_info_coming_title">Bientôt près de chez toi</string>
+    <string name="plus_info_coming_text">Un an de concerts près de chez toi, dans tout le pays, et les gros qui valent le voyage.</string>
+    <string name="plus_info_map_title">Plans de salle hors ligne</string>
+    <string name="plus_info_map_text">La carte satellite de la salle, gardée sur ton téléphone pour quand le réseau lâche.</string>
+    <string name="plus_info_watch_title">Retrouve-les depuis ton poignet</string>
+    <string name="plus_info_watch_text">Une flèche sur ta montre qui vibre chaud ou froid.</string>
+    <string name="plus_info_soon_title">BIENTÔT</string>
+    <string name="plus_info_soon_text">Moshpoint+ n\'est pas encore en vente. Saisir ton concert, les crews, le chat et retrouver tes potes restent gratuits.</string>
+    <string name="plus_info_back">Retour au plan</string>
 </resources>

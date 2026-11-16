@@ -21,4 +21,38 @@
     <string name="hype_nudge_title">Everyone\'s got a ticket 🎟️</string>
     <!-- Under that title. %1$s is the gig ("Ivory Tide"). -->
     <string name="hype_nudge_text">Your whole crew for %1$s has tickets. See you there!</string>
+    <!-- Plan a gig (FreeView.png): small capitals over the hand-entry fields. -->
+    <string name="plan_type_it_in">TYPE YOUR GIG IN</string>
+    <!-- Grey hint inside the empty "Where (optional)" field. -->
+    <string name="plan_venue_hint">Venue and town</string>
+    <!-- The quiet Moshpoint+ card under Start the crew, for free users. No price, no Upgrade button. -->
+    <string name="plus_card_title">Search every show worldwide, see what\'s coming near you</string>
+    <!-- Under that title. -->
+    <string name="plus_card_text">Type one letter and the gig\'s there, with its date, venue and ticket link.</string>
+    <!-- The card's link (amber, with a chevron): opens the explanation. Keep "Moshpoint+" as it is. -->
+    <string name="plus_card_more">What\'s in Moshpoint+</string>
+    <!-- Title of the explanation page (no billing yet). Keep "Moshpoint+" as it is. -->
+    <string name="plus_info_title">What\'s in Moshpoint+</string>
+    <!-- Explanation page, first item. -->
+    <string name="plus_info_search_title">Smart search</string>
+    <!-- Under "Smart search". -->
+    <string name="plus_info_search_text">Type one letter and every show worldwide is there, biggest first, with its date, venue and ticket link.</string>
+    <!-- Explanation page, second item (the home card of the same name). -->
+    <string name="plus_info_coming_title">Coming up near you</string>
+    <!-- Under "Coming up near you". -->
+    <string name="plus_info_coming_text">A year of shows near you, the whole country, and the big ones worth travelling for.</string>
+    <!-- Explanation page, third item. -->
+    <string name="plus_info_map_title">Venue maps offline</string>
+    <!-- Under "Venue maps offline". -->
+    <string name="plus_info_map_text">The venue\'s satellite map, kept on your phone for when the signal drops.</string>
+    <!-- Explanation page, fourth item (the watch app). -->
+    <string name="plus_info_watch_title">Find them from your wrist</string>
+    <!-- Under "Find them from your wrist". -->
+    <string name="plus_info_watch_text">An arrow on your watch that buzzes warmer and colder.</string>
+    <!-- Small capitals over the note that Moshpoint+ can't be bought yet (no billing). -->
+    <string name="plus_info_soon_title">COMING SOON</string>
+    <!-- Under COMING SOON. Keep "Moshpoint+" as it is. -->
+    <string name="plus_info_soon_text">Moshpoint+ isn\'t on sale yet. Typing your gig in, crews, chat and finding your mates stay free.</string>
+    <!-- Button at the bottom of the explanation: back to Plan a gig, with what was typed kept. -->
+    <string name="plus_info_back">Back to the plan</string>
 </resources>

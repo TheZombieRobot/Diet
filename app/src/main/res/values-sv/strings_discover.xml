@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">Bjud in kompisar</string>
     <string name="hype_nudge_title">Alla har biljett 🎟️</string>
     <string name="hype_nudge_text">Hela gruppen till %1$s har biljetter. Vi ses där!</string>
+    <string name="plan_type_it_in">SKRIV IN DIN SPELNING</string>
+    <string name="plan_venue_hint">Ställe och ort</string>
+    <string name="plus_card_title">Sök alla spelningar i världen, se vad som är på gång nära dig</string>
+    <string name="plus_card_text">Skriv en bokstav så finns spelningen där, med datum, ställe och biljettlänk.</string>
+    <string name="plus_card_more">Vad ingår i Moshpoint+</string>
+    <string name="plus_info_title">Vad ingår i Moshpoint+</string>
+    <string name="plus_info_search_title">Smart sökning</string>
+    <string name="plus_info_search_text">Skriv en bokstav så finns varje spelning i världen där, största först, med datum, ställe och biljettlänk.</string>
+    <string name="plus_info_coming_title">På gång nära dig</string>
+    <string name="plus_info_coming_text">Ett år av spelningar nära dig, i hela landet och de stora som är värda resan.</string>
+    <string name="plus_info_map_title">Kartor över stället offline</string>
+    <string name="plus_info_map_text">Satellitkartan över stället, sparad i mobilen för när täckningen försvinner.</string>
+    <string name="plus_info_watch_title">Hitta dem från handleden</string>
+    <string name="plus_info_watch_text">En pil på klockan som vibrerar varmare och kallare.</string>
+    <string name="plus_info_soon_title">KOMMER SNART</string>
+    <string name="plus_info_soon_text">Moshpoint+ går inte att köpa än. Att skriva in spelningen, grupper, chatt och att hitta kompisarna förblir gratis.</string>
+    <string name="plus_info_back">Tillbaka till planen</string>
 </resources>

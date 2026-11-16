@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">Convidar amigos</string>
     <string name="hype_nudge_title">Todo mundo tem ingresso 🎟️</string>
     <string name="hype_nudge_text">Sua galera toda pro %1$s tem ingresso. Até lá!</string>
+    <string name="plan_type_it_in">DIGITE SEU SHOW</string>
+    <string name="plan_venue_hint">Local e cidade</string>
+    <string name="plus_card_title">Busque qualquer show do mundo, veja o que vem aí perto de você</string>
+    <string name="plus_card_text">Digite uma letra e o show aparece, com data, local e link dos ingressos.</string>
+    <string name="plus_card_more">O que tem no Moshpoint+</string>
+    <string name="plus_info_title">O que tem no Moshpoint+</string>
+    <string name="plus_info_search_title">Busca inteligente</string>
+    <string name="plus_info_search_text">Digite uma letra e todo show do mundo aparece, os maiores primeiro, com data, local e link dos ingressos.</string>
+    <string name="plus_info_coming_title">Em breve perto de você</string>
+    <string name="plus_info_coming_text">Um ano de shows perto de você, no país inteiro, e os grandes que valem a viagem.</string>
+    <string name="plus_info_map_title">Mapas do local offline</string>
+    <string name="plus_info_map_text">O mapa de satélite do local, salvo no seu celular pra quando o sinal cair.</string>
+    <string name="plus_info_watch_title">Ache a galera pelo pulso</string>
+    <string name="plus_info_watch_text">Uma seta no relógio que vibra mais quente ou mais frio.</string>
+    <string name="plus_info_soon_title">EM BREVE</string>
+    <string name="plus_info_soon_text">O Moshpoint+ ainda não está à venda. Digitar seu show, a galera, o chat e achar seus amigos continuam de graça.</string>
+    <string name="plus_info_back">Voltar ao plano</string>
 </resources>

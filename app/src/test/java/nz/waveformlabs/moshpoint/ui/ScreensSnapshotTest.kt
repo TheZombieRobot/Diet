@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asImageBitmap
@@ -23,6 +25,8 @@ import nz.waveformlabs.moshpoint.ui.home.AddSheetContent
 import nz.waveformlabs.moshpoint.ui.home.CrewMenuContent
 import nz.waveformlabs.moshpoint.ui.home.FriendsListContent
 import nz.waveformlabs.moshpoint.ui.home.HomeDivider
+import nz.waveformlabs.moshpoint.ui.home.PlanGigContent
+import nz.waveformlabs.moshpoint.ui.home.PlusInfoContent
 import nz.waveformlabs.moshpoint.ui.home.SectionTitle
 import nz.waveformlabs.moshpoint.ui.home.UpNextCard
 import nz.waveformlabs.moshpoint.ui.home.UpNextRow
@@ -516,6 +520,53 @@ open class ScreensSnapshotTest {
     @Test fun smallPhoneLargeFontHypeGroup() {
         paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
         snapHype()
+    }
+
+    // ---- Plan a gig, free (docs/DISCOVER_APP.md, FreeView.png) ----
+
+    /** A sheet opened all the way over the no-crew home: as tall as its contents, from the top on a small phone (it scrolls there). */
+    private fun snapSheet(panel: @androidx.compose.runtime.Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) = snap {
+        MoshTheme {
+            androidx.compose.foundation.layout.BoxWithConstraints(androidx.compose.ui.Modifier.fillMaxSize()) {
+                HomeUnderTest(
+                    friends = HomeFixtures.friendsOnly, groupName = null, crewKeys = emptySet(), seen = emptyMap(),
+                    pings = emptyList(), meetUp = null, chatUnread = 0,
+                )
+                androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().background(Mosh.Scrim))
+                androidx.compose.foundation.layout.Box(
+                    androidx.compose.ui.Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
+                        .heightIn(max = maxHeight - 32.dp)
+                        .verticalScroll(androidx.compose.foundation.rememberScrollState()),
+                ) { nz.waveformlabs.moshpoint.ui.home.SheetFrame(content = panel) }
+            }
+        }
+    }
+
+    private fun planForm() = nz.waveformlabs.moshpoint.ui.home.PlanForm(HomeFixtures.MAR_13).apply { name = "Ivory Tide" }
+
+    private fun snapPlanFree() = snapSheet {
+        PlanGigContent(planForm(), member = false, search = null, onPick = {}, lookupVenue = null, onWhatsPlus = {})
+    }
+
+    /** Plan a gig for a free user: who's playing, the date and time, the venue, Start the crew, then the quiet Moshpoint+ card. */
+    @Test fun planGigFree() = snapPlanFree()
+
+    @Test fun smallPhonePlanGigFree() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5))
+        snapPlanFree()
+    }
+
+    @Test fun largeFontPlanGigFree() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.PIXEL_5).copy(fontScale = 1.3f))
+        snapPlanFree()
+    }
+
+    /** "What's in Moshpoint+": what it adds, and that it can't be bought yet. */
+    @Test fun plusInfo() = snapSheet { PlusInfoContent(onBack = {}) }
+
+    @Test fun smallPhoneLargeFontPlusInfo() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        snapSheet { PlusInfoContent(onBack = {}) }
     }
 
     /** Following from home: where they are (at the venue / how far from it), the latest alerts, the story, the map. */

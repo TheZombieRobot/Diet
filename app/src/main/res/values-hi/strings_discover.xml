@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">दोस्तों को बुलाएँ</string>
     <string name="hype_nudge_title">सबके पास टिकट है 🎟️</string>
     <string name="hype_nudge_text">%1$s के लिए पूरे ग्रुप के पास टिकट है। वहीं मिलते हैं!</string>
+    <string name="plan_type_it_in">अपना शो खुद लिखें</string>
+    <string name="plan_venue_hint">जगह और शहर</string>
+    <string name="plus_card_title">दुनिया भर के हर शो को खोजें, देखें आपके पास क्या आ रहा है</string>
+    <string name="plus_card_text">एक अक्षर लिखें और शो सामने है, तारीख, जगह और टिकट लिंक के साथ।</string>
+    <string name="plus_card_more">Moshpoint+ में क्या है</string>
+    <string name="plus_info_title">Moshpoint+ में क्या है</string>
+    <string name="plus_info_search_title">स्मार्ट सर्च</string>
+    <string name="plus_info_search_text">एक अक्षर लिखें और दुनिया भर का हर शो सामने, सबसे बड़े पहले, तारीख, जगह और टिकट लिंक के साथ।</string>
+    <string name="plus_info_coming_title">आपके पास आने वाले शो</string>
+    <string name="plus_info_coming_text">आपके पास, पूरे देश में, और वो बड़े शो जिनके लिए सफ़र बनता है, पूरे एक साल के।</string>
+    <string name="plus_info_map_title">ऑफ़लाइन वेन्यू मैप</string>
+    <string name="plus_info_map_text">वेन्यू का सैटेलाइट मैप, आपके फ़ोन में सेव, ताकि सिग्नल जाए तब भी काम आए।</string>
+    <string name="plus_info_watch_title">कलाई से ढूँढें</string>
+    <string name="plus_info_watch_text">घड़ी पर एक तीर जो पास-दूर होने पर वाइब्रेट करता है।</string>
+    <string name="plus_info_soon_title">जल्द आ रहा है</string>
+    <string name="plus_info_soon_text">Moshpoint+ अभी खरीदा नहीं जा सकता। अपना शो लिखना, ग्रुप, चैट और दोस्तों को ढूँढना फ़्री रहेगा।</string>
+    <string name="plus_info_back">प्लान पर वापस</string>
 </resources>

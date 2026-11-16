@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">Vrienden uitnodigen</string>
     <string name="hype_nudge_title">Iedereen heeft een ticket 🎟️</string>
     <string name="hype_nudge_text">Je hele crew voor %1$s heeft tickets. Tot daar!</string>
+    <string name="plan_type_it_in">TYP JE CONCERT IN</string>
+    <string name="plan_venue_hint">Locatie en plaats</string>
+    <string name="plus_card_title">Zoek elk concert ter wereld, zie wat er bij jou in de buurt komt</string>
+    <string name="plus_card_text">Typ één letter en het concert staat er, met datum, locatie en ticketlink.</string>
+    <string name="plus_card_more">Wat zit er in Moshpoint+</string>
+    <string name="plus_info_title">Wat zit er in Moshpoint+</string>
+    <string name="plus_info_search_title">Slim zoeken</string>
+    <string name="plus_info_search_text">Typ één letter en elk concert ter wereld staat er, de grootste eerst, met datum, locatie en ticketlink.</string>
+    <string name="plus_info_coming_title">Binnenkort bij jou in de buurt</string>
+    <string name="plus_info_coming_text">Een jaar aan concerten bij jou in de buurt, in het hele land, en de grote waarvoor reizen loont.</string>
+    <string name="plus_info_map_title">Locatiekaarten offline</string>
+    <string name="plus_info_map_text">De satellietkaart van de locatie, op je telefoon bewaard voor als het bereik wegvalt.</string>
+    <string name="plus_info_watch_title">Vind ze vanaf je pols</string>
+    <string name="plus_info_watch_text">Een pijl op je horloge die warmer en kouder trilt.</string>
+    <string name="plus_info_soon_title">BINNENKORT</string>
+    <string name="plus_info_soon_text">Moshpoint+ is nog niet te koop. Je concert intypen, crews, chat en je vrienden vinden blijven gratis.</string>
+    <string name="plus_info_back">Terug naar het plan</string>
 </resources>

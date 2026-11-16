@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">Arkadaş davet et</string>
     <string name="hype_nudge_title">Herkesin bileti var 🎟️</string>
     <string name="hype_nudge_text">%1$s için tüm ekibinin bileti var. Orada görüşürüz!</string>
+    <string name="plan_type_it_in">KONSERİNİ YAZ</string>
+    <string name="plan_venue_hint">Mekân ve şehir</string>
+    <string name="plus_card_title">Dünyadaki her konseri ara, yakınında ne var gör</string>
+    <string name="plus_card_text">Bir harf yaz, konser tarihi, mekânı ve bilet bağlantısıyla karşında.</string>
+    <string name="plus_card_more">Moshpoint+\'ta neler var</string>
+    <string name="plus_info_title">Moshpoint+\'ta neler var</string>
+    <string name="plus_info_search_title">Akıllı arama</string>
+    <string name="plus_info_search_text">Bir harf yaz, dünyadaki her konser en büyükleri önde, tarih, mekân ve bilet bağlantısıyla karşında.</string>
+    <string name="plus_info_coming_title">Yakınındaki konserler</string>
+    <string name="plus_info_coming_text">Yakınında, tüm ülkede ve yolculuğa değecek büyük konserler, bir yıl boyunca.</string>
+    <string name="plus_info_map_title">Çevrimdışı mekân haritaları</string>
+    <string name="plus_info_map_text">Mekânın uydu haritası, şebeke çekmediğinde diye telefonunda kayıtlı.</string>
+    <string name="plus_info_watch_title">Bileğinden bul</string>
+    <string name="plus_info_watch_text">Saatinde yaklaştıkça titreşen bir ok.</string>
+    <string name="plus_info_soon_title">ÇOK YAKINDA</string>
+    <string name="plus_info_soon_text">Moshpoint+ henüz satışta değil. Konserini yazmak, ekipler, sohbet ve arkadaşlarını bulmak ücretsiz kalıyor.</string>
+    <string name="plus_info_back">Plana dön</string>
 </resources>

@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">ادعُ أصحابك</string>
     <string name="hype_nudge_title">الجميع معه تذكرة 🎟️</string>
     <string name="hype_nudge_text">كل الشلة لحفلة %1$s معهم تذاكر. نراكم هناك!</string>
+    <string name="plan_type_it_in">اكتب حفلتك بنفسك</string>
+    <string name="plan_venue_hint">المكان والمدينة</string>
+    <string name="plus_card_title">ابحث عن أي حفلة في العالم، واعرف ما القادم بالقرب منك</string>
+    <string name="plus_card_text">اكتب حرفًا واحدًا وتظهر الحفلة، مع تاريخها ومكانها ورابط التذاكر.</string>
+    <string name="plus_card_more">ما الذي في Moshpoint+</string>
+    <string name="plus_info_title">ما الذي في Moshpoint+</string>
+    <string name="plus_info_search_title">بحث ذكي</string>
+    <string name="plus_info_search_text">اكتب حرفًا واحدًا وتظهر كل حفلات العالم، الأكبر أولًا، مع التاريخ والمكان ورابط التذاكر.</string>
+    <string name="plus_info_coming_title">قريبًا بالقرب منك</string>
+    <string name="plus_info_coming_text">حفلات سنة كاملة بالقرب منك، وفي البلد كله، والكبيرة التي تستحق السفر.</string>
+    <string name="plus_info_map_title">خرائط الأماكن دون اتصال</string>
+    <string name="plus_info_map_text">خريطة القمر الصناعي للمكان، محفوظة على هاتفك لوقت انقطاع الإشارة.</string>
+    <string name="plus_info_watch_title">اعثر عليهم من معصمك</string>
+    <string name="plus_info_watch_text">سهم على ساعتك يهتز كلما اقتربت أو ابتعدت.</string>
+    <string name="plus_info_soon_title">قريبًا</string>
+    <string name="plus_info_soon_text">لا يمكن شراء Moshpoint+ بعد. كتابة حفلتك والشلة والدردشة والعثور على أصحابك تبقى مجانية.</string>
+    <string name="plus_info_back">العودة إلى الخطة</string>
 </resources>

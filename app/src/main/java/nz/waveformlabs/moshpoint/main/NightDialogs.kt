@@ -27,6 +27,8 @@ import nz.waveformlabs.moshpoint.sharing.Sharing
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.home.BumpDialog
 import nz.waveformlabs.moshpoint.ui.home.PlanGigSheet
+import nz.waveformlabs.moshpoint.ui.home.PlannedGig
+import nz.waveformlabs.moshpoint.watch.Entitlements
 import nz.waveformlabs.moshpoint.ui.settings.InviteConfirmDialog
 import nz.waveformlabs.moshpoint.venue.VenueLookup
 
@@ -39,21 +41,12 @@ import nz.waveformlabs.moshpoint.venue.VenueLookup
 @NonRestartableComposable
 internal fun NightDialogs(a: MainActivity) {
     if (a.home.planGig) {
+        // Moshpoint+ members get search; free users type it in, with a quiet Moshpoint+ card (docs/DISCOVER_APP.md).
+        val member = Entitlements.plus(a)
         PlanGigSheet(
-            search = if (GigSearch.available) ({ q -> GigSearch.search(q) }) else null,
-            onPick = { name, at, venue, lat, lon ->
-                if (at < System.currentTimeMillis() / 1000 - 3600) {
-                    a.toast(Txt.s(R.string.main_time_passed))
-                    return@PlanGigSheet
-                }
-                a.home.planGig = false
-                val made = GroupSync.startNew(a, name, at, venue, lat, lon)
-                val isMain = GroupSync.group.value?.key?.contentEquals(made.key) == true
-                if (isMain && !GroupSync.sleeping) a.home.setVisibility(true)
-                if (!isMain) a.toast(Txt.s(R.string.main_added_up_next, made.name))
-                a.invites.qrCrew = made
-                a.invites.showGroupQr = true
-            },
+            member = member,
+            search = if (member && GigSearch.available) ({ q -> GigSearch.search(q) }) else null,
+            onPick = { p -> startPlannedCrew(a, p) },
             onClose = { a.home.planGig = false },
             lookupVenue = { text ->
                 val near = a.lastKnownLocation()?.let { LatLon(it.latitude, it.longitude) }
@@ -195,3 +188,21 @@ private fun SharedInviteDialog(a: MainActivity, text: String) {
     }
 }
 
+/**
+ * Start the crew for a planned gig (Plan a gig, or Plan it on Coming up): the crew for that
+ * night, with the show's ticket link signed by us as its maker, then its invite. A gig more than
+ * an hour gone is refused.
+ */
+internal fun startPlannedCrew(a: MainActivity, p: PlannedGig) {
+    if (p.startsAtSec < System.currentTimeMillis() / 1000 - 3600) {
+        a.toast(Txt.s(R.string.main_time_passed))
+        return
+    }
+    a.home.planGig = false
+    val made = GroupSync.startNew(a, p.name, p.startsAtSec, p.venue, p.lat, p.lon, p.tickets)
+    val isMain = GroupSync.group.value?.key?.contentEquals(made.key) == true
+    if (isMain && !GroupSync.sleeping) a.home.setVisibility(true)
+    if (!isMain) a.toast(Txt.s(R.string.main_added_up_next, made.name))
+    a.invites.qrCrew = made
+    a.invites.showGroupQr = true
+}

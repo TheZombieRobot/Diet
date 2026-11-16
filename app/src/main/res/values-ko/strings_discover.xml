@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">친구 초대</string>
     <string name="hype_nudge_title">모두 티켓을 샀어요 🎟️</string>
     <string name="hype_nudge_text">%1$s 크루 모두 티켓이 있어요. 거기서 만나요!</string>
+    <string name="plan_type_it_in">공연 직접 입력</string>
+    <string name="plan_venue_hint">공연장과 도시</string>
+    <string name="plus_card_title">전 세계 모든 공연을 검색하고, 내 주변 공연을 확인하세요</string>
+    <string name="plus_card_text">한 글자만 입력하면 날짜, 공연장, 티켓 링크와 함께 공연이 나와요.</string>
+    <string name="plus_card_more">Moshpoint+에 있는 것</string>
+    <string name="plus_info_title">Moshpoint+에 있는 것</string>
+    <string name="plus_info_search_title">스마트 검색</string>
+    <string name="plus_info_search_text">한 글자만 입력하면 전 세계 모든 공연이 큰 공연부터 날짜, 공연장, 티켓 링크와 함께 나와요.</string>
+    <string name="plus_info_coming_title">내 주변 공연</string>
+    <string name="plus_info_coming_text">내 주변, 전국, 그리고 원정 갈 만한 대형 공연까지 1년 치.</string>
+    <string name="plus_info_map_title">오프라인 공연장 지도</string>
+    <string name="plus_info_map_text">공연장 위성 지도를 폰에 저장해 신호가 끊겨도 볼 수 있어요.</string>
+    <string name="plus_info_watch_title">손목으로 친구 찾기</string>
+    <string name="plus_info_watch_text">가까워지면 진동으로 알려 주는 워치의 화살표.</string>
+    <string name="plus_info_soon_title">곧 출시</string>
+    <string name="plus_info_soon_text">Moshpoint+는 아직 구매할 수 없어요. 공연 입력, 크루, 채팅, 친구 찾기는 계속 무료예요.</string>
+    <string name="plus_info_back">계획으로 돌아가기</string>
 </resources>

@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">Rủ bạn bè</string>
     <string name="hype_nudge_title">Ai cũng có vé rồi 🎟️</string>
     <string name="hype_nudge_text">Cả nhóm đi %1$s đều có vé rồi. Hẹn gặp ở đó!</string>
+    <string name="plan_type_it_in">TỰ NHẬP BUỔI DIỄN</string>
+    <string name="plan_venue_hint">Địa điểm và thành phố</string>
+    <string name="plus_card_title">Tìm mọi buổi diễn trên thế giới, xem sắp có gì gần bạn</string>
+    <string name="plus_card_text">Gõ một chữ là có ngay buổi diễn, kèm ngày, địa điểm và link mua vé.</string>
+    <string name="plus_card_more">Moshpoint+ có gì</string>
+    <string name="plus_info_title">Moshpoint+ có gì</string>
+    <string name="plus_info_search_title">Tìm kiếm thông minh</string>
+    <string name="plus_info_search_text">Gõ một chữ là có mọi buổi diễn trên thế giới, lớn nhất trước, kèm ngày, địa điểm và link mua vé.</string>
+    <string name="plus_info_coming_title">Sắp diễn ra gần bạn</string>
+    <string name="plus_info_coming_text">Một năm buổi diễn gần bạn, khắp cả nước, và những show lớn đáng để đi xa.</string>
+    <string name="plus_info_map_title">Bản đồ địa điểm ngoại tuyến</string>
+    <string name="plus_info_map_text">Bản đồ vệ tinh của địa điểm, lưu trên điện thoại phòng khi mất sóng.</string>
+    <string name="plus_info_watch_title">Tìm bạn từ cổ tay</string>
+    <string name="plus_info_watch_text">Mũi tên trên đồng hồ rung khi gần hơn hay xa hơn.</string>
+    <string name="plus_info_soon_title">SẮP RA MẮT</string>
+    <string name="plus_info_soon_text">Moshpoint+ chưa bán. Tự nhập buổi diễn, nhóm, chat và tìm bạn bè vẫn miễn phí.</string>
+    <string name="plus_info_back">Quay lại kế hoạch</string>
 </resources>

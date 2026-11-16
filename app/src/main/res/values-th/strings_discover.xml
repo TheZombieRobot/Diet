@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">ชวนเพื่อน</string>
     <string name="hype_nudge_title">ทุกคนมีบัตรแล้ว 🎟️</string>
     <string name="hype_nudge_text">ทั้งแก๊งสำหรับ %1$s มีบัตรครบแล้ว เจอกันที่งาน!</string>
+    <string name="plan_type_it_in">พิมพ์คอนของคุณเอง</string>
+    <string name="plan_venue_hint">สถานที่และเมือง</string>
+    <string name="plus_card_title">ค้นหาทุกคอนทั่วโลก ดูว่ามีอะไรใกล้คุณ</string>
+    <string name="plus_card_text">พิมพ์ตัวอักษรเดียว คอนก็โผล่ พร้อมวันที่ สถานที่ และลิงก์ซื้อบัตร</string>
+    <string name="plus_card_more">Moshpoint+ มีอะไรบ้าง</string>
+    <string name="plus_info_title">Moshpoint+ มีอะไรบ้าง</string>
+    <string name="plus_info_search_title">ค้นหาอัจฉริยะ</string>
+    <string name="plus_info_search_text">พิมพ์ตัวอักษรเดียว ทุกคอนทั่วโลกก็โผล่ เรียงจากใหญ่สุด พร้อมวันที่ สถานที่ และลิงก์ซื้อบัตร</string>
+    <string name="plus_info_coming_title">คอนใกล้คุณ</string>
+    <string name="plus_info_coming_text">คอนตลอดปีใกล้คุณ ทั่วประเทศ และคอนใหญ่ที่คุ้มค่าแก่การเดินทาง</string>
+    <string name="plus_info_map_title">แผนที่สถานที่แบบออฟไลน์</string>
+    <string name="plus_info_map_text">แผนที่ดาวเทียมของสถานที่ เก็บไว้ในมือถือเผื่อสัญญาณหาย</string>
+    <string name="plus_info_watch_title">หาเพื่อนจากข้อมือ</string>
+    <string name="plus_info_watch_text">ลูกศรบนนาฬิกาที่สั่นบอกว่าใกล้หรือไกล</string>
+    <string name="plus_info_soon_title">เร็ว ๆ นี้</string>
+    <string name="plus_info_soon_text">ยังซื้อ Moshpoint+ ไม่ได้ การพิมพ์คอน แก๊ง แชท และการหาเพื่อนยังฟรีเหมือนเดิม</string>
+    <string name="plus_info_back">กลับไปที่แผน</string>
 </resources>

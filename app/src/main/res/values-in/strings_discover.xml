@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">Ajak teman</string>
     <string name="hype_nudge_title">Semua udah punya tiket 🎟️</string>
     <string name="hype_nudge_text">Seluruh geng kamu untuk %1$s udah punya tiket. Sampai ketemu di sana!</string>
+    <string name="plan_type_it_in">KETIK KONSER KAMU</string>
+    <string name="plan_venue_hint">Tempat dan kota</string>
+    <string name="plus_card_title">Cari konser mana pun di dunia, lihat yang bakal ada di dekatmu</string>
+    <string name="plus_card_text">Ketik satu huruf dan konsernya langsung muncul, lengkap dengan tanggal, tempat, dan link tiket.</string>
+    <string name="plus_card_more">Isi Moshpoint+</string>
+    <string name="plus_info_title">Isi Moshpoint+</string>
+    <string name="plus_info_search_title">Pencarian pintar</string>
+    <string name="plus_info_search_text">Ketik satu huruf dan semua konser di dunia muncul, yang terbesar duluan, dengan tanggal, tempat, dan link tiket.</string>
+    <string name="plus_info_coming_title">Segera di dekatmu</string>
+    <string name="plus_info_coming_text">Setahun konser di dekatmu, di seluruh negeri, dan konser besar yang layak dikejar.</string>
+    <string name="plus_info_map_title">Peta venue offline</string>
+    <string name="plus_info_map_text">Peta satelit venue, disimpan di HP kamu buat jaga-jaga kalau sinyal hilang.</string>
+    <string name="plus_info_watch_title">Temukan mereka dari pergelangan tangan</string>
+    <string name="plus_info_watch_text">Panah di jam tangan yang bergetar makin dekat atau makin jauh.</string>
+    <string name="plus_info_soon_title">SEGERA HADIR</string>
+    <string name="plus_info_soon_text">Moshpoint+ belum bisa dibeli. Ketik konser, geng, chat, dan cari teman tetap gratis.</string>
+    <string name="plus_info_back">Kembali ke rencana</string>
 </resources>

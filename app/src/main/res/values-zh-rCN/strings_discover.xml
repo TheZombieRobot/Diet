@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">邀请朋友</string>
     <string name="hype_nudge_title">大家都有票了 🎟️</string>
     <string name="hype_nudge_text">%1$s 的小队全员都有票了。到时见！</string>
+    <string name="plan_type_it_in">手动输入演出</string>
+    <string name="plan_venue_hint">场馆和城市</string>
+    <string name="plus_card_title">搜索全球所有演出，看看附近有什么</string>
+    <string name="plus_card_text">输入一个字，演出就出来了，附带日期、场馆和购票链接。</string>
+    <string name="plus_card_more">Moshpoint+ 包含什么</string>
+    <string name="plus_info_title">Moshpoint+ 包含什么</string>
+    <string name="plus_info_search_title">智能搜索</string>
+    <string name="plus_info_search_text">输入一个字，全球演出按规模从大到小列出，附带日期、场馆和购票链接。</string>
+    <string name="plus_info_coming_title">附近即将上演</string>
+    <string name="plus_info_coming_text">一年内你附近、全国各地，以及值得专程前往的大型演出。</string>
+    <string name="plus_info_map_title">离线场馆地图</string>
+    <string name="plus_info_map_text">场馆的卫星地图存在手机里，没信号也能看。</string>
+    <string name="plus_info_watch_title">从手腕找人</string>
+    <string name="plus_info_watch_text">手表上的箭头，靠近或远离时会震动提示。</string>
+    <string name="plus_info_soon_title">即将推出</string>
+    <string name="plus_info_soon_text">Moshpoint+ 暂未开售。手动输入演出、小队、聊天和找朋友都继续免费。</string>
+    <string name="plus_info_back">返回计划</string>
 </resources>

@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">Zaproś znajomych</string>
     <string name="hype_nudge_title">Wszyscy mają bilety 🎟️</string>
     <string name="hype_nudge_text">Cała twoja ekipa na %1$s ma bilety. Do zobaczenia!</string>
+    <string name="plan_type_it_in">WPISZ SWÓJ KONCERT</string>
+    <string name="plan_venue_hint">Miejsce i miasto</string>
+    <string name="plus_card_title">Szukaj każdego koncertu na świecie, zobacz, co nadchodzi w okolicy</string>
+    <string name="plus_card_text">Wpisz jedną literę i koncert już jest, z datą, miejscem i linkiem do biletów.</string>
+    <string name="plus_card_more">Co jest w Moshpoint+</string>
+    <string name="plus_info_title">Co jest w Moshpoint+</string>
+    <string name="plus_info_search_title">Inteligentne wyszukiwanie</string>
+    <string name="plus_info_search_text">Wpisz jedną literę i masz każdy koncert na świecie, największe najpierw, z datą, miejscem i linkiem do biletów.</string>
+    <string name="plus_info_coming_title">Nadchodzące w okolicy</string>
+    <string name="plus_info_coming_text">Rok koncertów w okolicy, w całym kraju i te wielkie, dla których warto pojechać.</string>
+    <string name="plus_info_map_title">Mapy miejsc offline</string>
+    <string name="plus_info_map_text">Satelitarna mapa miejsca zapisana w telefonie na wypadek braku zasięgu.</string>
+    <string name="plus_info_watch_title">Znajdź ich z nadgarstka</string>
+    <string name="plus_info_watch_text">Strzałka na zegarku, która wibruje cieplej i zimniej.</string>
+    <string name="plus_info_soon_title">JUŻ WKRÓTCE</string>
+    <string name="plus_info_soon_text">Moshpoint+ nie jest jeszcze w sprzedaży. Wpisywanie koncertu, ekipy, czat i szukanie znajomych pozostają za darmo.</string>
+    <string name="plus_info_back">Wróć do planu</string>
 </resources>

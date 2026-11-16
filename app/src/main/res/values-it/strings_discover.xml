@@ -11,4 +11,21 @@
     <string name="hype_invite_mates">Invita amici</string>
     <string name="hype_nudge_title">Tutti hanno il biglietto 🎟️</string>
     <string name="hype_nudge_text">Tutto il tuo gruppo per %1$s ha i biglietti. Ci vediamo lì!</string>
+    <string name="plan_type_it_in">SCRIVI IL TUO CONCERTO</string>
+    <string name="plan_venue_hint">Locale e città</string>
+    <string name="plus_card_title">Cerca qualsiasi concerto nel mondo, scopri cosa arriva vicino a te</string>
+    <string name="plus_card_text">Scrivi una lettera ed ecco il concerto, con data, locale e link ai biglietti.</string>
+    <string name="plus_card_more">Cosa c\'è in Moshpoint+</string>
+    <string name="plus_info_title">Cosa c\'è in Moshpoint+</string>
+    <string name="plus_info_search_title">Ricerca smart</string>
+    <string name="plus_info_search_text">Scrivi una lettera ed ecco ogni concerto del mondo, prima i più grandi, con data, locale e link ai biglietti.</string>
+    <string name="plus_info_coming_title">In arrivo vicino a te</string>
+    <string name="plus_info_coming_text">Un anno di concerti vicino a te, in tutto il paese, e i grandi per cui vale il viaggio.</string>
+    <string name="plus_info_map_title">Mappe dei locali offline</string>
+    <string name="plus_info_map_text">La mappa satellitare del locale, salvata sul telefono per quando manca il segnale.</string>
+    <string name="plus_info_watch_title">Trovali dal polso</string>
+    <string name="plus_info_watch_text">Una freccia sull\'orologio che vibra più caldo o più freddo.</string>
+    <string name="plus_info_soon_title">PRESTO DISPONIBILE</string>
+    <string name="plus_info_soon_text">Moshpoint+ non è ancora in vendita. Scrivere il tuo concerto, i gruppi, la chat e trovare gli amici restano gratis.</string>
+    <string name="plus_info_back">Torna al piano</string>
 </resources>
