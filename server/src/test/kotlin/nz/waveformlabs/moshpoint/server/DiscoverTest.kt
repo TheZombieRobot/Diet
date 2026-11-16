@@ -219,6 +219,20 @@ class DiscoverTest {
         assertEquals(m, w.urls.size)
     }
 
+    @Test fun memoryStaysBoundedWhenManyCountriesAreAskedAbout() = runBlocking<Unit> {
+        val w = World(sg = false, bit = false, configure = { it.copy(maxCountries = 2) })
+        listOf("NZ", "JP", "BR").forEach { c ->
+            w.now += 120_000L
+            w.d.ask(c)
+            w.d.refresh(c)
+        }
+        // New Zealand was asked about longest ago: it gave way, and its list left memory (it stays on the volume).
+        assertEquals(setOf("JP", "BR"), w.d.loaded())
+        assertTrue(File(w.dir, "discover/lists/NZ.json").isFile)
+        w.now += 120_000L
+        assertTrue(w.d.coming("NZ", null, null).getBoolean("ready")) // asked again: read back from the volume
+    }
+
     @Test fun staysWithinEachSourcesDailyBudget() = runBlocking<Unit> {
         val w = World(sg = false, bit = false, configure = { it.copy(tmPerDay = 7) })
         w.tmPages = 9

@@ -120,6 +120,10 @@ announced, are skipped.
   Bandsintown lookups, the biggest 300), refreshed every 12 hours. The short lists serve "worth
   travelling for" and small countries' "near". A country nobody asks about makes no calls and
   leaves memory. Its file is deleted after 30 days.
+- **At most 40 countries** (`DISCOVER_MAX_COUNTRIES`) and 80 neighbours are kept fresh at once.
+  Past that, the country asked about longest ago gives way and its list leaves memory at once,
+  so memory stays bounded however many countries members ask about. The list stays on the
+  volume and is read back if someone asks again.
 - **New countries first.** The first ask for a country wakes the refresher, and a list never
   built goes before the stalest. The answer meanwhile says `ready: false`, and the app asks again
   in about 30 seconds.

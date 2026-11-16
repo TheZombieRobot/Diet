@@ -94,8 +94,12 @@ class Discover(
         }
     }
 
+    /** Past [max], the country asked about longest ago goes, and its list leaves memory at once (memory stays bounded). */
     private fun trim(m: ConcurrentHashMap<String, Long>, max: Int) {
-        while (m.size > max) m.entries.minByOrNull { it.value }?.let { m.remove(it.key, it.value) } ?: break
+        while (m.size > max) {
+            val oldest = m.entries.minByOrNull { it.value } ?: break
+            if (m.remove(oldest.key, oldest.value) && !asked.containsKey(oldest.key) && !nearby.containsKey(oldest.key)) lists.remove(oldest.key)
+        }
     }
 
     // ---- The refresher ----
@@ -422,6 +426,9 @@ class Discover(
 
     /** Calls made today to [source] (for the logs and the tests). */
     fun callsToday(source: String): Int = budget.used(source)
+
+    /** Countries whose lists are in memory (for tests). */
+    internal fun loaded(): Set<String> = lists.keys.toSet()
 
     /** For tests: put a list in place as if the refresher had built it. */
     internal fun putList(list: CountryList) {
