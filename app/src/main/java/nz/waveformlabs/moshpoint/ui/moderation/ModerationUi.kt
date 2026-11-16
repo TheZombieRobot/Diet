@@ -19,6 +19,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.ui.semantics.Role
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -175,5 +184,85 @@ internal fun BlockedPeopleRow(count: Int, onOpen: () -> Unit) {
         }
         Spacer(Modifier.width(12.dp))
         Text("›", style = Mosh.Heading.copy(fontSize = 24.sp, color = Mosh.TextFaint))
+    }
+}
+
+/**
+ * Report a message, photo, clip or person: a reason, an optional note, and, plainly, what the
+ * phone sends (the content is end-to-end encrypted, so it sends what you can see) and for how
+ * long it's kept. [reason] is an index into [reasons] (null = none picked yet: Send waits).
+ * [sends] is the line for the content itself (null for a person). [blockToo] null = they're
+ * already blocked, so the box isn't offered.
+ */
+@Composable
+internal fun ColumnScope.ReportContent(
+    title: String,
+    name: String,
+    sends: String?,
+    reasons: List<String>,
+    reason: Int?,
+    onReason: (Int) -> Unit,
+    note: String,
+    onNote: (String) -> Unit,
+    blockToo: Boolean?,
+    onBlockToo: (Boolean) -> Unit,
+    sending: Boolean,
+    onSend: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Text(title, style = Mosh.Heading, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    Spacer(Modifier.height(12.dp))
+    // Scrolls when the font is large or the phone small; the buttons stay put.
+    Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(stringResource(R.string.mod_report_why), style = Mosh.Label)
+        Column {
+            reasons.forEachIndexed { i, r ->
+                Row(
+                    Modifier.fillMaxWidth().selectable(selected = reason == i, onClick = { onReason(i) }, role = Role.RadioButton).padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(selected = reason == i, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = Mosh.Pink, unselectedColor = Mosh.TextFaint))
+                    Spacer(Modifier.width(10.dp))
+                    Text(r, style = Mosh.Body)
+                }
+            }
+        }
+        OutlinedTextField(
+            note, { onNote(it.take(300)) },
+            placeholder = { Text(stringResource(R.string.mod_report_note), style = Mosh.Body.copy(color = Mosh.TextFaint)) },
+            textStyle = Mosh.Body.copy(color = Mosh.Text),
+            maxLines = 3,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(stringResource(R.string.mod_report_e2e), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 19.sp, color = Mosh.TextDim))
+        if (sends != null) SendsPoint(sends)
+        SendsPoint(stringResource(R.string.mod_report_sends_who, name))
+        SendsPoint(stringResource(R.string.mod_report_sends_note))
+        Text(stringResource(R.string.mod_report_kept, name), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
+        if (blockToo != null) {
+            Row(
+                Modifier.fillMaxWidth().toggleable(value = blockToo, onValueChange = onBlockToo, role = Role.Checkbox),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(checked = blockToo, onCheckedChange = null, colors = CheckboxDefaults.colors(checkedColor = Mosh.Pink, uncheckedColor = Mosh.TextFaint))
+                Spacer(Modifier.width(10.dp))
+                Text(stringResource(R.string.mod_report_block_too, name), style = Mosh.Body)
+            }
+        }
+    }
+    DialogButtons(
+        confirm = stringResource(if (sending) R.string.mod_report_sending else R.string.mod_report_send), confirmColour = Mosh.Pink, onConfirm = onSend,
+        dismiss = stringResource(R.string.home_cancel), onDismiss = onCancel,
+        confirmEnabled = reason != null && !sending,
+    )
+}
+
+@Composable
+private fun SendsPoint(text: String) {
+    Row(verticalAlignment = Alignment.Top) {
+        Box(Modifier.padding(top = 8.dp).size(6.dp).background(Mosh.Cyan, CircleShape))
+        Spacer(Modifier.width(10.dp))
+        Text(text, style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 19.sp, color = Mosh.TextDim))
     }
 }

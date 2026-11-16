@@ -29,6 +29,9 @@ object Moderation {
     /** "Block Jo?" */
     val confirmBlock = mutableStateOf<Subject?>(null)
 
+    /** The report sheet: a reason, a note, what is sent. */
+    val report = mutableStateOf<Subject?>(null)
+
     /** The crew's usual "Remove Jo from the crew?", reached from the block confirmation. */
     val confirmRemove = mutableStateOf<Friend?>(null)
 

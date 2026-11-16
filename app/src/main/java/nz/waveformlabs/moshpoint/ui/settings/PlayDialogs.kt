@@ -106,12 +106,12 @@ private fun Point(colour: Color, text: String) {
  * room for both. A plain Row would squeeze the second one until its word broke in two.
  */
 @Composable
-internal fun ColumnScope.DialogButtons(confirm: String, confirmColour: Color, onConfirm: () -> Unit, dismiss: String, onDismiss: () -> Unit) {
+internal fun ColumnScope.DialogButtons(confirm: String, confirmColour: Color, onConfirm: () -> Unit, dismiss: String, onDismiss: () -> Unit, confirmEnabled: Boolean = true) {
     Spacer(Modifier.height(8.dp))
     Layout(
         content = {
             TextButton(onClick = onDismiss) { Text(dismiss, style = Mosh.Label) }
-            TextButton(onClick = onConfirm) { Text(confirm, style = Mosh.Label.copy(color = confirmColour)) }
+            TextButton(onClick = onConfirm, enabled = confirmEnabled) { Text(confirm, style = Mosh.Label.copy(color = if (confirmEnabled) confirmColour else Mosh.TextFaint)) }
         },
         modifier = Modifier.align(Alignment.End),
     ) { measurables, constraints ->

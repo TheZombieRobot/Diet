@@ -55,7 +55,7 @@ internal fun StoryOverlays(a: MainActivity) {
             onRefresh = { GroupSync.group.value?.let { g -> Moments.refreshNow(a, g) } },
             onSaveOne = { m -> a.story.saveToPhone(listOf(m), GroupSync.group.value?.name ?: Txt.s(R.string.main_gig_fallback)) },
             onSaveAll = { a.story.saveToPhone(Blocks.visibleMoments(Moments.items).toList(), GroupSync.group.value?.name ?: Txt.s(R.string.main_gig_fallback)) },
-            onBlock = { m -> Person.ofMoment(a, m)?.let { Moderation.confirmBlock.value = Moderation.Subject(it, Moderation.Moment(m)) } },
+            onReportOrBlock = { m -> Person.ofMoment(a, m)?.let { Moderation.ask(Moderation.Subject(it, Moderation.Moment(m))) } },
             onAddFromPhone = GroupSync.group.value?.let { g -> { a.story.startRoll(GigArchive.idFor(g), g.name) } },
             live = GroupSync.group.value != null && !GroupSync.sleeping,
         )

@@ -313,10 +313,10 @@ class MomentFlow(
                 onMap = if (m.lat != null) ({ viewingMoment = null; openMap() }) else null,
                 onFind = if (friend != null && !m.mine) ({ viewingMoment = null; findFriend(friend.id) }) else null,
                 onClose = { viewingMoment = null },
-                onBlock = if (m.mine) null else ({
+                onReportOrBlock = if (m.mine) null else ({
                     viewingMoment = null
                     nz.waveformlabs.moshpoint.moderation.Person.ofMoment(activity, m)?.let {
-                        nz.waveformlabs.moshpoint.moderation.Moderation.confirmBlock.value = nz.waveformlabs.moshpoint.moderation.Moderation.Subject(it, nz.waveformlabs.moshpoint.moderation.Moderation.Moment(m))
+                        nz.waveformlabs.moshpoint.moderation.Moderation.ask(nz.waveformlabs.moshpoint.moderation.Moderation.Subject(it, nz.waveformlabs.moshpoint.moderation.Moderation.Moment(m)))
                     }
                 }),
             )

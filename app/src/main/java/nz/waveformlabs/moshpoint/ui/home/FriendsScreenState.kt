@@ -119,6 +119,8 @@ class HomeCrewActions(
     val onOpenChat: (() -> Unit)? = null,
     /** "Reset the invite" in the crew menu: a new crew key, so a leaked QR stops working. Null = not offered (only the owner resets an owned crew). */
     val onResetInvite: (() -> Unit)? = null,
+    /** "Report Sam" in a crew mate's options (docs/REPORT_BLOCK.md): the report sheet. Null = not offered (no crew). */
+    val onReport: ((String) -> Unit)? = null,
     /** "Block Sam" in a crew mate's options (docs/REPORT_BLOCK.md): asks first. Null = not offered (no crew). */
     val onBlock: ((String) -> Unit)? = null,
     /** Is this crew mate blocked on this phone? Then "Unblock Sam" is offered instead. */

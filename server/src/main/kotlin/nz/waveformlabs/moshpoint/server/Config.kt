@@ -93,6 +93,11 @@ data class RelayConfig(
     /** Files on the volume (each takes an inode and at least a 4 KB block). */
     val fileMaxCount: Int = 300_000,
     val avatarMaxCount: Int = 300_000,
+    /** Reports of objectionable content (Reports.kt): kept 90 days, at most this many at once. */
+    val reportTtlMs: Long = ReportStore.TTL_MS,
+    val reportMaxCount: Int = 2_000,
+    /** MOSHPOINT_ADMIN_TOKEN (a Fly secret, never in the repo): reading and deleting reports. Null = the admin routes are off. */
+    val adminToken: String? = null,
 ) {
     companion object {
         fun fromEnv(env: (String) -> String? = System::getenv): RelayConfig {
@@ -116,6 +121,7 @@ data class RelayConfig(
                 limits = LimitConfig().scaled(env("LIMIT_SCALE")?.toDoubleOrNull()?.takeIf { it > 0 } ?: 1.0),
                 tokenSecret = InstallTokens.secret(env, dir),
                 sqliteSync = if (env("SQLITE_SYNC").equals("FULL", ignoreCase = true)) "FULL" else "NORMAL",
+                adminToken = env("MOSHPOINT_ADMIN_TOKEN")?.trim()?.ifBlank { null },
             )
         }
     }

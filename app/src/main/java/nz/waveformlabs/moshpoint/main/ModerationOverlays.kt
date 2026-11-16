@@ -5,6 +5,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
@@ -18,6 +24,8 @@ import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.moderation.Blocks
 import nz.waveformlabs.moshpoint.moderation.Moderation
 import nz.waveformlabs.moshpoint.moderation.Person
+import nz.waveformlabs.moshpoint.moderation.Reporting
+import nz.waveformlabs.moshpoint.ui.moderation.ReportContent
 import nz.waveformlabs.moshpoint.ui.moderation.BlockConfirmContent
 import nz.waveformlabs.moshpoint.ui.moderation.CommunityRulesContent
 import nz.waveformlabs.moshpoint.ui.settings.rememberOpenPrivacyPolicy
@@ -53,9 +61,12 @@ internal fun ModerationOverlays(a: MainActivity) {
                     a.toast(Txt.s(R.string.mod_unblocked_done, p.name))
                 },
                 onClose = close,
+                reportLabel = reportTitle(s),
+                onReport = { close(); Moderation.report.value = s },
             )
         }
     }
+    Moderation.report.value?.let { s -> ReportSheet(a, s) }
     Moderation.confirmBlock.value?.let { s ->
         val p = s.person
         val close = { Moderation.confirmBlock.value = null }
@@ -93,6 +104,67 @@ internal fun ModerationOverlays(a: MainActivity) {
                 }) { Text(stringResource(R.string.home_remove)) }
             },
             dismissButton = { TextButton(onClick = close) { Text(stringResource(R.string.home_cancel)) } },
+        )
+    }
+}
+
+/** "Report this message" / "this photo" / "this clip" / "Report Jo". */
+@Composable
+private fun reportTitle(s: Moderation.Subject): String = when (val c = s.content) {
+    is Moderation.Message -> stringResource(R.string.mod_report_message)
+    is Moderation.Moment -> stringResource(if (c.item.isVideo) R.string.mod_report_clip else R.string.mod_report_photo)
+    null -> stringResource(R.string.mod_report_name, s.person.name)
+}
+
+/** The report sheet for [s]: sends, then says how it went; "Also block" blocks once it's sent. */
+@Composable
+private fun ReportSheet(a: MainActivity, s: Moderation.Subject) {
+    val p = s.person
+    val close = { Moderation.report.value = null }
+    var reason by remember(s) { mutableStateOf<Int?>(null) }
+    var note by remember(s) { mutableStateOf("") }
+    var blockToo by remember(s) { mutableStateOf(false) }
+    var sending by remember(s) { mutableStateOf(false) }
+    val already = Blocks.list.value.blocksPerson(p.tag, p.crewId, p.name)
+    val scope = rememberCoroutineScope()
+    val reasons = Reporting.Reason.values().toList()
+    ModerationDialog(onDismiss = { if (!sending) close() }) {
+        ReportContent(
+            title = reportTitle(s),
+            name = p.name,
+            sends = when (val c = s.content) {
+                is Moderation.Message -> stringResource(R.string.mod_report_sends_message)
+                is Moderation.Moment -> stringResource(if (c.item.isVideo) R.string.mod_report_sends_clip else R.string.mod_report_sends_photo)
+                null -> null
+            },
+            reasons = reasons.map { stringResource(it.label) },
+            reason = reason,
+            onReason = { reason = it },
+            note = note,
+            onNote = { note = it },
+            blockToo = if (already) null else blockToo,
+            onBlockToo = { blockToo = it },
+            sending = sending,
+            onSend = {
+                val r = reason
+                if (r != null && !sending) {
+                    sending = true
+                    scope.launch {
+                        val outcome = Reporting.send(a, s, reasons[r], note)
+                        sending = false
+                        when (outcome) {
+                            Reporting.Outcome.SENT -> {
+                                close()
+                                if (blockToo && !already) Blocks.block(a, p)
+                                a.toast(Txt.s(R.string.mod_report_sent))
+                            }
+                            Reporting.Outcome.TOO_MANY -> a.toast(Txt.s(R.string.mod_report_limit))
+                            Reporting.Outcome.FAILED -> a.toast(Txt.s(R.string.mod_report_failed))
+                        }
+                    }
+                }
+            },
+            onCancel = close,
         )
     }
 }

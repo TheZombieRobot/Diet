@@ -187,7 +187,10 @@ internal fun HomeContent(a: MainActivity) {
                 }
             },
             onOpenMoment = a.momentFlow::view,
-            // Block from a crew mate's options (docs/REPORT_BLOCK.md): "Block Sam?" first.
+            // Report and block from a crew mate's options (docs/REPORT_BLOCK.md).
+            onReport = if (GroupSync.group.value != null) ({ id ->
+                FriendsRepository.byId(id)?.let { Person.ofFriend(it) }?.let { Moderation.report.value = Moderation.Subject(it) }
+            }) else null,
             onBlock = if (GroupSync.group.value != null) ({ id ->
                 FriendsRepository.byId(id)?.let { Person.ofFriend(it) }?.let { Moderation.confirmBlock.value = Moderation.Subject(it) }
             }) else null,

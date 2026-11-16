@@ -163,7 +163,10 @@ fun FriendsScreen(
                     if (PhotoStore.photos.containsKey(f.id)) {
                         TextButton(onClick = { crewActions.onRemovePhoto(f.id); options = null }) { Text(stringResource(R.string.home_remove_photo)) }
                     }
-                    // Block: hides what they post on this phone; they stay in the crew (docs/REPORT_BLOCK.md).
+                    // Report and block (docs/REPORT_BLOCK.md): block hides what they post on this phone; they stay in the crew.
+                    if (crewActions.onReport != null && (f.gigGroupOnly || f.key in crew.crewKeys)) {
+                        TextButton(onClick = { crewActions.onReport(f.id); options = null }) { Text(stringResource(R.string.mod_report_name, f.name)) }
+                    }
                     if (crewActions.onBlock != null && (f.gigGroupOnly || f.key in crew.crewKeys)) {
                         if (crewActions.isBlocked(f.id)) {
                             TextButton(onClick = { crewActions.onUnblock(f.id); options = null }) { Text(stringResource(R.string.mod_unblock_name, f.name)) }
