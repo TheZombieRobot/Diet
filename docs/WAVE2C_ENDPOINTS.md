@@ -11,21 +11,23 @@ everything; clips come over mobile data). Parts 1 and 2: [WAVE2C_BATTERY.md](WAV
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Done and green:** step 1, the install token (CI run 336 on 23c8ef5: phone and watch builds,
-  core and server tests, every screenshot byte-identical).
-- **In CI:** step 2, 429 by kind (run 337, 0d79328).
-- **Pushed, each with its own CI run, queued in order after 337:** steps 3, 4, 5 and 6, one
-  commit each, each pushed on its own so each gets its own run. Why not one at a time after the
-  previous was green: this session may stop at any moment, and work that isn't pushed is lost
-  with the container; pushing each step as its own head still checks every step in its own
-  run, in order. The branch head is green once all the runs are.
-- **Exact next step:** follow the runs in order (337, then the one for each step). For each
-  green one, compare its screenshots (below) and note it in the table. If one is red: the
-  later runs contain that step too, so fix it on the branch head (one commit, pushed without
-  `[skip ci]`) and check that run. Then the final report.
-- **Last green CI run:** 336 (23c8ef5, step 1).
-- **Screenshots:** run 336: all 2,320 phone and 798 watch images identical to `ui-screenshots`
-  and `ui-screenshots-watch` (git blob hashes). Expected the same for every step: no screen or
+- **Done and green:** step 1, the install token (CI run 336 on 23c8ef5) and step 2, 429 by
+  kind (run 337 on 0d79328): phone and watch builds, core and server tests, every screenshot
+  byte-identical.
+- **In CI:** steps 3 to 6 together, in run 341 on the branch head (73f2e48). Each step was
+  pushed as its own head so each would get its own run, but GitHub keeps only one run waiting
+  per branch (the workflow's concurrency group) and cancelled the waiting runs for steps 3, 4
+  and 5 (338, 339, 340) when the next was pushed. Run 341 checks all of them together. Why
+  they were pushed before step 2 was green: this session may stop at any moment, and work
+  that isn't pushed is lost with the container.
+- **Exact next step:** when run 341 is green, compare its screenshots (below) and mark steps 3
+  to 6 green. For a check of each step on its own, re-run 338, 339 and 340 from the Actions
+  page **one at a time** (a second waiting run cancels the first); they are push runs on this
+  branch, so nothing is published. If 341 is red: fix it on the branch head (one commit, pushed
+  without `[skip ci]`). Then the final report.
+- **Last green CI run:** 337 (0d79328, step 2).
+- **Screenshots:** runs 336 and 337: all 2,320 phone and 798 watch images identical to
+  `ui-screenshots` and `ui-screenshots-watch` (git blob hashes). Expected the same for every step: no screen or
   string changes. How to check after a run:
   `git fetch origin ui-screenshots ui-screenshots-claude-wave2c-endpoints ui-screenshots-watch ui-screenshots-watch-claude-wave2c-endpoints`,
   then compare `git ls-tree -r` of each pair.
@@ -41,11 +43,11 @@ _Keep this section current: whoever picks this up next starts here._
 | Step | What | Core rule (tests) | Status |
 |---|---|---|---|
 | 1 | Install token | `InstallToken` (`InstallTokenTest`) | green, run 336 |
-| 2 | 429 by kind | `RelayHolds`, `RelayBudget` pause (`RelayHoldsTest`) | in CI, run 337 |
-| 3 | Chat cursors (`/v1/heldsince`) | `HeldMirror`, `RelayWire`, `RelayEndpoints` (`HeldMirrorTest`) | pushed, CI queued |
-| 4 | One batch a minute; budget lowered | `BatchPlan`, `RelayWire` (`BatchPlanTest`, `AppRequestFixtureTest`; server `AppRequestsTest`) | pushed, CI queued |
-| 5 | Moments: `Content-Length`, reseal on 400 | `Reseal` (`MomentRulesTest`) | pushed, CI queued |
-| 6 | Clips on Wi-Fi | `MomentFetch` (`MomentFetchTest`) | pushed, CI queued |
+| 2 | 429 by kind | `RelayHolds`, `RelayBudget` pause (`RelayHoldsTest`) | green, run 337 |
+| 3 | Chat cursors (`/v1/heldsince`) | `HeldMirror`, `RelayWire`, `RelayEndpoints` (`HeldMirrorTest`) | in CI, run 341 |
+| 4 | One batch a minute; budget lowered | `BatchPlan`, `RelayWire` (`BatchPlanTest`, `AppRequestFixtureTest`; server `AppRequestsTest`) | in CI, run 341 |
+| 5 | Moments: `Content-Length`, reseal on 400 | `Reseal` (`MomentRulesTest`) | in CI, run 341 |
+| 6 | Clips on Wi-Fi | `MomentFetch` (`MomentFetchTest`) | in CI, run 341 |
 
 ## Rules kept (from the brief)
 
