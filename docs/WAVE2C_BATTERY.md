@@ -11,9 +11,8 @@ rendering performance, Report/Block, billing and the server.
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Done:** item 1 (the finder's screen).
-- **Next:** item 2 (GPS cadence), then 3 (network hygiene), then 4 (small radio wins), in that
-  order. Each is one commit with its core rule and tests; this note and
+- **Done:** item 1 (the finder's screen), item 2 (GPS cadence).
+- **Next:** item 3 (network hygiene), then 4 (small radio wins), in that order. Each is one commit with its core rule and tests; this note and
   docs/FIELD_TEST_PLAN.md section 4h are updated with each.
 - **Checked locally:** core tests (`gradle -q --offline :core:test` in a scratch build that
   includes only `:core`, as docs/WATCH.md describes). The app can't be built here (Google Maven
@@ -66,3 +65,43 @@ Trade-offs:
 
 Tests: `FinderAwakeTest` (90 s, the 30 m hold and its 10-minute cap, the pocket, the nearest
 distance of the arrows, proximity readings).
+
+## 2. GPS cadence (performance P1-9)
+
+**Before:** `LocationUploader` asked for GPS and network fixes every 15 s for all of Live, though
+it uploads only every 3 minutes while you stand still, and `HerePins.watchOwn` added its own 10 s
+request while our "I'm here" pin stood. Indoors GPS hunts the whole time: about 15–30 mA.
+
+**Now** (core `GpsCadence`, app `service/LiveCadence.kt`, `MyLocation.updates(highAccuracy)`):
+- **Still:** Wi-Fi and cell positioning only (Android's network provider: "balanced power"),
+  every 60 s. A phone without a network provider uses GPS at 60 s.
+- **GPS and network every 15 s** (as before), only:
+  - during `boost()`: a mate's "looking" advert was heard (5 minutes, refreshed each time);
+  - while walking: Android's **significant motion** sensor fired in the last 2 minutes (it wakes
+    the phone when walking starts and costs next to nothing; it fires once, so it's armed again
+    each time), or the pin watch's own motion detector says we're walking;
+  - for the first 2 minutes of Live or of the pin watch (a precise fix to start from);
+  - always, on a phone without a significant motion sensor (it can't tell walking from
+    standing with the screen off): the old cadence, so nothing gets worse there.
+- **One request for both users:** the uploader and the pin watch take their positions from
+  `LiveCadence.positions`, at the same cadence, so Android serves them with one GPS session; the
+  extra 10 s request is gone. A change of cadence drops the old request and asks again.
+- **The "I'm here" pin still clears itself** when you walk away: walking turns GPS on (motion),
+  and the watch gets its footsteps and precise fixes; standing, it gets a vague fix a minute,
+  which never clears a pin (core `HereWatch` gives vague fixes the benefit of the doubt).
+  `GpsCadenceTest.thePinStillClearsWhenWeWalkAwayOnTheSlowerFixes` runs 20 minutes at the bar,
+  then a walk.
+
+Unchanged: the finder's own GPS (every 3 s while it's open), the map's (5 s while open), the
+upload rules (`LocationUploader.publish`), the last-gasp position at 5% battery.
+
+Trade-offs:
+- **Your dot updates less often, and less precisely, while you stand still** (the audit's
+  accepted cost): a Wi-Fi/cell fix (often 20–100 m) once a minute instead of GPS every 15 s.
+  Uploads while still were every 3 minutes anyway. A mate close enough to hear your phone over
+  Bluetooth turns GPS back on by looking for you (the fast path); a mate far away who opens the
+  finder sees your last upload, as before, but from a vaguer fix if you haven't moved.
+- **Walking is noticed a few seconds late** (significant motion needs some steps), and GPS needs
+  a few seconds for its first fix after that. Walking away from a pin clears it within about a
+  minute (the test: about 30 s of walking after GPS is back).
+- **Dancing may count as walking** on some phones: GPS on more often, never less.

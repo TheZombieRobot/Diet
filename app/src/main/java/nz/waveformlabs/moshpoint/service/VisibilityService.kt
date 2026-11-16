@@ -41,7 +41,8 @@ import nz.waveformlabs.moshpoint.safety.AppErrors
  * upstairs/downstairs, and messages without signal.
  *
  * Battery: advert is BALANCED (~250 ms) at medium power; the UWB listen scan is LOW_POWER;
- * GPS every 15 s. TODO: adaptive intervals; crowd relay.
+ * our own position at LiveCadence's rate (GPS every 15 s only while a mate is looking or we're
+ * walking, docs/WAVE2C_BATTERY.md).
  */
 class VisibilityService : LifecycleService() {
     /** Who we are right now: our crew pass while a crew is on, else our permanent identity. */
