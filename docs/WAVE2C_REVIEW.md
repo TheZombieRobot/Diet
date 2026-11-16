@@ -10,14 +10,14 @@ kind, chat cursors, one batch a minute, moments with `Content-Length`, clips on 
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Stage:** F1 to F4 fixed, each with its failing core test committed first (all 641 core
+- **Stage:** F1 to F5 fixed, each with its failing core test committed first (all 642 core
   tests pass locally; `RelayClient.kt` type-checks locally against core with small Android
-  stubs). The first CI run on this branch was started on the head after `12bfee6`.
-- **Exact next step:** when that CI run ends: both jobs green (the app's first real compile of
-  `RelayClient.kt`), then compare the screenshots: `git fetch origin ui-screenshots
+  stubs; the one-line change in `OfflineMessages.post` is checked only by CI). CI run 343 checks
+  F1 to F4 (head `82a3105`); the run after it checks F5 too.
+- **Exact next step:** when the runs end: both jobs green (the app's first real compile of these
+  changes), then compare the screenshots: `git fetch origin ui-screenshots
   ui-screenshots-claude-wave2c-review ui-screenshots-watch ui-screenshots-watch-claude-wave2c-review`
-  and `git ls-tree -r` of each pair (every blob hash the same). Meanwhile: keep reviewing (see
-  "Checked and refuted" below for what's been ruled out).
+  and `git ls-tree -r` of each pair (every blob hash the same). Then send the report.
 - **Last green CI run:** none on this branch yet (the merged work's last green run is 341).
 
 ## Findings
@@ -28,6 +28,7 @@ _Keep this section current: whoever picks this up next starts here._
 | F2 | Safety | Need help, Check in and Home safe wait for a courier upload slot. The courier allows 2 own uploads in flight (`Courier.MAX_IN_FLIGHT`); with batches a non-safety upload holds its slot until its batch answers (up to 60 s, 90 s at most). Two such uploads in flight (a pin and an "I'm here" re-posted every 10 minutes, or messages retried after coming back on signal) hold Need help back for up to a minute: it is queued behind a batch. | **fixed** (`2cd3017` failing test, `4ba8aa2` fix; `BatchPlanTest.needHelpDoesNotWaitBehindMessagesAlreadyInTheBatch`) | `Courier.kt:643-652` (`if (free <= 0) break`), `OfflineMessages.upload` (`sendBatched` waits for the batch), `RelayClient.BATCH_WAIT_MS` |
 | F3 | Budget | With batches, our relay's local budget drops to 30 requests a minute, but it counts every request, not only the background traffic the batch replaced: `AvatarSync.fetchFriends` asks up to 2 photos per friend in a row every 6 hours (15 friends without this week's photo fill the minute), the Story downloads up to 12 moments, the open chat polls about 11 times a minute. A full minute refuses the batch itself (`THROTTLED`): the courier then holds every upload 30 s to 2 min, the sync's lookups and the finder's polls get no answer. | **fixed** (`3f8b264` failing test, `56b46a0` fix; `BatchPlanTest.aBackgroundBurstNeverStarvesTheBatchOrTheFinder`). Now `RelayBudget.withBatches()`: 120 a minute (the relay's sustained rate per install), background at most 90 | `RelayClient.batchBudget` (30, `requestReserve = 0`), `RelayBudget.refusalLocked`, `AvatarSync.kt:78-81`, `Courier.onUploaded` (THROTTLED) |
 | F4 | Cursors | `HeldMirror` is keyed by mailbox id only, not by relay. A phone moved to another relay (a test build's Settings, a crew's invite) keeps the old relay's cursors and records. The relay only resets a cursor above its own top; one whose store started after the other's (every restart raises its numbers to the clock in microseconds) takes the old cursor as valid and sends only newer records, so the copy mixes the two relays: the old relay's messages read as on the new one, and helpers don't upload them there. | **fixed** (`2e81d6b` failing test, `12bfee6` fix; `HeldMirrorTest.aPhoneMovedToARelayThatStartedLaterReadsOnlyThatRelay`). `HeldMirror.relay(base)` drops the copy when the relay changes | `RelayClient.heldSince` (`keys = ids.map { it.hex() }`), `MailboxStore.since` (`asked > top` only), `MailboxStore` init (floor = clock µs) |
+| F5 | Latency | A message just written can't start while two older messages waiting for the minute's batch hold both courier upload slots (back on signal with a queue, or the pin and an "I'm here" re-posted every 10 minutes while the app is open). It starts only when their batch goes (up to a minute), and by then it no longer counts as just written, so it waits for the next minute's batch too: up to two minutes, where the design promises a couple of seconds. | **fixed** (`ab7f8ea` failing test, then the fix; `BatchPlanTest.aLineJustWrittenGoesWithinSecondsEvenWithBothSlotsInTheBatch`). `OfflineMessages.post` calls `RelayClient.hurry()` (core `BatchPlan.hurry`): what's waiting goes within a couple of seconds, taking the slots' messages with it | `OfflineMessages.post`/`upload` (`soon` only within 10 s of the post), `Courier.planUploads` (2 slots) |
 
 ## Checked and refuted (not bugs)
 
