@@ -16,16 +16,29 @@ _Kept current at every push. Branch `claude/ugc-moderation-b5k8q2`, started from
 
 | Stage | State |
 |---|---|
-| 1. Block (app only) | **done, green**: run 320 at `5c4ceec`: secrets, translations, core and server tests, phone debug and release builds passed. Screenshots: all 1,711 existing phone and 798 watch images byte-identical to `ui-screenshots` / `ui-screenshots-watch`; 126 new (6 tests × 21 languages), looked at (small phone, large font): nothing cut off |
-| 2. Community rules before the first post | **done, green**: run 321 at `af17acb`; old screenshots byte-identical; `communityRules` looked at in every language (small phone, large font: the text scrolls, the buttons stay) |
-| 3. Report (sheet, relay endpoints, server tests) | **pushed**; 10 relay tests (`ReportTest`) pass locally and in CI. Run 322 at `acb203a`: built, tests and screenshots passed (old ones byte-identical). After looking at its screenshots, the sheet now shows what is sent before the reasons (seen before Send on a small phone): run 323 checks that |
-| 4. Docs (MODERATION.md, PRIVACY.md, PLAY_STORE.md, SECRETS.md, FIELD_TEST_PLAN.md 4j) | **pushed**; CI in the same run as stage 3 |
+| 1. Block (app only) | **done, green**: run 320 at `5c4ceec` |
+| 2. Community rules before the first post | **done, green**: run 321 at `af17acb` |
+| 3. Report (sheet, relay endpoints, server tests) | **done, green**: run 322 at `acb203a`; the sheet's final order (what is sent before the reasons) run 323 at `d02a562` |
+| 4. Docs (MODERATION.md, PRIVACY.md, PLAY_STORE.md, SECRETS.md, FIELD_TEST_PLAN.md 4j) | **done** (in runs 322 and 323) |
 
-**Exact next step:** check runs 322 and 323 (the head) are green,
-every old screenshot byte-identical (`bash` the comparison in "How to work on it"), and the new
-ones looked at: stage 2 `communityRules`, `smallPhoneLargeFontCommunityRules`; stage 3
-`moderationMenuWithReport`, `reportSheet`, `smallPhoneLargeFontReportSheet`, `reportSheetClip`.
-Then send the report (branch, last green run, stages, screens) to the session that asked.
+**Last green run: 323** (`d02a562`): secrets, translations (20 folders), core and server tests
+(incl. `ModerationTest`, `CommunityRulesTest`, `ReportTest`), phone debug and release builds,
+licences, screenshots; watch builds and screenshots. Every existing screenshot is byte-identical
+to the main sets (1,711 phone in `ui-screenshots`, 798 watch in `ui-screenshots-watch`); 252
+new phone images (12 tests × 21 languages), looked at in every language, small phone with large
+text included: nothing cut off (long names end in "…"; the rules and report texts scroll with
+the buttons fixed).
+
+New screens (tests in `ScreensSnapshotTest`): `moderationMenu`, `moderationMenuWithReport`,
+`blockConfirm`, `smallPhoneLargeFontBlockConfirm`, `blockedPeople`,
+`smallPhoneLargeFontBlockedPeople`, `blockedPeopleEmpty`, `communityRules`,
+`smallPhoneLargeFontCommunityRules`, `reportSheet`, `smallPhoneLargeFontReportSheet`,
+`reportSheetClip`.
+
+**Exact next step:** nothing left to build for the four stages. The owner: set
+`MOSHPOINT_ADMIN_TOKEN` on each relay (SECRETS.md) and deploy the relay; field test section 4j
+(FIELD_TEST_PLAN.md); a native speaker's read of `strings_moderation.xml` in each language; then
+review and merge. Later items are under "Later" and in MODERATION.md ("Next").
 
 How to work on it:
 - `core` and `server` tests run here with a scratch Gradle build that includes only `:core` and
