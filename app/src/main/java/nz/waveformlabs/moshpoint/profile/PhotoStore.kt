@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import java.io.ByteArrayOutputStream
 import java.io.File
 
@@ -26,15 +27,50 @@ object PhotoStore {
     private var dir: File? = null
 
     /** id -> photo. Compose state, so screens update when a photo arrives. */
-    val photos = mutableStateMapOf<String, ImageBitmap>()
+    val photos = Photos()
 
+    /**
+     * Faces by id. A saved one is read from its file the first time it's asked for (then kept, the
+     * same picture each time), not all of them before the first screen (performance P1-6).
+     */
+    class Photos internal constructor() {
+        private class Face(file: File?, made: ImageBitmap?) {
+            val image: ImageBitmap? by lazy { made ?: file?.let { f -> BitmapFactory.decodeFile(f.path)?.asImageBitmap() } }
+        }
+
+        private val faces = mutableStateMapOf<String, Face>()
+
+        operator fun get(id: String): ImageBitmap? = faces[id]?.image
+        operator fun set(id: String, image: ImageBitmap) { faces[id] = Face(null, image) }
+        /** A face that can be shown (one that won't decode never could). */
+        fun containsKey(id: String): Boolean = get(id) != null
+        fun remove(id: String) { faces.remove(id) }
+        fun clear() = faces.clear()
+        internal fun saved(id: String, f: File) { faces[id] = Face(f, null) }
+    }
+
+    @Synchronized
     fun init(context: Context) {
         if (dir != null) return
         val d = File(context.filesDir, "photos").apply { mkdirs() }
         dir = d
-        d.listFiles { f -> f.extension == "jpg" }?.forEach { f ->
-            BitmapFactory.decodeFile(f.path)?.let { photos[f.nameWithoutExtension] = it.asImageBitmap() }
-        }
+        d.listFiles { f -> f.extension == "jpg" }?.forEach { f -> photos.saved(f.nameWithoutExtension, f) }
+        forgetOrphans(context)
+    }
+
+    /**
+     * Deletes the saved faces of people who are no longer anyone's: not you, not a friend, not a
+     * mate in the crew (a crew's mates go when it ends; picked again, they come back under new
+     * ids). Nothing showed them any more; they only took space, and memory at start.
+     */
+    fun forgetOrphans(context: Context) {
+        val d = dir ?: return
+        FriendsRepository.init(context)
+        val keep = FriendsRepository.friends.mapTo(HashSet()) { it.id }.apply { add(ME) }
+        val gone = d.listFiles { f -> (f.extension == "jpg" || f.extension == "auto") && f.nameWithoutExtension !in keep }.orEmpty()
+        if (gone.isEmpty()) return
+        gone.map { it.nameWithoutExtension }.toSet().forEach { photos.remove(it) }
+        Thread { gone.forEach { it.delete() } }.start()
     }
 
     /**

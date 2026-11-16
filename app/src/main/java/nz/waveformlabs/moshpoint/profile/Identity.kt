@@ -28,9 +28,18 @@ object Identity {
     fun permanent(c: Context): ByteArray = VisibilityPrefs.mySecret(c.applicationContext)
 
     /** Your identity in crew [g] (32 bytes). */
-    fun crewPass(c: Context, g: GigGroup): ByteArray =
-        Mac.getInstance("HmacSHA256").apply { init(SecretKeySpec(permanent(c), "HmacSHA256")) }
+    fun crewPass(c: Context, g: GigGroup): ByteArray {
+        val secret = permanent(c)
+        // The finder asks on every redraw (its "Light me up" colour): the last answer is kept,
+        // so it isn't an HMAC 20 times a second (performance P1-5). Same secret and crew, same pass.
+        lastPass?.let { (s, k, pass) -> if (s.contentEquals(secret) && k.contentEquals(g.key)) return pass.copyOf() }
+        val pass = Mac.getInstance("HmacSHA256").apply { init(SecretKeySpec(secret, "HmacSHA256")) }
             .doFinal("moshpoint-crew-pass".toByteArray() + g.key)
+        lastPass = Triple(secret.copyOf(), g.key.copyOf(), pass.copyOf())
+        return pass
+    }
+
+    @Volatile private var lastPass: Triple<ByteArray, ByteArray, ByteArray>? = null
 
     /** The identity finding uses right now. */
     fun current(c: Context): ByteArray {

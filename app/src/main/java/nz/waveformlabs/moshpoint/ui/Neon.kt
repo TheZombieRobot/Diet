@@ -35,7 +35,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -83,29 +85,33 @@ fun androidx.compose.animation.core.InfiniteTransition.ambient(
 fun GlowBackground(modifier: Modifier = Modifier, colours: List<Color> = listOf(Mosh.Violet, Mosh.Cyan, Mosh.Pink)) =
     GlowBackground(modifier) { colours }
 
-/** [colours] is read at draw time, so an animating colour redraws without recomposing the screen. */
+/**
+ * [colours] is read at draw time, so an animating colour redraws without recomposing the screen.
+ * Static (performance P1-5): the blobs sit where their slow drift used to start, which is where
+ * calm motion always showed them, and are drawn again only when the size or a colour changes.
+ * They used to drift over 14 s, painting three screen-sized gradients every frame.
+ */
 @Composable
 fun GlowBackground(modifier: Modifier = Modifier, colours: () -> List<Color>) {
-    val t = rememberInfiniteTransition(label = "glow")
-    val drift by t.ambient(0f, 1f, infiniteRepeatable(tween(14_000, easing = LinearEasing)), label = "drift")
-    Canvas(modifier.fillMaxSize()) {
-        val colours = colours()
-        val w = size.width
-        val h = size.height
-        val a = drift * 2 * Math.PI
-        val spots = listOf(
-            Offset(w * (0.85f + 0.08f * cos(a).toFloat()), h * (0.05f + 0.05f * sin(a).toFloat())) to colours[0],
-            Offset(w * (0.05f + 0.10f * sin(a).toFloat()), h * (0.45f + 0.06f * cos(a).toFloat())) to colours[1 % colours.size],
-            Offset(w * (0.70f + 0.10f * cos(a + 2).toFloat()), h * (0.90f + 0.04f * sin(a + 2).toFloat())) to colours[2 % colours.size],
-        )
-        for ((c, col) in spots) {
-            val r = w * 0.75f
-            drawCircle(
-                Brush.radialGradient(listOf(col.copy(alpha = 0.20f), col.copy(alpha = 0f)), center = c, radius = r),
-                radius = r, center = c,
+    Spacer(
+        modifier.fillMaxSize().drawWithCache {
+            val colours = colours()
+            val w = size.width
+            val h = size.height
+            val drift = 0f
+            val a = drift * 2 * Math.PI
+            val spots = listOf(
+                Offset(w * (0.85f + 0.08f * cos(a).toFloat()), h * (0.05f + 0.05f * sin(a).toFloat())) to colours[0],
+                Offset(w * (0.05f + 0.10f * sin(a).toFloat()), h * (0.45f + 0.06f * cos(a).toFloat())) to colours[1 % colours.size],
+                Offset(w * (0.70f + 0.10f * cos(a + 2).toFloat()), h * (0.90f + 0.04f * sin(a + 2).toFloat())) to colours[2 % colours.size],
             )
-        }
-    }
+            val r = w * 0.75f
+            val blobs = spots.map { (c, col) -> c to Brush.radialGradient(listOf(col.copy(alpha = 0.20f), col.copy(alpha = 0f)), center = c, radius = r) }
+            onDrawBehind {
+                for ((c, brush) in blobs) drawCircle(brush, radius = r, center = c)
+            }
+        },
+    )
 }
 
 /** Rings that pulse outward from the centre, like a radar ping. */
@@ -117,7 +123,8 @@ fun RadarPulse(colour: Color, modifier: Modifier = Modifier, rings: Int = 2, per
 fun RadarPulse(colour: () -> Color, modifier: Modifier = Modifier, rings: Int = 2, periodMs: Int = 2600) {
     val t = rememberInfiniteTransition(label = "radar")
     val p by t.ambient(0f, 1f, infiniteRepeatable(tween(periodMs, easing = FastOutSlowInEasing)), label = "p")
-    Canvas(modifier.fillMaxSize()) {
+    // Its own layer: redrawn each frame without redrawing what's around it (performance P1-5).
+    Canvas(modifier.fillMaxSize().graphicsLayer()) {
         val colour = colour()
         val maxR = size.minDimension / 2
         for (i in 0 until rings) {
@@ -136,16 +143,19 @@ fun RadarPulse(colour: () -> Color, modifier: Modifier = Modifier, rings: Int = 
 fun RadarSweep(colour: Color, modifier: Modifier = Modifier, periodMs: Int = 3000) {
     val t = rememberInfiniteTransition(label = "sweep")
     val angle by t.ambient(0f, 360f, infiniteRepeatable(tween(periodMs, easing = LinearEasing)), label = "a")
-    Canvas(modifier.fillMaxSize()) {
-        rotate(angle) {
-            drawCircle(
-                Brush.sweepGradient(
-                    0f to colour.copy(alpha = 0f), 0.80f to colour.copy(alpha = 0f), 1f to colour.copy(alpha = 0.55f),
-                ),
-                radius = size.minDimension / 2,
+    // Its own layer, and the gradient made once, not every frame (performance P1-5).
+    Spacer(
+        modifier.fillMaxSize().graphicsLayer().drawWithCache {
+            val sweep = Brush.sweepGradient(
+                0f to colour.copy(alpha = 0f), 0.80f to colour.copy(alpha = 0f), 1f to colour.copy(alpha = 0.55f),
             )
-        }
-    }
+            onDrawBehind {
+                rotate(angle) {
+                    drawCircle(sweep, radius = size.minDimension / 2)
+                }
+            }
+        },
+    )
 }
 
 /** A neon light that runs round a card's border (used when you're live). */
@@ -245,6 +255,18 @@ fun androidx.compose.ui.graphics.drawscope.DrawScope.softGlow(path: androidx.com
         val f = 1f - i.toFloat() / layers // 1 .. 1/7
         drawPath(path, colour.copy(alpha = 0.07f * alpha), style = Stroke(widthPx * f, join = join))
     }
+}
+
+/** [softGlow]'s strokes for [widthPx], made once for a glow drawn every frame (performance P1-5). */
+fun softGlowStrokes(widthPx: Float): List<Stroke> {
+    val join = androidx.compose.ui.graphics.StrokeJoin.Round
+    val layers = 7
+    return List(layers) { i -> Stroke(widthPx * (1f - i.toFloat() / layers), join = join) }
+}
+
+/** [softGlow] with strokes made beforehand ([softGlowStrokes]): the same drawing. */
+fun androidx.compose.ui.graphics.drawscope.DrawScope.softGlow(path: androidx.compose.ui.graphics.Path, colour: Color, strokes: List<Stroke>, alpha: Float = 1f) {
+    for (stroke in strokes) drawPath(path, colour.copy(alpha = 0.07f * alpha), style = stroke)
 }
 
 /** Cheap round glow: a radial gradient halo of [radius] + [spread]. */

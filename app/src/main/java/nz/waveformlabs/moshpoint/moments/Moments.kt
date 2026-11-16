@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.gigs.GigArchive
@@ -36,7 +38,11 @@ object Moments {
         val lat: Double?,
         val lon: Double?,
         val caption: String,
-        val image: ImageBitmap,
+        /**
+         * The board image when it's already in memory (a clip's placeholder, a photo that couldn't
+         * be kept); null = read from [photoFile] when it's shown ([MomentImages], performance P1-7).
+         */
+        private val image: ImageBitmap?,
         val mine: Boolean,
         /** A clip: [image] is its first frame, this is the playable file. */
         val videoFile: java.io.File? = null,
@@ -46,6 +52,12 @@ object Moments {
         val originalFile: java.io.File? = null,
     ) {
         val isVideo get() = videoFile != null
+
+        /** The board image if it's in memory now (never reads the disk). */
+        fun imageNow(): ImageBitmap? = image ?: photoFile?.let(MomentImages::cached)
+
+        /** The board image, read from disk if it isn't in memory. Off the main thread. [keep]: cache it. */
+        fun loadImage(keep: Boolean = true): ImageBitmap? = image ?: photoFile?.let { MomentImages.load(it, keep) }
     }
 
     /** Newest first (Compose state for home and map). */
@@ -65,7 +77,7 @@ object Moments {
             ByteArrayOutputStream().also { photo.compress(Bitmap.CompressFormat.JPEG, 94, it) }.toByteArray()
         }
         val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), jpeg)
-        val sealed = g.sealMoment(m)
+        val sealed = withContext(Dispatchers.Default) { g.sealMoment(m) }
         val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)
         if (ok) {
             add(app, m, "mine-${m.timeSec}", mine = true, original = original)
@@ -90,7 +102,8 @@ object Moments {
             if (url in seenUrls || items.any { it.key == url }) continue
             val blob = RelayClient.download(url) ?: continue // try again next time
             seenUrls += url
-            val m = g.openMoment(blob) ?: continue
+            // Opened off the main thread: a clip is up to 12 MB (performance P1-6).
+            val m = withContext(Dispatchers.Default) { g.openMoment(blob) } ?: continue
             val myName = VisibilityPrefs.myName(c).ifBlank { Txt.s(R.string.crew_default_name) }
             // Our own upload comes back too: we already have it.
             if (m.from == myName && items.any { it.mine && it.timeSec == m.timeSec }) continue
@@ -117,24 +130,40 @@ object Moments {
         lastCheckMs = 0L
     }
 
-    private fun add(c: Context, m: GigGroup.Moment, key: String, mine: Boolean, original: ByteArray? = null) {
-        if (items.any { it.key == key }) return
-        // A clip travels as "MPV1" + thumbnail length + thumbnail JPEG + the MP4.
-        val (thumb, cached) = unpackClip(c, m.jpeg, key) ?: (m.jpeg to null)
-        // Keep it in this gig's folder (survives restarts and the relay forgetting).
+    /** One add at a time: each checks the board, works off the main thread, then adds. */
+    private val adding = Mutex()
+
+    /**
+     * Keeps [m] in the gig's folder and puts it on the board. Unpacking, copying and decoding run
+     * off the main thread (performance P1-6); the board itself changes on the caller's thread.
+     */
+    private suspend fun add(c: Context, m: GigGroup.Moment, key: String, mine: Boolean, original: ByteArray? = null) = adding.withLock {
+        if (items.any { it.key == key }) return@withLock
         val g = GroupSync.group.value
-        val kept = g?.let {
-            runCatching { GigArchive.keep(c, it, key, m, mine, thumb, cached, original) }
-                .onFailure { e -> nz.waveformlabs.moshpoint.safety.AppErrors.failed("Keeping a moment", e) }.getOrNull()
-        }
-        val video = kept?.second ?: cached
-        val bmp = kept?.first?.let { GigArchive.thumbnail(it) }
-            ?: BitmapFactory.decodeByteArray(thumb, 0, thumb.size)
-            ?: if (video != null) Bitmap.createBitmap(320, 320, Bitmap.Config.ARGB_8888).apply { eraseColor(0xFF1C1630.toInt()) } else return
-        val item = Item(
-            key, m.from, m.timeSec, m.lat, m.lon, m.caption, bmp.asImageBitmap(), mine, video, kept?.first,
-            kept?.first?.let { java.io.File(it.parentFile, it.nameWithoutExtension + ".orig.jpg") }?.takeIf { it.exists() },
-        )
+        val item = withContext(Dispatchers.IO) {
+            // A clip travels as "MPV1" + thumbnail length + thumbnail JPEG + the MP4.
+            val (thumb, cached) = unpackClip(c, m.jpeg, key) ?: (m.jpeg to null)
+            // Keep it in this gig's folder (survives restarts and the relay forgetting).
+            val kept = g?.let {
+                runCatching { GigArchive.keep(c, it, key, m, mine, thumb, cached, original) }
+                    .onFailure { e -> nz.waveformlabs.moshpoint.safety.AppErrors.failed("Keeping a moment", e) }.getOrNull()
+            }
+            val video = kept?.second ?: cached
+            // Kept: the board reads it from its file when shown, and it's read now so it shows at once.
+            val fromFile = kept?.first?.let { MomentImages.load(it) } != null
+            val bmp = if (fromFile) {
+                null
+            } else {
+                BitmapFactory.decodeByteArray(thumb, 0, thumb.size)
+                    ?: if (video != null) Bitmap.createBitmap(320, 320, Bitmap.Config.ARGB_8888).apply { eraseColor(0xFF1C1630.toInt()) } else return@withContext null
+            }
+            Item(
+                key, m.from, m.timeSec, m.lat, m.lon, m.caption, bmp?.asImageBitmap(), mine, video, kept?.first,
+                kept?.first?.let { java.io.File(it.parentFile, it.nameWithoutExtension + ".orig.jpg") }?.takeIf { it.exists() },
+            )
+        } ?: return@withLock
+        // Tonight's Story may have been put back from the folder meanwhile (loadCurrent).
+        if (items.any { it.key == key }) return@withLock
         val i = items.indexOfFirst { it.timeSec < m.timeSec }.let { if (it < 0) items.size else it }
         items.add(i, item)
         while (items.size > 400) items.removeAt(items.size - 1)
@@ -162,7 +191,8 @@ object Moments {
             out.toByteArray()
         }
         val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), packed)
-        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), g.sealMoment(m))
+        val sealed = withContext(Dispatchers.Default) { g.sealMoment(m) } // up to 12 MB: off the main thread
+        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)
         if (ok) {
             add(app, m, "mine-${m.timeSec}", mine = true)
             NightStats.moment(app)

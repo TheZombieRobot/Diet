@@ -8,6 +8,9 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Quality
@@ -69,6 +72,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.R
 import java.io.File
@@ -76,6 +81,9 @@ import nz.waveformlabs.moshpoint.ui.Mosh
 
 /** Longest clip: short enough to share over the relay quickly, long enough for a chorus. */
 private const val CLIP_MS = 10_000L
+
+/** Photos are captured at about this size (4:3), the closest the camera has at or above it. */
+private val PHOTO_SIZE = android.util.Size(2048, 1536)
 
 /**
  * Moshpoint's own camera for crew moments: tap the shutter for a photo, hold it to record
@@ -110,7 +118,19 @@ fun CaptureScreen(
     val errClip = stringResource(R.string.find_clip_failed)
 
     val previewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
-    val imageCapture = remember { ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build() }
+    val imageCapture = remember {
+        ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            // About 2048 px (the most a moment is ever shared at), not the sensor's full 12+ MP:
+            // a quarter of the memory, and the same 4:3 framing as before (performance P1-6).
+            .setResolutionSelector(
+                ResolutionSelector.Builder()
+                    .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                    .setResolutionStrategy(ResolutionStrategy(PHOTO_SIZE, ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
+                    .build(),
+            )
+            .build()
+    }
     val videoCapture = remember {
         VideoCapture.withOutput(
             Recorder.Builder()
@@ -144,18 +164,21 @@ fun CaptureScreen(
 
     fun takePhoto() {
         flash = true
+        val main = ContextCompat.getMainExecutor(context)
+        // Decoded and turned upright on a camera thread, not the main one (performance P1-6);
+        // the result comes back to the main thread, as before.
         imageCapture.takePicture(
-            ContextCompat.getMainExecutor(context),
+            Dispatchers.Default.asExecutor(), // never shut down, so a late photo still lands
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
-                    val rotation = image.imageInfo.rotationDegrees
-                    val bmp = image.toBitmap()
-                    image.close()
-                    val upright = if (rotation == 0) bmp else Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, Matrix().apply { postRotate(rotation.toFloat()) }, true)
-                    onPhoto(upright)
+                    val upright = runCatching {
+                        val (bmp, rotation) = try { image.toBitmap() to image.imageInfo.rotationDegrees } finally { image.close() }
+                        if (rotation == 0) bmp else Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, Matrix().apply { postRotate(rotation.toFloat()) }, true)
+                    }
+                    main.execute { upright.fold(onPhoto) { onError(errPhoto) } }
                 }
 
-                override fun onError(exception: ImageCaptureException) = onError(errPhoto)
+                override fun onError(exception: ImageCaptureException) = main.execute { onError(errPhoto) }
             },
         )
     }

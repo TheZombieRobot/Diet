@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -48,6 +49,7 @@ import kotlin.math.sqrt
 import nz.waveformlabs.moshpoint.ui.Faces
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.ambient
+import nz.waveformlabs.moshpoint.ui.softGlowStrokes
 import nz.waveformlabs.moshpoint.ui.map.drawFloorPill
 import nz.waveformlabs.moshpoint.ui.map.drawPinPill
 import nz.waveformlabs.moshpoint.ui.finderDistanceLabel
@@ -143,22 +145,26 @@ internal fun CrewRadar(
     val spotById = spots.associateBy { it.id }
 
     // Each mate springs towards their group's spot (or their own): that's the split/merge motion.
-    val angles = spots.associate { s ->
-        s.id to key(s.id, "a") { animatedAngle((spotById[leadOf[s.id] ?: s.id] ?: s).angleDeg.toDouble()) }
+    // Kept as state and read while drawing: an animation frame redraws without recomposing
+    // (performance P1-5).
+    val angleStates = spots.associate { s ->
+        s.id to key(s.id, "a") { animatedAngleState((spotById[leadOf[s.id] ?: s.id] ?: s).angleDeg.toDouble()) }
     }
-    val fracs = spots.associate { s ->
+    val fracStates = spots.associate { s ->
         s.id to key(s.id, "f") {
             animateFloatAsState(
                 (spotById[leadOf[s.id] ?: s.id] ?: s).frac,
                 spring(dampingRatio = 0.62f, stiffness = Spring.StiffnessMediumLow), label = "frac",
-            ).value
+            )
         }
     }
-    val colours = arrows.associate { a ->
+    val colourStates = arrows.associate { a ->
         a.friendId to key(a.friendId, "c") {
-            animateColorAsState(Color(ArrowStyle.arrowColor(friendOf(a.friendId)?.color ?: ArrowStyle.RED, a.distanceM)), tween(800), label = "c").value
+            animateColorAsState(Color(ArrowStyle.arrowColor(friendOf(a.friendId)?.color ?: ArrowStyle.RED, a.distanceM)), tween(800), label = "c")
         }
     }
+    // Paths, glows and gradients kept from frame to frame while they stay the same (performance P1-5).
+    val cache = remember { RadarCache() }
     // Bubbles wear each mate's own colour, the same as their name in chat; arrows and
     // distances warm from hot pink into it as you close in.
     val own = arrows.associate { a -> a.friendId to (friendOf(a.friendId)?.color?.let { Color(it) } ?: Mosh.Pink) }
@@ -182,6 +188,7 @@ internal fun CrewRadar(
 
     Canvas(
         Modifier.fillMaxSize()
+            .graphicsLayer() // its own layer: a frame redraws the radar and nothing around it
             .pointerInput(groups.keys.toList()) {
                 detectTapGestures { p ->
                     val best = hit.minByOrNull { (it.value - p).getDistance() }?.takeIf { (it.value - p).getDistance() < 56.dp.toPx() } ?: return@detectTapGestures
@@ -191,6 +198,9 @@ internal fun CrewRadar(
             }
             .semantics { contentDescription = spoken },
     ) {
+        val angles = angleStates.mapValues { it.value.value }
+        val fracs = fracStates.mapValues { it.value.value }
+        val colours = colourStates.mapValues { it.value.value }
         hit.clear()
         val centre = Offset(size.width / 2, size.height / 2)
         val avatarR = avatarDp.dp.toPx()
@@ -228,10 +238,10 @@ internal fun CrewRadar(
                 val colour = (colours[id] ?: Mosh.Pink).copy(alpha = if (byId[id]?.unsure == true) 0.6f else 1f)
                 val angle = angles[id] ?: 0f
                 val len = ((at - centre).getDistance() - avatarR - 6.dp.toPx()).coerceAtLeast(12.dp.toPx())
-                val path = arrowPath(centre, len, (headW / len).coerceAtMost(0.28f))
+                val path = cache.path(id, centre, len, (headW / len).coerceAtMost(0.28f))
                 rotate(angle, pivot = centre) {
-                    softGlow(path, colour, (headW * 1.8f).coerceAtMost(22.dp.toPx()), breathe)
-                    drawPath(path, Brush.verticalGradient(0f to Color.White, 0.18f to colour, 1f to lerp(colour, Mosh.Violet, 0.6f), startY = centre.y - len, endY = centre.y))
+                    softGlow(path, colour, cache.glow((headW * 1.8f).coerceAtMost(22.dp.toPx())), breathe)
+                    drawPath(path, cache.body(id, colour, centre.y - len, centre.y))
                 }
             }
             travelling.forEach { id -> bubble(spot(id), avatarR, listOf(id), own, friendOf, spin, breathe, displayPaint) }
@@ -284,6 +294,31 @@ internal fun CrewRadar(
         }
         labels.forEach { it() }
     }
+}
+
+/**
+ * The radar's drawing kept between frames: each mate's arrow path and gradient while their
+ * length and colour stay the same, and the glow's strokes per width.
+ */
+private class RadarCache {
+    private val paths = HashMap<String, Pair<List<Float>, Path>>()
+    private val bodies = HashMap<String, Pair<List<Any>, Brush>>()
+    private val glows = HashMap<Float, List<Stroke>>()
+
+    fun path(id: String, centre: Offset, len: Float, ratio: Float): Path {
+        val k = listOf(centre.x, centre.y, len, ratio)
+        paths[id]?.let { (key, p) -> if (key == k) return p }
+        return arrowPath(centre, len, ratio).also { paths[id] = k to it }
+    }
+
+    fun body(id: String, colour: Color, startY: Float, endY: Float): Brush {
+        val k = listOf<Any>(colour, startY, endY)
+        bodies[id]?.let { (key, b) -> if (key == k) return b }
+        return Brush.verticalGradient(0f to Color.White, 0.18f to colour, 1f to lerp(colour, Mosh.Violet, 0.6f), startY = startY, endY = endY)
+            .also { bodies[id] = k to it }
+    }
+
+    fun glow(width: Float): List<Stroke> = glows.getOrPut(width) { softGlowStrokes(width) }
 }
 
 /** A mate's bubble, or a stack of faces with a "+N" badge when several share one spot. */

@@ -6,12 +6,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.provider.MediaStore
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.moments.MomentImages
 import nz.waveformlabs.moshpoint.moments.Moments
 import org.json.JSONObject
 import java.io.File
@@ -182,27 +182,37 @@ object GigArchive {
         File(d, "items.jsonl").appendText(o.toString() + "\n")
     }
 
-    /** The moments kept for gig [id], newest first, as Story items (small images for the board). */
+    /**
+     * The moments kept for gig [id], newest first, as Story items. Their board images are read
+     * when they're shown ([MomentImages], performance P1-7), not all at once: only the newest few
+     * (the home strip and the Story's first screen) are read now.
+     */
     suspend fun load(c: Context, id: String): List<Moments.Item> = withContext(Dispatchers.IO) {
         val d = File(root(c), id)
         val index = File(d, "items.jsonl")
         if (!index.exists()) return@withContext emptyList()
-        index.readLines().mapNotNull { l ->
+        val items = index.readLines().mapNotNull { l ->
             runCatching {
                 val o = JSONObject(l)
                 val photo = File(d, o.getString("photo"))
                 val clip = o.optString("clip").takeIf { it.isNotBlank() }?.let { File(d, it) }?.takeIf { it.exists() }
-                val bmp = thumbnail(photo) ?: return@runCatching null
+                // A photo that isn't a picture stays out of the Story, as before.
+                if (!MomentImages.readable(photo)) return@runCatching null
                 Moments.Item(
                     key = o.getString("key"), from = o.getString("from"), timeSec = o.getLong("t"),
                     lat = if (o.has("lat")) o.getDouble("lat") else null, lon = if (o.has("lon")) o.getDouble("lon") else null,
-                    caption = o.optString("cap"), image = bmp.asImageBitmap(), mine = o.optBoolean("mine"),
+                    caption = o.optString("cap"), image = null, mine = o.optBoolean("mine"),
                     videoFile = clip, photoFile = photo,
                     originalFile = File(d, photo.nameWithoutExtension + ".orig.jpg").takeIf { it.exists() },
                 )
             }.getOrNull()
         }.distinctBy { it.key }.sortedByDescending { it.timeSec }
+        items.take(SHOWN_FIRST).forEach { it.loadImage() }
+        items
     }
+
+    /** How many of a gig's newest board images are read up front (the home strip shows 8). */
+    private const val SHOWN_FIRST = 8
 
     /** Refresh [gigs] from disk. */
     suspend fun refreshList(c: Context) {

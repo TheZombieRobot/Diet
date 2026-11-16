@@ -12,9 +12,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.structuralEqualityPolicy
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
@@ -31,6 +37,7 @@ import nz.waveformlabs.moshpoint.ui.map.MapMoment
 import nz.waveformlabs.moshpoint.ui.map.MapPlace
 import nz.waveformlabs.moshpoint.ui.map.MapScreen
 import nz.waveformlabs.moshpoint.ui.map.MapStyle
+import nz.waveformlabs.moshpoint.ui.map.momentIcon
 import nz.waveformlabs.moshpoint.venue.Floors
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 
@@ -54,8 +61,21 @@ internal fun MapOverlay(a: MainActivity) {
         }
         val myLoc = a.map.mapFeed.me.value
         LaunchedEffect(myLoc) { myLoc?.let { a.map.mapFirstFix(it) } }
+        // Photo pins: each moment's small icon, made off the main thread from its board image
+        // (read from the gig's folder if needed) and kept instead of the image (performance P1-7).
+        LaunchedEffect(Moments.items.size, Moments.items.firstOrNull()?.key) { MomentIcons.make(Moments.items.toList()) }
         val mapUwb by a.finder.engine.uwbSpots.collectAsState()
-        val mapArrows by a.finder.engine.arrows.collectAsState()
+        val mapArrows = a.finder.engine.arrows.collectAsState()
+        // Mates heard close by (a distance, no direction), for the list. The arrows change 20
+        // times a second (the compass heading is in them); this changes only when a distance
+        // does, so the map isn't redrawn on every tick (performance P1-4). Only while something
+        // is looking: old readings say nothing about now.
+        val near by remember {
+            derivedStateOf(structuralEqualityPolicy()) {
+                if (a.map.mapVenue == null && !a.finder.finding) emptyMap()
+                else mapArrows.value.filterIsInstance<ArrowState.DistanceOnly>().associate { it.friendId to it.distanceM }
+            }
+        }
         MapScreen(
             people = FriendsRepository.friends.filterNot { FriendsRepository.isSimulated(it.id) },
             seen = LocationBook.seen,
@@ -96,7 +116,8 @@ internal fun MapOverlay(a: MainActivity) {
             moments = Moments.items.mapNotNull { m ->
                 val lat = m.lat ?: return@mapNotNull null
                 val lon = m.lon ?: return@mapNotNull null
-                MapMoment(m.key, Txt.s(R.string.main_moment_label, if (m.mine) Txt.s(R.string.main_you) else m.from, ago(now / 1000 - m.timeSec)), lat, lon, m.image)
+                val icon = MomentIcons.icons[m.key] ?: return@mapNotNull null // on the map once it's made
+                MapMoment(m.key, Txt.s(R.string.main_moment_label, if (m.mine) Txt.s(R.string.main_you) else m.from, ago(now / 1000 - m.timeSec)), lat, lon, icon)
             },
             trails = LocationBook.trails,
             // The venue map saved on the phone: at the gig, or when there's no internet.
@@ -117,9 +138,7 @@ internal fun MapOverlay(a: MainActivity) {
             }.takeIf { HerePins.canSend() },
             onClearMyPin = { HerePins.clearHere(a) },
             uwb = mapUwb,
-            // Only while something is looking: old readings say nothing about now.
-            near = if (a.map.mapVenue == null && !a.finder.finding) emptyMap()
-            else mapArrows.filterIsInstance<ArrowState.DistanceOnly>().associate { it.friendId to it.distanceM },
+            near = near,
             onMomentTapped = { key -> Moments.items.firstOrNull { it.key == key }?.let(a.momentFlow::view) },
             onRide = { lat, lon ->
                 runCatching {
@@ -135,5 +154,20 @@ internal fun MapOverlay(a: MainActivity) {
                 if (p.meetUp) GroupSync.clearRally(a) else Spots.remove(p.id)
             },
         )
+    }
+}
+
+/** The map's photo pins, one small icon per moment with a place (Compose state: pins appear as they're made). */
+internal object MomentIcons {
+    val icons = mutableStateMapOf<String, android.graphics.Bitmap>()
+
+    suspend fun make(items: List<Moments.Item>) {
+        val keys = items.mapTo(HashSet()) { it.key }
+        (icons.keys - keys).forEach { icons.remove(it) } // moments no longer on the board
+        for (m in items) {
+            if (m.lat == null || m.lon == null || m.key in icons) continue
+            val icon = withContext(Dispatchers.IO) { m.loadImage(keep = false)?.let(::momentIcon) } ?: continue
+            icons[m.key] = icon
+        }
     }
 }

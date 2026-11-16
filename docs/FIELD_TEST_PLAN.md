@@ -797,6 +797,68 @@ The hourly battery % for both runs, the Battery screens at the end, any time the
 went off while you were following someone, and anything that found a mate more slowly than
 build 312.
 
+## 4i. Photos, memory and smooth drawing (wave 2c performance, 45 min)
+
+What changed and why: docs/WAVE2C_PERF.md. Nothing should look different; this checks that the
+app keeps up. **Build 312** (or the build before this branch) is "before". A phone with **4 GB of
+memory or less** matters most; a recent flagship as well if you have one.
+
+### A. A Story with 200 photos on a 4 GB phone (15 min)
+
+- [ ] In a crew (or a past gig), **Add your photos from that night** and pick about 200 photos
+  from the camera roll (the picker allows a big selection; big 12-50 MP photos are best).
+- [ ] Close the app fully (swipe it away), open it again, open the Story. It opens at once, with
+  the newest Polaroids already showing. Before: it could take seconds, or the app was killed on
+  start on a 3-4 GB phone.
+- [ ] Scroll quickly to the bottom and back up. Polaroids may show a dark square for a moment
+  before their photo; nothing freezes, nothing crashes, and every photo appears.
+- [ ] Open a photo, tap it for full screen, pinch to zoom: sharp at normal size, a moment of the
+  smaller picture first is fine. Swipe through ten in the pager.
+- [ ] With adb, while scrolling: `adb shell dumpsys meminfo nz.waveformlabs.moshpoint | grep -i
+  "total pss\|graphics"`. Note the numbers; "after" should be far lower than "before" for the
+  same gig.
+- [ ] Your past gigs on the home screen still show their cover photos; a past gig's Story opens
+  the same way.
+
+### B. Taking photos rapidly (10 min)
+
+- [ ] Open the camera from the Story (or the home screen's camera button) and take 10 photos as
+  fast as you can, one after another (tap, send, tap again). The preview never stutters or
+  freezes when you tap; each photo shows in the "Share with crew" box as before.
+- [ ] The photos look the same as before (framing, sharpness on the phone's screen, colours).
+  **Save to phone** on one of your own camera photos: it's about 2048 px wide now (was the
+  camera's full size); one added from the camera roll keeps its full size.
+- [ ] Record a clip (hold the shutter) and send it, while a crew mate sends you clips: the app
+  doesn't freeze when their clips arrive (each was opened on the main thread before).
+- [ ] Faces: the home screen, the finder and the map show everyone's photos as before, straight
+  away when the app opens.
+
+### C. The venue map with the finder open (10 min)
+
+- [ ] At a venue with a saved map (or anywhere in a crew with mates live), open the finder on a
+  mate, then **Where are they** (the map) over it. Pan and pinch-zoom around: smooth, no
+  stutter every second or so. Before: every pin was redrawn about 20 times a second.
+- [ ] Turn on the spot while the finder looks (the compass moves): the map stays smooth, the
+  mates heard nearby (no direction) keep their distances in the list, updating when they change.
+- [ ] Mates' photo pins, floor tags ("Upstairs") and crew photo pins on the map all look as
+  before; a mate changing their photo shows the new one on their pin.
+- [ ] Switch the map's look (Bright / Night / Dark) and back: every pin and line comes back.
+- [ ] The first time the map opens after the app starts, crew photo pins may pop in over a
+  second or so; after that they're there at once.
+
+### D. The finder (10 min)
+
+- [ ] Finder on one mate, then on the whole crew (the radar): the arrows swivel, breathe and
+  their rings spin as before, smoothly, on the low-end phone too. With "Profile HWUI rendering"
+  (Developer options) on, the bars stay mostly under the green line.
+- [ ] The finder's soft background lights don't drift any more (they sit still, as they always
+  did with battery saver on); everything else looks the same.
+
+### What to send back for this part
+
+The meminfo numbers before and after, anything that froze or stuttered, any photo that didn't
+appear, and any screen that looks different from before.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).
