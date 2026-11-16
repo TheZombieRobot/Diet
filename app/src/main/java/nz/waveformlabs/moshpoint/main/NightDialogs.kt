@@ -48,13 +48,13 @@ internal fun NightDialogs(a: MainActivity) {
         // Moshpoint+ members get smart search; free users type it in, with a quiet Moshpoint+ card
         // (docs/DISCOVER_APP.md). Only the country and at most the region go to the relay.
         val member = Entitlements.plus(a)
-        val search = if (member && DiscoverClient.available) {
+        val search = if (member && DiscoverClient.available && !DiscoverClient.closedRecently(a)) {
             val country = DiscoverWhere.country(a)
             val region = DiscoverWhere.region(a, country, a.lastKnownLocation()?.let { LatLon(it.latitude, it.longitude) })
             PlanSearch(
                 country = country,
                 regionName = DiscoverWhere.regionName(a, country, region),
-                suggest = { q -> DiscoverClient.suggest(country, q, region) },
+                suggest = { q -> DiscoverClient.suggest(country, q, region).also { if (it === DiscoverClient.Answer.Closed) DiscoverClient.noteClosed(a) } },
                 startOf = { show -> ShowStart.of(show, country, java.time.ZoneId.systemDefault()) },
             )
         } else {

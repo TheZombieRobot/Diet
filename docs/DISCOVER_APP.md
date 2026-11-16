@@ -154,8 +154,12 @@ sleeps and you're not following from home; followers keep the old view):
 
 - **Where:** the No crew state only (owner's answer 1), under Start a crew, wider than the page
   margins as drawn. For members it replaces the Plan a gig row (its search button opens that
-  sheet); free users keep the row and never see the card (answer 2). A 403 or 503 hides it for
-  the session and brings the row back.
+  sheet); free users keep the row and never see the card (answer 2).
+- **A 403 or 503** (search or Coming up) is remembered for a day (`DiscoverClient.noteClosed`):
+  no card and no search box until then, so nothing flashes up and goes away on each start. That
+  matters now: `Entitlements.plus` is true for everyone until billing, and the production relay
+  says "members only" to everyone, so today every phone sees the free path's hand form (without
+  the Moshpoint+ card) and the Plan a gig row.
 - **Asking:** `ComingUp` asks `coming` for the chip that's on (`near`, `country`, `travel`) with
   the country and at most the region, as for search. In a country it hasn't seen, the first
   answer lists its regions; the phone picks its own and asks once more. Answers are kept an hour

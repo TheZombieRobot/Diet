@@ -43,6 +43,16 @@ object DiscoverClient {
     /** Only through our relay (it holds the keys); none built in, no Discover. */
     val available: Boolean get() = server.isNotBlank()
 
+    private fun prefs(c: Context) = c.applicationContext.getSharedPreferences("discover", Context.MODE_PRIVATE)
+
+    /** The relay said no (403 or 503) in the last day: don't offer Discover, so nothing flashes up and goes away. */
+    fun closedRecently(c: Context): Boolean = System.currentTimeMillis() < prefs(c).getLong("closedUntil", 0L)
+
+    /** Note a 403 or 503 for a day (a member whose purchase lands, or a relay given keys, is asked again tomorrow). */
+    fun noteClosed(c: Context) {
+        prefs(c).edit().putLong("closedUntil", System.currentTimeMillis() + 24 * 3600_000L).apply()
+    }
+
     /** Acts whose name (or a word in it) starts with [q]: near you, elsewhere in [country], worldwide. */
     suspend fun suggest(country: String, q: String, region: String?, limit: Int = 8): Answer<SuggestAnswer> =
         get("/v1/discover/suggest?country=${enc(country)}&q=${enc(q.trim())}" + (region?.let { "&region=${enc(it)}" } ?: "") + "&limit=$limit") { parseSuggest(it) }

@@ -37,8 +37,11 @@ object ComingUp {
     private var asked: String? = null
     private val io = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("ComingUp"))
 
-    /** The relay said no (403 or 503): no card this session; the Plan a gig row is back. */
+    /** The relay said no (403 or 503): no card; the Plan a gig row is back (see DiscoverClient.closedRecently). */
     val closed: Boolean get() = status.value == ComingStatus.CLOSED
+
+    /** Should the card be offered at all? Reads Compose state. */
+    fun offered(c: Context): Boolean = DiscoverClient.available && !closed && !DiscoverClient.closedRecently(c)
 
     private const val FRESH_MS = 3600_000L
     private const val NOT_READY_RETRY_MS = 30_000L
@@ -72,6 +75,7 @@ object ComingUp {
                         if (a.value.ready) return@launch
                     }
                     DiscoverClient.Answer.Closed -> {
+                        DiscoverClient.noteClosed(app)
                         status.value = ComingStatus.CLOSED
                         return@launch
                     }
