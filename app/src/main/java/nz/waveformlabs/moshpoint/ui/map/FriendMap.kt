@@ -268,13 +268,29 @@ fun FriendMap(
         }
     }
 
+    // What the current look already has, so an update touches only what changed (performance
+    // P1-4): pin pictures are drawn once each, and a source is only given data that's new.
+    val drawn = remember { Drawn() }
+
     AndroidView({ mapView }, modifier.fillMaxSize()) {
         if (!styleReady.value) return@AndroidView
         val map = holder[0] ?: return@AndroidView
         val style = map.style ?: return@AndroidView
-        // Photos/initials as map icons (re-added each time: cheap, and photos can change).
-        pins.forEach { style.addImage("f-${it.id}", pinBitmap(it)) }
-        style.getSourceAs<GeoJsonSource>(SRC_FRIENDS)?.setGeoJson(
+        drawn.on(style)
+        fun setData(src: String, key: Any?, data: () -> FeatureCollection) {
+            if (drawn.data.containsKey(src) && drawn.data[src] == key) return
+            style.getSourceAs<GeoJsonSource>(src)?.setGeoJson(data())
+            drawn.data[src] = key
+        }
+        // Photos/initials as map icons, drawn again only when the picture would change.
+        pins.forEach { p ->
+            val look = PinLook(p.name.take(1).uppercase(), p.color, p.floor, Faces.of(p.id, p.name))
+            if (drawn.pins[p.id] != look) {
+                style.addImage("f-${p.id}", pinBitmap(p))
+                drawn.pins[p.id] = look
+            }
+        }
+        setData(SRC_FRIENDS, pins) {
             FeatureCollection.fromFeatures(
                 pins.map { p ->
                     Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).apply {
@@ -284,19 +300,25 @@ fun FriendMap(
                         addNumberProperty("op", if (p.stale) 0.55 else 1.0)
                     }
                 },
-            ),
-        )
-        style.getSourceAs<GeoJsonSource>(SRC_TRAILS)?.setGeoJson(
+            )
+        }
+        val lines = trails.filter { it.points.size >= 2 }
+        setData(SRC_TRAILS, lines.map { it.color to it.points }) {
             FeatureCollection.fromFeatures(
-                trails.filter { it.points.size >= 2 }.map { t ->
+                lines.map { t ->
                     Feature.fromGeometry(org.maplibre.geojson.LineString.fromLngLats(t.points.map { Point.fromLngLat(it.second, it.first) })).apply {
                         addStringProperty("color", String.format("#%06X", t.color and 0xFFFFFF))
                     }
                 },
-            ),
-        )
-        moments.forEach { style.addImage("m-${it.key}", it.icon) }
-        style.getSourceAs<GeoJsonSource>(SRC_MOMENTS)?.setGeoJson(
+            )
+        }
+        moments.forEach {
+            if (drawn.moments[it.key] !== it.icon) {
+                style.addImage("m-${it.key}", it.icon)
+                drawn.moments[it.key] = it.icon
+            }
+        }
+        setData(SRC_MOMENTS, moments.map { listOf(it.key, it.label, it.lat, it.lon) }) {
             FeatureCollection.fromFeatures(
                 moments.map { m ->
                     Feature.fromGeometry(Point.fromLngLat(m.lon, m.lat)).apply {
@@ -305,9 +327,9 @@ fun FriendMap(
                         addStringProperty("label", m.label)
                     }
                 },
-            ),
-        )
-        style.getSourceAs<GeoJsonSource>(SRC_PLACES)?.setGeoJson(
+            )
+        }
+        setData(SRC_PLACES, places) {
             FeatureCollection.fromFeatures(
                 places.map { p ->
                     Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).apply {
@@ -315,11 +337,11 @@ fun FriendMap(
                         addStringProperty("label", if (p.meetUp) Txt.s(R.string.find_meet_label, p.name) else p.name)
                     }
                 },
-            ),
-        )
-        style.getSourceAs<GeoJsonSource>(SRC_ME)?.setGeoJson(
-            FeatureCollection.fromFeatures(me?.let { listOf(Feature.fromGeometry(Point.fromLngLat(it.longitude, it.latitude))) } ?: emptyList()),
-        )
+            )
+        }
+        setData(SRC_ME, me) {
+            FeatureCollection.fromFeatures(me?.let { listOf(Feature.fromGeometry(Point.fromLngLat(it.longitude, it.latitude))) } ?: emptyList())
+        }
     }
 
     // Style switch (Bright / Night / Dark, or to and from a saved venue map): reload and put
@@ -363,6 +385,25 @@ fun FriendMap(
                 600,
             )
         }
+    }
+}
+
+/** What [pinBitmap] draws from: a pin is drawn again only when one of these changes. */
+private data class PinLook(val initial: String, val color: Int, val floor: String?, val face: androidx.compose.ui.graphics.ImageBitmap?)
+
+/** What the map's current look (style) has been given; a new look starts with nothing. */
+private class Drawn {
+    private var style: Style? = null
+    val pins = HashMap<String, PinLook>()
+    val moments = HashMap<String, Bitmap>()
+    val data = HashMap<String, Any?>()
+
+    fun on(s: Style) {
+        if (style === s) return
+        style = s
+        pins.clear()
+        moments.clear()
+        data.clear()
     }
 }
 

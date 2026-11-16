@@ -13,12 +13,14 @@ branch: `ui-screenshots-claude-wave2c-perf-m4x7rd`, compared with `ui-screenshot
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Item 1 (photos): code done, waiting for CI.** Pushed for CI; nothing on this branch has been
-  green yet. If CI fails, fix the compile errors in the files listed under item 1 below.
-- **Next:** when item 1 is green, compare its screenshots (see "Proof"), then item 2 (the venue
-  map: `main/MapOverlay.kt` `near =`, `ui/map/FriendMap.kt` pin bitmaps and `setGeoJson`).
-- **Left:** items 2, 3, 4, the field tests in FIELD_TEST_PLAN.md (a new section), and the report
-  to the parent session (session_01Sw3Y2WCFVzhNwUVdFGVbRq).
+- **Item 1 (photos): pushed for CI (run 317, 0efbb3e).** The watch's screenshots came back
+  byte-identical (798 of 798); the phone build was still running when item 2 was saved.
+- **Item 2 (the venue map): code done, saved with [skip ci]** on top of item 1. Once item 1 is
+  green, run CI for it (Actions, "Android build", Run workflow on this branch) and compare.
+- **Items 3 and 4: drafted in the working tree, not committed** (if this session ended, they're
+  gone: redo them from the notes below). Field tests: FIELD_TEST_PLAN.md section 4i (written).
+- **Left:** CI and screenshots for items 1-4, items 3 and 4, and the report to the parent
+  session (session_01Sw3Y2WCFVzhNwUVdFGVbRq).
 - **How to check locally:** only core tests run here (Google Maven is blocked; CI builds the app).
 
 ## 1. Photos: memory and freezes (performance P1-6, P1-7)
@@ -66,6 +68,20 @@ Trade-offs (the audit's fixes, as asked):
 - **Scrolling fast through a long Story** can show a Polaroid's dark square for a moment before
   its photo; full screen shows the board image for a moment before the sharp one; zooming in
   past about 2x on a big original is a little softer than before.
+
+## 2. The venue map (performance P1-4)
+
+- **`near` changes only when a distance does** (`main/MapOverlay.kt`): the mates heard close by
+  (a distance, no direction) come from the finder's arrows, which change 20 times a second
+  because the compass heading is in them. They're now a `derivedStateOf` with structural
+  equality, read only there, so the map's screen recomposes when a distance (or who's close)
+  changes, not on every tick. The rule is the same (only while the finder looks or at a venue).
+- **Pin pictures are cached** (`ui/map/FriendMap.kt`): a mate's pin is drawn again only when
+  what it's drawn from changes (initial, colour, floor tag, face picture); was a new bitmap per
+  mate per update.
+- **Unchanged GeoJSON is skipped**: each source (mates, trails, photo pins, places, you) is given
+  data only when it differs from what that map look already has; photo pin icons are added once.
+  A new map look (Bright / Night / Dark, a saved venue map) starts empty and gets everything.
 
 ## Proof
 
