@@ -13,13 +13,15 @@ branch: `ui-screenshots-claude-wave2c-perf-m4x7rd`, compared with `ui-screenshot
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Item 1 (photos): pushed for CI (run 317, 0efbb3e).** The watch's screenshots came back
-  byte-identical (798 of 798); the phone build was still running when item 2 was saved.
-- **Items 2, 3 and 4: code done, saved with [skip ci]** (c998ad0, fdb84f3, 2fa9472), so nothing
-  is lost if the session ends. They get one CI run together once item 1 is green (a CI run takes
-  about 25 minutes; dispatching only runs the branch's head): Actions, "Android build", Run
-  workflow on this branch, then compare the screenshots. If it fails, the item is in the commit
-  message of the file that broke. Field tests: FIELD_TEST_PLAN.md section 4i (written).
+- **Item 1 (photos): built and checked by CI (run 317, 0efbb3e).** Every step up to and
+  including the screenshots passed; screenshots: phone 1711 of 1711 and watch 798 of 798
+  byte-identical to `ui-screenshots` / `ui-screenshots-watch`, every language.
+- **Items 2, 3 and 4: code done** (c998ad0, fdb84f3, 2fa9472, saved with [skip ci] so nothing
+  was lost), **CI run 318 dispatched on b3edd12** (all three together: a run takes about 25
+  minutes and a dispatch only runs the branch's head). Next: when it finishes, compare its
+  screenshots (`ui-screenshots-claude-wave2c-perf-m4x7rd`, whose commit says "for b3edd12") with
+  `ui-screenshots`; if it fails, the item is in the commit message of the file that broke.
+  Field tests: FIELD_TEST_PLAN.md section 4i (written).
 - **Left:** CI and the screenshot comparison for items 1-4, and the report to the parent
   session (session_01Sw3Y2WCFVzhNwUVdFGVbRq).
 - **How to check locally:** only core tests run here (Google Maven is blocked; CI builds the app).
@@ -125,6 +127,9 @@ not safe without a phone to test on, so not done here. The map no longer recompo
   Lambdas inside the dialogs and menus (shown rarely) are unchanged.
 
 ## Proof
+
+How the screenshots were compared: both branches fetched, every PNG under every language folder
+compared by blob (byte-identical), and any that differ by pixels (RGBA) with Pillow.
 
 - CI green on this branch (the app compiles only there).
 - Every screenshot pixel-identical to `origin/ui-screenshots`, in every language folder
