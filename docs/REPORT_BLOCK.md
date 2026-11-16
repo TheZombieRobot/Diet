@@ -16,16 +16,18 @@ _Kept current at every push. Branch `claude/ugc-moderation-b5k8q2`, started from
 
 | Stage | State |
 |---|---|
-| 1. Block (app only) | **code written, waiting for CI** (core `BlockList` + 11 tests pass locally) |
-| 2. Community rules before the first post | not started (strings already written and translated) |
-| 3. Report (sheet, relay endpoints, server tests) | not started (strings already written and translated) |
-| 4. Docs (MODERATION.md, PRIVACY.md, PLAY_STORE.md, SECRETS.md) | not started |
+| 1. Block (app only) | **pushed** at `5c4ceec`, CI run 320: secrets, translations, core and server tests and the debug build passed; screenshots pending at this push |
+| 2. Community rules before the first post | **pushed with this commit** for its own CI run (core `CommunityRules` + test pass locally) |
+| 3. Report (sheet, relay endpoints, server tests) | written (10 server tests pass locally), pushed next |
+| 4. Docs (MODERATION.md, PRIVACY.md, PLAY_STORE.md, SECRETS.md, FIELD_TEST_PLAN.md 4j) | written, pushed with stage 3 |
 
-**Exact next step:** check the CI run for the Stage 1 push (translations, core and server
-tests, phone and watch builds, screenshots). Then compare every old screenshot with
-`origin/ui-screenshots` (they must be byte-identical) and look at the new ones (`moderationMenu`,
-`blockConfirm`, `smallPhoneLargeFontBlockConfirm`, `blockedPeople`,
-`smallPhoneLargeFontBlockedPeople`, `blockedPeopleEmpty`) in every language. Then Stage 2.
+**Exact next step:** check run 320 (Stage 1) and this commit's run (Stage 2): both green, and
+every old screenshot byte-identical to `origin/ui-screenshots` (compare the branch's
+`ui-screenshots-claude-ugc-moderation-b5k8q2`), the new ones looked at in every language
+(`moderationMenu`, `blockConfirm`, `smallPhoneLargeFontBlockConfirm`, `blockedPeople`,
+`smallPhoneLargeFontBlockedPeople`, `blockedPeopleEmpty`; stage 2: `communityRules`,
+`smallPhoneLargeFontCommunityRules`). If Stages 3 and 4 aren't on the branch yet, they are on the
+local branch `backup-ugc-all` (commits `894af2e` and `c0c6cae`): cherry-pick them.
 
 How to work on it:
 - `core` and `server` tests run here with a scratch Gradle build that includes only `:core` and

@@ -32,6 +32,7 @@ import nz.waveformlabs.moshpoint.ui.map.MapScreen
 import nz.waveformlabs.moshpoint.ui.moments.StoryScreen
 import nz.waveformlabs.moshpoint.ui.moderation.BlockConfirmContent
 import nz.waveformlabs.moshpoint.ui.moderation.BlockedPeopleContent
+import nz.waveformlabs.moshpoint.ui.moderation.CommunityRulesContent
 import nz.waveformlabs.moshpoint.ui.moderation.PersonMenuContent
 import nz.waveformlabs.moshpoint.ui.settings.AcknowledgementsContent
 import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
@@ -768,6 +769,16 @@ open class ScreensSnapshotTest {
     /** Settings → Blocked people when nobody is: how to block someone. */
     @Test fun blockedPeopleEmpty() = dialog {
         BlockedPeopleContent(emptyList(), onUnblock = {}, onClose = {})
+    }
+
+    // ---- Community rules (docs/REPORT_BLOCK.md) ----
+
+    /** "Before you post": once, before the first chat message, photo, clip or private message. */
+    @Test fun communityRules() = dialog { CommunityRulesContent({}, {}, {}) }
+
+    @Test fun smallPhoneLargeFontCommunityRules() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        communityRules()
     }
 
     /** Right-to-left set on Compose itself: the renderer's own setting doesn't reach every screen. */

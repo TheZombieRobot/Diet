@@ -19,6 +19,8 @@ import nz.waveformlabs.moshpoint.moderation.Blocks
 import nz.waveformlabs.moshpoint.moderation.Moderation
 import nz.waveformlabs.moshpoint.moderation.Person
 import nz.waveformlabs.moshpoint.ui.moderation.BlockConfirmContent
+import nz.waveformlabs.moshpoint.ui.moderation.CommunityRulesContent
+import nz.waveformlabs.moshpoint.ui.settings.rememberOpenPrivacyPolicy
 import nz.waveformlabs.moshpoint.ui.moderation.ModerationDialog
 import nz.waveformlabs.moshpoint.ui.moderation.PersonMenuContent
 
@@ -30,6 +32,13 @@ import nz.waveformlabs.moshpoint.ui.moderation.PersonMenuContent
 @Composable
 @NonRestartableComposable
 internal fun ModerationOverlays(a: MainActivity) {
+    // "Before you post", once: the waiting post goes when they agree.
+    Moderation.rules.value?.let {
+        val notNow = { Moderation.rules.value = null }
+        ModerationDialog(onDismiss = notNow) {
+            CommunityRulesContent(onPrivacy = rememberOpenPrivacyPolicy(), onAgree = { Moderation.agree(a) }, onNotNow = notNow)
+        }
+    }
     Moderation.menu.value?.let { s ->
         val p = s.person
         val close = { Moderation.menu.value = null }

@@ -116,6 +116,11 @@ class MomentFlow(
 
     private fun sendClip(caption: String) {
         val f = momentClip ?: return
+        // The community rules first, once (docs/REPORT_BLOCK.md); the clip goes once they're agreed to.
+        if (!nz.waveformlabs.moshpoint.moderation.Moderation.agreed(activity)) {
+            nz.waveformlabs.moshpoint.moderation.Moderation.rules.value = { sendClip(caption) }
+            return
+        }
         sendingMoment = true
         activity.lifecycleScope.launch {
             val loc = lastLocation()
@@ -189,6 +194,11 @@ class MomentFlow(
 
     private fun sendMoment(caption: String) {
         val photo = momentPhoto ?: return
+        // The community rules first, once (docs/REPORT_BLOCK.md); the photo goes once they're agreed to.
+        if (!nz.waveformlabs.moshpoint.moderation.Moderation.agreed(activity)) {
+            nz.waveformlabs.moshpoint.moderation.Moderation.rules.value = { sendMoment(caption) }
+            return
+        }
         sendingMoment = true
         activity.lifecycleScope.launch {
             val loc = lastLocation()

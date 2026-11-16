@@ -111,3 +111,12 @@ class ModerationTest {
         assertFalse(l.blocksTag(jo.tag)) // the oldest went first
     }
 }
+
+class CommunityRulesTest {
+    @Test fun askedUntilAgreedThenNeverAgain() {
+        assertTrue(CommunityRules.mustAsk(0))
+        assertFalse(CommunityRules.mustAsk(CommunityRules.VERSION))
+        // A phone that agreed to a later version (a downgrade) isn't asked again.
+        assertFalse(CommunityRules.mustAsk(CommunityRules.VERSION + 1))
+    }
+}

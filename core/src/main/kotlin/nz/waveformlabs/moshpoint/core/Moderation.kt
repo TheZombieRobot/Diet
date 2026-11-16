@@ -124,3 +124,14 @@ class BlockList private constructor(val entries: List<Blocked>) {
         fun hex(pub: ByteArray): String = pub.joinToString("") { "%02x".format(it) }
     }
 }
+
+/**
+ * The community rules ("Before you post"): shown once, before the first crew chat message, photo,
+ * clip or private message, and agreed to once. Raising [VERSION] asks everyone again.
+ */
+object CommunityRules {
+    const val VERSION = 1
+
+    /** Must someone who agreed to version [agreed] (0 = never) be shown the rules before posting? */
+    fun mustAsk(agreed: Int): Boolean = agreed < VERSION
+}

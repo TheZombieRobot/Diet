@@ -89,8 +89,9 @@ internal fun ChatOverlays(a: MainActivity) {
                 a.home.setVisibility(true)
                 a.toast(Txt.s(R.string.main_now_main_crew, waiting.group.name))
             }) else null,
-            onSend = { CrewChat.send(a, it) },
-            onSetPlan = { CrewChat.setPlan(a, it) },
+            // The community rules first, once (docs/REPORT_BLOCK.md).
+            onSend = { text -> Moderation.beforePosting(a) { CrewChat.send(a, text) } },
+            onSetPlan = { text -> Moderation.beforePosting(a) { CrewChat.setPlan(a, text) } },
             onFlare = { vibe ->
                 val loc = a.lastKnownLocation()
                 CrewChat.flare(a, vibe, loc?.latitude, loc?.longitude)
@@ -147,7 +148,7 @@ internal fun ChatOverlays(a: MainActivity) {
             nowSec = a.home.homeNow / 1000,
             myName = VisibilityPrefs.myName(a).ifBlank { Txt.s(R.string.crew_default_name) },
             muted = PrivateMessages.muted.value,
-            onSend = { PrivateMessages.send(a, it) },
+            onSend = { text -> Moderation.beforePosting(a) { PrivateMessages.send(a, text) } },
             onBack = { PrivateMessages.close() },
             onMute = { PrivateMessages.setMuted(a, it) },
             onRetry = { PrivateMessages.retry(a, it) },

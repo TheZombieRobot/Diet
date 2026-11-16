@@ -1,6 +1,11 @@
 package nz.waveformlabs.moshpoint.ui.moderation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -28,6 +33,7 @@ import nz.waveformlabs.moshpoint.core.Blocked
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.settings.DialogButtons
 import nz.waveformlabs.moshpoint.ui.settings.PlayDialogCard
+import nz.waveformlabs.moshpoint.ui.settings.PrivacyPolicyLink
 
 /*
  * Block (and, later, report) for what people post: Google Play's User Generated Content policy
@@ -122,6 +128,38 @@ internal fun ColumnScope.BlockedPeopleContent(people: List<Blocked>, onUnblock: 
     }
     Spacer(Modifier.height(4.dp))
     TextButton(onClick = onClose, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.home_close), style = Mosh.Label) }
+}
+
+/**
+ * "Before you post": the community rules, once, before the first crew chat message, photo, clip
+ * or private message. Says that reported posts may be reviewed, with the privacy policy.
+ */
+@Composable
+internal fun ColumnScope.CommunityRulesContent(onPrivacy: () -> Unit, onAgree: () -> Unit, onNotNow: () -> Unit) {
+    Text(stringResource(R.string.mod_rules_title), style = Mosh.Heading)
+    Spacer(Modifier.height(16.dp))
+    // Scrolls when the font is large or the phone small; the buttons stay put.
+    Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(stringResource(R.string.mod_rules_intro), style = Mosh.Body)
+        RulePoint(Mosh.Pink, stringResource(R.string.mod_rules_harassment))
+        RulePoint(Mosh.Amber, stringResource(R.string.mod_rules_illegal))
+        RulePoint(Mosh.Violet, stringResource(R.string.mod_rules_threats))
+        Text(stringResource(R.string.mod_rules_reports), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 19.sp, color = Mosh.TextDim))
+        PrivacyPolicyLink(onPrivacy, Modifier.padding(start = 10.dp))
+    }
+    DialogButtons(
+        confirm = stringResource(R.string.mod_rules_agree), confirmColour = Mosh.Lime, onConfirm = onAgree,
+        dismiss = stringResource(R.string.main_not_now), onDismiss = onNotNow,
+    )
+}
+
+@Composable
+private fun RulePoint(colour: Color, text: String) {
+    Row(verticalAlignment = Alignment.Top) {
+        Box(Modifier.padding(top = 7.dp).size(8.dp).background(colour, CircleShape))
+        Spacer(Modifier.width(12.dp))
+        Text(text, style = Mosh.Body)
+    }
 }
 
 /** The row in Settings that opens [BlockedPeopleContent]. */

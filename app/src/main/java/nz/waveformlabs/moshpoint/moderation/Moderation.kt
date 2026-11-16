@@ -1,6 +1,8 @@
 package nz.waveformlabs.moshpoint.moderation
 
+import android.content.Context
 import androidx.compose.runtime.mutableStateOf
+import nz.waveformlabs.moshpoint.core.CommunityRules
 import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.moments.Moments
 
@@ -32,5 +34,31 @@ object Moderation {
 
     fun ask(s: Subject) {
         menu.value = s
+    }
+
+    // ---- Community rules ("Before you post"), once ----
+
+    /** The post waiting for the rules to be agreed to (the dialog shows while this is set). */
+    val rules = mutableStateOf<(() -> Unit)?>(null)
+
+    private fun prefs(c: Context) = c.applicationContext.getSharedPreferences("moderation", Context.MODE_PRIVATE)
+
+    /** Has this phone agreed to the current rules? */
+    fun agreed(c: Context): Boolean = !CommunityRules.mustAsk(prefs(c).getInt("rules_agreed", 0))
+
+    /**
+     * Before a crew chat message, plan, photo, clip or private message: [post] now if the rules
+     * were agreed to, otherwise once they are ("Not now" drops it).
+     */
+    fun beforePosting(c: Context, post: () -> Unit) {
+        if (agreed(c)) post() else rules.value = post
+    }
+
+    /** "I agree": remembered, and the waiting post goes. */
+    fun agree(c: Context) {
+        prefs(c).edit().putInt("rules_agreed", CommunityRules.VERSION).apply()
+        val post = rules.value
+        rules.value = null
+        post?.invoke()
     }
 }
