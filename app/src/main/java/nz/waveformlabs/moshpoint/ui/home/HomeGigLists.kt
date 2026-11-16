@@ -62,6 +62,8 @@ import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.countdown
 import nz.waveformlabs.moshpoint.ui.pressScale
 import nz.waveformlabs.moshpoint.ui.rememberPress
+import nz.waveformlabs.moshpoint.ui.PushPin
+import nz.waveformlabs.moshpoint.ui.pushPin
 
 // Other nights on the home (docs/design/home-redesign): Up next, "Remember last year?" and
 // past gigs as Polaroids, with the panel that lists them all.
@@ -184,7 +186,7 @@ internal fun MemoryCard(g: GigArchive.Summary, years: Int, onOpen: () -> Unit) {
 @Composable
 private fun MiniPolaroid(id: String, cover: ImageBitmap?) {
     Box(
-        Modifier.size(56.dp).rotate(-4f)
+        Modifier.size(56.dp).rotate(-4f).pushPin(PushPin.colourFor(id), 9.dp)
             .background(Mosh.Paper, RoundedCornerShape(3.dp))
             .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 11.dp),
     ) { CoverArt(id, cover, Modifier.fillMaxWidth().height(41.dp)) }
@@ -244,6 +246,7 @@ private fun GigPolaroid(g: GigArchive.Summary, tilt: Float, onClick: () -> Unit)
         Modifier.width(150.dp)
             .fillMaxHeight()
             .rotate(tilt)
+            .pushPin(PushPin.colourFor(g.id), 16.dp)
             .shadow(10.dp, RoundedCornerShape(3.dp), clip = false)
             .background(Mosh.Paper, RoundedCornerShape(3.dp))
             .clickable(role = Role.Button, onClick = onClick)
@@ -266,8 +269,8 @@ internal fun PastGigsStrip(gigs: List<GigArchive.Summary>, onOpen: (GigArchive.S
     Row(
         Modifier.fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            // Room for the tilt and the drop shadow.
-            .padding(start = HomeSide, end = HomeSide, top = 6.dp, bottom = 24.dp)
+            // Room for the tilt, the pin poking above each frame, and the drop shadow.
+            .padding(start = HomeSide, end = HomeSide, top = 12.dp, bottom = 24.dp)
             .height(IntrinsicSize.Max),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
