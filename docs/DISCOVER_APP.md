@@ -11,12 +11,17 @@ _Handover, kept current at every push. A new session can resume from this sectio
 | Stage | State |
 |---|---|
 | 1. Hype group, for everyone | **done, CI green (run 328, `e7fb39b`)**: phone and watch debug and release builds, core and server tests, translations, screenshots. Core: message, rules, link, courier. App: `discover/HypeTickets.kt` (ticks, our toggle, daily re-post, the nudge), `discover/HypeData.kt` (the view, Get tickets), `ui/home/HypeGroup.kt` (the screen), crews store `tk`/`tks`. Screenshots `hypeGroup`, `hypeGroupTicked`, `smallPhoneHypeGroup`, `largeFontHypeGroup`, `smallPhoneLargeFontHypeGroup`, looked at (English, German at 130% on a small phone, Arabic). Field test 4k |
-| 2. Plan a gig, free view | **written, CI run pending.** `ui/home/PlanGig.kt`: the form state is hoisted (`PlanForm`), hand entry in the order who's playing, date and time, venue (optional, hint "Venue and town"); the quiet Moshpoint+ card for non-members (`Entitlements.plus` false); "What's in Moshpoint+" swaps the sheet to `PlusInfoContent` and back with what was typed kept ("coming soon", no billing). Members keep the old gig search until stage 3. Screenshots `planGigFree`, `smallPhonePlanGigFree`, `largeFontPlanGigFree`, `plusInfo`, `smallPhoneLargeFontPlusInfo` |
+| 2. Plan a gig, free view | **done, CI green (run 329, `647c84f`).** `ui/home/PlanGig.kt`: the form state is hoisted (`PlanForm`), hand entry in the order who's playing, date and time, venue (optional, hint "Venue and town"); the quiet Moshpoint+ card for non-members (`Entitlements.plus` false); "What's in Moshpoint+" swaps the sheet to `PlusInfoContent` and back with what was typed kept ("coming soon", no billing). Screenshots `planGigFree`, `smallPhonePlanGigFree`, `largeFontPlanGigFree`, `plusInfo`, `smallPhoneLargeFontPlusInfo`, looked at (English, German, small phone) |
 | 3. Smart search, members | **written, CI run queued after stage 2's** (`a1089df` + this commit): `core/DiscoverRules.kt` (`DiscoverPlace` NZ island and nearest region, `ShowStart`, `TypedMatch`, the answer models; `DiscoverRulesTest`, 600 core tests pass locally), `discover/DiscoverClient.kt` (`suggest`, `coming`, 403/503 = closed; `DiscoverWhere`: country, region, kept regions), the search in `PlanGig.kt`, `GigSearch.kt` removed, 14 more strings. Screenshots `smartSearch`, `smallPhoneLargeFontSmartSearch`, `smartSearchPicked` |
 | 4. Coming up near you, members | **written locally, not pushed** (pushed once stage 3 is green): `discover/ComingUp.kt` (asking, chips, Planned ✓ via `DiscoverPlanned`), `ui/home/ComingUpCard.kt`, `NoCrewHero(comingUp = …)` (the free path's code is untouched), Plan it → `startPlannedCrew`, 11 more strings, screenshots `homeComingUpNearYou`, `homeComingUpTravel`, `smallPhoneHomeComingUpNearYou`, `largeFontHomeComingUpNearYou` |
 
-**Last green CI run:** 328 (`e7fb39b`, stage 1). Run 329 (`647c84f`, stage 2) was building when
-this was written.
+**Last green CI run:** 329 (`647c84f`, stages 1 and 2). Run 330 (`0273934`, stage 3) was
+building when this was written.
+
+**Every other screenshot unchanged:** checked after each run by comparing file hashes of this
+branch's `ui-screenshots-claude-discover-app-h7v2rk` with `ui-screenshots` (`git fetch
+--depth=1 --filter=blob:none` both, then `git ls-tree -r` and compare): run 328, 1,963 shared
+files identical, 105 new; run 329, 1,963 identical, 210 new.
 
 **Exact next step:** check runs 329 (stage 2) and the stage 3 run; look at the new pictures on
 `ui-screenshots-claude-discover-app-h7v2rk` (planGigFree, plusInfo, smartSearch, small phone and
