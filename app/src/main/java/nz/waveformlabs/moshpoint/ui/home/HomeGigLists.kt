@@ -64,6 +64,7 @@ import nz.waveformlabs.moshpoint.ui.pressScale
 import nz.waveformlabs.moshpoint.ui.rememberPress
 import nz.waveformlabs.moshpoint.ui.PushPin
 import nz.waveformlabs.moshpoint.ui.pushPin
+import androidx.compose.ui.draw.clipToBounds
 
 // Other nights on the home (docs/design/home-redesign): Up next, "Remember last year?" and
 // past gigs as Polaroids, with the panel that lists them all.
@@ -195,7 +196,8 @@ private fun MiniPolaroid(id: String, cover: ImageBitmap?) {
 /** A gig's cover photo, or neon stage lights when it has none (picked from the gig, so it stays the same). */
 @Composable
 private fun CoverArt(id: String, cover: ImageBitmap?, modifier: Modifier) {
-    Box(modifier.drawBehind { stageLights(id) }) {
+    // Clipped: the lights' glow is wider than the photo and spilled over the white frame.
+    Box(modifier.clipToBounds().drawBehind { stageLights(id) }) {
         if (cover != null) Image(cover, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.matchParentSize())
     }
 }
