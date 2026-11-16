@@ -33,15 +33,15 @@ object HypeTickets {
     private fun prefs(c: Context) = c.applicationContext.getSharedPreferences("hype", Context.MODE_PRIVATE)
     private fun nowSec() = System.currentTimeMillis() / 1000
 
+    /** The crew's book, loaded from disk the first time. (No Compose state is written here: it's read while drawing.) */
     private fun book(c: Context, id: String): TicketBook = books.getOrPut(id) {
-        TicketBook.load(prefs(c).getString("book_$id", null), nowSec()).also { ticks[id] = it.all() }
+        TicketBook.load(prefs(c).getString("book_$id", null), nowSec())
     }
 
-    /** Who in crew [g] has a ticket, by signing tag. Reads Compose state. */
+    /** Who in crew [g] has a ticket, by signing tag. Reads Compose state, so the hype group redraws when a tick arrives. */
     fun of(c: Context, g: GigGroup): Map<Long, Boolean> {
         val id = GigArchive.idFor(g)
-        book(c, id)
-        return ticks[id].orEmpty()
+        return ticks[id] ?: book(c, id).all()
     }
 
     /** Have we ticked "I've got my ticket" in crew [g]? */
@@ -133,7 +133,7 @@ object HypeTickets {
         books.remove(from)
         books.remove(to)
         ticks.remove(from)
-        book(c, to)
+        ticks[to] = book(c, to).all()
     }
 
     /** The crew ended or was left: its ticks go with it. */

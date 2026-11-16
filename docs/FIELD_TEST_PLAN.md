@@ -943,10 +943,46 @@ joins. Use a date at least a week away so the crew sleeps.
 8. A week later (or with the date moved on): both phones still show both ticks, though the
    relay forgets chat after 72 hours (each phone posts its tick again once a day).
 
+### B. Plan a gig, free view (stage 2; a test build with the Moshpoint+ switch off)
+
+1. Settings → the test build's Moshpoint+ switch off. Home → Plan a gig.
+2. The sheet asks, in order: **Who's playing**, the **date** and **time** buttons, **Where
+   (optional)** with "Venue and town" greyed in. No search box.
+3. Under Start the crew: the small amber **Moshpoint+** card, no price, no Upgrade button.
+4. Type a name, tap **What's in Moshpoint+**: the list, "COMING SOON", **Back to the plan**. Back:
+   the name you typed is still there.
+5. Start the crew: the crew is made as before, its invite shows.
+
+### C. Smart search (stage 3; a member on a test relay with `MOSHPOINT_DISCOVER_OPEN=1`)
+
+1. Moshpoint+ switch on. Plan a gig shows the amber **Moshpoint+** mark and a search box.
+2. Type one letter: within a second or two, NEAR YOU · (your island or region), ELSEWHERE IN
+   (your country), WORLDWIDE, the typed letter in cyan, and **Type your own gig** pinned at the
+   bottom above the keyboard. A country asked about for the first time says "Getting the
+   list…" and fills in by itself within a minute or so.
+3. Type fast ("ivo"): only the last answer shows (no flicker back to older ones).
+4. Pick a row: the form is filled (name, date, time, venue) with "Ticket link: (site)". Start the
+   crew; the hype group shows **Get tickets**, and it opens the seller's page. On B (joined by
+   the invite), Get tickets is there too, even with B's Moshpoint+ switch off.
+5. On the **production** relay (members only, closed to everyone today): the search box goes
+   away after the first letter, quietly, and the hand form stays.
+6. With the relay's logs: only `country` and `region` arrive, never a position.
+
+### D. Coming up near you (stage 4; member, no crew)
+
+1. End or leave every crew. The home says No crew tonight, then **Coming up near you** with
+   "Near me (North Island)" (or your region), Whole country, Worth travelling for, and a strip
+   of shows that fades at the edge. The Plan a gig row is gone (the card's search button opens
+   it).
+2. Each chip changes the strip; Worth travelling for shows distances in km.
+3. **Plan it** on a show: its crew starts with the show filled in and its invite shows.
+4. On a free phone (switch off): no card, the Plan a gig row as before.
+
 ### What to send back for this part
 
-- Screenshots of A's home after steps 3 and 6, and the notification.
+- Screenshots of A's home after steps A3 and A6, and the notification.
 - Whether any tick took more than 5 minutes to show with both phones online.
+- Screenshots of B2, C2 and D1, and how long C2's first answer took.
 
 ## 5. What to send back
 

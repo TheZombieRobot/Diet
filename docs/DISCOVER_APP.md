@@ -12,13 +12,16 @@ _Handover, kept current at every push. A new session can resume from this sectio
 |---|---|
 | 1. Hype group, for everyone | **done, CI green (run 328, `e7fb39b`)**: phone and watch debug and release builds, core and server tests, translations, screenshots. Core: message, rules, link, courier. App: `discover/HypeTickets.kt` (ticks, our toggle, daily re-post, the nudge), `discover/HypeData.kt` (the view, Get tickets), `ui/home/HypeGroup.kt` (the screen), crews store `tk`/`tks`. Screenshots `hypeGroup`, `hypeGroupTicked`, `smallPhoneHypeGroup`, `largeFontHypeGroup`, `smallPhoneLargeFontHypeGroup`, looked at (English, German at 130% on a small phone, Arabic). Field test 4k |
 | 2. Plan a gig, free view | **written, CI run pending.** `ui/home/PlanGig.kt`: the form state is hoisted (`PlanForm`), hand entry in the order who's playing, date and time, venue (optional, hint "Venue and town"); the quiet Moshpoint+ card for non-members (`Entitlements.plus` false); "What's in Moshpoint+" swaps the sheet to `PlusInfoContent` and back with what was typed kept ("coming soon", no billing). Members keep the old gig search until stage 3. Screenshots `planGigFree`, `smallPhonePlanGigFree`, `largeFontPlanGigFree`, `plusInfo`, `smallPhoneLargeFontPlusInfo` |
-| 3. Smart search, members | **written locally, not pushed yet** (pushed right after stage 2's run is green): `core/DiscoverRules.kt` (+ tests, pass locally), `discover/DiscoverClient.kt`, the search in `PlanGig.kt`, strings, screenshots `smartSearch`, `smallPhoneLargeFontSmartSearch`, `smartSearchPicked` |
-| 4. Coming up near you, members | not started |
+| 3. Smart search, members | **written, CI run queued after stage 2's** (`a1089df` + this commit): `core/DiscoverRules.kt` (`DiscoverPlace` NZ island and nearest region, `ShowStart`, `TypedMatch`, the answer models; `DiscoverRulesTest`, 600 core tests pass locally), `discover/DiscoverClient.kt` (`suggest`, `coming`, 403/503 = closed; `DiscoverWhere`: country, region, kept regions), the search in `PlanGig.kt`, `GigSearch.kt` removed, 14 more strings. Screenshots `smartSearch`, `smallPhoneLargeFontSmartSearch`, `smartSearchPicked` |
+| 4. Coming up near you, members | **written locally, not pushed** (pushed once stage 3 is green): `discover/ComingUp.kt` (asking, chips, Planned ✓ via `DiscoverPlanned`), `ui/home/ComingUpCard.kt`, `NoCrewHero(comingUp = …)` (the free path's code is untouched), Plan it → `startPlannedCrew`, 11 more strings, screenshots `homeComingUpNearYou`, `homeComingUpTravel`, `smallPhoneHomeComingUpNearYou`, `largeFontHomeComingUpNearYou` |
 
-**Last green CI run:** 328 (`e7fb39b`, stage 1).
+**Last green CI run:** 328 (`e7fb39b`, stage 1). Run 329 (`647c84f`, stage 2) was building when
+this was written.
 
-**Exact next step:** the CI run for stage 2 (look at `planGigFree` and `plusInfo`, small phone and
-large font), then push stage 3 and do the same, then stage 4.
+**Exact next step:** check runs 329 (stage 2) and the stage 3 run; look at the new pictures on
+`ui-screenshots-claude-discover-app-h7v2rk` (planGigFree, plusInfo, smartSearch, small phone and
+large font); fix anything; then push stage 4 (its code is in the working tree of the session that
+wrote this; if that session is gone, stage 4 starts again from the decisions below).
 
 **How to work on it:**
 
@@ -101,6 +104,74 @@ sleeps and you're not following from home; followers keep the old view):
 - Chat row: the newest chat line and its sender's face; Invite mates opens the crew's invite.
 - Every existing screenshot is unchanged: the new view needs `HomeCrew.hype`, which the tests
   only set in the new ones (the old `homeComingUp` is now the followers' view).
+
+### Stage 2: Plan a gig, free view
+
+- **Who's playing, then the date and time, then the venue** (owner's answer 6), in the design's
+  fields (`PlanField`: label inside a rounded box; hint "Venue and town"). The form's state is
+  hoisted into `PlanForm`, so "What's in Moshpoint+" can replace the sheet's contents and Back
+  returns with everything typed still there.
+- **The quiet Moshpoint+ card** shows only when `Entitlements.plus` is false: no price, no Upgrade
+  button, only "What's in Moshpoint+". Today `Entitlements.plus` is true for everyone (no billing,
+  docs/WATCH.md), so the free view appears once billing lands, or with the test build's
+  Moshpoint+ switch off (`WatchDebugTools`).
+- **"What's in Moshpoint+"** lists smart search, Coming up, offline venue maps and the watch
+  (ROADMAP.md, Moshpoint+), then "COMING SOON: Moshpoint+ isn't on sale yet", and what stays free.
+- The sheet is now the home's own `MoshSheet` (the design's colour and handle) instead of a
+  plain Material sheet; no existing screenshot showed it.
+
+### Stage 3: smart search (members)
+
+- **Who gets it:** `Entitlements.plus` and a relay to ask. The old gig search
+  (`/v1/gigs/search`, `GigSearch.kt`) is gone from the app: it used the relay's listing keys
+  for everyone, and "anything on API keys is members only". The relay keeps the endpoint for
+  older builds.
+- **As you type:** 250 ms after the last letter; a new letter restarts the `LaunchedEffect`,
+  which cancels the ask before it (`runInterruptible` around the request).
+- **403 or 503:** the search box goes away for that sheet and the hand form stays, with no
+  message (the brief's "quietly"). No signal: "Couldn't search right now. Type it in below
+  instead." `ready: false`: "Getting the list…", asked again every 30 s while the sheet is open.
+- **What's sent:** `country` (the mobile network's country, else the SIM's, else the language
+  setting's) and `region`: in New Zealand the island worked out on the phone from its last
+  known position (`DiscoverPlace.nzIsland`, the relay's own line through Cook Strait);
+  elsewhere the nearest middle among the `regions` a Coming up answer listed (kept in
+  `discover` prefs). Never the position.
+- **Rows:** a round art in the show's colours, the name with what was typed in cyan
+  (`TypedMatch`: start of the name or of a word, case and accents aside), then "3 shows in New
+  Zealand · next Sat 13 Mar, Auckland" or "40 shows worldwide · next Fri 9 Apr, Tokyo". The mock
+  says "nearest" for worldwide; the relay's `next` is the soonest, so the app says "next".
+- **Picking a show fills the plan** (`PlanForm.fill`): the act's name, the date and time, "venue,
+  town", the venue's position (no lookup needed) and the ticket link, shown as "Ticket link:
+  tickets.example.com" with ✕ to drop it. The planner checks it and taps Start the crew.
+- **When it starts** (`ShowStart`): a show in the phone's own country uses its local date and
+  time read in the phone's time zone (exact where the country has one zone; in the US or
+  Australia the crew may wake an hour or two off, but the time shown is the venue's). Abroad,
+  the relay's `startsAtSec`. No time announced: 8 pm, which the planner can change.
+- "Type your own gig" is pinned under the list (the list scrolls above it); it clears the search
+  and shows the hand form.
+
+### Stage 4: Coming up near you (members)
+
+- **Where:** the No crew state only (owner's answer 1), under Start a crew, wider than the page
+  margins as drawn. For members it replaces the Plan a gig row (its search button opens that
+  sheet); free users keep the row and never see the card (answer 2). A 403 or 503 hides it for
+  the session and brings the row back.
+- **Asking:** `ComingUp` asks `coming` for the chip that's on (`near`, `country`, `travel`) with
+  the country and at most the region, as for search. In a country it hasn't seen, the first
+  answer lists its regions; the phone picks its own and asks once more. Answers are kept an hour
+  per chip; `ready: false` is asked again every 30 s.
+- **The strip:** date badge (from the venue-local date), act, venue, town (and "2,150 km away"
+  for worth travelling for), and Plan it. The far edge fades; the chips wrap onto two lines.
+- **Plan it** starts the planned crew straight away with the show filled in (name, start,
+  venue and position, ticket link) and shows its invite, as Plan a gig does.
+- **Planned ✓** (answer 5): a show this phone made a crew for (`DiscoverPlanned`: show id →
+  crew id, dropped when the crew ends) says "Planned ✓"; tapping it opens that crew's chat.
+
+**For the owner (found while building):** a planned crew becomes the home's main crew when
+there's no crew tonight, so the home then shows its hype group, not "No crew tonight", and the
+Coming up card goes with it. "Planned ✓" is therefore only seen when the No crew state shows
+while a planned crew exists in Up next. If the card should stay visible while a crew sleeps,
+it could go under the hype group (the README's open question 1, alternative).
 
 ### For the server (not changed here: app-only branch)
 
