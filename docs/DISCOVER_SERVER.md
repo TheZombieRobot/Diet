@@ -10,7 +10,11 @@ format is in [RELAY_API.md](RELAY_API.md) section 12.
 
 _Handover, kept current. Last updated: 16 Nov 2026._
 
-**Done** (on the branch; the server tests pass locally, and CI runs them on the last push):
+**CI:** last green run 327 (commit `dfe5eb7`): the secret scan, core and server tests (97 in the
+server), and the phone and watch builds. Run 326 (`8ecf1f9`, everything but the last fix) passed
+too.
+
+**Done** (on the branch):
 
 1. **Country lists.** A refresher builds each country's music shows for the next 12 months from
    Ticketmaster, SeatGeek and Bandsintown. It refreshes 4 times a day, and only for countries a
