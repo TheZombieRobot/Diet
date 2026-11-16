@@ -6,11 +6,7 @@ import android.graphics.Matrix
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
-import androidx.camera.core.resolutionselector.AspectRatioStrategy
-import androidx.camera.core.resolutionselector.ResolutionSelector
-import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Quality
@@ -82,8 +78,31 @@ import nz.waveformlabs.moshpoint.ui.Mosh
 /** Longest clip: short enough to share over the relay quickly, long enough for a chorus. */
 private const val CLIP_MS = 10_000L
 
-/** Photos are captured at about this size (4:3), the closest the camera has at or above it. */
-private val PHOTO_SIZE = android.util.Size(2048, 1536)
+/**
+ * A photo's upright copy for sharing and the board: read from the camera's file a power-of-two
+ * step smaller (about 2,000 px on the long side for a 12 MP camera, never under 1,600 unless the
+ * photo is), then turned by its EXIF orientation. About 12 MB, never the full 48.
+ */
+internal fun uprightCopy(file: File): Bitmap? {
+    val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    android.graphics.BitmapFactory.decodeFile(file.absolutePath, bounds)
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+    var sample = 1
+    while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 1600) sample *= 2
+    val bmp = android.graphics.BitmapFactory.decodeFile(file.absolutePath, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }) ?: return null
+    val turn = exifDegrees(file)
+    return if (turn == 0) bmp else Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, Matrix().apply { postRotate(turn.toFloat()) }, true)
+}
+
+/** How far a JPEG must be turned to stand upright, from its EXIF orientation (0 if none). */
+internal fun exifDegrees(file: File): Int = runCatching {
+    when (android.media.ExifInterface(file.absolutePath).getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, android.media.ExifInterface.ORIENTATION_NORMAL)) {
+        android.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90
+        android.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180
+        android.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270
+        else -> 0
+    }
+}.getOrDefault(0)
 
 /**
  * Moshpoint's own camera for crew moments: tap the shutter for a photo, hold it to record
@@ -98,7 +117,10 @@ fun CaptureScreen(
     /** High quality clips (720p); false = data saver (480p). */
     hq: Boolean = true,
     newClipFile: () -> File,
-    onPhoto: (Bitmap) -> Unit,
+    /** Where a photo is saved: the camera's own full-size JPEG, kept as your original. */
+    newPhotoFile: () -> File,
+    /** A photo: [Bitmap] is a smaller upright copy for sharing, [File] the full-size original. */
+    onPhoto: (Bitmap, File) -> Unit,
     onClip: (File) -> Unit,
     onGallery: () -> Unit,
     onClose: () -> Unit,
@@ -118,19 +140,7 @@ fun CaptureScreen(
     val errClip = stringResource(R.string.find_clip_failed)
 
     val previewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
-    val imageCapture = remember {
-        ImageCapture.Builder()
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-            // About 2048 px (the most a moment is ever shared at), not the sensor's full 12+ MP:
-            // a quarter of the memory, and the same 4:3 framing as before (performance P1-6).
-            .setResolutionSelector(
-                ResolutionSelector.Builder()
-                    .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
-                    .setResolutionStrategy(ResolutionStrategy(PHOTO_SIZE, ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
-                    .build(),
-            )
-            .build()
-    }
+    val imageCapture = remember { ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build() }
     val videoCapture = remember {
         VideoCapture.withOutput(
             Recorder.Builder()
@@ -165,20 +175,21 @@ fun CaptureScreen(
     fun takePhoto() {
         flash = true
         val main = ContextCompat.getMainExecutor(context)
-        // Decoded and turned upright on a camera thread, not the main one (performance P1-6);
-        // the result comes back to the main thread, as before.
+        val file = newPhotoFile()
+        // The camera writes its full-size JPEG straight to a file (your original, untouched); a
+        // smaller upright copy is read from it on a background thread. No full-size bitmap is
+        // ever made, and nothing heavy runs on the main thread (performance P1-6).
         imageCapture.takePicture(
-            Dispatchers.Default.asExecutor(), // never shut down, so a late photo still lands
-            object : ImageCapture.OnImageCapturedCallback() {
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    val upright = runCatching {
-                        val (bmp, rotation) = try { image.toBitmap() to image.imageInfo.rotationDegrees } finally { image.close() }
-                        if (rotation == 0) bmp else Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, Matrix().apply { postRotate(rotation.toFloat()) }, true)
-                    }
-                    main.execute { upright.fold(onPhoto) { onError(errPhoto) } }
+            // Not mirrored for the front camera: the same picture as before.
+            ImageCapture.OutputFileOptions.Builder(file).setMetadata(ImageCapture.Metadata().apply { isReversedHorizontal = false }).build(),
+            Dispatchers.IO.asExecutor(), // never shut down, so a late photo still lands
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    val small = runCatching { uprightCopy(file) }.getOrNull()
+                    main.execute { if (small != null) onPhoto(small, file) else { file.delete(); onError(errPhoto) } }
                 }
 
-                override fun onError(exception: ImageCaptureException) = main.execute { onError(errPhoto) }
+                override fun onError(exception: ImageCaptureException) = main.execute { file.delete(); onError(errPhoto) }
             },
         )
     }
