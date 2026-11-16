@@ -159,17 +159,14 @@ class BatchPlanTest {
         assertNull(RelayWire.parseBatch(byteArrayOf(2, 2, 0, 0), ops), "another version")
     }
 
-    /** Our relay's budget with batches (30 a minute): a full minute never holds up a safety ping. */
+    /** Our relay's budget with batches (as RelayClient builds it): a full minute never holds up a safety ping. */
     @Test fun aBusyMinuteNeverHoldsUpSafety() {
-        val b = RelayBudget(
-            messagesPerDay = 1_000_000, requestsPerMinute = 30, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
-            throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, safetyAlwaysHasRoom = true, random = { 0.0 },
-        )
+        val b = RelayBudget.withBatches(random = { 0.0 })
         var now = 0L
-        repeat(30) {
-            val t = assertNotNull(b.take(RelayUse.MESSAGE, false, now)) // the finder polling every 2 s
+        repeat(120) {
+            val t = assertNotNull(b.take(RelayUse.MESSAGE, false, now)) // polls, every half second
             b.settle(t, RelayBudget.Outcome.OK, now)
-            now += 2_000L
+            now += 490L
         }
         now = 59_000L
         assertNull(b.take(RelayUse.MESSAGE, false, now), "the minute is full for everything else")
