@@ -5,11 +5,10 @@ package nz.waveformlabs.moshpoint.core
  * sends to our own relay in one `POST /v1/batch` instead of a request every few seconds, so the
  * mobile radio can idle between minutes.
  *
- * - **Never in a batch: safety.** Need help, Check in and Home safe ([RelayUse.SAFETY]) go at
- *   once, on their own, exactly as before ([route]). So does the last-gasp location at 5%.
+ * - **Never in a batch:** the last-gasp location at 5% goes at once, on its own, as before.
  * - **Puts** wait here for the minute's batch: location shares, floor boxes, crowd-relay packets
  *   and crew intros (**replaceable**: each rotating id at most once per batch, the newest copy),
- *   and the courier's crew messages that aren't safety (each one goes; none replaces another).
+ *   and the courier's crew messages (each one goes; none replaces another).
  *   Something someone is waiting for ([Timing.SOON]: a message just typed, our position while a
  *   mate is looking for us) goes within a couple of seconds, with everything else that's waiting.
  * - **Gets** are the crew sync's mailboxes; they go first (they're why the sync asks), then the
@@ -27,14 +26,6 @@ class BatchPlan(
     private val maxOps: Int = RelayWire.MAX_OPS,
     private val maxBody: Int = RelayWire.MAX_BODY,
 ) {
-    /** How a request to our relay travels. */
-    enum class Route {
-        /** Straight away, on its own, as before: safety, and anything when batches can't be used. */
-        ALONE,
-        /** In the next batch. */
-        BATCH,
-    }
-
     /** How soon a put should go. */
     enum class Timing {
         /** With the minute's batch. */
@@ -157,9 +148,6 @@ class BatchPlan(
     }
 
     companion object {
-        /** Safety never waits for a batch: it goes at once, on its own, exactly as before. */
-        fun route(use: RelayUse): Route = if (use == RelayUse.SAFETY) Route.ALONE else Route.BATCH
-
         /**
          * A put was just queued, and the batch was due at [dueBeforeMs] ([dueAtMs] before it;
          * [Long.MAX_VALUE] with nothing waiting) and is due at [dueAfterMs] now. Must the app's

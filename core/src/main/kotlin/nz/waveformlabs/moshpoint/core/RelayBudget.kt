@@ -19,8 +19,6 @@ enum class RelayUse {
     BACKGROUND,
     /** Crew chat, quick pings, pins, and messages carried for crew mates. */
     MESSAGE,
-    /** Need help, Check in, Home safe. */
-    SAFETY,
 }
 
 /**
@@ -33,8 +31,7 @@ enum class RelayUse {
  *  - It charged before connecting, so every retry with no signal spent the day's budget.
  *    Here a request is only charged once the relay has answered ([settle]).
  *  - Location shares could use every last message. Here the end of the budget is kept back:
- *    [BACKGROUND][RelayUse.BACKGROUND] stops first, then [MESSAGE][RelayUse.MESSAGE], and
- *    [SAFETY][RelayUse.SAFETY] can use it all.
+ *    [BACKGROUND][RelayUse.BACKGROUND] stops first, and [MESSAGE][RelayUse.MESSAGE] can use it all.
  *
  * Pure logic with the clock passed in (any steady millisecond clock), so it's tested in core.
  */
@@ -43,8 +40,6 @@ class RelayBudget(
     private val requestsPerMinute: Int = 8,
     /** Messages a day that [RelayUse.BACKGROUND] may not touch. */
     private val messageReserve: Int = 50,
-    /** Messages a day that only [RelayUse.SAFETY] may touch. */
-    private val safetyReserve: Int = 10,
     /**
      * Requests a minute that [RelayUse.BACKGROUND] may not fill by itself: of 8, background
      * requests take at most 6. (Look-ups for an open chat aren't background, so they don't
@@ -54,7 +49,7 @@ class RelayBudget(
     /**
      * Requests a minute kept for look-ups: uploads take at most the rest (of 8, 6). A queue
      * being flushed waits for room and takes every slot it can, and without this the phone
-     * would see nothing new until it had finished. Safety pings may use these too.
+     * would see nothing new until it had finished.
      */
     private val lookUpReserve: Int = 2,
     /** After the relay says "too many": the first pause, and the longest. Our own server refills in seconds, so it gets short ones. */
@@ -70,17 +65,11 @@ class RelayBudget(
     private val lookUpFreeFails: Int = 2,
     private val lookUpQuietBaseMs: Long = 5_000L,
     private val lookUpQuietMaxMs: Long = 30_000L,
-    /**
-     * Safety pings never count against [requestsPerMinute] (our own relay with batches: its cap
-     * is low, and a busy minute must never hold up a Need help). Off for the public relay, whose
-     * limits are real.
-     */
-    private val safetyAlwaysHasRoom: Boolean = false,
 ) {
     internal class Request(val atMs: Long, val background: Boolean, val message: Boolean)
 
     /** A request that has been allowed to start. Give it back to [settle] when it ends. */
-    class Ticket internal constructor(internal val request: Request, internal val message: Boolean, internal val use: RelayUse, internal val duringPause: Boolean)
+    class Ticket internal constructor(internal val request: Request, internal val message: Boolean, internal val use: RelayUse)
 
     enum class Outcome {
         /** The relay took it (2xx). */
@@ -99,7 +88,6 @@ class RelayBudget(
     private var throttledUntilMs = 0L
     private var throttleSetAtMs = Long.MIN_VALUE
     private var throttleStep = 0
-    private var safetyInPauseAtMs = Long.MIN_VALUE / 2
     private var quietUntilMs = 0L
     private var quietStep = 0
     private var lookUpFails = 0
@@ -126,11 +114,11 @@ class RelayBudget(
     @Synchronized
     fun roomInMs(use: RelayUse, message: Boolean, nowMs: Long): Long {
         rollDay(nowMs)
-        if (paused(use, nowMs) || (use == RelayUse.BACKGROUND && nowMs < quietUntilMs) || lookUpQuiet(use, message, nowMs)) return -1
+        if (paused(nowMs) || (use == RelayUse.BACKGROUND && nowMs < quietUntilMs) || lookUpQuiet(use, message, nowMs)) return -1
         if (message && messages >= messageCap(use)) return -1
         prune(nowMs)
         var wait = 0L
-        if (requests.size >= requestsPerMinute && !safetyRoom(use)) wait = requests.first().atMs + MINUTE_MS - nowMs
+        if (requests.size >= requestsPerMinute) wait = requests.first().atMs + MINUTE_MS - nowMs
         if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) {
             // (No background request to wait out means background has no share at all: waiting won't help.)
             val oldest = requests.firstOrNull { it.background } ?: return -1
@@ -151,13 +139,10 @@ class RelayBudget(
     @Synchronized
     fun take(use: RelayUse, message: Boolean, nowMs: Long): Ticket? {
         if (refusalLocked(use, message, nowMs) != null) return null
-        // Only a safety ping gets here during a pause (see [paused]).
-        val duringPause = nowMs < throttledUntilMs
-        if (duringPause) safetyInPauseAtMs = nowMs
         val request = Request(nowMs, use == RelayUse.BACKGROUND, message)
         requests.addLast(request)
         if (message) messages++
-        return Ticket(request, message, use, duringPause)
+        return Ticket(request, message, use)
     }
 
     /** Why [take] would say no right now, or null if it would say yes. */
@@ -166,21 +151,19 @@ class RelayBudget(
 
     private fun refusalLocked(use: RelayUse, message: Boolean, nowMs: Long): PutResult? {
         rollDay(nowMs)
-        if (paused(use, nowMs)) return PutResult.THROTTLED
+        if (paused(nowMs)) return PutResult.THROTTLED
         // After no answer at all, background requests hold off for a moment (so retry loops
         // don't spin on a dead connection). Messages and look-ups still try: each has its own pace.
         if (use == RelayUse.BACKGROUND && nowMs < quietUntilMs) return PutResult.NO_NETWORK
         // Look-ups that keep getting no answer hold off too (uploads keep their own pace).
         if (lookUpQuiet(use, message, nowMs)) return PutResult.NO_NETWORK
         prune(nowMs)
-        if (requests.size >= requestsPerMinute && !safetyRoom(use)) return PutResult.THROTTLED
+        if (requests.size >= requestsPerMinute) return PutResult.THROTTLED
         if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) return PutResult.THROTTLED
         if (uploadsFull(use, message)) return PutResult.THROTTLED
         if (message && messages >= messageCap(use)) return PutResult.THROTTLED
         return null
     }
-
-    private fun safetyRoom(use: RelayUse) = safetyAlwaysHasRoom && use == RelayUse.SAFETY
 
     /** A look-up: reading mailboxes (a [RelayUse.MESSAGE] request that publishes nothing). */
     private fun isLookUp(use: RelayUse, message: Boolean) = use == RelayUse.MESSAGE && !message
@@ -189,11 +172,10 @@ class RelayBudget(
 
     /** Have uploads taken their share of this minute (the rest is kept for look-ups)? Call after [prune]. */
     private fun uploadsFull(use: RelayUse, message: Boolean): Boolean =
-        message && use != RelayUse.SAFETY && requests.count { it.message } >= requestsPerMinute - lookUpReserve
+        message && requests.count { it.message } >= requestsPerMinute - lookUpReserve
 
-    /** In the relay's "too many" pause? A safety ping still tries through it, one every [SAFETY_GAP_MS]. */
-    private fun paused(use: RelayUse, nowMs: Long): Boolean =
-        nowMs < throttledUntilMs && !(use == RelayUse.SAFETY && nowMs - safetyInPauseAtMs >= SAFETY_GAP_MS)
+    /** In the relay's "too many" pause? */
+    private fun paused(nowMs: Long): Boolean = nowMs < throttledUntilMs
 
     private fun prune(nowMs: Long) {
         while (requests.isNotEmpty() && nowMs - requests.first().atMs >= MINUTE_MS) requests.removeFirst()
@@ -230,10 +212,9 @@ class RelayBudget(
             }
             Outcome.THROTTLED -> {
                 if (ticket.message) messages = (messages - 1).coerceAtLeast(0)
-                // Requests that were already on their way when the pause began, and a safety
-                // ping sent through it, say nothing new. Only a request made after the last
-                // pause was set makes the next one longer.
-                if (!ticket.duringPause && ticket.request.atMs >= throttleSetAtMs) {
+                // Requests that were already on their way when the pause began say nothing new.
+                // Only a request made after the last pause was set makes the next one longer.
+                if (ticket.request.atMs >= throttleSetAtMs) {
                     if (pauseMs != null) {
                         // The relay said how long (already stretched by the caller): no growing back-off.
                         throttledUntilMs = nowMs + pauseMs
@@ -269,8 +250,7 @@ class RelayBudget(
 
     private fun messageCap(use: RelayUse) = when (use) {
         RelayUse.BACKGROUND -> messagesPerDay - messageReserve
-        RelayUse.MESSAGE -> messagesPerDay - safetyReserve
-        RelayUse.SAFETY -> messagesPerDay
+        RelayUse.MESSAGE -> messagesPerDay
     }
 
     private fun rollDay(nowMs: Long) {
@@ -283,7 +263,6 @@ class RelayBudget(
     companion object {
         private const val DAY_MS = 24 * 3600_000L
         private const val MINUTE_MS = 60_000L
-        private const val SAFETY_GAP_MS = 10_000L
 
         /**
          * Our own relay with batches (docs/RELAY_API.md section 11.6): the background's records
@@ -293,11 +272,10 @@ class RelayBudget(
          * 6 hours). So: the relay's own sustained rate for an install (120 a minute, section 10),
          * of which the background (downloads, photos, uploads) may take at most 90, so a burst of
          * it never refuses the minute's batch or the finder's poll (docs/WAVE2C_REVIEW.md, F3).
-         * Safety pings never count against it.
          */
         fun withBatches(random: () -> Double = Math::random): RelayBudget = RelayBudget(
-            messagesPerDay = 1_000_000, requestsPerMinute = 120, messageReserve = 0, safetyReserve = 0, requestReserve = 30,
-            throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, random = random, safetyAlwaysHasRoom = true,
+            messagesPerDay = 1_000_000, requestsPerMinute = 120, messageReserve = 0, requestReserve = 30,
+            throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, random = random,
         )
     }
 }

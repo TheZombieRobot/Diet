@@ -935,7 +935,7 @@ object RelayClient {
      * no answer. Its limiter refills every second, so the pause is seconds, not minutes.
      */
     private val ownBudget = RelayBudget(
-        messagesPerDay = 1_000_000, requestsPerMinute = 600, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
+        messagesPerDay = 1_000_000, requestsPerMinute = 600, messageReserve = 0, requestReserve = 0,
         throttleBaseMs = 5_000L, throttleMaxMs = 30_000L,
     )
 

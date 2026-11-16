@@ -16,31 +16,25 @@ class ModerationTest {
         val l = BlockList.EMPTY
         assertTrue(l.isEmpty)
         assertFalse(l.blocksTag(jo.tag))
-        assertFalse(l.hidesLine(jo.tag, GigGroup.Ping.CHAT, mine = false))
+        assertFalse(l.hidesLine(jo.tag, mine = false))
         assertFalse(l.hidesMoment("c1", "Jo", mine = false))
     }
 
     @Test fun aBlockedPersonsChatIsHiddenByTheirKeyNotTheirName() {
         val l = BlockList.EMPTY.with(block(jo, "Jo"))
         assertTrue(l.blocksKey(jo.pub))
-        assertTrue(l.hidesLine(jo.tag, GigGroup.Ping.CHAT, mine = false))
-        assertTrue(l.hidesLine(jo.tag, GigGroup.Ping.FLARE, mine = false))
-        assertTrue(l.hidesLine(jo.tag, GigGroup.Ping.COMING, mine = false))
+        // Every line of theirs, whatever its kind (an older build's Need help included: an ordinary ping now).
+        assertTrue(l.hidesLine(jo.tag, mine = false))
         // Someone else, even under the same name, isn't.
-        assertFalse(l.hidesLine(sam.tag, GigGroup.Ping.CHAT, mine = false))
+        assertFalse(l.hidesLine(sam.tag, mine = false))
         assertFalse(l.blocksKey(sam.pub))
         // Unsigned (tag 0) is never "blocked by key".
         assertFalse(l.blocksTag(0L))
     }
 
-    @Test fun needHelpFromABlockedPersonStillShows() {
-        val l = BlockList.EMPTY.with(block(jo, "Jo"))
-        assertFalse(l.hidesLine(jo.tag, GigGroup.Ping.NEED_HELP, mine = false))
-    }
-
     @Test fun ourOwnContentIsNeverHidden() {
         val l = BlockList.EMPTY.with(block(jo, "Jo"))
-        assertFalse(l.hidesLine(jo.tag, GigGroup.Ping.CHAT, mine = true))
+        assertFalse(l.hidesLine(jo.tag, mine = true))
         assertFalse(l.hidesMoment("c1", "Jo", mine = true))
     }
 

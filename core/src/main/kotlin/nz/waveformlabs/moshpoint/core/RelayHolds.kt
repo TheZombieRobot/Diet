@@ -14,9 +14,6 @@ package nz.waveformlabs.moshpoint.core
  * - No header (an older relay), or one this build doesn't know: [Hold.Unknown], the app's pause
  *   as before (its own back-off, 5 to 30 s on our relay).
  *
- * Safety pings are never held here ([heldUntil] is 0 for [RelayUse.SAFETY]): they keep trying,
- * as before, whatever the relay said about other traffic.
- *
  * Pure, with the clock passed in (any steady millisecond clock).
  */
 class RelayHolds(private val random: () -> Double = Math::random) {
@@ -86,13 +83,9 @@ class RelayHolds(private val random: () -> Double = Math::random) {
         mailboxes[mailbox] = maxOf(mailboxes[mailbox] ?: 0L, nowMs + stretch(MAILBOX_DEFAULT_S * 1000))
     }
 
-    /**
-     * Until when a request of [traffic] to [mailbox] for [use] must wait (0 = it may go now).
-     * Safety pings never wait here.
-     */
+    /** Until when a request of [traffic] to [mailbox] must wait (0 = it may go now). */
     @Synchronized
-    fun heldUntil(traffic: Traffic, mailbox: String?, use: RelayUse, nowMs: Long): Long {
-        if (use == RelayUse.SAFETY) return 0L
+    fun heldUntil(traffic: Traffic, mailbox: String?, nowMs: Long): Long {
         var until = kinds[traffic]?.takeIf { it > nowMs } ?: 0L
         if (!mailbox.isNullOrEmpty()) mailboxes[mailbox]?.let { if (it > nowMs) until = maxOf(until, it) }
         return until

@@ -557,7 +557,7 @@ object CrewChat {
         val mine = signed.sender == myTag(c, g)
         rememberKey(c, g, signed.pub)
         // Someone blocked on this phone: kept (so unblocking brings it back), never announced.
-        val hidden = nz.waveformlabs.moshpoint.moderation.Blocks.now(c).hidesLine(signed.sender, signed.kind, mine)
+        val hidden = nz.waveformlabs.moshpoint.moderation.Blocks.now(c).hidesLine(signed.sender, mine)
         val p = signed.copy(from = displayName(c, g, signed.sender, signed.from))
         // A time in the future here (their clock is wrong) sorts at when it arrived.
         val at = MessageClock.sortTime(p.timeSec, System.currentTimeMillis() / 1000)
