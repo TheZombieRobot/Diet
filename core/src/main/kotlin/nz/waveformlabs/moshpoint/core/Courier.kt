@@ -72,16 +72,19 @@ class Courier(
         val pm: GigGroup.Private? = null,
         /** A private message's time, from its envelope (as much as any crew phone can read). */
         private val envelopeSec: Long = 0L,
+        /** "Got my ticket" (or its untick) from a crew mate (docs/DISCOVER_APP.md). */
+        val ticket: GigGroup.Ticket? = null,
     ) {
         val kind: Int get() = ping?.kind ?: when {
             here != null -> KIND_HERE
             pin != null -> KIND_PIN
+            ticket != null -> KIND_TICKET
             else -> KIND_PRIVATE
         }
-        val timeSec: Long get() = ping?.timeSec ?: here?.timeSec ?: pin?.timeSec ?: envelopeSec
+        val timeSec: Long get() = ping?.timeSec ?: here?.timeSec ?: pin?.timeSec ?: ticket?.timeSec ?: envelopeSec
 
         /** Who signed it; 0 for a private message this phone can't open. */
-        val sender: Long get() = ping?.sender ?: here?.sender ?: pin?.sender ?: pm?.sender ?: 0L
+        val sender: Long get() = ping?.sender ?: here?.sender ?: pin?.sender ?: ticket?.sender ?: pm?.sender ?: 0L
     }
 
     /**
@@ -280,6 +283,8 @@ class Courier(
         // "I'm here": only our newest (a pin, or the clear that took it down) is kept going.
         if (m.here != null) parcels.values.removeAll { it.crewId == crewId && it.kind == KIND_HERE && it.sender == m.sender }
         m.here?.let { hereEnds[m.id] = HereRule.endSec(it.timeSec, it.minutes) }
+        // A ticket tick: likewise, only our newest.
+        if (m.ticket != null) parcels.values.removeAll { it.crewId == crewId && it.kind == KIND_TICKET && it.sender == m.sender }
         parcels[m.id] = Parcel(crewId, m.id, sealed, m.kind, m.timeSec, m.sender, mine = true, heldAtMs = nowMs, route = Route.OWN)
         capCrew(crewId)
         dirty = true
@@ -475,6 +480,15 @@ class Courier(
             }
             if (!HereRule.accepts(m.timeSec, current?.timeSec ?: 0L, nowSec)) return Accepted(m.id, m, false)
         }
+        if (m.ticket != null) {
+            // A ticket tick: the newest from each sender wins, by the same rule (no far-future lock).
+            val current = parcels.values.firstOrNull { it.crewId == crew.id && it.kind == KIND_TICKET && it.sender == m.sender }
+            if (current?.id == m.id) {
+                if (route == Route.INTERNET) onRelay(m.id, box, nowMs)
+                return Accepted(m.id, m, false)
+            }
+            if (!TicketRule.accepts(m.timeSec, current?.timeSec ?: 0L, nowSec)) return Accepted(m.id, m, false)
+        }
         val fresh = seen.add(m.id)
         trimSeen()
         val had = parcels[m.id]
@@ -485,6 +499,7 @@ class Courier(
                 parcels.values.removeAll { it.crewId == crew.id && it.kind == KIND_HERE && it.sender == m.sender }
                 hereEnds[m.id] = HereRule.endSec(here.timeSec, here.minutes)
             }
+            if (m.ticket != null) parcels.values.removeAll { it.crewId == crew.id && it.kind == KIND_TICKET && it.sender == m.sender }
             val p = Parcel(crew.id, m.id, sealed, m.kind, m.timeSec, m.sender, mine = m.sender == crew.signer.tag, heldAtMs = nowMs, route = route)
             p.helperAfterMs = nowMs + HELPER_SETTLE_MS + random.nextInt(HELPER_SETTLE_SPREAD_MS)
             parcels[m.id] = p
@@ -503,6 +518,7 @@ class Courier(
         crew.group.openRally(sealed)?.let { r -> if (r.sender != 0L) return Message(r.id, sealed, null, r) }
         val env = crew.group.openEnvelope(sealed) ?: return null
         crew.group.hereOf(env)?.let { h -> return Message(h.id, sealed, null, null, h) }
+        crew.group.ticketOf(env)?.let { t -> return Message(t.id, sealed, null, null, ticket = t) }
         // A private message: any crew phone can carry it; the one it's for can also open it.
         crew.group.privateOuterOf(env)?.let { o ->
             return Message(o.id, sealed, null, null, null, crew.group.privateOf(env, crew.signer), o.timeSec)
@@ -702,7 +718,7 @@ class Courier(
         return jobs to wantFetch
     }
 
-    private fun wantsDurable(p: Parcel) = p.kind != KIND_PIN && p.kind != KIND_HERE && PingPolicy.alsoHeld(p.kind) && !p.durable
+    private fun wantsDurable(p: Parcel) = p.kind != KIND_PIN && p.kind != KIND_HERE && p.kind != KIND_TICKET && PingPolicy.alsoHeld(p.kind) && !p.durable
 
     private fun expire(nowMs: Long) {
         val it = parcels.values.iterator()
@@ -729,7 +745,7 @@ class Courier(
                 continue
             }
             // Our own: an unsent chat line keeps trying for as long as the relay would keep it.
-            val keepTrying = PingPolicy.group(p.kind) == PingPolicy.Group.CHAT || p.kind == KIND_PIN || p.kind == KIND_PRIVATE
+            val keepTrying = PingPolicy.group(p.kind) == PingPolicy.Group.CHAT || p.kind == KIND_PIN || p.kind == KIND_PRIVATE || p.kind == KIND_TICKET
             val keep = if (p.onServer || p.durable) carryMs(p.kind) else maxOf(carryMs(p.kind), if (keepTrying) OWN_KEEP_MS else 0L)
             if (age > keep) {
                 if (!p.onServer && !p.durable && !p.nearby) {
@@ -857,8 +873,8 @@ class Courier(
 
     /** Pings and pins start with 4 or 5 hops (not always the same, so the count doesn't show how far a packet has come). Chat gets none. */
     private fun hopsFor(p: Parcel, nowMs: Long): Int {
-        // A private message, like chat, is only ever carried by crew phones.
-        if (p.kind == KIND_PRIVATE) return 0
+        // A private message, like chat, is only ever carried by crew phones. So is a ticket tick: it's never urgent.
+        if (p.kind == KIND_PRIVATE || p.kind == KIND_TICKET) return 0
         // "I'm here" crosses strangers' phones for as long as it lasts (it's only aired while it does).
         if (p.kind == KIND_HERE) return crowdHops()
         if (p.kind != KIND_PIN && PingPolicy.group(p.kind) == PingPolicy.Group.CHAT) return 0
@@ -918,7 +934,7 @@ class Courier(
         val env = crew.group.openEnvelope(sealed)
         // An "I'm here" or a private message is a message like a ping or a pin (carried, receipted,
         // shown), not a control packet.
-        if (env != null && env.type != GigGroup.ENV_HERE && env.type != GigGroup.ENV_PRIVATE) {
+        if (env != null && env.type != GigGroup.ENV_HERE && env.type != GigGroup.ENV_PRIVATE && env.type != GigGroup.ENV_TICKET) {
             if (!first) return
             // Nothing sealed long ago, or "in the future", is acted on.
             val age = nowMs / 1000 - env.timeSec
@@ -1057,7 +1073,8 @@ class Courier(
     fun rekeyed(oldId: String, fresh: Crew, nowMs: Long) {
         val old = crews[oldId] ?: return
         // Ours that hadn't reached the relay, and our pin either way: the new key has its own mailboxes, and the pin isn't in them.
-        val mineUnsent = parcels.values.filter { it.crewId == oldId && it.mine && ((!it.onServer && !it.durable) || it.kind == KIND_PIN || it.kind == KIND_HERE) }
+        // (And our ticket tick: the new key's chat mailbox doesn't have it either.)
+        val mineUnsent = parcels.values.filter { it.crewId == oldId && it.mine && ((!it.onServer && !it.durable) || it.kind == KIND_PIN || it.kind == KIND_HERE || it.kind == KIND_TICKET) }
         parcels.values.removeAll { it.crewId == oldId }
         val list = crews.values.map { if (it.id == oldId) fresh else it }
         setCrews(list, nowMs)
@@ -1069,6 +1086,7 @@ class Courier(
                 val m = open(old, p.sealed) ?: continue
                 m.ping?.let { fresh.group.sealPing(it, fresh.signer, secure) }
                     ?: m.here?.let { fresh.group.sealHere(it, fresh.signer, secure) }
+                    ?: m.ticket?.let { fresh.group.sealTicket(it, fresh.signer, secure) }
                     ?: m.pin?.let { fresh.group.sealRally(it, fresh.signer, secure) }
             } ?: continue
             val re = open(fresh, again) ?: continue
@@ -1222,6 +1240,9 @@ class Courier(
         /** [Message.kind] for a private message (docs/PRIVATE_MESSAGES.md). */
         const val KIND_PRIVATE = -3
 
+        /** A "Got my ticket" tick ([GigGroup.Ticket]): carried like chat, in the chat mailbox, newest per sender. */
+        const val KIND_TICKET = -4
+
         /** The relay keeps 200 records per chat mailbox; a helper never fills it past this. */
         const val HELD_LIMIT = 180
         /** Uploads for crew mates per look at the mailbox. */
@@ -1275,7 +1296,7 @@ class Courier(
         /** Safety pings first, then the pin, then other pings, then chat (and private messages, with it). */
         private fun rank(kind: Int): Int = when {
             kind == KIND_PIN || kind == KIND_HERE -> 1
-            kind == KIND_PRIVATE -> 3
+            kind == KIND_PRIVATE || kind == KIND_TICKET -> 3
             PingPolicy.group(kind) == PingPolicy.Group.SAFETY -> 0
             PingPolicy.group(kind) == PingPolicy.Group.CHAT -> 3
             else -> 2
@@ -1284,6 +1305,7 @@ class Courier(
         private fun primaryBox(kind: Int): Box = when {
             kind == KIND_PIN || kind == KIND_HERE -> Box.PIN
             kind == KIND_PRIVATE -> Box.PRIVATE
+            kind == KIND_TICKET -> Box.CHAT
             PingPolicy.group(kind) == PingPolicy.Group.CHAT -> Box.CHAT
             else -> Box.PING
         }
@@ -1293,11 +1315,11 @@ class Courier(
 
         /** Passed on through strangers' phones (pings, pins, "I'm here"), not just crew phones (chat, private messages)? */
         private fun crowdKind(kind: Int): Boolean =
-            kind != KIND_PRIVATE && (kind == KIND_PIN || PingPolicy.group(kind) != PingPolicy.Group.CHAT)
+            kind != KIND_PRIVATE && kind != KIND_TICKET && (kind == KIND_PIN || PingPolicy.group(kind) != PingPolicy.Group.CHAT)
 
         private fun carryMs(kind: Int): Long = when (kind) {
             KIND_PIN -> PIN_CARRY_MS
-            KIND_PRIVATE -> PRIVATE_CARRY_MS
+            KIND_PRIVATE, KIND_TICKET -> PRIVATE_CARRY_MS
             // Never longer than any "I'm here" can last; each one stops at its own end (hereStands).
             KIND_HERE -> HereRule.MAX_MIN * 60_000L
             else -> PingPolicy.carrySec(kind) * 1000

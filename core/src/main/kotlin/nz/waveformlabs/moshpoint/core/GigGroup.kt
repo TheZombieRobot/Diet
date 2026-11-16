@@ -34,10 +34,48 @@ class GigGroup(
     val ownerPub: ByteArray? = null,
     /** Random salt behind the key: [key] = [ownedKey] (ownerPub, salt), so the owner can't be swapped. */
     val ownerSalt: ByteArray? = null,
+    /** The official ticket page its maker chose ("Get tickets"), or blank. Shown only if [ticketLink] checks out. */
+    val tickets: String = "",
+    /** The crew maker's signature over [tickets] (see [withTickets]). */
+    val ticketsSig: ByteArray? = null,
 ) {
     init {
         require(key.size == 32)
     }
+
+    /**
+     * The crew's ticket link (docs/DISCOVER_APP.md), or null. It travels with the crew's details
+     * (the invite and the saved crew), so every mate sees Get tickets, Moshpoint+ or not, with no
+     * key call. It counts only when the crew's owner signed it and it's a plain https link: a
+     * forwarded invite can't swap in someone else's "ticket" page.
+     */
+    val ticketLink: String? by lazy {
+        val pub = ownerPub
+        val sig = ticketsSig
+        if (tickets.isBlank() || sig == null || pub == null || !owned) return@lazy null
+        val clean = TicketLink.clean(tickets) ?: return@lazy null
+        if (clean != tickets || !CrewKeys.verify(pub, ticketsSigned(tickets), sig)) null else tickets
+    }
+
+    /**
+     * This crew with its ticket link set by its owner [owner] (who made it). A link that isn't a
+     * plain https link, or a blank one, gives the crew none. Key-like query parameters are dropped
+     * first (see [TicketLink.clean]), so a seller link can't spread a listing service's key.
+     */
+    fun withTickets(url: String, owner: CrewKeys.Signer): GigGroup {
+        val clean = TicketLink.clean(url)
+        if (clean == null || !owned || !owner.pub.contentEquals(ownerPub)) return withoutTickets()
+        return withLink(clean, CrewKeys.sign(owner, ticketsSigned(clean)))
+    }
+
+    /** This crew with no ticket link. */
+    fun withoutTickets(): GigGroup = withLink("", null)
+
+    private fun withLink(url: String, sig: ByteArray?) =
+        GigGroup(key, name, createdAtMs, startsAtSec, venue, venueLat, venueLon, ownerPub, ownerSalt, url, sig)
+
+    /** What the owner signs for the ticket link: a label of its own, and the link. */
+    private fun ticketsSigned(url: String): ByteArray = "mp-tickets1".toByteArray() + url.toByteArray(Charsets.UTF_8)
 
     /**
      * Does this crew have an owner, bound to its key? The key is a commitment to the owner's
@@ -53,7 +91,7 @@ class GigGroup(
 
     /** The same crew under a new key, after a removal or a reset (with its owner, if it has one). */
     fun moved(newKey: ByteArray, ownerPub: ByteArray? = null, ownerSalt: ByteArray? = null): GigGroup =
-        GigGroup(newKey, name, createdAtMs, startsAtSec, venue, venueLat, venueLon, ownerPub, ownerSalt)
+        GigGroup(newKey, name, createdAtMs, startsAtSec, venue, venueLat, venueLon, ownerPub, ownerSalt, tickets, ticketsSig)
 
     /**
      * A crew for a gig that's still days away sleeps: no Bluetooth, no location sharing, no
@@ -673,6 +711,60 @@ class GigGroup(
         "mp-here1".toByteArray() + hmac(key, "moshpoint-group-sig".toByteArray()).copyOf(8) +
             ByteBuffer.allocate(4).putInt(timeSec.toInt()).array() + fields
 
+    // ---- "Got my ticket" (docs/DISCOVER_APP.md) ----
+
+    /**
+     * "Got my ticket" from one crew mate, or "no ticket yet" when they untick it: the ticks under
+     * the faces in a planned crew's hype group.
+     *
+     * Travels in the [Envelope] as type [ENV_TICKET], so builds from before it can't open it and
+     * builds with the envelope ignore a type they don't know. Body: `[ver:1][flags:1]` (flag 1 =
+     * has a ticket), then `[pub:33][sig:64]`. Readers take the fields they know; anything a later
+     * version adds before the key is covered by the signature. Newest per sender wins
+     * ([TicketRule]), so unticking is just a newer message.
+     */
+    data class Ticket(
+        /** When it was ticked or unticked, by the sender's clock (unix s). */
+        val timeSec: Long,
+        /** True: "Got my ticket". False: they unticked it. */
+        val has: Boolean,
+        /** The tag of the key that signed it. Set by [openTicket]. */
+        val sender: Long = 0L,
+        /** The message id (the same for every copy and route). Set by [openTicket]. */
+        val id: Long = 0L,
+    )
+
+    /** Seal and sign a ticket tick (or untick) for this crew. */
+    fun sealTicket(t: Ticket, signer: CrewKeys.Signer, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
+        val fields = byteArrayOf(TICKET_VERSION.toByte(), (if (t.has) TICKET_HAS else 0).toByte())
+        val sig = CrewKeys.sign(signer, ticketSigned(t.timeSec, fields))
+        return sealEnvelope(ENV_TICKET, fields + signer.pub + sig, t.timeSec, random)
+    }
+
+    /** A ticket tick for this crew, signed and intact, or null (anything else, or a bad signature). */
+    fun openTicket(blob: ByteArray): Ticket? = openEnvelope(blob)?.let { ticketOf(it) }
+
+    /** The ticket tick inside an opened envelope, checked; null for other types or a bad signature. */
+    fun ticketOf(env: Envelope): Ticket? {
+        if (env.type != ENV_TICKET) return null
+        val body = env.body
+        val signedLen = body.size - CrewKeys.PUB_BYTES - CrewKeys.SIG_BYTES
+        if (signedLen < TICKET_FIELDS_BYTES) return null
+        return runCatching {
+            val fields = body.copyOfRange(0, signedLen)
+            val pub = body.copyOfRange(signedLen, signedLen + CrewKeys.PUB_BYTES)
+            val sig = body.copyOfRange(signedLen + CrewKeys.PUB_BYTES, body.size)
+            if (!CrewKeys.verify(pub, ticketSigned(env.timeSec, fields), sig)) return null
+            // fields[0] is the version: fields this build knows come first in every version.
+            Ticket(env.timeSec, fields[1].toInt() and TICKET_HAS != 0, CrewKeys.tagOf(pub), ticketId(pub, env.timeSec, fields))
+        }.getOrNull()
+    }
+
+    /** What a ticket tick's signature covers: this crew, when, and every field. */
+    private fun ticketSigned(timeSec: Long, fields: ByteArray): ByteArray =
+        "mp-ticket1".toByteArray() + hmac(key, "moshpoint-group-sig".toByteArray()).copyOf(8) +
+            ByteBuffer.allocate(4).putInt(timeSec.toInt()).array() + fields
+
     // ---- Private messages (docs/PRIVATE_MESSAGES.md) ----
 
     /**
@@ -862,6 +954,11 @@ class GigGroup(
         private const val HERE_CLEAR = 1
         private const val HERE_FIELDS_BYTES = 13
         private const val NO_PRESSURE = 0xFFFF
+        /** "Got my ticket" (or its untick) for a planned crew's hype group (see [Ticket]). */
+        const val ENV_TICKET = 5
+        private const val TICKET_VERSION = 1
+        private const val TICKET_HAS = 1
+        private const val TICKET_FIELDS_BYTES = 2
         /** A private message (docs/PRIVATE_MESSAGES.md): sealed to one person, with no sender or recipient anyone else can see. */
         const val ENV_PRIVATE = 16
         private const val PRIVATE_VERSION = 1
@@ -942,6 +1039,17 @@ class GigGroup(
             return if (id == 0L) 1L else id
         }
 
+        /** The same idea for a ticket tick. */
+        internal fun ticketId(pub: ByteArray, timeSec: Long, fields: ByteArray): Long {
+            val md = java.security.MessageDigest.getInstance("SHA-256")
+            md.update("mp-ticket1".toByteArray())
+            md.update(pub)
+            md.update(ByteBuffer.allocate(4).putInt(timeSec.toInt()).array())
+            md.update(fields)
+            val id = ByteBuffer.wrap(md.digest()).long
+            return if (id == 0L) 1L else id
+        }
+
         /** A real place: the map can't draw a latitude past ±90 (or NaN) and throws on one. */
         internal fun onGlobe(lat: Double, lon: Double): Boolean = lat in -90.0..90.0 && lon in -180.0..180.0
 
@@ -975,6 +1083,8 @@ class GigGroup(
             val gig = owner + (if (group.startsAtSec > 0) "&at=${group.startsAtSec}" else "") +
                 (if (group.venue.isNotBlank()) "&v=${java.net.URLEncoder.encode(group.venue.take(60), "UTF-8")}" else "") +
                 (if (group.venueLat != null && group.venueLon != null) "&vl=%.5f,%.5f".format(java.util.Locale.ROOT, group.venueLat, group.venueLon) else "") +
+                // The maker's ticket link and signature (older builds ignore both).
+                (group.ticketLink?.let { "&tk=${java.net.URLEncoder.encode(it, "UTF-8")}&tks=${enc.encodeToString(group.ticketsSig)}" } ?: "") +
                 (if (follower) "&f=1" else "")
             return "$PREFIX${enc.encodeToString(group.key)}$h$gig$life&name=${java.net.URLEncoder.encode(group.name, "UTF-8")}"
         }
@@ -1013,9 +1123,12 @@ class GigGroup(
             // before crews had owners.)
             val ownerPub = params["o"]?.let { runCatching { dec.decode(it) }.getOrNull() }
             val ownerSalt = params["os"]?.let { runCatching { dec.decode(it) }.getOrNull() }
-            val g = GigGroup(key, name.ifBlank { "Gig group" }.take(40), created, at, venue, vl?.get(0), vl?.get(1), ownerPub, ownerSalt)
+            // A ticket link counts only with its owner's signature (see ticketLink); a bad one is dropped, not the invite.
+            val tickets = params["tk"]?.let { runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrNull() }.orEmpty()
+            val ticketsSig = params["tks"]?.let { runCatching { dec.decode(it) }.getOrNull() }
+            val g = GigGroup(key, name.ifBlank { "Gig group" }.take(40), created, at, venue, vl?.get(0), vl?.get(1), ownerPub, ownerSalt, tickets, ticketsSig)
             if ((ownerPub != null || ownerSalt != null || params.containsKey("o") || params.containsKey("os")) && !g.owned) return null
-            return g
+            return if (g.tickets.isNotEmpty() && g.ticketLink == null) g.withoutTickets() else g
         }
 
         /** A "follow along" invite: for loved ones at home. They watch; they're never findable. */
