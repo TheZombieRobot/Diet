@@ -8,17 +8,20 @@ and Live) runs in parallel; wave 2c (battery) and 2d (Report and Block) come lat
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 16 November
-2026, 00:50 UTC._
+2026, 00:20 UTC._
 
 - **Done.** Code: items 1–4 and 6–12 below; item 5 was dropped by the owner (the refusal was
   built, then removed again). Docs: ANDROID_16.md, BLUETOOTH_UUIDS.md, PLAY_STORE.md (Data
   safety corrected, Play Console answers), PRIVACY.md, FIELD_TEST_PLAN.md section 4g,
   SERVER_PRODUCTION.md's app follow-ups, this note.
 - **Review round (16 November):** an independent review of 2ceb820 found one regression that
-  blocked the merge and six smaller items; all seven are dealt with (next section). **Next:**
-  the CI run for the review round: green; the comparison in "Checking" still only 252 `A`
-  lines (no screen changed this round: the disclosure's look didn't, only when it shows); then
-  report to the coordinating session (session_01Sw3Y2WCFVzhNwUVdFGVbRq). Don't merge.
+  blocked the merge and six smaller items; all seven are dealt with (next section). **CI: run
+  308 (f86b6e1)** (https://github.com/TheZombieRobot/Diet/actions/runs/43778320868): every
+  step that can fail has passed (the new core tests, debug and release builds, the 16 KB
+  check, screenshots, the watch); its report-only steps were still running at 00:20.
+  Screenshots: still 252 added and nothing else against `origin/ui-screenshots`, and every
+  image identical to run 306's (no screen changed this round: the disclosure's look didn't,
+  only when it shows). Reported to the coordinating session; it decides on merging.
 - **Before the review round, final CI was run 306 (d58062f), green**
   (https://github.com/TheZombieRobot/Diet/actions/runs/43772437390): translations, core and
   server tests, debug and release builds, the 16 KB check (phone and watch), screenshots, the
