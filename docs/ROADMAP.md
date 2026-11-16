@@ -163,6 +163,39 @@ Moshpoint+ (a Mapbox account for satellite, Play billing), the Play Store listin
   clearly nearer (30% and 3 m), and swaps are spaced 15 s apart except for the focused mate.
   With two or three UWB phones nothing changes: everyone is in, as before.
 
+### Discover and hype (owner's idea, 16 November 2026; worldwide)
+Moshpoint opens weeks before the gig, not only on the night.
+
+**Smart search**
+- Type one letter and the matching artists with upcoming shows appear at once, biggest first, with "type your own" kept.
+- The server answers per country and caches each answer: "i" in the UK is looked up once, then served to everyone.
+- Sources, merged and already wired in GigSearch: Ticketmaster (North America, UK/IE, much of Europe, AU/NZ), SeatGeek (US/CA) and Bandsintown (artists' tour dates anywhere).
+- Regional partners can come later where those fall short (Japan, Korea, India, China).
+- "Biggest first" ranks on signals that work everywhere: Bandsintown followers, stadium or arena venues, and the number of tour dates.
+
+**"Coming up near you" card on the home**
+- Shows the next 12 months for your region, not the whole country (NZ by island, the US by state, small European countries with their neighbours).
+- "Whole country" and "Worth travelling for" (big festivals and stadium shows abroad) are one tap away.
+- The phone sorts by its own location, so only the country or region is ever sent.
+
+**Plan it → a hype group**
+- One tap makes a planned crew (Up next) for that show: chat, a countdown, the official ticket link, and a "Got my ticket" tick per mate.
+- Invites go straight into the hype group.
+- On the night it becomes the normal crew: finder, Story, Past gigs.
+
+**Not scraping**
+- Twitter/X and Ticketmaster's site forbid scraping, and it breaks.
+- The official APIs give the same announcements, structured.
+
+**Needs (owner)**
+- A Ticketmaster key (free), a SeatGeek client ID (free) and a Bandsintown app ID (apply; check the commercial terms).
+- The relay deployed.
+- Higher API limits before launch.
+
+**Maybe later:** ticket links as affiliate links (check the programmes).
+
+**Size:** about three sessions (server lists and suggestions; app search, home card and hype group in 20 languages). A design mock-up comes first.
+
 ### Moshpoint+ (paid)
 - Satellite venue map, offline.
 - Watch app: arrow on the wrist, buzzes for warmer/colder, watch-face and tile info, wrist pings.
