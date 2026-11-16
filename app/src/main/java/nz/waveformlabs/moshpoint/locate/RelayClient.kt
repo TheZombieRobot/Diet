@@ -246,6 +246,8 @@ object RelayClient {
      * `/v1/heldlookup` gave it. Null if [b] has no `/v1/heldsince` (an older relay): use the old lookup.
      */
     private suspend fun heldSince(ids: List<ByteArray>, b: String): Held? = heldPolls.withLock {
+        // Cursors and the copy belong to one relay: a phone moved to another starts again from everything.
+        mirror.relay(b)
         val keys = ids.map { it.hex() }
         var asks = ids.indices.toList()
         var rounds = 0
@@ -681,9 +683,28 @@ object RelayClient {
     }
 
     private fun queue(p: BatchPlan.Put, timing: BatchPlan.Timing) {
-        synchronized(batchLock) { plan.add(p, timing, SystemClock.elapsedRealtime()) }
+        // The flusher sleeps until the batch is due, and with nothing waiting until it's woken: wake
+        // it whenever this put makes the batch due sooner, the first put for the minute included.
+        val wake = synchronized(batchLock) {
+            val before = plan.dueAtMs()
+            plan.add(p, timing, SystemClock.elapsedRealtime())
+            BatchPlan.wakes(before, plan.dueAtMs())
+        }
         startFlusher()
-        if (timing == BatchPlan.Timing.SOON) nudges.trySend(Unit)
+        if (wake) nudges.trySend(Unit)
+    }
+
+    /**
+     * A message of ours was just written: what's waiting for the batch goes within a couple of
+     * seconds, so the courier's upload slots it holds are free for the new one (core [BatchPlan.hurry]).
+     */
+    fun hurry() {
+        val wake = synchronized(batchLock) {
+            val before = plan.dueAtMs()
+            plan.hurry(SystemClock.elapsedRealtime())
+            BatchPlan.wakes(before, plan.dueAtMs())
+        }
+        if (wake) nudges.trySend(Unit)
     }
 
     /**
@@ -919,14 +940,12 @@ object RelayClient {
     )
 
     /**
-     * Our own relay with batches (docs/RELAY_API.md section 11.6): everything in the background
-     * is one request a minute, so 30 a minute is a safety net against a runaway loop, with room
-     * for the finder's poll every 4 s while it's open. Safety pings are never held by it.
+     * Our own relay with batches (docs/RELAY_API.md section 11.6): the background's records are one
+     * request a minute, so this is a safety net against a runaway loop, with room the background
+     * can never take for the batch, the finder's poll every 4 s and the open chat's polls (core
+     * [RelayBudget.withBatches]). Safety pings are never held by it.
      */
-    private val batchBudget = RelayBudget(
-        messagesPerDay = 1_000_000, requestsPerMinute = 30, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
-        throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, safetyAlwaysHasRoom = true,
-    )
+    private val batchBudget = RelayBudget.withBatches()
     private val budget get() = if (!ownServer) publicBudget else if (batching) batchBudget else ownBudget
 
     /** What our relay's last "too many" answers hold back: one mailbox, one kind of traffic, or (in the budget) everything. */

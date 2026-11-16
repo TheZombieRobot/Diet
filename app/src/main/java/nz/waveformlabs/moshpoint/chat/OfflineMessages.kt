@@ -218,6 +218,9 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         lastPostMs = SystemClock.elapsedRealtime()
         val m = courier.post(crewId, sealed, t)
         courier.tick(t)
+        // Older messages waiting for the minute's batch hold the courier's upload slots: they go now,
+        // so this one can follow within a couple of seconds (docs/WAVE2C_REVIEW.md, F5).
+        if (RelayClient.batching) RelayClient.hurry()
         // Nothing can go just now (no network, or the relay asked us to slow down): say it's
         // waiting, rather than "Sending…" for as long as that lasts.
         if (m != null && courier.onHold(t) && courier.stateOf(m.id) == Courier.State.WAITING) {

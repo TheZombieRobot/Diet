@@ -123,6 +123,35 @@ class HeldMirrorTest {
         assertEquals(3, m.newestFirst(id, 0L).size, "the old relay's records are gone from the copy")
     }
 
+    /**
+     * Review finding F4 (docs/WAVE2C_REVIEW.md): the phone moves to another relay (a test build's
+     * Settings, a crew's invite) whose store started after the first one's. Every start raises a
+     * relay's numbers to the clock in microseconds, so our cursor is below its top: it takes the
+     * cursor as its own and sends only what's newer. The copy must read like the new relay's
+     * mailbox, not like both relays' mixed (the old one's messages would count as on the new one).
+     */
+    @Test fun aPhoneMovedToARelayThatStartedLaterReadsOnlyThatRelay() {
+        val first = Relay(start = 1_000_000L)
+        val later = Relay(start = 9_000_000L)
+        val m = HeldMirror()
+        val id = "chat"
+        repeat(5) { first.put(id, msg(it)) }
+        m.relay("https://first")
+        m.poll(first, id)
+        assertSame(first, m, id)
+        repeat(3) { later.put(id, msg(500 + it)) }
+        assertTrue(m.cursor(id) < later.seq, "our cursor looks like one of its own to the later relay")
+        // The same mailbox id, asked of the relay now in use, as RelayClient.heldSince does.
+        m.relay("https://later")
+        assertEquals(0L, m.cursor(id), "asked from everything")
+        m.poll(later, id)
+        assertSame(later, m, id)
+        // The same relay again keeps the copy: a poll with nothing new still downloads nothing.
+        m.relay("https://later")
+        assertEquals(0, later.since(id, m.cursor(id)).records.size)
+        assertSame(later, m, id)
+    }
+
     @Test fun startingAgainIsAlwaysSafe() {
         val relay = Relay()
         val m = HeldMirror()

@@ -656,8 +656,11 @@ class Courier(
         val own = parcels.values.filter { it.mine && it.crewId in crews && nowMs >= it.retryAtMs && it.refusals < MAX_REFUSALS && !it.gaveUp && hereStands(it, nowMs) }
             .sortedWith(compareBy<Parcel>({ rank(it.kind) }, { it.timeSec }))
         for (p in own) {
-            if (free <= 0) break
-            if (held && rank(p.kind) != 0) continue
+            // Safety pings never wait for a free slot: with our relay's batches the other uploads
+            // in flight can be waiting up to a minute for theirs (docs/WAVE2C_REVIEW.md, F2).
+            val safety = rank(p.kind) == 0
+            if (free <= 0 && !safety) break
+            if (held && !safety) continue
             // A crew phone already has this one and may have uploaded it while we had no signal:
             // look at the mailbox first (for a moment), rather than post a second copy.
             if (p.nearby && !p.onServer && nowMs - onlineSinceMs < LOOK_FIRST_MS &&
@@ -673,7 +676,7 @@ class Courier(
             // So is our "I'm here" (or the clear that took it down), for as long as it lasts.
             val pinDue = active && (p.kind == KIND_PIN || p.kind == KIND_HERE) && nowMs - p.putAtMs >= PIN_REPOST_MS
             if ((!p.onServer || pinDue) && !p.primaryFlying) start(p, primaryBox(p.kind), false)
-            if (free > 0 && wantsDurable(p) && !p.durableFlying) start(p, Box.CHAT, false)
+            if ((free > 0 || safety) && wantsDurable(p) && !p.durableFlying) start(p, Box.CHAT, false)
         }
 
         // Then what we carry for crew mates, after a random wait and a fresh look at the mailbox.

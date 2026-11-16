@@ -280,9 +280,24 @@ class RelayBudget(
         }
     }
 
-    private companion object {
-        const val DAY_MS = 24 * 3600_000L
-        const val MINUTE_MS = 60_000L
-        const val SAFETY_GAP_MS = 10_000L
+    companion object {
+        private const val DAY_MS = 24 * 3600_000L
+        private const val MINUTE_MS = 60_000L
+        private const val SAFETY_GAP_MS = 10_000L
+
+        /**
+         * Our own relay with batches (docs/RELAY_API.md section 11.6): the background's records
+         * travel in one request a minute, so this is only a safety net against a runaway loop. It
+         * counts every request, though, and much never rides in the batch: the finder's poll
+         * every 4 s, the open chat's polls, moments, and profile photos (two asks per friend, every
+         * 6 hours). So: the relay's own sustained rate for an install (120 a minute, section 10),
+         * of which the background (downloads, photos, uploads) may take at most 90, so a burst of
+         * it never refuses the minute's batch or the finder's poll (docs/WAVE2C_REVIEW.md, F3).
+         * Safety pings never count against it.
+         */
+        fun withBatches(random: () -> Double = Math::random): RelayBudget = RelayBudget(
+            messagesPerDay = 1_000_000, requestsPerMinute = 120, messageReserve = 0, safetyReserve = 0, requestReserve = 30,
+            throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, random = random, safetyAlwaysHasRoom = true,
+        )
     }
 }

@@ -121,8 +121,11 @@ for a busy crew).
   every reader are untouched. `HeldMirrorTest` checks the copy always reads exactly like the
   relay's whole mailbox, against a model of the relay's store.
 - MORE (an answer full at 512 KB) asks again at once, up to 20 asks a poll.
-- A cursor the relay doesn't know (it was replaced, or another relay) comes back as
-  everything with a `next` below what was asked: the copy starts again from that answer.
+- A cursor the relay doesn't know (above anything it has handed out) comes back as everything
+  with a `next` below what was asked: the copy starts again from that answer. Another relay may
+  take our cursor as its own (one that started later has higher numbers), so the copy is kept
+  for one relay: a phone moved to another starts again from everything (`HeldMirror.relay`,
+  review finding F4, [WAVE2C_REVIEW.md](WAVE2C_REVIEW.md)).
 - In memory only, at most 4 MB (least recently used mailboxes go first; never one the poll is
   reading); a mailbox not asked about for 6 hours is forgotten. Forgetting is always safe: the
   next ask is from cursor 0, everything, as before. So every start of the app begins with one
@@ -166,10 +169,13 @@ crowd-relay packet (10 to 20 a minute in a crowd), floor box and intro.
   most 90 s for its batch, then the courier is told "no answer".
 - **Older relay:** `404`, `405`, `400`, `413` or an unreadable answer: everything waiting goes
   the old way at once, one request each, and the old lookups for an hour (`RelayEndpoints`).
-- **Budget (11.6):** with batches, our relay's budget drops from 600 requests a minute to 30.
-  Decision: not "about 10": the finder polls our relay every 4 s while it's open (15 a minute),
-  which must never be held back. Safety never counts against it (`safetyAlwaysHasRoom`); the
-  public relay's budget is unchanged. Without batches (an older relay) the old 600 stands.
+- **Budget (11.6):** with batches, our relay's budget drops from 600 requests a minute to 120
+  (core `RelayBudget.withBatches`), of which the background may take at most 90. Decision: not
+  "about 10", and not 30 as first built: the budget counts every request, and much never rides
+  in the batch (the finder's poll every 4 s, the open chat's polls, moments, profile photos), so
+  a background burst filled 30 and refused the batch and the finder (review finding F3,
+  [WAVE2C_REVIEW.md](WAVE2C_REVIEW.md)). Safety never counts against it (`safetyAlwaysHasRoom`);
+  the public relay's budget is unchanged. Without batches (an older relay) the old 600 stands.
 - **Sync interval:** 60 s with batches (was 30 s on our relay), unchanged without them.
 - **The app's bytes against the real relay:** core `AppRequestFixtureTest` builds a sync batch
   and a chat poll with the app's own code and checks them against
