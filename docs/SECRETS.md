@@ -8,6 +8,7 @@
 |---|---|---|---|
 | `TICKETMASTER_KEY`, `SEATGEEK_CLIENT_ID`, `BANDSINTOWN_APP_ID` (gig search) | The relay's secrets on Fly.io | The relay only. The app asks the relay; the app never holds a key. | From a computer: `fly secrets set TICKETMASTER_KEY=…`, or the app's Secrets page on fly.io if your account shows one. |
 | `MOSHPOINT_TOKEN_SECRET` (relay install tokens), `MOSHPOINT_CONTACT` | The relay's secrets on Fly.io | The relay | `fly secrets set …` (see SERVER_PRODUCTION.md) |
+| `MOSHPOINT_ADMIN_TOKEN` (reading and deleting reports, docs/MODERATION.md) | The relay's secrets on Fly.io, and your password manager | The relay; you, from a computer, with curl | `fly secrets set MOSHPOINT_ADMIN_TOKEN=…` (a different one per relay). Unset = the admin routes are off |
 | `MOSHPOINT_KEYSTORE`, `MOSHPOINT_KEYSTORE_PASSWORD`, `MOSHPOINT_KEY_ALIAS`, `MOSHPOINT_KEY_PASSWORD` (the Play upload key) | GitHub, under the repo's Settings → Secrets and variables → Actions → Secrets | CI, to sign the Play bundle | On the phone: the repo on github.com → Settings → Secrets and variables → Actions → New repository secret (desktop view helps) |
 | `RELEASES_TOKEN` (optional: test builds published to a separate repo) | GitHub Actions secrets | CI | As above |
 | `MOSHPOINT_SERVER` (the relay's address) | GitHub, on the Variables tab of that page | CI, built into the app | Not a secret, so it goes under Variables |
@@ -39,6 +40,7 @@ Every key the project will need, with a one-word placeholder.
 |---|---|---|---|
 | `MOSHPOINT_TOKEN_SECRET` | INSERTTOKENSECRETHERE | Generate: `openssl rand -hex 32` | That relay's Fly secrets (a different one per relay) |
 | `MOSHPOINT_CONTACT` | INSERTCONTACTEMAILHERE | Your support email | That relay's Fly secrets |
+| `MOSHPOINT_ADMIN_TOKEN` | INSERTADMINTOKENHERE | Generate: `openssl rand -hex 32` | That relay's Fly secrets (a different one per relay), and your password manager |
 
 **Building and publishing the app (GitHub → repo → Settings → Secrets and variables → Actions):**
 

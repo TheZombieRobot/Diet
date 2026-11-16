@@ -171,6 +171,32 @@ friends have and stored under an id that changes weekly, for up to 8 days, so fr
 phones can show your face. The server can't see it. Removing your photo shares an empty one,
 so friends' copies are cleared the next time they refresh.
 
+## Reporting and blocking
+
+**Blocking** someone hides their crew chat messages, photos, clips and private messages on your
+phone, and their new private messages are dropped when they arrive. It happens only on your phone:
+nothing is sent, they aren't told, and they stay in the crew. Your blocked list (their name, the
+crew's name and their crew key) stays on your phone; Settings → Blocked people shows it and
+unblocks.
+
+**Reporting** something sends a copy of it to us, because we can't see your crew's messages
+otherwise: they're end-to-end encrypted. Before anything is sent, the report screen lists what
+goes:
+
+- the message's text, or the photo (made smaller) or four still frames of the clip (made smaller),
+  with its caption;
+- the name and crew key of the person who posted it (their identity in that crew only);
+- a code for the crew (a hash of its id: not its name, invite or key) and when it was posted;
+- the reason you picked, your note if you wrote one, and the app's version.
+
+Nothing about you goes with it: not your name, your key, your phone's address or an install id.
+The person you report isn't told who reported them. Reports are stored on our relay server and
+kept for **90 days**, then deleted; only the app's owner can read them, with a secret key, to deal
+with them (see docs/MODERATION.md). A report about a serious crime may be passed to the police.
+
+Before your first crew chat message, photo, clip or private message, the app shows the community
+rules once and asks you to agree.
+
 ## Continue with Facebook (optional)
 
 Nothing reaches Meta unless you tap "Continue with Facebook": Facebook's login library in the
@@ -186,7 +212,8 @@ it any time; it doesn't post anything on your behalf.
 
 Our relay server runs in Sydney, Australia (on Fly.io). What it holds is encrypted on your phone
 before it's sent: locations for 15 minutes, moments for 24 hours, crew chat, pings and pins for
-up to 3 days, profile photos for up to 8 days, each deleted when it expires. Fly keeps one daily
+up to 3 days, profile photos for up to 8 days, each deleted when it expires. Reports (see
+"Reporting and blocking") are the one thing it holds that it can read, and are kept 90 days. Fly keeps one daily
 snapshot of the server's storage for one day, so a copy of that encrypted data can outlive its
 deletion by up to a day; it's as unreadable there as on the server. Map tiles come from OpenFreeMap, venue
 lookups from OpenStreetMap's Nominatim, and gig searches from Ticketmaster, Bandsintown and

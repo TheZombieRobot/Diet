@@ -92,10 +92,30 @@ collected; it still goes in the privacy policy.
 | Location → Precise location | **Not collected or shared** (only ever sent end-to-end encrypted to the user's own crew and friends) |
 | **App activity → Other actions / In-app search history** | **Shared**: the words typed into gig search go (through our relay) to Ticketmaster, Bandsintown and SeatGeek, or straight to Ticketmaster from a build without our relay. Optional, App functionality. Nothing about the person goes with them |
 | **Personal info → Name; Photos → profile photo** (only if "Continue with Facebook" is used) | **Collected** by Meta's SDK when the person chooses Facebook login: Meta receives what its login needs (see Meta's own Data safety guidance for the Facebook Login SDK), and the app receives the name and profile photo, which stay on the phone or go end-to-end encrypted to friends. Optional, App functionality |
-| Messages, photos and videos, audio | **Not collected** (end-to-end encrypted: crew chat, private messages, moments, clips with sound) |
+| **Messages → Other in-app messages; Photos and videos → Photos, Videos** | **Collected, only when a user reports one** (docs/REPORT_BLOCK.md): the reporter's phone sends the reported message's text, or the photo (smaller) or four frames of the clip (smaller), with the poster's name and crew key, to our relay, where the owner reads it; kept 90 days. Optional (nothing goes unless someone taps Send report). Purpose: **Fraud prevention, security, and compliance**. Not shared. Everything else in these types is end-to-end encrypted and **not collected** |
+| Audio | **Not collected** (a reported clip sends still frames, never its sound) |
 | Contacts, calendar, app info and performance, device or other IDs, financial, health | **Not collected** (no analytics, crash reporting or advertising ID; the Facebook SDK's analytics and ad ID are off and the AD_ID permission is removed) |
 | Is collection required or optional? | **Optional** for everything above |
-| Purposes | App functionality only. Never advertising, analytics, personalisation or fraud prevention |
+| Purposes | App functionality; reports only: fraud prevention, security, and compliance (moderation). Never advertising, analytics or personalisation |
+
+## User Generated Content policy (answers)
+
+Crew chat, private messages and photos and clips (moments) are user-generated content shared
+between people. What Play's UGC policy asks for, and where it is (docs/REPORT_BLOCK.md):
+
+| Play asks for | Moshpoint |
+|---|---|
+| Terms or user policies people accept before creating or uploading content | **Community rules**, shown once before the first crew chat message, plan, photo, clip or private message, with "I agree" (no harassment, bullying or hate; nothing illegal and nothing sexual involving anyone under 18; no threats or violence; reports may be reviewed; breaking the rules can get you blocked), and the privacy policy link. Screenshot: `communityRules.png` |
+| Defining objectionable content in those terms | The same rules, in all 20 languages |
+| An in-app way to report objectionable content and users | **Report** on any crew chat message or private message (hold it), any photo or clip ("Report or block"), and any crew mate (their options): a reason, an optional note, and a plain list of what is sent. Screenshot: `reportSheet.png` |
+| An in-app way to block users | **Block** in the same places; Settings → Blocked people, with Unblock. Blocked people's chat, photos, clips and private messages are hidden, and their private messages dropped on arrival. Screenshots: `blockConfirm.png`, `blockedPeople.png` |
+| Acting on reports in a timely way | The owner's inbox on each relay (`GET /v1/admin/reports` with an admin token), reply times and actions in docs/MODERATION.md (24 h for the most serious, 48 h for threats, hate and sexual content) |
+| Child safety (CSAM) | Reports of it are handled first and passed to the authorities (docs/MODERATION.md). The app is 18+ |
+| Not a "UGC-focused" app | Sharing is among a crew that invited each other, never public; there is no public feed, search or discovery of strangers' content |
+
+**Content rating questionnaire:** "Do users interact or exchange content?" stays **Yes**; the
+questionnaire's follow-ups about moderation: users can **report** and **block** in the app; the
+developer **reviews reports**.
 
 ## Play Console answers (draft for the owner)
 
