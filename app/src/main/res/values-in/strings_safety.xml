@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian (in): safety and the Live state (what Need help says about the crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">Mengirim…</string>
+    <string name="safety_help_sent">Terkirim ke gengmu</string>
+    <string name="safety_help_sent_sub">Seluruh geng bakal menerima peringatanmu, lengkap dengan lokasimu.</string>
+    <string name="safety_help_nearby">Terkirim ke HP terdekat</string>
+    <string name="safety_help_nearby_sub">HP geng di sekitar sudah menerimanya. Anggota geng lainnya bakal menerimanya saat salah satu dari kalian dapat sinyal.</string>
+    <string name="safety_help_not_yet">Belum terkirim</string>
+    <string name="safety_help_wait_go_live">Nggak ada sinyal. Nyalakan Live supaya HP geng di sekitar bisa meneruskan peringatanmu lewat Bluetooth.</string>
+    <string name="safety_help_wait_bluetooth">Nggak ada sinyal, dan Bluetooth mati. Nyalakan supaya HP geng di sekitar bisa meneruskan peringatanmu.</string>
+    <string name="safety_help_wait_cant_carry">Nggak ada sinyal. HP ini nggak bisa meneruskan peringatanmu lewat Bluetooth, jadi baru dikirim saat kamu dapat sinyal.</string>
+    <string name="safety_help_wait_nearby">Nggak ada sinyal. Peringatanmu dikirim ke HP geng pertama yang mendekat, dan ke semua orang saat kamu dapat sinyal.</string>
+    <string name="safety_help_wait_retrying">Peringatanmu belum sampai ke server. Terus dicoba otomatis.</string>
+    <string name="safety_go_live">Mulai live</string>
+    <string name="safety_help_not_sent">Belum terkirim</string>
+    <string name="safety_help_not_sent_sub">Peringatanmu nggak sampai ke siapa pun. Ketuk untuk coba lagi.</string>
+    <string name="safety_help_text_or_call">SMS atau telepon lewat tombol di bawah: dua-duanya bisa tanpa data seluler.</string>
+    <string name="safety_help_no_sms">HP ini nggak punya aplikasi pesan yang bisa kirim SMS. Telepon saja, atau minta tolong orang di dekatmu.</string>
+    <string name="safety_help_no_dialler">HP ini nggak bisa menelepon. Minta orang di dekatmu menelepon %1$s.</string>
+
+    <string name="safety_channel_notices">Notifikasi live dan memori</string>
+    <string name="safety_live_off_title">Kamu nggak live lagi</string>
+    <string name="safety_live_off_text">Android menghentikan Moshpoint di latar belakang, jadi teman nggak bisa menemukanmu. Ketuk untuk live lagi.</string>
+    <string name="safety_live_cant_start_text">Android nggak mengizinkan Moshpoint tetap live, jadi teman nggak bisa menemukanmu. Pastikan izinnya sudah aktif, lalu mulai live lagi.</string>
+    <string name="safety_live_long_title">Masih di konser?</string>
+    <string name="safety_live_long_text">Kamu sudah live selama 12 jam, jadi Live otomatis dimatikan untuk hemat baterai.</string>
+    <string name="safety_live_long_notif">Kamu sudah live selama 12 jam, jadi Live otomatis dimatikan untuk hemat baterai. Ketuk kalau kamu masih di sana.</string>
+    <string name="safety_live_bluetooth_off">Bluetooth mati: teman nggak bisa menemukanmu dari dekat</string>
+
+    <string name="safety_storage_full_title">Memori HP-mu penuh</string>
+    <string name="safety_storage_full_text">Moshpoint nggak bisa menyimpan pesan, foto, atau kabar baru sampai kamu mengosongkan sebagian memori.</string>
+
+    <string name="safety_checkin_reminder_title">Sudah sampai rumah?</string>
+    <string name="safety_checkin_reminder_text">Gengmu akan diberi tahu kamu belum ngabarin, kecuali kamu ketuk \"Aku sudah sampai rumah\".</string>
+    <string name="safety_home_safe_waiting">Belum terkirim. Dikirim otomatis begitu kamu dapat sinyal.</string>
+
+</resources>

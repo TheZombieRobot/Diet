@@ -166,3 +166,22 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 For a native reviewer: फ़ोटो शेयर करें may take two lines in its half-width button (allowed); "फ़ोटो भेजें" would be shorter. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now quote "पिछले शो" (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it लाइव ("लाइव ऑन करें"); "लाइव हों" stays as a verb where it reads naturally.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help says about the crew alert once it's tapped (sending, sent, sent nearby, not sent yet and why, not sent), the **Go live** button, Live switching off by itself (stopped by Android, or after 12 hours), a full phone, and the reminder before your crew is told you haven't checked in. Each says exactly what the English says, never kinder or more certain. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew / Not sent yet | **भेज रहे हैं…** / **आपके ग्रुप को भेज दिया** / **अभी नहीं भेजा गया** | Word for word the watch (`sos_sending`, `sos_sent`, `ping_not_yet`). |
+| Sent nearby / Not sent | **आस-पास भेजा गया** / **नहीं भेजा गया** | The chat's states (`offline_state_nearby`, `offline_state_not_sent`). The line under "Sent nearby" says only nearby crew phones have it. |
+| your alert | **आपका अलर्ट** | As `crew_help_alert_sub`. "Nobody has your alert" is *आपका अलर्ट किसी को नहीं मिला*, with no "yet": it is no longer being tried. |
+| Go live (button) | **लाइव हों** | Key terms. The line above it says *लाइव ऑन करें*, as `offline_hint_go_live`. |
+| You're no longer live | **आप अब लाइव नहीं हैं** | As `visibility_notification` (*आप लाइव हैं*). |
+| Still at the gig? / Home yet? | **अभी भी शो में हैं?** / **घर पहुँच गए?** | शो for gig. The reminder quotes "घर पहुँचकर सुरक्षित हूँ" (`home_home_safe`) exactly, in quotes because the label is a whole sentence. |
+| Your phone's storage is full | **आपके फ़ोन का स्टोरेज भर गया है** | स्टोरेज, the name of the phone setting where space is freed. |
+| server / permissions | सर्वर / अनुमतियाँ | अनुमतियाँ as the watch's `find_no_permission`. |
+
+*सिग्नल* for signal and *मोबाइल डेटा* for mobile data, as in the offline hints and `find_searching_help`. The channel is *लाइव और स्टोरेज की सूचनाएँ*.
+
+For a native reviewer: (1) *लाइव हों* on the button under a line that says *लाइव ऑन करें*. (2) *स्टोरेज* here, while `main_save_failed` says *मेमोरी*. (3) *यह अपने-आप कोशिश करता रहेगा* for "It keeps trying by itself". Written without a native reviewer. Confidence: **medium**.
