@@ -10,16 +10,19 @@ kind, chat cursors, one batch a minute, moments with `Content-Length`, clips on 
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Stage:** reading the diff (`git diff 8024c86d 17caa74f -- app core server`) and the relay in
-  `server/`. No findings recorded yet.
-- **Exact next step:** finish reading `RelayClient.kt`, the core rules and the server's batch and
-  heldsince handlers; record each candidate finding below before writing its failing test.
+- **Stage:** reading. `RelayClient.kt`, `BatchPlan`, `RelayWire`, `RelayEndpoints`, `HeldMirror`,
+  `RelayHolds`, `RelayBudget`, the server's `Batch.kt`, `MailboxStore.since` and routes are read.
+  Two findings confirmed by reading (F1, F2 below); no tests or fixes yet.
+- **Exact next step:** read `Moments.kt`/`MomentRules`, `InstallToken`, `ChatSync`, the server's
+  `AppRequestsTest`; then write the failing core tests for F1 and F2 and fix them.
 - **Last green CI run:** none on this branch yet (the merged work's last green run is 341).
 
 ## Findings
 
 | # | Area | Finding | State | Evidence |
 |---|---|---|---|---|
+| F1 | Batch flusher | A put with `Timing.MINUTE` into an empty queue never wakes `RelayClient`'s flusher: `queue()` nudges only for `SOON`, and the flusher sleeps in `nudges.receive()` while nothing is due. With no crew sync taking the puts (no crew, or a dormant crew: friends finding each other), location shares, floor boxes and crowd-relay packets stay queued after the first batch until something else nudges. | confirmed by reading | `RelayClient.kt:683-687` (no nudge for MINUTE), `:702-705` (sleeps until a nudge); `GroupSync.syncServer` is the only other taker |
+| F2 | Safety | Need help, Check in and Home safe wait for a courier upload slot. The courier allows 2 own uploads in flight (`Courier.MAX_IN_FLIGHT`); with batches a non-safety upload holds its slot until its batch answers (up to 60 s, 90 s at most). Two such uploads in flight (a pin and an "I'm here" re-posted every 10 minutes, or messages retried after coming back on signal) hold Need help back for up to a minute: it is queued behind a batch. | confirmed by reading | `Courier.kt:643-652` (`if (free <= 0) break`), `OfflineMessages.upload` (`sendBatched` waits for the batch), `RelayClient.BATCH_WAIT_MS` |
 
 ## How this was checked
 
