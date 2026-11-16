@@ -2,10 +2,14 @@ package nz.waveformlabs.moshpoint.locate
 
 import android.os.SystemClock
 import android.util.Base64
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.setup.NetState
+import nz.waveformlabs.moshpoint.core.InstallToken
 import nz.waveformlabs.moshpoint.core.InviteRelay
 import nz.waveformlabs.moshpoint.core.PutResult
 import nz.waveformlabs.moshpoint.core.RelayBudget
@@ -66,6 +70,9 @@ object RelayClient {
         // so it's never passed on in ours (it may be a stranger's). Retyping it in Settings
         // makes it this phone's own again.
         serverFromInvite = p.getBoolean("fromInvite", true)
+        prefs = p
+        tokens = InstallToken(p.getString("token", null))
+        askToken()
     }
 
     /**
@@ -152,10 +159,10 @@ object RelayClient {
     suspend fun getAvatar(id: ByteArray): ByteArray? = withContext(Dispatchers.IO) {
         if (!avatarsEnabled) return@withContext null
         exchange(RelayUse.BACKGROUND, message = false) {
-            val c = URL("$base/v1/avatar/${id.hex()}").openConnection() as HttpURLConnection
+            val c = open("$base/v1/avatar/${id.hex()}")
             c.connectTimeout = 8_000
             c.readTimeout = 8_000
-            val code = c.responseCode
+            val code = c.status()
             val bytes = if (code == 200) c.inputStream.use { it.readBytes() } else null
             c.disconnect()
             code to bytes
@@ -314,10 +321,10 @@ object RelayClient {
         val mine = ownServer && url.startsWith("$base/v1/file/")
         if (!mine && !url.startsWith("$NTFY/")) return@withContext null // only ever fetch from the relay itself
         exchange(RelayUse.BACKGROUND, message = false) {
-            val c = URL(url).openConnection() as HttpURLConnection
+            val c = open(url)
             c.connectTimeout = 8_000
             c.readTimeout = 20_000
-            val code = c.responseCode
+            val code = c.status()
             if (code != 200) {
                 c.disconnect()
                 return@exchange code to null
@@ -347,10 +354,10 @@ object RelayClient {
     /** Own server: (time, download URL) of files under [id] since [sinceSec]. */
     private fun ownList(id: ByteArray, sinceSec: Long): List<Pair<Long, String>>? =
         exchange(RelayUse.BACKGROUND, message = false) {
-            val c = URL("$base/v1/files/${id.hex()}?since=$sinceSec").openConnection() as HttpURLConnection
+            val c = open("$base/v1/files/${id.hex()}?since=$sinceSec")
             c.connectTimeout = 6_000
             c.readTimeout = 8_000
-            val code = c.responseCode
+            val code = c.status()
             if (code != 200) {
                 c.disconnect()
                 return@exchange code to null
@@ -383,14 +390,14 @@ object RelayClient {
     suspend fun postReport(json: ByteArray): Int = withContext(Dispatchers.IO) {
         if (!ownServer) return@withContext -1
         runCatching {
-            val c = URL("$base/v1/report").openConnection() as HttpURLConnection
+            val c = open("$base/v1/report")
             c.requestMethod = "POST"
             c.doOutput = true
             c.connectTimeout = 15_000
             c.readTimeout = 20_000
             c.setRequestProperty("Content-Type", "application/json")
             c.outputStream.use { it.write(json) }
-            val code = c.responseCode
+            val code = c.status()
             c.disconnect()
             code
         }.getOrDefault(0)
@@ -398,28 +405,28 @@ object RelayClient {
 
     private fun ownPut(url: String, body: ByteArray, timeout: Int, use: RelayUse): PutResult =
         exchange(use, message = true) {
-            val c = URL(url).openConnection() as HttpURLConnection
+            val c = open(url)
             c.requestMethod = "PUT"
             c.doOutput = true
             c.connectTimeout = timeout
             c.readTimeout = timeout
             c.setRequestProperty("Content-Type", "application/octet-stream")
             c.outputStream.use { it.write(body) }
-            val code = c.responseCode
+            val code = c.status()
             c.disconnect()
             code to Unit
         }.first
 
     private fun ownLookup(ids: List<ByteArray>, url: String = "$base/v1/lookup", wide: Boolean = false): List<List<ByteArray>>? =
         exchange(RelayUse.MESSAGE, message = false) {
-            val c = URL(url).openConnection() as HttpURLConnection
+            val c = open(url)
             c.requestMethod = "POST"
             c.doOutput = true
             c.connectTimeout = 5_000
             c.readTimeout = 5_000
             c.setRequestProperty("Content-Type", "application/octet-stream")
             c.outputStream.use { out -> ids.forEach { out.write(it) } }
-            val code = c.responseCode
+            val code = c.status()
             if (code != 200) {
                 c.disconnect()
                 return@exchange code to null
@@ -439,6 +446,94 @@ object RelayClient {
                 b.copyOfRange(i, i + len).also { i += len }
             }
         }
+    }
+
+    // ---- Install token (docs/RELAY_API.md sections 7 and 11.1) ----
+
+    private var prefs: android.content.SharedPreferences? = null
+
+    /**
+     * Our own relay's install token, so this phone gets limits of its own instead of sharing its
+     * carrier address's with everyone behind it (the rule: core [InstallToken]). Never sent to
+     * the public relay or to any other relay; requests work the same without one.
+     */
+    @Volatile private var tokens = InstallToken()
+    private val background = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * Ask our own relay for an install token if the rule says it's time: at first start, then at
+     * most once an hour while there isn't one. In the background: no request waits for it.
+     */
+    private fun askToken() {
+        val b = base
+        val t = tokens
+        val now = System.currentTimeMillis()
+        if (b.isEmpty() || offline || !t.shouldAsk(b, now)) return
+        t.asking(now)
+        background.launch {
+            val answer = runCatching {
+                val c = URL("$b/v1/install").openConnection() as HttpURLConnection
+                try {
+                    c.requestMethod = "POST"
+                    c.doOutput = true
+                    c.connectTimeout = 8_000
+                    c.readTimeout = 8_000
+                    c.setFixedLengthStreamingMode(0)
+                    c.outputStream.close()
+                    val code = c.responseCode
+                    code to if (code == 200) readSmall(c, 256) else null
+                } finally {
+                    c.disconnect()
+                }
+            }.getOrNull()
+            val at = System.currentTimeMillis()
+            // The relay's host answering 5xx or 408 is no answer from the relay (as in [exchange]).
+            if (answer == null || answer.first >= 500 || answer.first == 408) t.noAnswer(at) else t.answered(b, answer.first, answer.second, at)
+            saveToken(t)
+        }
+    }
+
+    /** At most [max] characters of a short text answer. */
+    private fun readSmall(c: HttpURLConnection, max: Int): String = c.inputStream.reader(Charsets.US_ASCII).use { r ->
+        val out = StringBuilder()
+        val buf = CharArray(64)
+        while (out.length < max) {
+            val n = r.read(buf)
+            if (n < 0) break
+            out.append(buf, 0, n)
+        }
+        out.toString()
+    }
+
+    private fun saveToken(t: InstallToken) {
+        prefs?.edit()?.putString("token", t.save())?.apply()
+    }
+
+    /** A connection to [url], carrying our install token if [url] is on the relay that issued it. */
+    private fun open(url: String): HttpURLConnection = (URL(url).openConnection() as HttpURLConnection).also { sign(it, url) }
+
+    /**
+     * Adds our install token to a request for [url] when it goes to our own relay, the one that
+     * issued it (venue lookups and Discover ask the same relay). Never to the public relay.
+     */
+    fun sign(c: HttpURLConnection, url: String) {
+        val b = base
+        if (b.isEmpty() || !url.startsWith("$b/")) return
+        tokens.tokenFor(b)?.let { c.setRequestProperty(InstallToken.HEADER, it) }
+    }
+
+    /** The answer's status. `X-Moshpoint-Token: invalid` means the relay no longer knows our token: drop it and ask again. */
+    private fun HttpURLConnection.status(): Int {
+        val code = responseCode
+        if (getHeaderField(InstallToken.HEADER) == InstallToken.INVALID) tokenInvalid()
+        return code
+    }
+
+    private fun tokenInvalid() {
+        val t = tokens
+        if (!t.invalid(base)) return
+        saveToken(t)
+        askToken()
     }
 
     // ---- Budget and "is there any network?" ----
@@ -495,6 +590,7 @@ object RelayClient {
      */
     private inline fun <T> exchange(use: RelayUse, message: Boolean, call: () -> Pair<Int, T?>): Pair<PutResult, T?> {
         if (offline) return PutResult.NO_NETWORK to null
+        askToken()
         val b = budget
         val start = SystemClock.elapsedRealtime()
         val ticket = b.take(use, message, start) ?: return (b.refusal(use, message, start) ?: PutResult.THROTTLED) to null
