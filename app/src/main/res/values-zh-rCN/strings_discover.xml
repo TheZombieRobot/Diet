@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">已有票 ✓</string>
+    <string name="hype_no_ticket">还没票</string>
+    <string name="hype_wakes_up">演出当天唤醒</string>
+    <string name="hype_get_tickets">买票</string>
+    <string name="hype_my_ticket">我已经有票了</string>
+    <string name="hype_my_ticket_sub">朋友们会看到一个勾</string>
+    <string name="hype_chat_line">%1$s：%2$s</string>
+    <string name="hype_invite_mates">邀请朋友</string>
+    <string name="hype_nudge_title">大家都有票了 🎟️</string>
+    <string name="hype_nudge_text">%1$s 的小队全员都有票了。到时见！</string>
+</resources>

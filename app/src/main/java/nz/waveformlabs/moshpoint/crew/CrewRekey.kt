@@ -132,6 +132,7 @@ object CrewRekey {
         // under the new key, and the old key stops being used over Bluetooth.
         OfflineMessages.onRekey(c, old, fresh)
         CrewChat.migrate(c, old, fresh)
+        nz.waveformlabs.moshpoint.discover.HypeTickets.migrate(c, old, fresh)
         // The removed person's key and name go too. Before, every phone but the remover's kept them as a member.
         CrewChat.dropKeys(c, fresh, removedTags)
         runCatching {

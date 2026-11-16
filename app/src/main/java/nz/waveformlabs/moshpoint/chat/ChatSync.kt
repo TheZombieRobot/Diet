@@ -92,6 +92,12 @@ object ChatSync {
                     }
                     return@forEach
                 }
+                // "Got my ticket" (docs/DISCOVER_APP.md): the courier noted it above; the hype group shows it.
+                val t = g.openTicket(blob)
+                if (t != null) {
+                    nz.waveformlabs.moshpoint.discover.HypeTickets.arrived(app, g, t)
+                    return@forEach
+                }
                 val h = g.openHistory(blob)
                 if (h != null) {
                     CrewChat.ingestHistory(app, g, h).forEach { fresh += Txt.s(R.string.crew_notif_line, it.from, it.text) }
@@ -139,6 +145,7 @@ object ChatSync {
         }
         CrewRekey.resend(app)
         CrewChat.repostPlans(app, crews)
+        nz.waveformlabs.moshpoint.discover.HypeTickets.repost(app, crews)
         CrewChat.shareHistory(app, crews)
         // Say hello in each crew we're in (followers too: then a new crew key reaches them as well).
         crews.forEach { g -> CrewChat.announceJoin(app, g) }

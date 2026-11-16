@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">มีบัตรแล้ว ✓</string>
+    <string name="hype_no_ticket">ยังไม่มีบัตร</string>
+    <string name="hype_wakes_up">จะตื่นในวันคอน</string>
+    <string name="hype_get_tickets">ซื้อบัตร</string>
+    <string name="hype_my_ticket">ฉันมีบัตรแล้ว</string>
+    <string name="hype_my_ticket_sub">เพื่อนจะเห็นเครื่องหมายถูก</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">ชวนเพื่อน</string>
+    <string name="hype_nudge_title">ทุกคนมีบัตรแล้ว 🎟️</string>
+    <string name="hype_nudge_text">ทั้งแก๊งสำหรับ %1$s มีบัตรครบแล้ว เจอกันที่งาน!</string>
+</resources>

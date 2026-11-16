@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">チケット確保 ✓</string>
+    <string name="hype_no_ticket">チケット未確保</string>
+    <string name="hype_wakes_up">当日に起動</string>
+    <string name="hype_get_tickets">チケットを買う</string>
+    <string name="hype_my_ticket">チケットを確保した</string>
+    <string name="hype_my_ticket_sub">仲間にチェックが表示されます</string>
+    <string name="hype_chat_line">%1$s：%2$s</string>
+    <string name="hype_invite_mates">仲間を招待</string>
+    <string name="hype_nudge_title">全員チケット確保 🎟️</string>
+    <string name="hype_nudge_text">%1$sのクルー全員がチケットを確保しました。当日会おう！</string>
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">Tenho ingresso ✓</string>
+    <string name="hype_no_ticket">Ainda sem ingresso</string>
+    <string name="hype_wakes_up">acorda no dia do show</string>
+    <string name="hype_get_tickets">Comprar ingressos</string>
+    <string name="hype_my_ticket">Já tenho meu ingresso</string>
+    <string name="hype_my_ticket_sub">Mostra um ✓ pros seus amigos</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">Convidar amigos</string>
+    <string name="hype_nudge_title">Todo mundo tem ingresso 🎟️</string>
+    <string name="hype_nudge_text">Sua galera toda pro %1$s tem ingresso. Até lá!</string>
+</resources>

@@ -20,6 +20,8 @@ import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.crew.Crews
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.debug.DebugStatus
+import nz.waveformlabs.moshpoint.discover.HypeData
+import nz.waveformlabs.moshpoint.discover.HypeTickets
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.friends.Friendship
 import nz.waveformlabs.moshpoint.gigs.GigArchive
@@ -92,6 +94,10 @@ internal fun HomeContent(a: MainActivity) {
             crewSleeping = a.home.homeNow > 0 && GroupSync.sleeping,
             meetUp = GroupSync.rally.value?.name,
             venueMap = VenueMaps.status.value,
+            // A planned crew asleep until the day shows its hype group (docs/DISCOVER_APP.md).
+            hype = GroupSync.group.value?.takeIf { a.home.homeNow > 0 && GroupSync.sleeping && !GroupSync.following }?.let {
+                HypeData.view(a, it, a.home.homeNow)
+            },
         ),
         gigs = HomeGigs(
             upNext = Crews.others.map { e ->
@@ -161,6 +167,8 @@ internal fun HomeContent(a: MainActivity) {
             onRemovePhoto = PhotoStore::remove,
             onClearGigGroup = { a.home.recap = NightStats.get(a) },
             onKeepFriend = { id -> a.toast(Friendship.request(a, id)) },
+            onTickets = { url -> HypeData.openTickets(a, url) },
+            onMyTicket = { has -> GroupSync.group.value?.let { HypeTickets.set(a, it, has) } },
             // "Message Sam" in a crew mate's options, and a count on their face (docs/PRIVATE_MESSAGES.md).
             onMessage = if (GroupSync.group.value != null && !GroupSync.following) ({ id -> a.chat.messageMate(id) }) else null,
             canMessage = a.chat::canMessageMate,

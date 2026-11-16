@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">Biletim var ✓</string>
+    <string name="hype_no_ticket">Henüz bileti yok</string>
+    <string name="hype_wakes_up">konser günü uyanır</string>
+    <string name="hype_get_tickets">Bilet al</string>
+    <string name="hype_my_ticket">Biletimi aldım</string>
+    <string name="hype_my_ticket_sub">Arkadaşlarına bir tik gösterir</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">Arkadaş davet et</string>
+    <string name="hype_nudge_title">Herkesin bileti var 🎟️</string>
+    <string name="hype_nudge_text">%1$s için tüm ekibinin bileti var. Orada görüşürüz!</string>
+</resources>

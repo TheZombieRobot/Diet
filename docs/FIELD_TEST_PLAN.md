@@ -918,6 +918,36 @@ community rules haven't been agreed to yet.
   phone with large text, and the JSON of one report (with the images removed).
 - For each test: worked or not, and anything confusing in the words.
 
+## 4k. Discover and hype (two phones, then a third; 30 min)
+
+Branch `claude/discover-app-h7v2rk` (docs/DISCOVER_APP.md). Phone A makes the crew, phone B
+joins. Use a date at least a week away so the crew sleeps.
+
+### A. The hype group (stage 1)
+
+1. **A:** Plan a gig for a date weeks away. The home shows **COMING UP**, "in N days" (count the
+   days on a calendar: it should match), "1 in the crew · wakes up on the day", the show card
+   and "I've got my ticket" (off).
+2. **B:** join with A's invite. Both homes show the other's face with "No ticket yet", not dimmed.
+3. **B:** turn on "I've got my ticket". Within a couple of minutes (pull to the home, or open
+   the crew chat to make it fetch), **A** shows B's face with a lime ring and "Got my ticket ✓".
+4. **B:** turn it off again. A goes back to "No ticket yet".
+5. **No signal:** put both phones in flight mode with Bluetooth on, A Live. The crew is asleep, so
+   nothing should go over Bluetooth: B's tick waits, then arrives once B is back online.
+6. **The nudge:** both turn the toggle on. **A only** (the maker) gets one notification,
+   "Everyone's got a ticket". Off and on again on B: no second one. B never gets it.
+7. **Ticket link** (needs a show picked from search or Coming up, stages 3 and 4): Get tickets
+   opens the seller's page in the browser on both phones, a free one included. Long-press the
+   invite link, change a letter of the `tk=` part, and join with a third phone: the crew opens
+   with no Get tickets button.
+8. A week later (or with the date moved on): both phones still show both ticks, though the
+   relay forgets chat after 72 hours (each phone posts its tick again once a day).
+
+### What to send back for this part
+
+- Screenshots of A's home after steps 3 and 6, and the notification.
+- Whether any tick took more than 5 minutes to show with both phones online.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).

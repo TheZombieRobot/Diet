@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">Có vé rồi ✓</string>
+    <string name="hype_no_ticket">Chưa có vé</string>
+    <string name="hype_wakes_up">thức dậy vào ngày diễn</string>
+    <string name="hype_get_tickets">Mua vé</string>
+    <string name="hype_my_ticket">Mình có vé rồi</string>
+    <string name="hype_my_ticket_sub">Bạn bè sẽ thấy dấu tích</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">Rủ bạn bè</string>
+    <string name="hype_nudge_title">Ai cũng có vé rồi 🎟️</string>
+    <string name="hype_nudge_text">Cả nhóm đi %1$s đều có vé rồi. Hẹn gặp ở đó!</string>
+</resources>

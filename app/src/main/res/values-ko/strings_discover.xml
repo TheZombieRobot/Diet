@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">티켓 있음 ✓</string>
+    <string name="hype_no_ticket">아직 티켓 없음</string>
+    <string name="hype_wakes_up">공연 당일에 깨어나요</string>
+    <string name="hype_get_tickets">티켓 구매</string>
+    <string name="hype_my_ticket">티켓 샀어요</string>
+    <string name="hype_my_ticket_sub">친구들에게 체크 표시가 보여요</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">친구 초대</string>
+    <string name="hype_nudge_title">모두 티켓을 샀어요 🎟️</string>
+    <string name="hype_nudge_text">%1$s 크루 모두 티켓이 있어요. 거기서 만나요!</string>
+</resources>

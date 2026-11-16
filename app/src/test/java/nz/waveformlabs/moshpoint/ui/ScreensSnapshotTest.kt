@@ -475,6 +475,49 @@ open class ScreensSnapshotTest {
         }
     }
 
+    // ---- The hype group (docs/DISCOVER_APP.md, HypeGroup.png): a planned crew asleep until the day ----
+    // Made-up act, venue and link; Rae and Sam have tickets, Jo and Kai don't yet.
+
+    private fun hypeView(link: Boolean = true, mine: Boolean = false, days: Int = 117) = nz.waveformlabs.moshpoint.ui.home.HypeView(
+        days = days, name = "Ivory Tide", venue = "Tidewater Arena, Auckland",
+        whenText = nz.waveformlabs.moshpoint.discover.HypeData.whenText(HomeFixtures.MAR_13),
+        ticketLink = if (link) "https://tickets.example.com/ivory-tide" else null,
+        ticks = mapOf("rae" to true, "sam" to true),
+        mine = mine,
+        chatFrom = "Sam", chatText = "Barrier or balcony?", chatFace = HomeFixtures.sam,
+    )
+
+    private fun snapHype(link: Boolean = true, mine: Boolean = false, days: Int = 117) = snap {
+        MoshTheme {
+            HomeUnderTest(
+                groupName = "Ivory Tide", crewKeys = setOf(HomeFixtures.rae.key, HomeFixtures.sam.key, HomeFixtures.jo.key),
+                seen = emptyMap(), distances = emptyMap(), pings = emptyList(), meetUp = null, chatUnread = 3,
+                crewSleeping = true, upNext = emptyList(), hype = hypeView(link, mine, days),
+            )
+        }
+    }
+
+    /** The hype group: countdown, the show with Get tickets, who has a ticket, your toggle, chat, Invite mates. */
+    @Test fun hypeGroup() = snapHype()
+
+    /** Ticked yourself; a show typed in by hand has no ticket link; tomorrow. */
+    @Test fun hypeGroupTicked() = snapHype(link = false, mine = true, days = 1)
+
+    @Test fun smallPhoneHypeGroup() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5))
+        snapHype()
+    }
+
+    @Test fun largeFontHypeGroup() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.PIXEL_5).copy(fontScale = 1.3f))
+        snapHype()
+    }
+
+    @Test fun smallPhoneLargeFontHypeGroup() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        snapHype()
+    }
+
     /** Following from home: where they are (at the venue / how far from it), the latest alerts, the story, the map. */
     @Test fun homeFollowing() = snap {
         MoshTheme {

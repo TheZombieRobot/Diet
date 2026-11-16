@@ -190,6 +190,18 @@ internal object HomeIcons {
         )
     }
     val Plus by lazy { line("plus", 2.6f, "M12 5v14M5 12h14") }
+
+    // Discover and hype (docs/DISCOVER_APP.md)
+    val Ticket by lazy { line("ticket", 2f, "M3 7h18v3.2a1.8 1.8 0 0 0 0 3.6V17H3v-3.2a1.8 1.8 0 0 0 0-3.6z", "M9.5 7.5v1.5M9.5 11.25v1.5M9.5 15v1.5") }
+    val External by lazy { line("external", 2.2f, "M14 4h6v6", "M20 4l-8.5 8.5", "M18 13.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5.5") }
+    val Search by lazy { line("search", 2.4f, circle(11f, 11f, 6.5f), "M16 16l4.5 4.5") }
+    val Close by lazy { line("close", 2.2f, "M6.5 6.5l11 11M17.5 6.5l-11 11") }
+    val Pencil by lazy { line("pencil", 2f, "M4 20h4L19 9l-4-4L4 16z", "M13.5 6.5l4 4") }
+    val Clock by lazy { line("clock", 2f, circle(12f, 12f, 8.5f), "M12 7.5V12l3 2") }
+    val Sparkle by lazy { solid("sparkle", "M12 2.5l2 7.5 7.5 2-7.5 2-2 7.5-2-7.5-7.5-2 7.5-2z") }
+    val CalendarPlus by lazy {
+        line("calendarplus", 2f, "M6 5.5h12a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z", "M4 10h16M8.5 3.5v4M15.5 3.5v4", "M12 12.5v5M9.5 15h5")
+    }
     val Reset by lazy { line("reset", 2f, "M20 12a8 8 0 1 1-2.34-5.66", "M20 4v4.5h-4.5") }
     val Plan by lazy { line("plan", 2f, "M7 4h10v16l-5-3.5L7 20z") }
     val Pulse by lazy { line("pulse", 2f, "M3 12h4l3-7 4 14 3-7h4") }

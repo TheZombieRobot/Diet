@@ -122,6 +122,7 @@ object Crews {
         ended.forEach {
             PrivateMessages.forgetId(c, it.id)
             nz.waveformlabs.moshpoint.chat.CrewChat.forget(c, it.group)
+            nz.waveformlabs.moshpoint.discover.HypeTickets.forget(c, it.group)
             nz.waveformlabs.moshpoint.profile.Identity.forget(c, it.group)
         }
     }
@@ -139,6 +140,7 @@ object Crews {
         .apply { g.venueLat?.let { put("vlat", it.toString()) } }
         .apply { g.venueLon?.let { put("vlon", it.toString()) } }
         .apply { ownerFields(this, g) }
+        .apply { ticketFields(this, g) }
         .put("following", following)
 
     /** An owned crew's owner and salt, or neither (see GigGroup.owned). */
@@ -154,6 +156,14 @@ object Crews {
         return o
     }
 
+    /** The crew's ticket link and its maker's signature (docs/DISCOVER_APP.md), when it has one that checks out. */
+    private fun ticketFields(o: JSONObject, g: GigGroup): JSONObject {
+        val link = g.ticketLink
+        val sig = g.ticketsSig
+        if (link != null && sig != null) o.put("tk", link).put("tks", Base64.encodeToString(sig, Base64.NO_WRAP)) else { o.remove("tk"); o.remove("tks") }
+        return o
+    }
+
     fun groupFrom(o: JSONObject): GigGroup? = runCatching {
         GigGroup(
             Base64.decode(o.getString("key"), Base64.NO_WRAP), o.optString("name", Txt.s(R.string.crew_default_group_name)), o.optLong("created", 0L),
@@ -161,6 +171,8 @@ object Crews {
             o.optString("vlat", "").toDoubleOrNull(), o.optString("vlon", "").toDoubleOrNull(),
             o.optString("owner", "").takeIf { it.isNotEmpty() }?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
             o.optString("osalt", "").takeIf { it.isNotEmpty() }?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
+            o.optString("tk", ""),
+            o.optString("tks", "").takeIf { it.isNotEmpty() }?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
         )
     }.getOrNull()
 }

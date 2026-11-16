@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <!-- Discover and hype (docs/DISCOVER_APP.md). Under a crew mate's face in the hype group (HypeGroup.png): they've ticked "I've got my ticket". Short: it wraps under a 70 dp face. -->
+    <string name="hype_got_ticket">Got my ticket ✓</string>
+    <!-- Under a crew mate's face in the hype group: no tick yet. -->
+    <string name="hype_no_ticket">No ticket yet</string>
+    <!-- After the crew count under the countdown ("5 in the crew · wakes up on the day"): the crew sleeps (no battery) until gig day. -->
+    <string name="hype_wakes_up">wakes up on the day</string>
+    <!-- The button on the show card: opens the show's official ticket page in the browser. -->
+    <string name="hype_get_tickets">Get tickets</string>
+    <!-- Your own switch under the faces in the hype group. -->
+    <string name="hype_my_ticket">I\'ve got my ticket</string>
+    <!-- Under "I've got my ticket": what the switch does. -->
+    <string name="hype_my_ticket_sub">Shows a tick to your mates</string>
+    <!-- The crew chat row's newest line: who, then what they said ("Sam: Barrier or balcony?"). -->
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <!-- The button at the bottom of the hype group: shows the crew's invite (QR and link). -->
+    <string name="hype_invite_mates">Invite mates</string>
+    <!-- Notification to the crew's maker, once, when everyone in the crew has ticked "I've got my ticket". -->
+    <string name="hype_nudge_title">Everyone\'s got a ticket 🎟️</string>
+    <!-- Under that title. %1$s is the gig ("Ivory Tide"). -->
+    <string name="hype_nudge_text">Your whole crew for %1$s has tickets. See you there!</string>
+</resources>

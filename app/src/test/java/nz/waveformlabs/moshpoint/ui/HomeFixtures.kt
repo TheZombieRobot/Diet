@@ -41,6 +41,8 @@ internal object HomeFixtures {
     const val SAT_21 = 1_795_244_400L
     /** Saturday 16 January 2027. */
     const val JAN_16 = 1_800_082_800L
+    /** Saturday 13 March 2027, 7:30 pm in Auckland: the hype group's gig (Discover mock-ups). */
+    const val MAR_13 = 1_804_919_400L
 
     /** A mate with their own key (tonight's crew is matched by key). */
     fun mate(id: String, name: String, colour: Long, gig: Boolean) =
@@ -150,6 +152,7 @@ internal fun HomeUnderTest(
     privateUnread: Map<String, Int> = emptyMap(),
     venueMap: VenueMaps.Status? = null,
     myName: String = "Josh",
+    hype: nz.waveformlabs.moshpoint.ui.home.HypeView? = null,
 ) = FriendsScreen(
     me = HomeMe(
         myName = myName, visible = visible, alwaysOn = false, phoneSummary = "",
@@ -161,7 +164,7 @@ internal fun HomeUnderTest(
         moments = moments, checkInBy = checkInBy, distances = distances, crewQrPayload = crewQrPayload,
         following = following, tileNotes = tileNotes, followers = followers,
         crewWhen = crewWhen, crewSleeping = crewSleeping,
-        chatUnread = chatUnread, pinnedPlan = pinnedPlan, flareNotes = flareNotes, venueMap = venueMap,
+        chatUnread = chatUnread, pinnedPlan = pinnedPlan, flareNotes = flareNotes, venueMap = venueMap, hype = hype,
     ),
     gigs = HomeGigs(upNext = upNext, pastGigs = pastGigs),
     scanned = null,

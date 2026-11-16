@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">Heb mijn ticket ✓</string>
+    <string name="hype_no_ticket">Nog geen ticket</string>
+    <string name="hype_wakes_up">wordt wakker op de dag zelf</string>
+    <string name="hype_get_tickets">Tickets kopen</string>
+    <string name="hype_my_ticket">Ik heb mijn ticket</string>
+    <string name="hype_my_ticket_sub">Je vrienden zien een vinkje</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">Vrienden uitnodigen</string>
+    <string name="hype_nudge_title">Iedereen heeft een ticket 🎟️</string>
+    <string name="hype_nudge_text">Je hele crew voor %1$s heeft tickets. Tot daar!</string>
+</resources>

@@ -320,6 +320,15 @@ fun FriendsScreen(
                         Spacer(Modifier.height(24.dp))
                         NoCrewHero(onStart = startCrew, onPlan = inviteActions.onPlanGig, onScan = inviteActions.onScanQr, onPaste = inviteActions.onPasteInvite)
                     }
+                    // A planned crew asleep until the day: its hype group (docs/DISCOVER_APP.md).
+                    crew.hype != null && crew.crewSleeping && !crew.following -> {
+                        Spacer(Modifier.height(20.dp))
+                        HypeGroupBody(
+                            crew.hype, crewCount = if (gig.isEmpty()) null else crewCount, crew = gig, chatUnread = crew.chatUnread,
+                            onMenu = { menuOpen = true }, onTickets = crewActions.onTickets, onMyTicket = crewActions.onMyTicket,
+                            onOpenChat = crewActions.onOpenChat, onInvite = inviteActions.onShowGroupQr, onOptions = { options = it },
+                        )
+                    }
                     else -> {
                         Spacer(Modifier.height(20.dp))
                         CrewHeader(

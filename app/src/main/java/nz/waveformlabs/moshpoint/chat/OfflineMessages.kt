@@ -463,10 +463,12 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         val pin = message.pin
         val ping = message.ping
         val here = message.here
+        val ticket = message.ticket
         val pm = message.pm
         when {
             pin != null -> if (isMain(g)) GroupSync.onRally(c, pin)
             here != null -> HerePins.arrived(c, g, here)
+            ticket != null -> nz.waveformlabs.moshpoint.discover.HypeTickets.arrived(c, g, ticket)
             // A private message for us (the courier only hands over the ones it could open).
             pm != null -> PrivateMessages.arrived(c, g, pm)
             ping == null -> Unit

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">معي تذكرتي ✓</string>
+    <string name="hype_no_ticket">لا تذكرة بعد</string>
+    <string name="hype_wakes_up">تستيقظ يوم الحفلة</string>
+    <string name="hype_get_tickets">احصل على التذاكر</string>
+    <string name="hype_my_ticket">معي تذكرتي</string>
+    <string name="hype_my_ticket_sub">يُظهر علامة ✓ لأصحابك</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">ادعُ أصحابك</string>
+    <string name="hype_nudge_title">الجميع معه تذكرة 🎟️</string>
+    <string name="hype_nudge_text">كل الشلة لحفلة %1$s معهم تذاكر. نراكم هناك!</string>
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">टिकट मिल गया ✓</string>
+    <string name="hype_no_ticket">अभी टिकट नहीं</string>
+    <string name="hype_wakes_up">शो वाले दिन जागेगा</string>
+    <string name="hype_get_tickets">टिकट लें</string>
+    <string name="hype_my_ticket">मेरा टिकट हो गया</string>
+    <string name="hype_my_ticket_sub">दोस्तों को ✓ दिखेगा</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">दोस्तों को बुलाएँ</string>
+    <string name="hype_nudge_title">सबके पास टिकट है 🎟️</string>
+    <string name="hype_nudge_text">%1$s के लिए पूरे ग्रुप के पास टिकट है। वहीं मिलते हैं!</string>
+</resources>

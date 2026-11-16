@@ -64,6 +64,8 @@ class HomeCrew(
     val flareNotes: Map<String, String> = emptyMap(),
     /** The line about the venue's offline map (see VenueMaps); null = no line. */
     val venueMap: VenueMaps.Status? = null,
+    /** A planned crew's hype group while it sleeps (docs/DISCOVER_APP.md); null = the plain Coming up view. */
+    val hype: HypeView? = null,
 )
 
 /** Other nights: crews coming up, and gigs kept on this phone. */
@@ -126,6 +128,10 @@ class HomeCrewActions(
     /** Is this crew mate blocked on this phone? Then "Unblock Sam" is offered instead. */
     val isBlocked: (String) -> Boolean = { false },
     val onUnblock: (String) -> Unit = {},
+    /** Get tickets in the hype group: open the crew's ticket link (docs/DISCOVER_APP.md). */
+    val onTickets: (String) -> Unit = {},
+    /** "I've got my ticket" in the hype group. */
+    val onMyTicket: (Boolean) -> Unit = {},
 )
 
 /** Starting, planning and joining crews, and adding people. */

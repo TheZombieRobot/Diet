@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Discover and hype (docs/DISCOVER_APP.md). Every new string of that work is here. -->
+<resources>
+    <string name="hype_got_ticket">Udah punya tiket ✓</string>
+    <string name="hype_no_ticket">Belum punya tiket</string>
+    <string name="hype_wakes_up">bangun di hari H</string>
+    <string name="hype_get_tickets">Beli tiket</string>
+    <string name="hype_my_ticket">Aku udah punya tiket</string>
+    <string name="hype_my_ticket_sub">Teman kamu bakal lihat centangnya</string>
+    <string name="hype_chat_line">%1$s: %2$s</string>
+    <string name="hype_invite_mates">Ajak teman</string>
+    <string name="hype_nudge_title">Semua udah punya tiket 🎟️</string>
+    <string name="hype_nudge_text">Seluruh geng kamu untuk %1$s udah punya tiket. Sampai ketemu di sana!</string>
+</resources>

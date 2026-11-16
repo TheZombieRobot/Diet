@@ -10,14 +10,16 @@ _Handover, kept current at every push. A new session can resume from this sectio
 
 | Stage | State |
 |---|---|
-| 1. Hype group, for everyone | **core done** (message, rules, link, courier, 595 core tests pass locally); app wiring, screen, strings, screenshots: in progress |
+| 1. Hype group, for everyone | **written, first CI run pending.** Core: message, rules, link, courier (595 core tests pass locally). App: `discover/HypeTickets.kt` (ticks, our toggle, daily re-post, the nudge), `discover/HypeData.kt` (the view, Get tickets), `ui/home/HypeGroup.kt` (the screen), crews store `tk`/`tks`, `strings_discover.xml` (20 folders, checker OK), screenshot tests `hypeGroup`, `hypeGroupTicked`, `smallPhoneHypeGroup`, `largeFontHypeGroup`, `smallPhoneLargeFontHypeGroup`, field test 4k |
 | 2. Plan a gig, free view | not started |
 | 3. Smart search, members | not started |
 | 4. Coming up near you, members | not started |
 
 **Last green CI run:** none yet on this branch.
 
-**Exact next step:** stage 1 in the app (see "Stage 1: the app" below for the plan).
+**Exact next step:** check the CI run for the stage 1 push (compile, then the screenshot step's
+log for failing tests, then look at the new pictures on `ui-screenshots-claude-discover-app-h7v2rk`),
+fix, then stage 2.
 
 **How to work on it:**
 
@@ -85,6 +87,21 @@ plan, signed like the rest" was read as: it goes wherever the crew's name, date 
 
 **The countdown** is calendar days by the phone's own calendar (`Countdown.daysUntil`): 117 from
 16 Nov 2026 to Sat 13 Mar 2027, "tomorrow" late the night before, never negative.
+
+**The screen** (`HypeGroupBody`, shown instead of the old Coming up view when the main crew
+sleeps and you're not following from home; followers keep the old view):
+
+- The countdown is the headline, number in the brand gradient; "tomorrow" and "tonight" reuse
+  the existing countdown strings. Under it, "4 in the crew · wakes up on the day".
+- The show card's art is drawn from the brand colours, mixed by the show's name: no artwork is
+  fetched (no picture host to allow, nothing to cache, and the same on every phone).
+- The date line is "Sat 13 Mar · 7:30 pm", not the mock's "doors 7:00 pm": the app knows when
+  the show starts, not when the doors open.
+- Faces use the crew strip (`CrewTiles` with `tickets`): a lime ring and "Got my ticket ✓", or
+  no ring and "No ticket yet". Nobody is dimmed (the crew is asleep, not missing).
+- Chat row: the newest chat line and its sender's face; Invite mates opens the crew's invite.
+- Every existing screenshot is unchanged: the new view needs `HomeCrew.hype`, which the tests
+  only set in the new ones (the old `homeComingUp` is now the followers' view).
 
 ### For the server (not changed here: app-only branch)
 
