@@ -170,12 +170,12 @@ private fun ShowTile(show: DiscoverShow, travel: Boolean, planned: Boolean, onCl
         Spacer(Modifier.height(10.dp))
         Text(show.artist, style = HomeType.RowTitle.copy(fontSize = 17.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (show.venue.isNotBlank()) Text(show.venue, style = HomeType.Body.copy(fontSize = 14.5.sp, lineHeight = 18.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        val where = if (travel && show.km > 0) {
-            listOf(show.city, stringResource(R.string.coming_km, java.text.NumberFormat.getIntegerInstance().format(show.km))).filter { it.isNotBlank() }.joinToString(" · ")
-        } else {
-            show.city
+        val faint = HomeType.Body.copy(fontSize = 14.5.sp, lineHeight = 18.sp, color = Mosh.TextFaint)
+        if (show.city.isNotBlank()) Text(show.city, style = faint, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        // Worth travelling for: how far, on its own line so it's never cut short.
+        if (travel && show.km > 0) {
+            Text(stringResource(R.string.coming_km, java.text.NumberFormat.getIntegerInstance().format(show.km)), style = faint.copy(color = Mosh.Lilac), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        if (where.isNotBlank()) Text(where, style = HomeType.Body.copy(fontSize = 14.5.sp, lineHeight = 18.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(10.dp))
         PlanItButton(planned, onClick)
     }
