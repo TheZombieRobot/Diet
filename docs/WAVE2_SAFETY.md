@@ -27,11 +27,9 @@ _Keep this section current: whoever picks this up next starts here._
   scan) is separate from everything here (check-ins, Need help, Live on crew change), and its
   PermissionAsks (`askWithDisclosure`) is what `HomeState.setVisibility` now calls before the
   honest go-live path added here.
-- **CI:** see "CI runs" at the end.
-- **Next:** if CI is red, fix what it lists (the "Compile errors" step greps `^e: `). Check the
-  new screenshots in every language (ui-screenshots-claude-wave2-safety-k7m3p9) and that every
-  other screen is byte-identical to origin/ui-screenshots. Before the final run, merge
-  `origin/ccr-5839ed7c-1q0ztj`.
+- **CI:** green, run 310 on 10a5965 (see "CI runs" at the end).
+- **Next:** merge into ccr (the main branch already contains wave 2b, merged here), then the
+  field tests in docs/FIELD_TEST_PLAN.md section 4f on phones. Nothing from the list is left.
 - **If ccr moves on:** the shared files touched here are small, local edits: `AndroidManifest.xml`
   (configChanges, one receiver, MY_PACKAGE_REPLACED), `GroupSync` (sendPing's result, check-in
   alarms, Live on crew change), `MainActivity` (onResume reconcile, BackgroundChecks at start),
@@ -207,4 +205,10 @@ Bluetooth off; Doze (adb force-idle, followers' check); Live switching itself of
   normal phone; on a small phone with a large font the Need help contents ran past the bottom,
   so they scroll now (a dialog clips its text instead of scrolling it), and the test frame lays
   out like the dialog.
-- Final run: see the report (same checks; only the help screenshots should differ from 307's).
+- Run 309 (76169e9): cancelled (superseded by the merge of wave 2b).
+- **Run 310 (10a5965, the merge of ccr with wave 2b): green**, phone and watch: translations,
+  core and server tests, debug and release builds, the 16 KB alignment checks, every
+  screenshot. Compared with wave 2b's own final set (main + 2b, ui-screenshots-claude-play-
+  store-security): all 1,417 phone and 798 watch screenshots byte-identical; the only
+  difference is the 252 new ones. The small-phone, large-font Need help now keeps Close on
+  screen and scrolls, in every language.
