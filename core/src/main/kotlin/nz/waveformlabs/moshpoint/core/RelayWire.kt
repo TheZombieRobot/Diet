@@ -77,7 +77,73 @@ object RelayWire {
         return Block(status, next, records)
     }
 
-    internal fun ByteArrayOutputStream.u16(v: Int) {
+    /** One op of a `POST /v1/batch` request: its type and payload. */
+    class Op(val type: Int, val payload: ByteArray) {
+        val isGet: Boolean get() = type == GET_BOX || type == GET_HELD
+
+        /** Bytes it takes in the request: `[type:1][length:2]` and the payload. */
+        val size: Int get() = 3 + payload.size
+    }
+
+    /** `PUT_BOX` / `PUT_HELD`: `[id:16][record]`. */
+    fun put(held: Boolean, id: ByteArray, record: ByteArray): Op {
+        require(id.size == ID_SIZE) { "an id is 16 bytes" }
+        return Op(if (held) PUT_HELD else PUT_BOX, id + record)
+    }
+
+    /** `GET_BOX` / `GET_HELD`: `[id:16][since:8]` (since 0 = everything). */
+    fun get(held: Boolean, id: ByteArray, since: Long): Op {
+        require(id.size == ID_SIZE) { "an id is 16 bytes" }
+        return Op(if (held) GET_HELD else GET_BOX, ByteBuffer.allocate(24).put(id).putLong(since).array())
+    }
+
+    /** Bytes of a whole request of [ops]: `[version][count]` and each op. */
+    fun batchSize(ops: List<Op>): Int = 2 + ops.sumOf { it.size }
+
+    /** `POST /v1/batch` body: `[version = 1][op count]` then each op as `[type:1][length:2][payload]`. */
+    fun batch(ops: List<Op>): ByteArray {
+        require(ops.size in 1..MAX_OPS) { "1 to 200 ops" }
+        val out = ByteArrayOutputStream(batchSize(ops))
+        out.write(VERSION)
+        out.write(ops.size)
+        for (op in ops) {
+            out.write(op.type)
+            out.u16(op.payload.size)
+            out.write(op.payload)
+        }
+        return out.toByteArray()
+    }
+
+    /** One op's part of the answer: a put's [status], or a get's [block] (null for a put, or a type the relay didn't know). */
+    class Answer(val status: Int, val block: Block?)
+
+    /**
+     * `POST /v1/batch` answer, `[version][count]` then per op in the order sent: a put's status
+     * byte, a get's whole block, or a lone 6 (UNKNOWN) for a type the relay doesn't know. Null
+     * if it isn't one.
+     */
+    fun parseBatch(body: ByteArray, ops: List<Op>): List<Answer>? = runCatching {
+        val b = ByteBuffer.wrap(body)
+        if (b.get().toInt() != VERSION || (b.get().toInt() and 0xFF) != ops.size) return null
+        val out = ops.map { op ->
+            if (!op.isGet) {
+                Answer(b.get().toInt() and 0xFF, null)
+            } else {
+                // A get always answers its whole block, but a relay that didn't know the type sends 6
+                // alone. (Peeked with an absolute get: Buffer.mark/reset return types differ on old Androids.)
+                if ((b.get(b.position()).toInt() and 0xFF) == UNKNOWN) {
+                    b.get()
+                    Answer(UNKNOWN, null)
+                } else {
+                    val block = readBlock(b) ?: return null
+                    Answer(block.status, block)
+                }
+            }
+        }
+        if (b.hasRemaining()) null else out
+    }.getOrNull()
+
+    private fun ByteArrayOutputStream.u16(v: Int) {
         write(v shr 8 and 0xFF)
         write(v and 0xFF)
     }

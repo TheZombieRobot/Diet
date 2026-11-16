@@ -24,6 +24,7 @@ import nz.waveformlabs.moshpoint.setup.NetState
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.BatchPlan
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup
@@ -188,6 +189,9 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
     private var saveFailedAt = Long.MIN_VALUE / 2
     private const val SAVE_RETRY_MS = 30_000L
 
+    /** When a message of ours was last handed to [post]: its upload shouldn't wait for the minute's batch. */
+    private var lastPostMs = Long.MIN_VALUE / 2
+
     /**
      * Keep the courier's record of what this phone has had right now, not in a moment. Called
      * when an alert was just raised on that record alone, so a restart can't raise it again.
@@ -211,6 +215,7 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         // Still starting up (the crew list isn't synced yet): teach the courier just this crew,
         // so the message is queued rather than dropped. The full list follows in crewsLoaded.
         if (starting) courier.knowCrew(Courier.Crew(crewId, g, Identity.signer(a, g), main = false))
+        lastPostMs = SystemClock.elapsedRealtime()
         val m = courier.post(crewId, sealed, t)
         courier.tick(t)
         // Nothing can go just now (no network, or the relay asked us to slow down): say it's
@@ -370,17 +375,30 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
             courier.onUploaded(job, PutResult.REFUSED, now())
             return
         }
+        // Our own message just written: it goes within a couple of seconds, not with the minute's batch.
+        val soon = !job.helper && SystemClock.elapsedRealtime() - lastPostMs < SOON_AFTER_POST_MS
         scope.launch {
-            // One at a time: a helper's batch goes out in order, not as five requests at once.
-            val result = uploads.withLock {
-                // The mailbox id that is valid now: readers look at today and yesterday, this ping id and the last.
+            // The mailbox id that is valid now: readers look at today and yesterday, this ping id and the last.
+            fun mailbox(): Pair<ByteArray, Boolean> {
                 val ms = now()
                 val day = Math.floorDiv(ms / 1000, 86_400L)
-                when (job.box) {
-                    Courier.Box.CHAT -> RelayClient.send(g.chatIdForDay(day), job.sealed, job.use, held = true)
-                    Courier.Box.PING -> RelayClient.send(g.pingIdForEpoch(Math.floorDiv(ms, EphemeralId.DEFAULT_ROTATION_MS)), job.sealed, job.use)
-                    Courier.Box.PIN -> RelayClient.send(g.rallyIdForDay(day), job.sealed, job.use)
-                    Courier.Box.PRIVATE -> RelayClient.send(g.privateIdForDay(day), job.sealed, job.use, held = true)
+                return when (job.box) {
+                    Courier.Box.CHAT -> g.chatIdForDay(day) to true
+                    Courier.Box.PING -> g.pingIdForEpoch(Math.floorDiv(ms, EphemeralId.DEFAULT_ROTATION_MS)) to false
+                    Courier.Box.PIN -> g.rallyIdForDay(day) to false
+                    Courier.Box.PRIVATE -> g.privateIdForDay(day) to true
+                }
+            }
+            val result = if (BatchPlan.route(job.use) == BatchPlan.Route.BATCH && RelayClient.batching) {
+                // Not safety: rides the next batch to our own relay (docs/WAVE2C_ENDPOINTS.md, step 4).
+                val (id, held) = mailbox()
+                RelayClient.sendBatched(id, job.sealed, job.use, held, soon)
+            } else {
+                // Safety (Need help, Check in, Home safe), and everything without batches: at once, on its own, as before.
+                // One at a time: a helper's batch goes out in order, not as five requests at once.
+                uploads.withLock {
+                    val (id, held) = mailbox()
+                    RelayClient.send(id, job.sealed, job.use, held)
                 }
             }
             val t = now()
@@ -389,6 +407,8 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
             save()
         }
     }
+
+    private const val SOON_AFTER_POST_MS = 10_000L
 
     // ---- Bluetooth (the crowd relay's adverts) ----
 

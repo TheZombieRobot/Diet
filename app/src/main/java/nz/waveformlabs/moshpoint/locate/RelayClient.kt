@@ -2,15 +2,20 @@ package nz.waveformlabs.moshpoint.locate
 
 import android.os.SystemClock
 import android.util.Base64
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.setup.NetState
+import nz.waveformlabs.moshpoint.core.BatchPlan
 import nz.waveformlabs.moshpoint.core.HeldMirror
 import nz.waveformlabs.moshpoint.core.InstallToken
 import nz.waveformlabs.moshpoint.core.InviteRelay
@@ -104,6 +109,12 @@ object RelayClient {
     /** Shown in the debug panel. */
     val label get() = if (ownServer) "own server" else "ntfy.sh (public, encrypted)"
 
+    /**
+     * How often the crew sync talks to the relay: once a minute with batches (our own relay, one
+     * request carrying everything); without them as before (30 s on our relay, 55 s on the public one).
+     */
+    val syncGapMs: Long get() = if (batching) 60_000L else if (ownServer) 30_000L else 55_000L
+
     /** How often finders should poll for locations. */
     val pollMs get() = if (ownServer) 4_000L else 15_000L
 
@@ -131,8 +142,20 @@ object RelayClient {
     val shareableServer get() = InviteRelay.forInvites(BuildConfig.MOSHPOINT_SERVER, serverUrl, serverFromInvite, BuildConfig.TEST_BUILD, ownRelays)
     private const val NTFY = "https://ntfy.sh"
 
-    /** Location shares, intros and the like: [RelayUse.BACKGROUND] unless the caller says otherwise. */
-    suspend fun put(id: ByteArray, sealed: ByteArray, use: RelayUse = RelayUse.BACKGROUND): Boolean = send(id, sealed, use).ok
+    /**
+     * Location shares, floor boxes, crowd-relay packets and crew intros: [RelayUse.BACKGROUND]
+     * unless the caller says otherwise. With our own relay these wait for the minute's batch
+     * (docs/RELAY_API.md section 11.4), the newest copy for each rotating id; [soon] = someone is
+     * waiting for it (a mate is looking for us): it goes within a couple of seconds. [alone]: never
+     * batched (the last-gasp location at 5%). True once the relay has it, or it's waiting for the batch.
+     */
+    suspend fun put(id: ByteArray, sealed: ByteArray, use: RelayUse = RelayUse.BACKGROUND, soon: Boolean = false, alone: Boolean = false): Boolean {
+        if (!alone && use == RelayUse.BACKGROUND && !offline && batching && sealed.size in RelayWire.MIN_RECORD..RelayWire.MAX_BOX_RECORD) {
+            queue(BatchPlan.Put(id, sealed, held = false, replaceable = true), if (soon) BatchPlan.Timing.SOON else BatchPlan.Timing.MINUTE)
+            return true
+        }
+        return send(id, sealed, use).ok
+    }
 
     /**
      * Post one sealed record under [id] and say how it went. [held] = the crew-chat mailbox
@@ -520,6 +543,219 @@ object RelayClient {
         }
     }
 
+    // ---- One batch a minute (docs/RELAY_API.md sections 9 and 11.4) ----
+
+    /** Our own relay, and it takes batches (an older one answered 404 in the last hour: no). */
+    val batching: Boolean get() = ownServer && endpoints.usable(RelayEndpoints.Endpoint.BATCH, base, SystemClock.elapsedRealtime())
+
+    /** What waits for the next batch (core [BatchPlan]); [plan] and [waiters] are guarded by [batchLock]. */
+    private val plan = BatchPlan()
+    private val batchLock = Any()
+
+    /** The courier's messages waiting in a batch, by their put's key: the answer goes back to the courier. */
+    private val waiters = HashMap<Long, CompletableDeferred<PutResult>>()
+    private var nextKey = 1L
+
+    /** One batch request at a time. */
+    private val batchSend = Mutex()
+    private val nudges = Channel<Unit>(Channel.CONFLATED)
+    @Volatile private var flusherStarted = false
+
+    private const val MAX_SYNC_GETS = 150
+    private const val MAX_BATCH_ROUNDS = 10
+
+    /** The longest a crew message waits for its batch before the courier is told "no answer" (and tries again). */
+    private const val BATCH_WAIT_MS = 90_000L
+
+    /**
+     * One of the courier's crew messages (never safety: that goes at once, on its own, with
+     * [send]) in the next batch. Waits for the batch carrying it and says how it went, as [send]
+     * does. [soon]: a message just written: it goes within a couple of seconds, taking whatever
+     * else is waiting with it. Without batches, [send] as before.
+     */
+    suspend fun sendBatched(id: ByteArray, sealed: ByteArray, use: RelayUse, held: Boolean, soon: Boolean): PutResult {
+        val max = if (held) RelayWire.MAX_HELD_RECORD else RelayWire.MAX_BOX_RECORD
+        if (BatchPlan.route(use) == BatchPlan.Route.ALONE || offline || !batching || sealed.size !in RelayWire.MIN_RECORD..max) {
+            return send(id, sealed, use, held)
+        }
+        val waiter = CompletableDeferred<PutResult>()
+        val key = synchronized(batchLock) {
+            val k = nextKey++
+            waiters[k] = waiter
+            plan.add(BatchPlan.Put(id, sealed, held, replaceable = false, key = k), if (soon) BatchPlan.Timing.SOON else BatchPlan.Timing.MINUTE, SystemClock.elapsedRealtime())
+            k
+        }
+        startFlusher()
+        nudges.trySend(Unit)
+        return withTimeoutOrNull(BATCH_WAIT_MS) { waiter.await() } ?: synchronized(batchLock) {
+            waiters.remove(key)
+            plan.cancel(key)
+            PutResult.NO_NETWORK
+        }
+    }
+
+    /**
+     * The crew sync's mailboxes, read in the minute's batch together with everything waiting to
+     * go up: for each id its records, newest first, exactly as [lookup] answers. Without batches
+     * (an older relay, the public relay), [lookup] as before.
+     */
+    suspend fun sync(ids: List<ByteArray>): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
+        if (ids.isEmpty()) return@withContext null
+        if (batching && !offline && ids.size <= MAX_SYNC_GETS) {
+            val gets = ids.map { BatchPlan.Get(it, held = false, since = 0L) }.toMutableList()
+            val oldestFirst = List(ids.size) { ArrayList<ByteArray>() }
+            var asking = ids.indices.toList()
+            var rounds = 0
+            var answered = true
+            while (asking.isNotEmpty() && rounds++ < MAX_BATCH_ROUNDS) {
+                when (val out = sendBatch(asking.map { gets[it] })) {
+                    is BatchOut.Done -> asking = asking.filterIndexed { j, i ->
+                        val block = out.blocks[j]
+                        block?.records?.let { oldestFirst[i].addAll(it) }
+                        // The answer filled up: the rest of this mailbox, from where it stopped.
+                        (block?.status == RelayWire.MORE).also { more -> if (more) gets[i] = BatchPlan.Get(ids[i], held = false, since = block!!.next) }
+                    }
+                    BatchOut.Failed -> return@withContext null
+                    BatchOut.Missing -> {
+                        answered = false
+                        break
+                    }
+                }
+            }
+            if (answered) return@withContext oldestFirst.map { it.asReversed().toList() }
+        }
+        lookup(ids)
+    }
+
+    /** How a batch went: [Done] with each get's block (null: none), [Failed] (no answer, too many), [Missing] (this relay has no batches). */
+    private sealed class BatchOut {
+        class Done(val blocks: List<RelayWire.Block?>) : BatchOut()
+        object Failed : BatchOut()
+        object Missing : BatchOut()
+    }
+
+    private fun queue(p: BatchPlan.Put, timing: BatchPlan.Timing) {
+        synchronized(batchLock) { plan.add(p, timing, SystemClock.elapsedRealtime()) }
+        startFlusher()
+        if (timing == BatchPlan.Timing.SOON) nudges.trySend(Unit)
+    }
+
+    /**
+     * Sends what's waiting when it's due and no crew sync has taken it first: a minute after the
+     * oldest put, or a couple of seconds after one someone is waiting for. Asleep while nothing waits.
+     */
+    private fun startFlusher() {
+        if (flusherStarted) return
+        synchronized(batchLock) {
+            if (flusherStarted) return
+            flusherStarted = true
+        }
+        background.launch {
+            while (true) {
+                try {
+                    val due = synchronized(batchLock) { plan.dueAtMs() }
+                    val wait = if (due == Long.MAX_VALUE) Long.MAX_VALUE else due - SystemClock.elapsedRealtime()
+                    when {
+                        wait == Long.MAX_VALUE -> nudges.receive()
+                        wait > 0 -> withTimeoutOrNull(wait) { nudges.receive() }
+                        // The relay changed, or stopped taking batches: what's waiting goes one by one.
+                        !batching -> sendAlone(synchronized(batchLock) { plan.drain() })
+                        offline -> delay(5_000)
+                        // No answer, or everything waiting is held (a busy mailbox, a byte budget): look again in a bit.
+                        sendBatch(emptyList()) !is BatchOut.Done || synchronized(batchLock) { plan.dueAtMs() } <= SystemClock.elapsedRealtime() -> delay(5_000)
+                    }
+                } catch (e: Exception) {
+                    delay(5_000)
+                }
+            }
+        }
+    }
+
+    /**
+     * One `POST /v1/batch`: everything waiting that may go now, after [gets]. Puts are answered to
+     * their waiters (the courier), or wait again (locations) when the batch got no answer.
+     */
+    private suspend fun sendBatch(gets: List<BatchPlan.Get>): BatchOut = batchSend.withLock {
+        val b = base
+        val start = SystemClock.elapsedRealtime()
+        val taken = synchronized(batchLock) {
+            plan.take(gets, start) { p ->
+                holds.heldUntil(RelayHolds.Traffic.RECORDS, p.id.hex(), if (p.replaceable) RelayUse.BACKGROUND else RelayUse.MESSAGE, start) <= start
+            }
+        }
+        if (taken.isEmpty) return@withLock BatchOut.Done(emptyList())
+        val ops = taken.ops
+        val body = RelayWire.batch(ops)
+        var code = 0
+        var unreadable = false
+        // A lookup when it reads mailboxes, else uploads: the budget treats it as either did before.
+        val use = if (gets.isNotEmpty() || taken.puts.any { !it.replaceable }) RelayUse.MESSAGE else RelayUse.BACKGROUND
+        val (result, answers) = exchange(use, message = taken.puts.isNotEmpty()) {
+            val c = open("$b/v1/batch")
+            c.requestMethod = "POST"
+            c.doOutput = true
+            c.connectTimeout = 8_000
+            c.readTimeout = 10_000
+            c.setFixedLengthStreamingMode(body.size)
+            c.setRequestProperty("Content-Type", "application/octet-stream")
+            c.outputStream.use { it.write(body) }
+            code = c.status()
+            if (code != 200) {
+                c.disconnect()
+                return@exchange code to null
+            }
+            val answer = c.inputStream.use { it.readBytes() }
+            c.disconnect()
+            val parsed = RelayWire.parseBatch(answer, ops)
+            unreadable = parsed == null
+            code to parsed
+        }
+        val now = SystemClock.elapsedRealtime()
+        val missing = endpoints.answered(RelayEndpoints.Endpoint.BATCH, b, code, now, unreadable)
+        if (missing || (code in 400..499 && code != 429)) {
+            // An older relay, or one that won't take this batch (too big, refused): everything goes the old way, now.
+            sendAlone(taken.puts + synchronized(batchLock) { plan.drain() })
+            return@withLock BatchOut.Missing
+        }
+        if (answers == null) {
+            // No answer, or "too many": locations wait for the next batch, the courier decides about its messages.
+            synchronized(batchLock) { plan.putBack(taken.puts, now) }
+            taken.puts.forEach { answer(it, result) }
+            return@withLock BatchOut.Failed
+        }
+        val retry = ArrayList<BatchPlan.Put>()
+        val alone = ArrayList<BatchPlan.Put>()
+        taken.puts.forEachIndexed { i, p ->
+            val r = when (answers[i].status) {
+                RelayWire.OK -> PutResult.SENT
+                RelayWire.BAD -> PutResult.REFUSED
+                RelayWire.MAILBOX -> PutResult.THROTTLED.also { holds.mailboxBusy(p.id.hex(), now) }
+                RelayWire.BYTES -> PutResult.THROTTLED.also { holds.recordsOverBudget(now) }
+                RelayWire.UNKNOWN -> null.also { alone += p }
+                else -> PutResult.NO_NETWORK // FULL: the relay is full or low on disk, as a 503
+            }
+            if (r != null && r != PutResult.SENT && r != PutResult.REFUSED) retry += p
+            if (r != null) answer(p, r)
+        }
+        synchronized(batchLock) { plan.putBack(retry, now) }
+        if (alone.isNotEmpty()) sendAlone(alone)
+        BatchOut.Done(answers.drop(taken.puts.size).map { it.block })
+    }
+
+    /** A put's answer to whoever waits for it (the courier); locations have nobody waiting. */
+    private fun answer(p: BatchPlan.Put, r: PutResult) {
+        if (p.key == 0L) return
+        synchronized(batchLock) { waiters.remove(p.key) }?.complete(r)
+    }
+
+    /** Puts that can't go in a batch after all: one request each, the old way, answered to their waiters. */
+    private fun sendAlone(puts: List<BatchPlan.Put>) {
+        if (puts.isEmpty()) return
+        background.launch {
+            for (p in puts) answer(p, send(p.id, p.record, if (p.replaceable) RelayUse.BACKGROUND else RelayUse.MESSAGE, p.held))
+        }
+    }
+
     // ---- Install token (docs/RELAY_API.md sections 7 and 11.1) ----
 
     private var prefs: android.content.SharedPreferences? = null
@@ -635,7 +871,17 @@ object RelayClient {
         messagesPerDay = 1_000_000, requestsPerMinute = 600, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
         throttleBaseMs = 5_000L, throttleMaxMs = 30_000L,
     )
-    private val budget get() = if (ownServer) ownBudget else publicBudget
+
+    /**
+     * Our own relay with batches (docs/RELAY_API.md section 11.6): everything in the background
+     * is one request a minute, so 30 a minute is a safety net against a runaway loop, with room
+     * for the finder's poll every 4 s while it's open. Safety pings are never held by it.
+     */
+    private val batchBudget = RelayBudget(
+        messagesPerDay = 1_000_000, requestsPerMinute = 30, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
+        throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, safetyAlwaysHasRoom = true,
+    )
+    private val budget get() = if (!ownServer) publicBudget else if (batching) batchBudget else ownBudget
 
     /** What our relay's last "too many" answers hold back: one mailbox, one kind of traffic, or (in the budget) everything. */
     private val holds = RelayHolds()
@@ -647,6 +893,7 @@ object RelayClient {
     fun networkBack() {
         publicBudget.networkBack()
         ownBudget.networkBack()
+        batchBudget.networkBack()
     }
 
     /**

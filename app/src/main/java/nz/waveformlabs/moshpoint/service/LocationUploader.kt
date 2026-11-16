@@ -97,7 +97,10 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
             val refreshMs = if (RelayClient.ownServer) 180_000L else if (boosted) 60_000L else 240_000L
             if (moved < minMove && now - lastUploadMs < refreshMs) return
         }
-        if (RelayClient.put(id, LocationBox.seal(mySecret, id, shared))) {
+        // With our own relay it waits for the minute's batch, unless a mate is looking for us (it
+        // goes within a couple of seconds) or it's the last gasp at 5% (at once, on its own).
+        val boostedNow = now < boostUntil
+        if (RelayClient.put(id, LocationBox.seal(mySecret, id, shared), soon = boostedNow || force, alone = lastGasp)) {
             lastUploadMs = now
             lastKey = key
             lastSentLoc = loc

@@ -70,6 +70,12 @@ class RelayBudget(
     private val lookUpFreeFails: Int = 2,
     private val lookUpQuietBaseMs: Long = 5_000L,
     private val lookUpQuietMaxMs: Long = 30_000L,
+    /**
+     * Safety pings never count against [requestsPerMinute] (our own relay with batches: its cap
+     * is low, and a busy minute must never hold up a Need help). Off for the public relay, whose
+     * limits are real.
+     */
+    private val safetyAlwaysHasRoom: Boolean = false,
 ) {
     internal class Request(val atMs: Long, val background: Boolean, val message: Boolean)
 
@@ -124,7 +130,7 @@ class RelayBudget(
         if (message && messages >= messageCap(use)) return -1
         prune(nowMs)
         var wait = 0L
-        if (requests.size >= requestsPerMinute) wait = requests.first().atMs + MINUTE_MS - nowMs
+        if (requests.size >= requestsPerMinute && !safetyRoom(use)) wait = requests.first().atMs + MINUTE_MS - nowMs
         if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) {
             // (No background request to wait out means background has no share at all: waiting won't help.)
             val oldest = requests.firstOrNull { it.background } ?: return -1
@@ -167,12 +173,14 @@ class RelayBudget(
         // Look-ups that keep getting no answer hold off too (uploads keep their own pace).
         if (lookUpQuiet(use, message, nowMs)) return PutResult.NO_NETWORK
         prune(nowMs)
-        if (requests.size >= requestsPerMinute) return PutResult.THROTTLED
+        if (requests.size >= requestsPerMinute && !safetyRoom(use)) return PutResult.THROTTLED
         if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) return PutResult.THROTTLED
         if (uploadsFull(use, message)) return PutResult.THROTTLED
         if (message && messages >= messageCap(use)) return PutResult.THROTTLED
         return null
     }
+
+    private fun safetyRoom(use: RelayUse) = safetyAlwaysHasRoom && use == RelayUse.SAFETY
 
     /** A look-up: reading mailboxes (a [RelayUse.MESSAGE] request that publishes nothing). */
     private fun isLookUp(use: RelayUse, message: Boolean) = use == RelayUse.MESSAGE && !message
