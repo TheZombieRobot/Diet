@@ -62,13 +62,17 @@ import kotlin.system.exitProcess
  * - `POST /v1/heldsince`  chat lookups that return only what's new since a cursor.
  * - `POST /v1/report`     a report of objectionable content (Reports.kt), kept 90 days.
  * - `GET /v1/admin/reports`, `DELETE /v1/admin/reports/{id}`  the owner's, with MOSHPOINT_ADMIN_TOKEN.
+ * - `GET /v1/discover/suggest`, `GET /v1/discover/coming`  Moshpoint+ only ([EntitlementCheck], Discover.kt).
  */
 fun Application.moshpoint(
     relay: Relay,
     gigs: GigSearch = GigSearch(),
     venues: VenueLookup = VenueLookup(),
+    discover: Discover = Discover(DiscoverConfig.fromEnv(relay.config.dataDir), clock = relay.clock),
+    entitlements: EntitlementCheck = EntitlementCheck.fromEnv(),
 ) {
     val log = LoggerFactory.getLogger("nz.waveformlabs.moshpoint.server")
+    if (entitlements === EntitlementCheck.EVERYONE) log.warn("MOSHPOINT_DISCOVER_OPEN=1: Discover is open to everyone. Internal testing only, never on the production relay.")
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             // Only the kind of failure is logged: never the URL (it holds a mailbox id) or the client.
@@ -83,6 +87,7 @@ fun Application.moshpoint(
         }
     }
     val sweeps = relay.startSweeps(this)
+    val refresher = discover.start(this)
     // A stop (SIGTERM: deploy, resize, fly machine stop) first drains: new requests are told
     // "try later" while those in flight (an upload, a download) get up to 20 s to finish. Only
     // then does Netty stop (its own graceful stop waits for quiet, not for requests).
@@ -92,6 +97,8 @@ fun Application.moshpoint(
     }
     monitor.subscribe(ApplicationStopped) {
         sweeps.cancel()
+        refresher?.cancel()
+        discover.close()
         relay.close()
     }
     val limits = relay.limits
@@ -177,6 +184,23 @@ fun Application.moshpoint(
         if (!charge(write = false)) return false
         if (!relay.admin.allows(request.headers["Authorization"])) {
             respondText("unauthorized", status = HttpStatusCode.Unauthorized)
+            return false
+        }
+        return true
+    }
+
+    /**
+     * A keyed (Moshpoint+) endpoint: charged like any read, then members only (403 "members only"),
+     * then 503 "not configured" on a relay without source keys. False once answered.
+     */
+    suspend fun ApplicationCall.keyed(feature: String): Boolean {
+        if (!charge(write = false)) return false
+        if (!entitlements.allows(feature) { request.headers[it] }) {
+            respondText("members only", status = HttpStatusCode.Forbidden)
+            return false
+        }
+        if (!discover.configured) {
+            respondText("not configured", status = HttpStatusCode.ServiceUnavailable)
             return false
         }
         return true
@@ -400,6 +424,27 @@ fun Application.moshpoint(
 
         get("/v1/gigs/sources") {
             call.respondText(org.json.JSONArray(gigs.sources).toString(), ContentType.Application.Json)
+        }
+
+        // Discover (Moshpoint+): answered only from the cached country lists, never a source call
+        // per keystroke (Discover.kt, docs/DISCOVER_SERVER.md). The phone sends its country and at
+        // most its region, never where it is.
+        get("/v1/discover/suggest") {
+            if (!call.keyed("discover")) return@get
+            val p = call.request.queryParameters
+            val country = Discover.country(p["country"]) ?: return@get call.respondText("bad country", status = HttpStatusCode.BadRequest)
+            val q = p["q"].orEmpty()
+            if (Fold.text(q).isEmpty()) return@get call.respondText("bad q", status = HttpStatusCode.BadRequest)
+            val limit = p["limit"]?.toIntOrNull()?.coerceIn(1, 30) ?: 10
+            call.respondText(discover.suggest(country, q, p["region"], limit).toString(), ContentType.Application.Json)
+        }
+
+        get("/v1/discover/coming") {
+            if (!call.keyed("discover")) return@get
+            val p = call.request.queryParameters
+            val country = Discover.country(p["country"]) ?: return@get call.respondText("bad country", status = HttpStatusCode.BadRequest)
+            val limit = p["limit"]?.toIntOrNull()?.coerceIn(1, 200) ?: 50
+            call.respondText(discover.coming(country, p["region"], p["scope"], limit).toString(), ContentType.Application.Json)
         }
 
         // ---- New: install tokens, batches and cursors (docs/RELAY_API.md) ----

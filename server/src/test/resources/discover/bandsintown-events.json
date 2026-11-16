@@ -1,0 +1,50 @@
+[
+  {
+    "offers": [{"type": "Tickets", "url": "https://www.bandsintown.com/t/1028760001?came_from=267&utm_medium=api&utm_source=public_api&utm_campaign=ticket", "status": "available"}],
+    "venue": {"street_address": "Mahuhu Crescent", "country": "New Zealand", "city": "Auckland", "latitude": "-36.8479", "name": "Spark Arena", "location": "Auckland, New Zealand", "postal_code": "1010", "region": "", "longitude": "174.7778"},
+    "datetime": "2027-03-13T19:30:00",
+    "on_sale_datetime": "2026-09-01T10:00:00",
+    "festival_start_date": "",
+    "festival_end_date": "",
+    "starts_at": "2027-03-13T19:30:00",
+    "title": "",
+    "description": "",
+    "lineup": ["Ivy Lanes"],
+    "id": "1028760001",
+    "artist_id": "15550001",
+    "url": "https://www.bandsintown.com/e/1028760001?came_from=267&utm_medium=api&utm_source=public_api&utm_campaign=event"
+  },
+  {
+    "offers": [{"type": "Tickets", "url": "https://www.bandsintown.com/t/1028760002?came_from=267&utm_medium=api&utm_source=public_api&utm_campaign=ticket", "status": "available"}],
+    "venue": {"country": "Australia", "city": "Sydney", "latitude": "-33.8468", "name": "Qudos Bank Arena", "location": "Sydney, NSW, Australia", "region": "NSW", "longitude": "151.0638"},
+    "datetime": "2027-03-20T20:00:00",
+    "festival_start_date": "",
+    "title": "",
+    "lineup": ["Ivy Lanes"],
+    "id": "1028760002",
+    "artist_id": "15550001",
+    "url": "https://www.bandsintown.com/e/1028760002?came_from=267&utm_medium=api&utm_source=public_api&utm_campaign=event"
+  },
+  {
+    "offers": [],
+    "venue": {"country": "Japan", "city": "Yuzawa", "latitude": "36.8477", "name": "Naeba Ski Resort", "location": "Yuzawa, Japan", "region": "Niigata", "longitude": "138.7756"},
+    "datetime": "2027-07-30T12:00:00",
+    "festival_start_date": "2027-07-30",
+    "festival_end_date": "2027-08-01",
+    "title": "Mountain Air Festival 2027",
+    "lineup": ["Ivy Lanes", "Harbour Kites", "Glass Owls", "Tidal Hymns", "Lowland Static", "Indigo Static", "Night Signal"],
+    "id": "1028760003",
+    "artist_id": "15550001",
+    "url": "https://www.bandsintown.com/e/1028760003?came_from=267&utm_medium=api&utm_source=public_api&utm_campaign=event"
+  },
+  {
+    "offers": [{"type": "Tickets", "url": "https://www.bandsintown.com/t/1028760004?came_from=267&utm_medium=api&utm_source=public_api&utm_campaign=ticket", "status": "available"}],
+    "venue": {"country": "United States", "city": "Los Angeles", "latitude": "34.0430", "name": "Crypto.com Arena", "location": "Los Angeles, CA", "region": "CA", "longitude": "-118.2673"},
+    "datetime": "2027-06-11T19:00:00",
+    "title": "",
+    "lineup": ["Ivy Lanes"],
+    "id": "1028760004",
+    "artist_id": "15550001",
+    "url": "https://www.bandsintown.com/e/1028760004?came_from=267&utm_medium=api&utm_source=public_api&utm_campaign=event"
+  }
+]
