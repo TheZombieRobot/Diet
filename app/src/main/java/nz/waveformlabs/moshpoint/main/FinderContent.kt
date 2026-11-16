@@ -37,6 +37,8 @@ internal fun FinderContent(a: MainActivity) {
     val names = tracking.mapNotNull { FriendsRepository.byId(it)?.name }
     val group = GroupSync.group.value
     val batteryIssue = stringResource(R.string.main_setup_battery)
+    // The screen stays on only while it helps: after a touch, a mate close by, never in a pocket.
+    FinderScreenOn(a, arrows)
     FinderScreen(
         title = when {
             names.size == 1 -> names[0]

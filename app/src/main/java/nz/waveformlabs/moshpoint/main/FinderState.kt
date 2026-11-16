@@ -1,6 +1,7 @@
 package nz.waveformlabs.moshpoint.main
 
 import android.content.Intent
+import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -29,6 +30,14 @@ internal class FinderState(private val a: MainActivity) {
     val engineReady: Boolean get() = ::engine.isInitialized
     var finding by mutableStateOf(false)
     var beaconOn by mutableStateOf(false)
+
+    /** The last touch or key press anywhere in the app (elapsed real time): see [FinderScreenOn]. */
+    var lastTouchMs = 0L
+        private set
+
+    fun touched() {
+        lastTouchMs = SystemClock.elapsedRealtime()
+    }
 
     fun handleFindCrew(intent: Intent?) {
         if (intent?.getBooleanExtra(MainActivity.EXTRA_FIND_CREW, false) != true || !::engine.isInitialized) return
