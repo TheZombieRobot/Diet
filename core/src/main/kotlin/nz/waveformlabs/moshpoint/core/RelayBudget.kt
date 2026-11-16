@@ -191,9 +191,14 @@ class RelayBudget(
         while (requests.isNotEmpty() && nowMs - requests.first().atMs >= MINUTE_MS) requests.removeFirst()
     }
 
-    /** The request ended. Only an answer from the relay costs anything. */
+    /**
+     * The request ended. Only an answer from the relay costs anything. [pauseMs]: for
+     * [Outcome.THROTTLED], how long the relay itself asked everything to wait (its `Retry-After`
+     * for a `client` or `address` limit, docs/RELAY_API.md section 11.2); null = this budget's own
+     * back-off, as before.
+     */
     @Synchronized
-    fun settle(ticket: Ticket, outcome: Outcome, nowMs: Long) {
+    fun settle(ticket: Ticket, outcome: Outcome, nowMs: Long, pauseMs: Long? = null) {
         if (outcome != Outcome.NO_ANSWER) {
             // The relay answered: look-ups may go at their own pace again.
             lookUpFails = 0
@@ -221,11 +226,16 @@ class RelayBudget(
                 // ping sent through it, say nothing new. Only a request made after the last
                 // pause was set makes the next one longer.
                 if (!ticket.duringPause && ticket.request.atMs >= throttleSetAtMs) {
-                    // With the defaults: 1 min, 2, 4, 8, then 15 at most, each stretched by up to half again.
-                    val base = minOf(throttleBaseMs shl throttleStep.coerceAtMost(4), throttleMaxMs)
-                    throttledUntilMs = nowMs + base + (base * 0.5 * random()).toLong()
+                    if (pauseMs != null) {
+                        // The relay said how long (already stretched by the caller): no growing back-off.
+                        throttledUntilMs = nowMs + pauseMs
+                    } else {
+                        // With the defaults: 1 min, 2, 4, 8, then 15 at most, each stretched by up to half again.
+                        val base = minOf(throttleBaseMs shl throttleStep.coerceAtMost(4), throttleMaxMs)
+                        throttledUntilMs = nowMs + base + (base * 0.5 * random()).toLong()
+                        throttleStep++
+                    }
                     throttleSetAtMs = nowMs
-                    throttleStep++
                 }
             }
             Outcome.NO_ANSWER -> {

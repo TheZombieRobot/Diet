@@ -13,6 +13,7 @@ import nz.waveformlabs.moshpoint.core.InstallToken
 import nz.waveformlabs.moshpoint.core.InviteRelay
 import nz.waveformlabs.moshpoint.core.PutResult
 import nz.waveformlabs.moshpoint.core.RelayBudget
+import nz.waveformlabs.moshpoint.core.RelayHolds
 import nz.waveformlabs.moshpoint.core.RelayUse
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -132,9 +133,9 @@ object RelayClient {
     suspend fun send(id: ByteArray, sealed: ByteArray, use: RelayUse, held: Boolean = false): PutResult = withContext(Dispatchers.IO) {
         waitForRoom(use)
         if (ownServer) {
-            return@withContext ownPut("$base/v1/${if (held) "held" else "box"}/${id.hex()}", sealed, if (held) 6_000 else 5_000, use)
+            return@withContext ownPut("$base/v1/${if (held) "held" else "box"}/${id.hex()}", sealed, if (held) 6_000 else 5_000, use, RelayHolds.Traffic.RECORDS, id.hex())
         }
-        exchange(use, message = true) {
+        exchange(use, message = true, RelayHolds.Traffic.RECORDS) {
             val c = URL("$NTFY/${topic(id)}").openConnection() as HttpURLConnection
             c.requestMethod = "POST"
             c.doOutput = true
@@ -152,13 +153,13 @@ object RelayClient {
     /** Upload an encrypted profile photo (see core AvatarBox). Own server only. */
     suspend fun putAvatar(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
         if (!avatarsEnabled) return@withContext false
-        ownPut("$base/v1/avatar/${id.hex()}", sealed, 8_000, RelayUse.BACKGROUND).ok
+        ownPut("$base/v1/avatar/${id.hex()}", sealed, 8_000, RelayUse.BACKGROUND, RelayHolds.Traffic.UPLOADS, id.hex()).ok
     }
 
     /** Fetch an encrypted profile photo, or null if there isn't one (or no network). */
     suspend fun getAvatar(id: ByteArray): ByteArray? = withContext(Dispatchers.IO) {
         if (!avatarsEnabled) return@withContext null
-        exchange(RelayUse.BACKGROUND, message = false) {
+        exchange(RelayUse.BACKGROUND, message = false, RelayHolds.Traffic.DOWNLOADS) {
             val c = open("$base/v1/avatar/${id.hex()}")
             c.connectTimeout = 8_000
             c.readTimeout = 8_000
@@ -229,9 +230,9 @@ object RelayClient {
 
     /** Upload an encrypted file (e.g. a crew moment) under [id]. ntfy.sh keeps it a few hours. */
     suspend fun putFile(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
-        if (ownServer) return@withContext ownPut("$base/v1/file/${id.hex()}", sealed, 20_000, RelayUse.BACKGROUND).ok
+        if (ownServer) return@withContext ownPut("$base/v1/file/${id.hex()}", sealed, 20_000, RelayUse.BACKGROUND, RelayHolds.Traffic.UPLOADS, id.hex()).ok
         if (!filesEnabled) return@withContext false
-        exchange(RelayUse.BACKGROUND, message = true) {
+        exchange(RelayUse.BACKGROUND, message = true, RelayHolds.Traffic.UPLOADS) {
             val c = URL("$NTFY/${topic(id)}").openConnection() as HttpURLConnection
             c.requestMethod = "PUT"
             c.doOutput = true
@@ -320,7 +321,7 @@ object RelayClient {
     suspend fun download(url: String): ByteArray? = withContext(Dispatchers.IO) {
         val mine = ownServer && url.startsWith("$base/v1/file/")
         if (!mine && !url.startsWith("$NTFY/")) return@withContext null // only ever fetch from the relay itself
-        exchange(RelayUse.BACKGROUND, message = false) {
+        exchange(RelayUse.BACKGROUND, message = false, RelayHolds.Traffic.DOWNLOADS) {
             val c = open(url)
             c.connectTimeout = 8_000
             c.readTimeout = 20_000
@@ -403,8 +404,8 @@ object RelayClient {
         }.getOrDefault(0)
     }
 
-    private fun ownPut(url: String, body: ByteArray, timeout: Int, use: RelayUse): PutResult =
-        exchange(use, message = true) {
+    private fun ownPut(url: String, body: ByteArray, timeout: Int, use: RelayUse, traffic: RelayHolds.Traffic, mailbox: String): PutResult =
+        exchange(use, message = true, traffic, mailbox) {
             val c = open(url)
             c.requestMethod = "PUT"
             c.doOutput = true
@@ -526,6 +527,8 @@ object RelayClient {
     private fun HttpURLConnection.status(): Int {
         val code = responseCode
         if (getHeaderField(InstallToken.HEADER) == InstallToken.INVALID) tokenInvalid()
+        // Which limit, and for how long: read by [exchange] on this same thread (docs/RELAY_API.md section 11.2).
+        if (code == 429) limitSeen.set(getHeaderField(RelayHolds.LIMIT_HEADER) to getHeaderField(RelayHolds.RETRY_AFTER))
         return code
     }
 
@@ -563,6 +566,12 @@ object RelayClient {
     )
     private val budget get() = if (ownServer) ownBudget else publicBudget
 
+    /** What our relay's last "too many" answers hold back: one mailbox, one kind of traffic, or (in the budget) everything. */
+    private val holds = RelayHolds()
+
+    /** A 429's `X-Moshpoint-Limit` and `Retry-After`, from [status] to [exchange] (same thread). */
+    private val limitSeen = ThreadLocal<Pair<String?, String?>?>()
+
     /** The phone has a network again: stop holding requests back. */
     fun networkBack() {
         publicBudget.networkBack()
@@ -588,13 +597,22 @@ object RelayClient {
      * One HTTP exchange, inside the budget. [call] returns the HTTP status and the parsed
      * answer, and throws if the relay never answered. The budget is only charged when it did.
      */
-    private inline fun <T> exchange(use: RelayUse, message: Boolean, call: () -> Pair<Int, T?>): Pair<PutResult, T?> {
+    private inline fun <T> exchange(
+        use: RelayUse,
+        message: Boolean,
+        traffic: RelayHolds.Traffic = RelayHolds.Traffic.READS,
+        mailbox: String? = null,
+        call: () -> Pair<Int, T?>,
+    ): Pair<PutResult, T?> {
         if (offline) return PutResult.NO_NETWORK to null
         askToken()
         val b = budget
         val start = SystemClock.elapsedRealtime()
+        // That mailbox, or that kind of traffic, is waiting out the relay's "too many" (a safety ping never waits here).
+        if (holds.heldUntil(traffic, mailbox, use, start) > start) return PutResult.THROTTLED to null
         val ticket = b.take(use, message, start) ?: return (b.refusal(use, message, start) ?: PutResult.THROTTLED) to null
         return try {
+            limitSeen.set(null)
             val (code, value) = call()
             when {
                 code in 200..299 -> {
@@ -602,7 +620,17 @@ object RelayClient {
                     PutResult.SENT to value
                 }
                 code == 429 -> {
-                    b.settle(ticket, RelayBudget.Outcome.THROTTLED, SystemClock.elapsedRealtime())
+                    // By kind (core RelayHolds): a client or address limit pauses everything for the
+                    // relay's Retry-After; a mailbox or byte budget holds only that; no header (an
+                    // older relay, or the public one) pauses everything as before.
+                    val seen = limitSeen.get()
+                    limitSeen.set(null)
+                    val now = SystemClock.elapsedRealtime()
+                    when (val hold = holds.limited(seen?.first, seen?.second, traffic, mailbox, now)) {
+                        is RelayHolds.Hold.All -> b.settle(ticket, RelayBudget.Outcome.THROTTLED, now, pauseMs = hold.ms)
+                        RelayHolds.Hold.Some -> b.settle(ticket, RelayBudget.Outcome.REFUSED, now)
+                        RelayHolds.Hold.Unknown -> b.settle(ticket, RelayBudget.Outcome.THROTTLED, now)
+                    }
                     PutResult.THROTTLED to null
                 }
                 // The relay's host answered but the relay didn't (a gateway error, a restart, a
