@@ -59,9 +59,6 @@ import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.ago
 import nz.waveformlabs.moshpoint.ui.pressScale
 import nz.waveformlabs.moshpoint.ui.rememberPress
-import nz.waveformlabs.moshpoint.ui.PushPin
-import nz.waveformlabs.moshpoint.ui.pushPin
-import androidx.compose.ui.unit.coerceIn
 
 // The Story: everyone's photos (and clips) from the night as Polaroids, a row per person.
 
@@ -72,13 +69,12 @@ internal fun clockTime(timeSec: Long): String =
 /** A slight, steady tilt per photo (same every time you look), like Polaroids on a pinboard. */
 private fun tilt(key: String) = ((key.hashCode() % 7) - 3) * 1.1f
 
-/** One Polaroid: white frame, the photo, and a handwritten line underneath, with a pushpin through the top unless [pin] is false. */
+/** One Polaroid: white frame, the photo, and a handwritten line underneath. */
 @Composable
-internal fun Polaroid(m: Moments.Item, width: Dp, modifier: Modifier = Modifier, tilted: Boolean = true, tiltScale: Float = 1f, pin: Boolean = true) {
+internal fun Polaroid(m: Moments.Item, width: Dp, modifier: Modifier = Modifier, tilted: Boolean = true, tiltScale: Float = 1f) {
     val pad = width * 0.06f
     Column(
         modifier.width(width).rotate(if (tilted) tilt(m.key) * tiltScale else 0f)
-            .then(if (pin) Modifier.pushPin(PushPin.colourFor(m.key), (width * 0.11f).coerceIn(9.dp, 22.dp)) else Modifier)
             .shadow(10.dp, RoundedCornerShape(3.dp), clip = false)
             .background(Color(0xFFF7F4EC), RoundedCornerShape(3.dp))
             .padding(start = pad, end = pad, top = pad, bottom = pad * 0.6f),
@@ -248,7 +244,7 @@ fun StoryScreen(
                         ) {
                             PopIn(m.key, enabled = m.key !in alreadyThere) {
                                 Box {
-                                    Polaroid(m, photoW, Modifier.padding(top = 12.dp).clickable { open = i }, tiltScale = 1.4f, pin = false)
+                                    Polaroid(m, photoW, Modifier.padding(top = 12.dp).clickable { open = i }, tiltScale = 1.4f)
                                     Box(Modifier.align(Alignment.TopCenter)) { FacePin(photoOf(m.from, m.mine), if (m.mine) myName else m.from, pinColour) }
                                 }
                             }
@@ -490,7 +486,7 @@ internal fun CameraGlyph(colour: Color, size: Dp) = androidx.compose.foundation.
 internal fun VideoPolaroid(m: Moments.Item) {
     val file = m.videoFile ?: return
     Column(
-        Modifier.width(300.dp).pushPin(PushPin.colourFor(m.key), 22.dp).shadow(10.dp, RoundedCornerShape(3.dp), clip = false)
+        Modifier.width(300.dp).shadow(10.dp, RoundedCornerShape(3.dp), clip = false)
             .background(Color(0xFFF7F4EC), RoundedCornerShape(3.dp)).padding(18.dp),
     ) {
         androidx.compose.ui.viewinterop.AndroidView(
