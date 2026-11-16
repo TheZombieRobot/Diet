@@ -46,7 +46,7 @@ object NetState {
         // Needs ACCESS_NETWORK_STATE (granted at install). If any of this fails we stay
         // "online" and simply try, exactly as before.
         runCatching {
-            set(cm.getNetworkCapabilities(cm.activeNetwork)?.let(::reachesInternet) == true)
+            set(cm.getNetworkCapabilities(cm.activeNetwork)?.let { reachesInternet(it) } == true)
             cm.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
                 override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
                     val ok = reachesInternet(caps)

@@ -17,6 +17,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.core.RelayAdvertRefresh
 import nz.waveformlabs.moshpoint.core.RelayCache
 import nz.waveformlabs.moshpoint.core.RelayPacket
 import nz.waveformlabs.moshpoint.core.RelaySchedule
@@ -64,6 +65,9 @@ object CrowdRelayRadio {
     /** Set from the callback, so a failed or lost advert set gets started again. */
     @Volatile private var setLive = false
     @Volatile private var setPending = false
+    /** The bytes last set on air, and when (elapsed real time): the same again isn't re-sent every turn (core RelayAdvertRefresh). */
+    private var onAir: ByteArray? = null
+    private var onAirAtMs = 0L
 
     /** Our own sealed location, refreshed by the visibility service. */
     @Volatile
@@ -174,15 +178,24 @@ object CrowdRelayRadio {
                         (ownPacket?.takeIf { now - it.timeSec < 600 } ?: cache.nextToBroadcast(1, now).firstOrNull() ?: ownPacket)?.encode()
                     RelaySchedule.Turn.HEARD_LOCATION -> (cache.nextToBroadcast(1, now).firstOrNull() ?: ownPacket)?.encode()
                 }
-                if (next != null) {
+                val nowMs = android.os.SystemClock.elapsedRealtime()
+                // The bytes already on air (our own location, nobody else's to pass on) stay there:
+                // set again only on a change, or now and then as a keep-alive.
+                if (next != null && (!setLive || RelayAdvertRefresh.send(next, onAir, onAirAtMs, nowMs))) {
                     val data = AdvertiseData.Builder().addServiceData(RELAY_UUID, next).build()
                     try {
                         val adv = context.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeAdvertiser
                         when {
-                            setLive -> advertisingSet?.setAdvertisingData(data)
+                            setLive -> {
+                                advertisingSet?.setAdvertisingData(data)
+                                onAir = next
+                                onAirAtMs = nowMs
+                            }
                             !setPending && adv != null -> {
                                 setPending = true
                                 adv.startAdvertisingSet(params, data, null, null, null, cb)
+                                onAir = next
+                                onAirAtMs = nowMs
                             }
                         }
                     } catch (e: SecurityException) {
@@ -217,5 +230,6 @@ object CrowdRelayRadio {
         advertisingSet = null
         setLive = false
         setPending = false
+        onAir = null
     }
 }

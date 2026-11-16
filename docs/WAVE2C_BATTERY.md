@@ -11,9 +11,13 @@ rendering performance, Report/Block, billing and the server.
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Done:** item 1 (the finder's screen), item 2 (GPS cadence), item 3 (network hygiene).
-- **Next:** item 4 (small radio wins), in the list's order: the intro advert, the crowd relay
-  advert, the scan PHY, Wi-Fi Aware, Light me up's time limit. Each is one commit with its core rule and tests; this note and
+- **Done: the whole list.** Item 1 (the finder's screen), item 2 (GPS cadence), item 3 (network
+  hygiene), item 4 (small radio wins: the intro advert, the crowd relay advert, the scan PHY,
+  Wi-Fi Aware, Light me up's time limit). Field tests: docs/FIELD_TEST_PLAN.md section 4h.
+- **Next:** CI on this branch (the owner pushes it; nothing has been pushed from here), then the
+  field tests in 4h on phones, against build 312. Expected screenshot result: every existing
+  screenshot byte-identical (no screen or string changed).
+- **Review closely:** the parts that can't be checked here (see "Risks" at the end). Each is one commit with its core rule and tests; this note and
   docs/FIELD_TEST_PLAN.md section 4h are updated with each.
 - **Checked locally:** core tests (`gradle -q --offline :core:test` in a scratch build that
   includes only `:core`, as docs/WATCH.md describes). The app can't be built here (Google Maven
@@ -134,3 +138,78 @@ Trade-offs:
   30 s wait plus jitter) unless the phone's network changes. The finder, with GPS mates far away,
   may show their positions that much later after an outage; one timeout on patchy signal holds
   nothing up.
+
+## 4. Small radio wins (performance P2)
+
+- **The crew intro advert** (app `crew/GroupSync`, core `IntroRadio.slow`): every 250 ms
+  (`INTERVAL_MEDIUM`) for the first 30 minutes of the intro radio running (Live, or the app open
+  before it), while the crew meets; then every second (`INTERVAL_LOW`). The interval is fixed when
+  an advertising set starts, so the set is stopped and started again once, at the half hour.
+  Intros only introduce crew mates (finding uses the finder's own advert), and the relay carries
+  them too. Trade-off: a mate who joins late is heard a little less quickly by phones scanning
+  at low power (their own advert is still fast for their first half hour, and gossip and the relay
+  fill gaps).
+- **The crowd relay advert** (finder `CrowdRelayRadio`, core `RelayAdvertRefresh`): it used to set
+  its advertising data every second even when the bytes were the same (our own location with
+  nobody else's to pass on). Now the bytes already on air stay there (the controller keeps
+  sending them); they're set again when they change (another packet's turn, a new location, a
+  crew message) and every 30 s anyway as a keep-alive: setting them gives the advert a new data
+  id, which chips that report a repeat only once report again. What goes on air, and when, is
+  unchanged.
+- **The scan listens on the 1M PHY only** (finder `BleHub`): it listened on 1M and Coded
+  (`PHY_LE_ALL_SUPPORTED`), but every advert the app sends is on 1M (crowd relay, intros and bump
+  set 1M for both PHYs; the finder's and Live's adverts are legacy, always 1M). Listening on
+  Coded too split the scan's time between the two. If anything ever advertises on Coded, this
+  has to go back.
+- **Wi-Fi Aware** (finder `Findable`, core `AwarePublish`): the visible phone used to publish for
+  all of Live. Now it publishes from the first "looking" advert it hears (a mate's finder looking
+  for us, the same moment the advert goes fast and GPS turns on), and stops again after 5 minutes
+  without one. Trade-off: the looking mate's Wi-Fi distance arrives a few seconds later (once our
+  low-power listen has heard their finder, then a second or two to attach and publish); Bluetooth
+  and UWB distances are unaffected. Stopping after 5 minutes is this wave's choice (the list asked
+  only to start it late); with it, one look early in the night doesn't keep it on all night.
+- **Light me up has a time limit** (app `main/FinderState.setBeacon`, core `BeaconLimit`): it
+  goes off by itself 10 minutes after it was switched on or the screen was last touched,
+  whichever is later. Easy to extend: any touch on the screen restarts the 10 minutes, and
+  tapping **Light me up** again starts it again; the limit is one constant. It still goes off when
+  you leave the finder or the app stops, as before. Going off by itself looks exactly like
+  tapping it off (the strobe, the torch and the advert flag stop; brightness goes back).
+
+Tests: `IntroRadioTest.fastForTheFirstHalfHourThenEverySecond`, `RadioRulesTest` (the relay
+advert's keep-alive, Wi-Fi Aware's window, Light me up's limit).
+
+## Expected battery effect
+
+Estimates (±50%, to confirm with field test 4h), for the audit's case: pocket, screen off, Live
+on, crew of 5 nearby, own relay, LTE at a busy venue, 4,500 mAh, 4 h.
+
+| | Before (build 312) | After this wave |
+|---|---|---|
+| The finder left open in a pocket | 350–600 mA (8–13%/h) | the screen sleeps at about 90 s plus the phone's timeout, or within a second of going into a pocket; the engine stops 20 s later |
+| GPS and network location (Live) | 15–30 mA | 4–8 mA standing; as before while walking or while a mate looks |
+| Mobile data | 60–120 mA | lower on dead or sign-in Wi-Fi and during relay outages (no timeouts on every lookup); otherwise unchanged until the batch endpoint (not in this wave) |
+| Bluetooth and Wi-Fi Aware | 5–10 mA | 3–6 mA (intro advert at 1 s after 30 min, no Coded scanning, no idle Wi-Fi Aware publishing, fewer advert updates) |
+
+So, for 4 h in a pocket with Live on: roughly 1–2% of the battery back from GPS and 0.5–1% from
+the radios; the large win is the finder no longer holding the screen on (8–13% an hour avoided).
+The audit's biggest remaining item, batching the uploads (P0-2), needs the server's batch
+endpoint and is not part of this wave.
+
+## Risks (for the reviewer)
+
+Nothing here could be compiled locally (only core); CI will be the first compile.
+- **Could stop the app compiling:** `main/FinderScreenOn.kt` (`repeatOnLifecycle` from
+  lifecycle-runtime 2.8.7, `rememberUpdatedState`), `service/LiveCadence.kt` (`channelFlow` with
+  `collectLatest` and `send`, `TriggerEventListener.onTrigger(TriggerEvent?)`), the new
+  `highAccuracy` parameter of the finder module's `MyLocation.updates`, `advertise(…, slow)` in
+  GroupSync.
+- **Could slow finding when it matters:**
+  - the finder's screen sleeping while someone holds it without touching it, with no mate within
+    30 m (by design; check field test 4h-A);
+  - a mate far away (out of Bluetooth range) looking for you while you stand still sees a
+    Wi-Fi/cell position up to a minute old, not GPS (by design, P1-9);
+  - the Wi-Fi Aware distance starting a few seconds later for a looking mate;
+  - lookups waiting up to about 37 s after a relay outage before trying again;
+  - a network Android won't validate is never used for the relay.
+- **Behaviour to watch on phones:** the significant motion sensor (does it fire when walking
+  with the phone in a pocket on Samsung/Xiaomi?), and the proximity sensor's readings in a pocket.

@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.BeaconLimit
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.debug.FieldRecorder
@@ -79,15 +80,28 @@ internal class FinderState(private val a: MainActivity) {
     fun nudge(names: List<String>) = Sharing.send(a, Sharing.nudgeText(names), Txt.s(R.string.main_nudge_title))
     private val torch = TorchStrobe(a)
 
+    private var beaconLimit: Job? = null
+
     /**
      * "Light me up": full brightness, a strobing screen (drawn by the finder) and the torch
-     * flashing, plus a flag in our Bluetooth advert so mates' finders say to look for it.
+     * flashing, plus a flag in our Bluetooth advert so mates' finders say to look for it. Goes off
+     * by itself 10 minutes after it was switched on or the screen was last touched (core
+     * BeaconLimit): a touch keeps it going.
      */
     fun setBeacon(on: Boolean) {
         if (beaconOn == on) return
         beaconOn = on
         if (::engine.isInitialized) engine.setBeacon(on)
         torch.set(on)
+        beaconLimit?.cancel()
+        beaconLimit = null
+        if (on) {
+            val since = SystemClock.elapsedRealtime()
+            beaconLimit = a.lifecycleScope.launch {
+                while (!BeaconLimit.expired(SystemClock.elapsedRealtime(), since, lastTouchMs)) delay(5_000)
+                setBeacon(false)
+            }
+        }
     }
     var pendingStop: Job? = null
 
