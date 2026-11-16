@@ -774,7 +774,7 @@ open class ScreensSnapshotTest {
 
     // ---- Report (docs/REPORT_BLOCK.md) ----
 
-    private val reportReasons @androidx.compose.runtime.Composable get() = listOf(
+    private val reportReasons: List<String> @androidx.compose.runtime.Composable get() = listOf(
         nz.waveformlabs.moshpoint.R.string.mod_reason_harassment, nz.waveformlabs.moshpoint.R.string.mod_reason_hate,
         nz.waveformlabs.moshpoint.R.string.mod_reason_sexual, nz.waveformlabs.moshpoint.R.string.mod_reason_violence,
         nz.waveformlabs.moshpoint.R.string.mod_reason_spam, nz.waveformlabs.moshpoint.R.string.mod_reason_other,
