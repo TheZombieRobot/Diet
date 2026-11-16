@@ -257,6 +257,18 @@ class LimitsTest {
         assertTrue("12:30:05" in masked, masked)
         assertTrue("[id]" in masked && "[address]" in masked && "[token]" in masked, masked)
     }
+
+    @Test fun logsHideTheGigSourcesApiKeys() {
+        // Made-up keys, the length of the real ones (32 characters: too short for the token rule).
+        val tm = "AbCdEfGhIjKlMnOpQrStUvWxYz012345" // secret-scan: allow (made up)
+        val line = "GET https://app.ticketmaster.com/discovery/v2/events.json?apikey=$tm&keyword=iron failed; " +
+            "https://api.seatgeek.com/2/events?client_id=Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp&q=x; " + // secret-scan: allow (made up)
+            "https://rest.bandsintown.com/artists/x/events?app_id=moshpoint-relay-app-id-1234; Authorization: Bearer Ab12Cd34Ef56Gh78" // secret-scan: allow (made up)
+        val masked = LogPrivacy.mask(line)
+        assertTrue(tm !in masked && "Zz9Yy8" !in masked && "moshpoint-relay-app-id" !in masked && "Ab12Cd34" !in masked, masked)
+        assertTrue("apikey=[secret]" in masked && "client_id=[secret]" in masked && "app_id=[secret]" in masked, masked)
+        assertTrue("keyword=iron" in masked, masked)
+    }
 }
 
 /** An upload that crawls is dropped (408, which the app retries), so a trickle can't hold a slot. */

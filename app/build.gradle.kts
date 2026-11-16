@@ -45,9 +45,8 @@ android {
         buildConfigField("boolean", "FACEBOOK_ENABLED", (fbAppId.isNotBlank() && fbToken.isNotBlank()).toString())
         // The privacy policy the app links to (moshpoint.privacyUrl in gradle.properties).
         buildConfigField("String", "PRIVACY_POLICY_URL", "\"${prop("moshpoint.privacyPolicyUrl", "moshpoint.privacyUrl")}\"")
-        // Gig search (Ticketmaster Discovery API, free key from developer.ticketmaster.com).
-        // Empty = search off; you can still type the gig in by hand.
-        buildConfigField("String", "TICKETMASTER_KEY", "\"${prop("moshpoint.ticketmasterKey", "moshpoint.tm.key")}\"")
+        // No API keys are ever built into the app (anyone can pull them out of an APK): gig search
+        // keys are the relay server's secrets (docs/SECRETS.md).
     }
 
     // Release signing from CI secrets (see docs/PLAY_STORE.md). Without them, release

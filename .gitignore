@@ -6,3 +6,21 @@ local.properties
 .DS_Store
 captures/
 .kotlin/
+
+# Secrets never go in the repo (docs/SECRETS.md): API keys are the relay's secrets (fly secrets
+# set), signing keys GitHub's Actions secrets. The public Android debug key is the one exception.
+*.jks
+*.keystore
+!app/debug.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+.env
+.env.*
+keystore.properties
+secrets.properties
+service-account*.json
+
+# Python caches (tools/)
+__pycache__/

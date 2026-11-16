@@ -75,6 +75,10 @@ jobs:
           sed -i "s#^distributionUrl=.*#distributionUrl=file\\:$OUT#" gradle/wrapper/gradle-wrapper.properties
           ./gradlew --version -q
 
+      - name: No secrets in the repo (keys live in GitHub's secrets and the relay's, docs/SECRETS.md)
+        shell: bash
+        run: python3 tools/check_secrets.py
+
       - name: Translations match English (every language)
         run: |
           # Same strings, placeholders and plurals as English, and valid XML, in every language.
