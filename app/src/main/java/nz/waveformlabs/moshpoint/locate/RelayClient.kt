@@ -419,9 +419,20 @@ object RelayClient {
     }
 
     /** Download a file from the relay (capped at [MAX_FILE]). */
-    suspend fun download(url: String): ByteArray? = withContext(Dispatchers.IO) {
+    suspend fun download(url: String): ByteArray? = fetch(url, MAX_FILE.toLong()).bytes
+
+    /** What [fetch] got: the file, or [tooBig] (over the limit asked for: left for later). */
+    class Fetched(val bytes: ByteArray?, val tooBig: Boolean = false)
+
+    /**
+     * Download a file from the relay, at most [limit] bytes (core MomentFetch): a bigger one stops
+     * as soon as its `Content-Length` says so, before any of it is read, or once [limit] bytes have
+     * come without one. Our relay doesn't count a download cut short against the file.
+     */
+    suspend fun fetch(url: String, limit: Long): Fetched = withContext(Dispatchers.IO) {
         val mine = ownServer && url.startsWith("$base/v1/file/")
-        if (!mine && !url.startsWith("$NTFY/")) return@withContext null // only ever fetch from the relay itself
+        if (!mine && !url.startsWith("$NTFY/")) return@withContext Fetched(null) // only ever fetch from the relay itself
+        val cap = minOf(limit, MAX_FILE.toLong())
         exchange(RelayUse.BACKGROUND, message = false, RelayHolds.Traffic.DOWNLOADS) {
             val c = open(url)
             c.connectTimeout = 8_000
@@ -431,6 +442,10 @@ object RelayClient {
                 c.disconnect()
                 return@exchange code to null
             }
+            if (c.contentLengthLong > cap) {
+                c.disconnect()
+                return@exchange code to Fetched(null, tooBig = true)
+            }
             val bytes = c.inputStream.use { input ->
                 val buf = java.io.ByteArrayOutputStream()
                 val chunk = ByteArray(16 * 1024)
@@ -439,13 +454,13 @@ object RelayClient {
                     val n = input.read(chunk)
                     if (n < 0) break
                     buf.write(chunk, 0, n)
-                    if (buf.size() > MAX_FILE) tooBig = true
+                    if (buf.size() > cap) tooBig = true
                 }
                 if (tooBig) null else buf.toByteArray()
             }
             c.disconnect()
-            code to bytes
-        }.second
+            code to Fetched(bytes, tooBig = bytes == null)
+        }.second ?: Fetched(null)
     }
 
     private fun topic(id: ByteArray) = "mp" + id.hex()
