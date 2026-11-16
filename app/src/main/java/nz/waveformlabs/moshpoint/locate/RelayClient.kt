@@ -681,9 +681,15 @@ object RelayClient {
     }
 
     private fun queue(p: BatchPlan.Put, timing: BatchPlan.Timing) {
-        synchronized(batchLock) { plan.add(p, timing, SystemClock.elapsedRealtime()) }
+        // The flusher sleeps until the batch is due, and with nothing waiting until it's woken: wake
+        // it whenever this put makes the batch due sooner, the first put for the minute included.
+        val wake = synchronized(batchLock) {
+            val before = plan.dueAtMs()
+            plan.add(p, timing, SystemClock.elapsedRealtime())
+            BatchPlan.wakes(before, plan.dueAtMs())
+        }
         startFlusher()
-        if (timing == BatchPlan.Timing.SOON) nudges.trySend(Unit)
+        if (wake) nudges.trySend(Unit)
     }
 
     /**
