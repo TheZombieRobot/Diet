@@ -87,9 +87,34 @@ private fun PlanGigRow(onClick: () -> Unit) {
     }
 }
 
-/** No crew tonight (a returning user): start one, plan a gig, or join one. */
+/**
+ * No crew tonight (a returning user): start one, plan a gig, or join one. For Moshpoint+ members
+ * [comingUp] (the "Coming up near you" card) takes the Plan a gig row's place: its search button
+ * opens the same sheet (docs/DISCOVER_APP.md).
+ */
 @Composable
-internal fun NoCrewHero(onStart: () -> Unit, onPlan: () -> Unit, onScan: () -> Unit, onPaste: () -> Unit) {
+internal fun NoCrewHero(onStart: () -> Unit, onPlan: () -> Unit, onScan: () -> Unit, onPaste: () -> Unit, comingUp: (@Composable () -> Unit)? = null) {
+    if (comingUp != null) {
+        Column(Modifier.fillMaxWidth()) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = HomeSide)) {
+                Text(stringResource(R.string.home_no_crew_title), style = HomeType.Hero.copy(fontSize = 30.sp), modifier = Modifier.semantics { heading() })
+                Spacer(Modifier.height(10.dp))
+                Text(stringResource(R.string.home_no_crew_text), style = HomeType.Body.copy(lineHeight = 23.sp))
+                Spacer(Modifier.height(24.dp))
+                HeroButton(stringResource(R.string.home_start_crew), HomeIcons.UserPlus, textSize = 17.sp, onClick = onStart)
+            }
+            Spacer(Modifier.height(18.dp))
+            // Wider than the page's margins, as drawn: the strip of shows has room to run.
+            Box(Modifier.fillMaxWidth().padding(horizontal = 11.dp)) { comingUp() }
+            Column(Modifier.fillMaxWidth().padding(horizontal = HomeSide)) {
+                Spacer(Modifier.height(28.dp))
+                Kicker(stringResource(R.string.home_join_crew))
+                Spacer(Modifier.height(10.dp))
+                JoinButtons(onScan, onPaste)
+            }
+        }
+        return
+    }
     Column(Modifier.fillMaxWidth().padding(horizontal = HomeSide)) {
         Text(stringResource(R.string.home_no_crew_title), style = HomeType.Hero.copy(fontSize = 30.sp), modifier = Modifier.semantics { heading() })
         Spacer(Modifier.height(10.dp))

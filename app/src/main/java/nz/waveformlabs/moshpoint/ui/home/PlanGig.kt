@@ -103,6 +103,8 @@ class PlannedGig(
     val lon: Double? = null,
     /** The official ticket page, from Discover; blank when typed in by hand. */
     val tickets: String = "",
+    /** The Discover show it came from (so Coming up can say "Planned ✓"); blank when typed in by hand. */
+    val showId: String = "",
 )
 
 /** What's typed into Plan a gig, kept while the sheet shows "What's in Moshpoint+" and back. */
@@ -115,6 +117,7 @@ class PlanForm(startsAtSec: Long) {
     var lat by mutableStateOf<Double?>(null)
     var lon by mutableStateOf<Double?>(null)
     var tickets by mutableStateOf("")
+    var showId by mutableStateOf("")
 
     // Smart search (members): what's typed, the latest answer, and how the last ask went.
     var query by mutableStateOf("")
@@ -129,6 +132,7 @@ class PlanForm(startsAtSec: Long) {
         lat = show.lat
         lon = show.lon
         tickets = TicketLink.clean(show.tickets).orEmpty()
+        showId = show.id
         query = ""
     }
 
@@ -427,14 +431,14 @@ internal fun HandEntry(form: PlanForm, onPick: (PlannedGig) -> Unit, lookupVenue
         val name = form.name.trim().ifBlank { defaultGigName }
         val picked = form.lat != null && form.lon != null
         if (lookupVenue == null || where.isBlank() || picked) {
-            onPick(PlannedGig(name, form.at, where, form.lat, form.lon, form.tickets))
+            onPick(PlannedGig(name, form.at, where, form.lat, form.lon, form.tickets, form.showId))
         } else {
             // A few seconds at most: not found or no internet just means no position.
             finding = true
             scope.launch {
                 val found = kotlinx.coroutines.withTimeoutOrNull(4_000) { runCatching { lookupVenue(where) }.getOrNull() }
                 finding = false
-                onPick(PlannedGig(name, form.at, where, found?.first, found?.second, form.tickets))
+                onPick(PlannedGig(name, form.at, where, found?.first, found?.second, form.tickets, form.showId))
             }
         }
     }

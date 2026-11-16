@@ -52,4 +52,15 @@
     <string name="search_type_own_sub">Nie ma na liście? Dodaj ręcznie</string>
     <string name="plan_tickets_from">Link do biletów: %1$s</string>
     <string name="plan_tickets_remove">Usuń link do biletów</string>
+    <string name="coming_title">Nadchodzące w okolicy</string>
+    <string name="coming_search">Szukaj koncertów</string>
+    <string name="coming_near">W pobliżu</string>
+    <string name="coming_near_region">W pobliżu (%1$s)</string>
+    <string name="coming_country">Cały kraj</string>
+    <string name="coming_travel">Warto pojechać</string>
+    <string name="coming_plan_it">Zaplanuj</string>
+    <string name="coming_planned">Zaplanowane ✓</string>
+    <string name="coming_km">%1$s km stąd</string>
+    <string name="coming_empty">Na razie nic tu nie ma.</string>
+    <string name="coming_failed">Nie udało się teraz wczytać koncertów.</string>
 </resources>

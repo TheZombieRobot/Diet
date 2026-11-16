@@ -76,6 +76,8 @@ class HomeGigs(
     val pastGigs: List<GigArchive.Summary> = emptyList(),
     /** Tonight's gig (it's the crew, not a past gig). */
     val currentGigId: String? = null,
+    /** "Coming up near you" in the No crew state, for Moshpoint+ members (docs/DISCOVER_APP.md); null = the Plan a gig row. */
+    val comingUp: ComingUpView? = null,
 )
 
 /** What you can change about yourself and this phone. */
@@ -160,4 +162,10 @@ class HomeInviteActions(
 class HomeGigActions(
     val onOpenGig: (GigArchive.Summary) -> Unit = {},
     val onOpenUpNext: (String) -> Unit = {},
+    /** Coming up's chips: `near`, `country`, `travel`. */
+    val onComingScope: (String) -> Unit = {},
+    /** Plan it: a planned crew for that show, filled in. */
+    val onPlanShow: (nz.waveformlabs.moshpoint.core.DiscoverShow) -> Unit = {},
+    /** A show that already has a crew ("Planned ✓"): open that crew. */
+    val onOpenPlanned: (String) -> Unit = {},
 )

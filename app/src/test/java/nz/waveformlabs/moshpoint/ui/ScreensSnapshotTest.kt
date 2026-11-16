@@ -600,6 +600,53 @@ open class ScreensSnapshotTest {
         PlanGigContent(form, member = true, search = planSearch, onPick = {}, lookupVenue = null, onWhatsPlus = {})
     }
 
+    // ---- Coming up near you, members (docs/DISCOVER_APP.md, ComingUp.png). Made-up acts and venues. ----
+
+    private fun gig(id: String, artist: String, date: String, venue: String, city: String, km: Int = 0) = nz.waveformlabs.moshpoint.core.DiscoverShow(
+        id, artist, artist, date, "19:30", 0L, venue, city, "north", "NZ", km = km,
+    )
+
+    private fun comingUp(scope: String = "near") = nz.waveformlabs.moshpoint.ui.home.ComingUpView(
+        scope = scope, regionName = "North Island",
+        shows = if (scope == "travel") listOf(
+            gig("harbour", "Ice Harbour", "2027-03-20", "Harbourside Stadium", "Sydney", km = 2150),
+            gig("lantern", "Lantern Fields", "2027-01-09", "Bayside Park", "Melbourne", km = 2640),
+            gig("indigo", "Indigo Parade", "2027-04-09", "Riverside Dome", "Brisbane", km = 2290),
+        ) else listOf(
+            gig("velvet", "Velvet Moa", "2026-12-04", "The Boatshed", "Tauranga"),
+            gig("ivory", "Ivory Tide", "2027-03-13", "Tidewater Arena", "Auckland"),
+            gig("glass", "Glass Kites", "2027-04-10", "Riverside Hall", "Hamilton"),
+        ),
+        status = nz.waveformlabs.moshpoint.ui.home.ComingStatus.READY,
+        planned = mapOf("ivory" to "crew-ivory"),
+    )
+
+    private fun snapComingUp(scope: String = "near") = snap {
+        MoshTheme {
+            HomeUnderTest(
+                friends = HomeFixtures.friendsOnly, groupName = null, crewKeys = emptySet(),
+                seen = mapOf("rae" to HomeFixtures.seen(30), "sam" to HomeFixtures.seen(50), "alex" to HomeFixtures.seen(100)),
+                pings = emptyList(), meetUp = null, chatUnread = 0, comingUp = comingUp(scope),
+            )
+        }
+    }
+
+    /** No crew tonight, a member: the Coming up card under Start a crew; one show already planned. */
+    @Test fun homeComingUpNearYou() = snapComingUp()
+
+    /** Worth travelling for: big shows abroad, with how far they are. */
+    @Test fun homeComingUpTravel() = snapComingUp("travel")
+
+    @Test fun smallPhoneHomeComingUpNearYou() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5))
+        snapComingUp()
+    }
+
+    @Test fun largeFontHomeComingUpNearYou() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.PIXEL_5).copy(fontScale = 1.3f))
+        snapComingUp()
+    }
+
     /** "What's in Moshpoint+": what it adds, and that it can't be bought yet. */
     @Test fun plusInfo() = snapSheet { PlusInfoContent(onBack = {}) }
 

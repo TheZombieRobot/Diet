@@ -318,7 +318,12 @@ fun FriendsScreen(
                     }
                     !inCrew -> {
                         Spacer(Modifier.height(24.dp))
-                        NoCrewHero(onStart = startCrew, onPlan = inviteActions.onPlanGig, onScan = inviteActions.onScanQr, onPaste = inviteActions.onPasteInvite)
+                        NoCrewHero(
+                            onStart = startCrew, onPlan = inviteActions.onPlanGig, onScan = inviteActions.onScanQr, onPaste = inviteActions.onPasteInvite,
+                            comingUp = gigs.comingUp?.let { view ->
+                                @Composable { ComingUpCard(view, gigActions.onComingScope, inviteActions.onPlanGig, gigActions.onPlanShow, gigActions.onOpenPlanned) }
+                            },
+                        )
                     }
                     // A planned crew asleep until the day: its hype group (docs/DISCOVER_APP.md).
                     crew.hype != null && crew.crewSleeping && !crew.following -> {

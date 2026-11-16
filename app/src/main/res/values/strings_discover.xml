@@ -89,4 +89,26 @@
     <string name="plan_tickets_from">Ticket link: %1$s</string>
     <!-- What a screen reader says for the ✕ next to the ticket link. -->
     <string name="plan_tickets_remove">Remove the ticket link</string>
+    <!-- Title of the card under Start a crew in the No crew state (members). -->
+    <string name="coming_title">Coming up near you</string>
+    <!-- What a screen reader says for the card's round search button (it opens Plan a gig). -->
+    <string name="coming_search">Search shows</string>
+    <!-- First chip: shows in your region. -->
+    <string name="coming_near">Near me</string>
+    <!-- The same chip with the region's name ("Near me (North Island)"). -->
+    <string name="coming_near_region">Near me (%1$s)</string>
+    <!-- Second chip: everything in the country. -->
+    <string name="coming_country">Whole country</string>
+    <!-- Third chip: big shows abroad within 3 to 4 hours' flight. -->
+    <string name="coming_travel">Worth travelling for</string>
+    <!-- The button under each show: starts a planned crew for it, filled in. -->
+    <string name="coming_plan_it">Plan it</string>
+    <!-- The same button once this phone has a crew for the show; it opens that crew. -->
+    <string name="coming_planned">Planned ✓</string>
+    <!-- Under a show worth travelling for: how far it is ("2,150 km away"). -->
+    <string name="coming_km">%1$s km away</string>
+    <!-- When the relay knows no shows for that chip. -->
+    <string name="coming_empty">Nothing listed here yet.</string>
+    <!-- When there's no internet or the relay didn't answer. -->
+    <string name="coming_failed">Couldn\'t load shows right now.</string>
 </resources>

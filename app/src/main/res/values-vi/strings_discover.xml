@@ -46,4 +46,15 @@
     <string name="search_type_own_sub">Không có? Tự thêm</string>
     <string name="plan_tickets_from">Link mua vé: %1$s</string>
     <string name="plan_tickets_remove">Xóa link mua vé</string>
+    <string name="coming_title">Sắp diễn ra gần bạn</string>
+    <string name="coming_search">Tìm buổi diễn</string>
+    <string name="coming_near">Gần tôi</string>
+    <string name="coming_near_region">Gần tôi (%1$s)</string>
+    <string name="coming_country">Cả nước</string>
+    <string name="coming_travel">Đáng để đi xa</string>
+    <string name="coming_plan_it">Lên kế hoạch</string>
+    <string name="coming_planned">Đã lên kế hoạch ✓</string>
+    <string name="coming_km">cách %1$s km</string>
+    <string name="coming_empty">Chưa có gì ở đây.</string>
+    <string name="coming_failed">Hiện không tải được buổi diễn.</string>
 </resources>

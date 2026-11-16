@@ -18,6 +18,7 @@ import nz.waveformlabs.moshpoint.core.InviteRelay
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.ShowStart
 import nz.waveformlabs.moshpoint.discover.DiscoverClient
+import nz.waveformlabs.moshpoint.discover.DiscoverPlanned
 import nz.waveformlabs.moshpoint.discover.DiscoverWhere
 import nz.waveformlabs.moshpoint.crew.Bump
 import nz.waveformlabs.moshpoint.crew.CrewRekey
@@ -216,6 +217,7 @@ internal fun startPlannedCrew(a: MainActivity, p: PlannedGig) {
     }
     a.home.planGig = false
     val made = GroupSync.startNew(a, p.name, p.startsAtSec, p.venue, p.lat, p.lon, p.tickets)
+    DiscoverPlanned.remember(a, p.showId, nz.waveformlabs.moshpoint.gigs.GigArchive.idFor(made))
     val isMain = GroupSync.group.value?.key?.contentEquals(made.key) == true
     if (isMain && !GroupSync.sleeping) a.home.setVisibility(true)
     if (!isMain) a.toast(Txt.s(R.string.main_added_up_next, made.name))

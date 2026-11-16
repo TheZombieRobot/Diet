@@ -155,6 +155,7 @@ internal fun HomeUnderTest(
     venueMap: VenueMaps.Status? = null,
     myName: String = "Josh",
     hype: nz.waveformlabs.moshpoint.ui.home.HypeView? = null,
+    comingUp: nz.waveformlabs.moshpoint.ui.home.ComingUpView? = null,
 ) = FriendsScreen(
     me = HomeMe(
         myName = myName, visible = visible, alwaysOn = false, phoneSummary = "",
@@ -168,7 +169,7 @@ internal fun HomeUnderTest(
         crewWhen = crewWhen, crewSleeping = crewSleeping,
         chatUnread = chatUnread, pinnedPlan = pinnedPlan, flareNotes = flareNotes, venueMap = venueMap, hype = hype,
     ),
-    gigs = HomeGigs(upNext = upNext, pastGigs = pastGigs),
+    gigs = HomeGigs(upNext = upNext, pastGigs = pastGigs, comingUp = comingUp),
     scanned = null,
     meActions = HomeMeActions(onMyName = {}, onFixPermissions = {}, onVisible = {}, onAlwaysOn = {}),
     crewActions = HomeCrewActions(

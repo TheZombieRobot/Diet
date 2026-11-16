@@ -50,4 +50,15 @@
     <string name="search_type_own_sub">¿No aparece? Agrégalo a mano</string>
     <string name="plan_tickets_from">Enlace de boletos: %1$s</string>
     <string name="plan_tickets_remove">Quitar el enlace de boletos</string>
+    <string name="coming_title">Próximamente cerca de ti</string>
+    <string name="coming_search">Buscar conciertos</string>
+    <string name="coming_near">Cerca de mí</string>
+    <string name="coming_near_region">Cerca de mí (%1$s)</string>
+    <string name="coming_country">Todo el país</string>
+    <string name="coming_travel">Vale el viaje</string>
+    <string name="coming_plan_it">Planearlo</string>
+    <string name="coming_planned">Planeado ✓</string>
+    <string name="coming_km">a %1$s km</string>
+    <string name="coming_empty">Todavía no hay nada aquí.</string>
+    <string name="coming_failed">No se pudieron cargar los conciertos ahora.</string>
 </resources>
