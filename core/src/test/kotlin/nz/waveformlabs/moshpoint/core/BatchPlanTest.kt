@@ -218,6 +218,79 @@ class BatchPlanTest {
     }
 
     /**
+     * Review finding F5 (docs/WAVE2C_REVIEW.md): a line just written goes within a couple of
+     * seconds, taking everything waiting with it, even when two older messages waiting for the
+     * minute's batch hold both of the courier's upload slots. Otherwise it can't start until their
+     * batch goes (up to a minute), and by then no longer counts as just written: up to two minutes.
+     */
+    @Test fun aLineJustWrittenGoesWithinSecondsEvenWithBothSlotsInTheBatch() {
+        val group = GigGroup(ByteArray(32) { (it + 1).toByte() }, "Laneway", 0L)
+        val crewId = "crew"
+        val signer = CrewKeys.generate()
+        var now = 1_800_000_000_000L
+        var lastPost = Long.MIN_VALUE / 2
+        val plan = BatchPlan()
+        val jobs = HashMap<Long, Courier.Upload>()
+        lateinit var courier: Courier
+        // The app's uplink (OfflineMessages.upload): not safety, so into the batch; a message of
+        // ours written in the last 10 s goes SOON.
+        val uplink = object : Courier.Uplink {
+            override fun upload(job: Courier.Upload) {
+                val key = jobs.size + 1L
+                jobs[key] = job
+                val soon = !job.helper && now - lastPost < 10_000L
+                plan.add(BatchPlan.Put(id(job.box.ordinal), job.sealed, held = job.box == Courier.Box.CHAT, replaceable = false, key = key), if (soon) BatchPlan.Timing.SOON else BatchPlan.Timing.MINUTE, now)
+            }
+        }
+        val host = object : Courier.Host {
+            override fun deliver(crew: Courier.Crew, message: Courier.Message, route: Courier.Route) {}
+            override fun stateChanged(crewId: String, id: Long, state: Courier.State) {}
+            override fun fetchWanted(crewId: String) {}
+            override fun paused(crewId: String, on: Boolean) {}
+            override fun trace(id: Long, kind: Int, what: String) {}
+        }
+        courier = Courier(host, uplink, object : Courier.Air { override fun ready() = false })
+        courier.setCrews(listOf(Courier.Crew(crewId, group, signer, main = true)), now)
+        // The app's post (OfflineMessages.post): queue it with the courier, start what can go.
+        fun write(text: String): Courier.Message {
+            lastPost = now
+            val m = assertNotNull(courier.post(crewId, group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Jo", now / 1000, text = text), signer), now))
+            courier.tick(now)
+            return m
+        }
+        // A batch going when it's due: each put answered SENT, then the courier ticks (RelayClient.sendBatch, OfflineMessages.upload).
+        val went = HashMap<Long, Long>()
+        fun batchIfDue() {
+            if (now < plan.dueAtMs()) return
+            for (p in plan.take(emptyList(), now).puts) {
+                val job = jobs.getValue(p.key)
+                went[job.id] = now
+                courier.onUploaded(job, PutResult.SENT, now)
+            }
+            courier.tick(now)
+        }
+        // Two lines written in a basement go up with the minute's batch when the signal comes back.
+        courier.setOnline(false, now)
+        write("on our way")
+        write("grab a spot")
+        now += 120_000L
+        courier.setOnline(true, now)
+        courier.tick(now)
+        assertEquals(2, jobs.size, "both wait in the batch, holding both slots")
+        now += 5_000L
+        val third = write("at the bar")
+        val written = now
+        // The app ticks about once a second.
+        repeat(10) {
+            now += 1_000L
+            batchIfDue()
+            courier.tick(now)
+        }
+        assertTrue(third.id in went, "the line just written went within 10 s (the batch is due in ${(plan.dueAtMs() - now) / 1000} s)")
+        assertTrue(went.getValue(third.id) - written <= 5_000L, "within a couple of seconds and a tick or two")
+    }
+
+    /**
      * The hard rule: Need help never waits for the batch. A real courier posts it while a batch
      * is half a minute away: its upload starts at once, on its own, and no batch ever carries it.
      * Its durable copy for the chat mailbox goes the same way. A chat message posted at the same
