@@ -195,7 +195,7 @@
     <string name="find_share_with_crew">Share with the crew</string>
     <string name="find_pinned_where_you_are">Pinned where you are now</string>
     <string name="find_caption_hint">Say where (optional): left of the sound desk</string>
-    <string name="find_moment_privacy">Only your crew can see it. It disappears from the relay after a few hours.</string>
+    <string name="find_moment_privacy">Only your crew can see it. It\'s deleted from the relay within 24 hours.</string>
     <string name="find_sending">Sending…</string>
     <string name="find_send">Send</string>
 

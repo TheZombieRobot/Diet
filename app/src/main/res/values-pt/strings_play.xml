@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Portuguese (Brazil): Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">Este convite veio de outro app. Só entre se souber quem mandou: enquanto você estiver ao vivo, todo mundo da galera vê onde você está.</string>
+    <string name="play_invite_follow_text">Este link pra acompanhar veio de outro app. Você vai ver as fotos da galera e que eles estão bem; eles vão ver que você está seguindo.</string>
+    <string name="play_invite_friend_title">Adicionar %1$s?</string>
+    <string name="play_invite_friend_text">Este código de amigo veio de outro app. Só adicione se souber quem mandou: você vai poder encontrar essa pessoa quando ela estiver ao vivo.</string>
+    <string name="play_invite_add">Adicionar</string>
+    <string name="play_disclosure_title">Como o Moshpoint usa sua localização</string>
+    <string name="play_disclosure_live">Enquanto você estiver ao vivo, sua localização é compartilhada com sua galera e seus amigos, pra eles te acharem.</string>
+    <string name="play_disclosure_relay">Ela é criptografada no seu celular e enviada por um servidor de retransmissão, que não consegue ler.</string>
+    <string name="play_disclosure_background">O ao vivo continua com o app fechado, com uma notificação, até você desligar.</string>
+    <string name="play_disclosure_bluetooth">Enquanto você estiver ao vivo, seu celular também repassa por Bluetooth mensagens criptografadas de outros usuários do Moshpoint. Ele não consegue ler.</string>
+    <string name="play_disclosure_continue">Continuar</string>
+    <string name="play_privacy_policy">Política de privacidade</string>
+    <string name="play_roll_pick_text">Escolha as fotos e vídeos que você fez naquela noite. Eles são copiados pro show, então ficam mesmo se você apagar da galeria.</string>
+    <string name="play_roll_choose">Escolher fotos</string>
+</resources>

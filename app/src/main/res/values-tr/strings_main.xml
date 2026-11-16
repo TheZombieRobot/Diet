@@ -19,7 +19,6 @@
 
     <string name="main_my_spot">Benim yerim</string>
 
-    <string name="main_photos_permission_needed">O geceki fotoğrafları bulmak için Moshpoint\'in fotoğraflarına erişmesi gerekiyor</string>
     <string name="main_you">Sen</string>
     <plurals name="main_added_to_gig">
         <item quantity="one">Konsere %d tane eklendi</item>

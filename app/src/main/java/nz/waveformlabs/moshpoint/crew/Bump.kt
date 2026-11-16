@@ -22,8 +22,10 @@ import nz.waveformlabs.moshpoint.locate.BleHub
  * The joiner still confirms "Join X's crew?".
  */
 object Bump {
-    /** PLACEHOLDER 16-bit UUID for bump invites; register with the Bluetooth SIG before release. */
-    private val UUID: ParcelUuid = ParcelUuid.fromString("0000FFAA-0000-1000-8000-00805F9B34FB")
+    /** Bump invites: an extended advert, so Moshpoint's own 128-bit UUID (was 0xFFAA; docs/BLUETOOTH_UUIDS.md). */
+    private val UUID: ParcelUuid = ParcelUuid.fromString("E181BEB0-719E-4505-9666-DE4DF5920EAA")
+    /** Room the advert itself takes: the service data's length, type and 128-bit UUID (18), and 4 spare. */
+    private const val ADVERT_HEADER = 22
     /** Phones back to back read about -30 to -45 dBm; a metre away is usually below -60. */
     private const val TOUCHING_DBM = -48
 
@@ -53,7 +55,7 @@ object Bump {
         })
         val adapter = app.getSystemService(BluetoothManager::class.java)?.adapter ?: return
         val bytes = inviteText?.toByteArray(Charsets.UTF_8) ?: return
-        if (!adapter.isEnabled || !adapter.isLeExtendedAdvertisingSupported || bytes.size > adapter.leMaximumAdvertisingDataLength - 8) {
+        if (!adapter.isEnabled || !adapter.isLeExtendedAdvertisingSupported || bytes.size > adapter.leMaximumAdvertisingDataLength - ADVERT_HEADER) {
             DebugStatus.log("Bump: this phone can only receive (no Bluetooth 5 adverts)")
             return
         }

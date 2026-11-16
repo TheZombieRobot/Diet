@@ -144,6 +144,8 @@ class MomentFlow(
         if (intent?.getBooleanExtra(MainActivity.EXTRA_MOMENT, false) != true) return
         val uri = intent.data ?: return
         intent.removeExtra(MainActivity.EXTRA_MOMENT)
+        // Any app can start MainActivity with this extra, so the same check as ShareMomentActivity's.
+        if (!nz.waveformlabs.moshpoint.ShareMomentActivity.acceptable(activity, uri)) return
         if (GroupSync.group.value == null) {
             toast(Txt.s(R.string.find_join_crew_first))
             return

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Polish: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">To zaproszenie przyszło z innej aplikacji. Dołącz tylko wtedy, gdy wiesz, kto je wysłał: gdy udostępniasz lokalizację, wszyscy w ekipie widzą, gdzie jesteś.</string>
+    <string name="play_invite_follow_text">Ten link do śledzenia przyszedł z innej aplikacji. Zobaczysz zdjęcia ekipy i to, że są bezpieczni; oni zobaczą, że obserwujesz.</string>
+    <string name="play_invite_friend_title">Dodać: %1$s?</string>
+    <string name="play_invite_friend_text">Ten kod znajomego przyszedł z innej aplikacji. Dodaj tę osobę tylko wtedy, gdy wiesz, kto go wysłał: znajdziesz ją, gdy będzie udostępniać lokalizację.</string>
+    <string name="play_invite_add">Dodaj</string>
+    <string name="play_disclosure_title">Jak Moshpoint używa twojej lokalizacji</string>
+    <string name="play_disclosure_live">Gdy udostępniasz lokalizację, widzą ją twoja ekipa i znajomi, żeby mogli cię znaleźć.</string>
+    <string name="play_disclosure_relay">Jest szyfrowana na twoim telefonie i wysyłana przez serwer pośredniczący, który nie może jej odczytać.</string>
+    <string name="play_disclosure_background">Udostępnianie działa dalej po zamknięciu aplikacji, z powiadomieniem, dopóki go nie wyłączysz.</string>
+    <string name="play_disclosure_bluetooth">Gdy udostępniasz lokalizację, twój telefon przekazuje też przez Bluetooth zaszyfrowane wiadomości innych użytkowników Moshpoint. Nie może ich odczytać.</string>
+    <string name="play_disclosure_continue">Dalej</string>
+    <string name="play_privacy_policy">Polityka prywatności</string>
+    <string name="play_roll_pick_text">Wybierz zdjęcia i filmy z tamtego wieczoru. Kopiujemy je do koncertu, więc zostaną, nawet jeśli usuniesz je z galerii.</string>
+    <string name="play_roll_choose">Wybierz zdjęcia</string>
+</resources>

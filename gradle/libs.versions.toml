@@ -1,5 +1,6 @@
 [versions]
-agp = "8.7.3"
+# 8.10: Android 16 (API 36) needs AGP 8.9.1 or later (docs/ANDROID_16.md). Needs Gradle 8.11.1.
+agp = "8.10.1"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
 lifecycle = "2.8.7"
@@ -13,8 +14,10 @@ facebook = "17.0.2"
 zxingEmbedded = "4.3.0"
 logback = "1.5.12"
 # Free vector maps (OpenFreeMap tiles, no API key). 11.x: OpenGL by default (runs on more phones)
-# and built with a Kotlin this project can read (13.x needs Kotlin 2.2).
-maplibre = "11.5.2"
+# and built with a Kotlin this project can read (13.x needs Kotlin 2.2). 11.8.1: the first 11.x
+# whose native library is 16 KB aligned on 64-bit phones (Play requires it; tools/check_16kb.py),
+# with no API change from 11.5.2 for the calls the app makes.
+maplibre = "11.8.1"
 # In-app camera for crew moments (photo + short clips).
 camerax = "1.4.0"
 # Lists every library the app ships, with its licence, for the in-app acknowledgements.

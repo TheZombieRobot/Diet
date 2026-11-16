@@ -141,7 +141,7 @@
     <string name="find_share_with_crew">Partager avec la crew</string>
     <string name="find_pinned_where_you_are">Épinglé là où tu es</string>
     <string name="find_caption_hint">Dis où (facultatif) : à gauche de la régie son</string>
-    <string name="find_moment_privacy">Seule ta crew peut le voir. Il disparaît du relais après quelques heures.</string>
+    <string name="find_moment_privacy">Seule ta crew peut le voir. Il disparaît du relais en moins de 24 heures.</string>
     <string name="find_sending">Envoi…</string>
     <string name="find_send">Envoyer</string>
 

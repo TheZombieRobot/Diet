@@ -405,10 +405,10 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         val adapter = runCatching { app?.getSystemService(BluetoothManager::class.java)?.adapter }.getOrNull()
         val on = runCatching { adapter?.isEnabled == true }.getOrDefault(false)
         // Needs Bluetooth 5 extended adverts with room for a whole packet (plus the advert's own
-        // header). A phone asked while Bluetooth is off says no, so it's asked again once it's on.
+        // header: 18 bytes with the relay's 128-bit UUID, and 4 spare). A phone asked while Bluetooth is off says no, so it's asked again once it's on.
         if (on && (!canCarry.value || force)) {
             canCarry.value = runCatching {
-                adapter != null && adapter.isLeExtendedAdvertisingSupported && adapter.leMaximumAdvertisingDataLength >= MessagePacket.MAX_SIZE + 8
+                adapter != null && adapter.isLeExtendedAdvertisingSupported && adapter.leMaximumAdvertisingDataLength >= MessagePacket.MAX_SIZE + 22
             }.getOrDefault(false)
         }
         bluetoothOn.value = on

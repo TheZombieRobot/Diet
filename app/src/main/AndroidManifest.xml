@@ -35,11 +35,9 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Sound on crew moment clips (asked the first time you hold to record). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- "Add your photos from that night": find photos/videos taken during a gig (asked only then). -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <!-- No photo or storage permission: "Add your photos from that night" uses Android's photo
+         picker, which hands over only what the person picks (Play's Photo and Video Permissions
+         policy). docs/WAVE2_PLAY.md -->
 
     <!-- Keep broadcasting with the app closed -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -55,6 +53,10 @@
     <uses-feature android:name="android.hardware.wifi.rtt" android:required="false" />
     <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
 
+    <!-- No advertising ID: the Facebook SDK adds this permission, and the app never uses the ID
+         (Play's Advertising ID declaration is "No"). docs/WAVE2_PLAY.md -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+
     <application
         android:name=".MoshpointApp"
         android:localeConfig="@xml/locales_config"
@@ -67,7 +69,12 @@
         android:theme="@style/Theme.Moshpoint">
 
         <!-- Log in with Facebook: only name + photo. The SDK's own analytics, ad-ID and
-             auto-init are switched off; it's initialised only when a Meta app is configured. -->
+             auto-init are switched off, and it starts only when someone taps "Continue with
+             Facebook" (FacebookLogin), never at launch: its start-up provider is removed. -->
+        <provider
+            android:name="com.facebook.internal.FacebookInitProvider"
+            android:authorities="${applicationId}.FacebookInitProvider"
+            tools:node="remove" />
         <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id" />
         <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token" />
         <meta-data android:name="com.facebook.sdk.AutoInitEnabled" android:value="false" />

@@ -38,8 +38,12 @@ import nz.waveformlabs.moshpoint.core.RelaySchedule
  * reads it to find friends.
  */
 object CrowdRelayRadio {
-    /** PLACEHOLDER 16-bit UUID for relay adverts; register with the Bluetooth SIG before release. */
-    val RELAY_UUID: ParcelUuid = ParcelUuid.fromString("0000FFA8-0000-1000-8000-00805F9B34FB")
+    /**
+     * Relay adverts (crowd relay and crew messages): Moshpoint's own 128-bit UUID, free to use and
+     * no one else's. They are Bluetooth 5 extended adverts, so the 14 bytes it costs over a 16-bit
+     * one fit (docs/BLUETOOTH_UUIDS.md). Was the unregistered 16-bit 0xFFA8.
+     */
+    val RELAY_UUID: ParcelUuid = ParcelUuid.fromString("E181BEB0-719E-4505-9666-DE4DF5920EA8")
 
     val cache = RelayCache()
 

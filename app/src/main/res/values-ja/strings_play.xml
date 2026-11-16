@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">この招待は別のアプリから届きました。送った人がわかる場合だけ参加してください。シェア中は、クルーの全員にあなたの居場所が見えます。</string>
+    <string name="play_invite_follow_text">このフォロー用リンクは別のアプリから届きました。クルーの写真や無事かどうかが見られます。あなたがフォローしていることは相手にも表示されます。</string>
+    <string name="play_invite_friend_title">%1$sを追加しますか？</string>
+    <string name="play_invite_friend_text">この友達コードは別のアプリから届きました。送った人がわかる場合だけ追加してください。相手がシェア中なら見つけられるようになります。</string>
+    <string name="play_invite_add">追加</string>
+    <string name="play_disclosure_title">Moshpointでの位置情報の使い方</string>
+    <string name="play_disclosure_live">シェア中は、あなたの位置情報がクルーや友達と共有され、あなたを見つけられるようになります。</string>
+    <string name="play_disclosure_relay">位置情報はスマホ上で暗号化され、中継サーバーを経由して送られます。サーバーは中身を読めません。</string>
+    <string name="play_disclosure_background">アプリを閉じても、オフにするまで通知を表示したまま位置シェアが続きます。</string>
+    <string name="play_disclosure_bluetooth">シェア中は、ほかのMoshpointユーザーの暗号化されたメッセージもBluetoothで中継します。あなたのスマホには中身は読めません。</string>
+    <string name="play_disclosure_continue">続ける</string>
+    <string name="play_privacy_policy">プライバシーポリシー</string>
+    <string name="play_roll_pick_text">その夜に撮った写真や動画を選んでください。ライブにコピーされるので、ギャラリーから消しても残ります。</string>
+    <string name="play_roll_choose">写真を選ぶ</string>
+</resources>

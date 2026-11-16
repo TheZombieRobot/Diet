@@ -19,7 +19,6 @@
 
     <string name="main_my_spot">Mon spot</string>
 
-    <string name="main_photos_permission_needed">Moshpoint a besoin d\'accéder à tes photos pour retrouver celles de ce soir-là</string>
     <string name="main_you">Toi</string>
     <plurals name="main_added_to_gig">
         <item quantity="one">%d ajoutée au concert</item>

@@ -87,11 +87,5 @@
     <string name="setup_done">完了</string>
 
     <string name="setup_roll_title">あの夜のあなたの写真</string>
-    <string name="setup_roll_looking">写真を探しています…</string>
-    <string name="setup_roll_nothing">その時間帯の写真はこのスマホにありません。別のスマホで撮った写真や、追加済みの写真はここに表示されません。</string>
-    <string name="setup_roll_tap_to_leave_out">タップすると除外できます。写真はライブにコピーされるので、ギャラリーから消しても残ります。</string>
     <string name="setup_roll_adding">追加中…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="other">%d件をこのライブに追加</item>
-    </plurals>
 </resources>

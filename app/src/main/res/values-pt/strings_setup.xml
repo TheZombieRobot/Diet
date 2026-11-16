@@ -89,13 +89,5 @@
     <string name="setup_done">Pronto</string>
 
     <string name="setup_roll_title">Suas fotos daquela noite</string>
-    <string name="setup_roll_looking">Olhando suas fotos…</string>
-    <string name="setup_roll_nothing">Nada neste celular daquele horário. Fotos tiradas em outro celular, ou já adicionadas, não aparecem aqui.</string>
-    <string name="setup_roll_tap_to_leave_out">Toque pra deixar uma de fora. Elas são copiadas pro show, então ficam mesmo se você apagar da galeria.</string>
     <string name="setup_roll_adding">Adicionando…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="one">Adicionar %d a este show</item>
-        <item quantity="many">Adicionar %d a este show</item>
-        <item quantity="other">Adicionar %d a este show</item>
-    </plurals>
 </resources>

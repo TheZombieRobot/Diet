@@ -21,7 +21,12 @@ _Keep this section current: whoever picks this up next starts here._
   choices and doubts. `crew_help_alerted` ("Crew alerted ✓", the misleading label) removed from
   every language.
 - **Merged:** origin/ccr-5839ed7c-1q0ztj at 0a9ba4a (the production relay; server and docs only,
-  no conflicts).
+  no conflicts), then at ebe3c26 (wave 2b, Play Store and security). The only conflict was
+  docs/FIELD_TEST_PLAN.md: both kept, 4f (this wave) then 4g (2b). Checked alongside 2b's
+  changes: its IntroRadio (GroupSync's intro loop re-checks Bluetooth and revives the advert and
+  scan) is separate from everything here (check-ins, Need help, Live on crew change), and its
+  PermissionAsks (`askWithDisclosure`) is what `HomeState.setVisibility` now calls before the
+  honest go-live path added here.
 - **CI:** see "CI runs" at the end.
 - **Next:** if CI is red, fix what it lists (the "Compile errors" step greps `^e: `). Check the
   new screenshots in every language (ui-screenshots-claude-wave2-safety-k7m3p9) and that every

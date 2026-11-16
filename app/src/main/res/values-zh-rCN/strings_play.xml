@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chinese (Simplified): Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">这个邀请来自其他应用。只有知道是谁发的才加入：你在线时，小队里的每个人都能看到你在哪里。</string>
+    <string name="play_invite_follow_text">这个关注链接来自其他应用。你能看到小队的照片和是否平安；他们也会知道你在关注。</string>
+    <string name="play_invite_friend_title">添加 %1$s？</string>
+    <string name="play_invite_friend_text">这个好友码来自其他应用。只有知道是谁发的才添加：对方在线时，你就能找到对方。</string>
+    <string name="play_invite_add">添加</string>
+    <string name="play_disclosure_title">Moshpoint 如何使用你的位置</string>
+    <string name="play_disclosure_live">你在线时，你的位置会分享给你的小队和朋友，方便他们找到你。</string>
+    <string name="play_disclosure_relay">位置在你的手机上加密，再经由中转服务器发送，服务器无法读取。</string>
+    <string name="play_disclosure_background">关闭应用后，在线状态仍会继续并显示一条通知，直到你关掉它。</string>
+    <string name="play_disclosure_bluetooth">你在线时，你的手机还会通过蓝牙转发其他 Moshpoint 用户的加密消息，但无法读取。</string>
+    <string name="play_disclosure_continue">继续</string>
+    <string name="play_privacy_policy">隐私政策</string>
+    <string name="play_roll_pick_text">选择那晚拍的照片和视频。它们会复制到这场演出里，就算从相册删掉也还在。</string>
+    <string name="play_roll_choose">选择照片</string>
+</resources>

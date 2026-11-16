@@ -138,7 +138,7 @@
     <string name="find_share_with_crew">Ekiple paylaş</string>
     <string name="find_pinned_where_you_are">Şu an olduğun yere iğnelendi</string>
     <string name="find_caption_hint">Nerede olduğunu yaz (isteğe bağlı): ses masasının solu</string>
-    <string name="find_moment_privacy">Sadece ekibin görebilir. Birkaç saat sonra sunucudan silinir.</string>
+    <string name="find_moment_privacy">Sadece ekibin görebilir. 24 saat içinde sunucudan silinir.</string>
     <string name="find_sending">Gönderiliyor…</string>
     <string name="find_send">Gönder</string>
 

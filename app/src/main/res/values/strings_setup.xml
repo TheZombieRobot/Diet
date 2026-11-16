@@ -119,13 +119,5 @@
 
     <!-- Camera-roll picker: add your own photos to a past gig -->
     <string name="setup_roll_title">Your photos from that night</string>
-    <string name="setup_roll_looking">Looking through your photos…</string>
-    <string name="setup_roll_nothing">Nothing on this phone from those hours. Photos taken on another phone, or already added, won\'t show here.</string>
-    <string name="setup_roll_tap_to_leave_out">Tap to leave one out. They\'re copied into the gig, so they stay even if you delete them from your gallery.</string>
     <string name="setup_roll_adding">Adding…</string>
-    <!-- Button. %d = number of photos/videos chosen -->
-    <plurals name="setup_roll_add_n">
-        <item quantity="one">Add %d to this gig</item>
-        <item quantity="other">Add %d to this gig</item>
-    </plurals>
 </resources>

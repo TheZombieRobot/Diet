@@ -33,6 +33,11 @@ import nz.waveformlabs.moshpoint.ui.moments.StoryScreen
 import nz.waveformlabs.moshpoint.ui.settings.AcknowledgementsContent
 import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
 import nz.waveformlabs.moshpoint.ui.settings.SettingsContent
+import nz.waveformlabs.moshpoint.ui.moments.CameraRollContent
+import nz.waveformlabs.moshpoint.ui.settings.PlayDialogCard
+import nz.waveformlabs.moshpoint.ui.settings.AboutSection
+import nz.waveformlabs.moshpoint.ui.settings.InviteConfirmContent
+import nz.waveformlabs.moshpoint.ui.settings.LocationDisclosureContent
 import org.junit.Rule
 import org.junit.Test
 
@@ -209,6 +214,123 @@ open class ScreensSnapshotTest {
     @Test fun smallPhoneSettings() {
         paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5))
         settings()
+    }
+
+    // ---- Play Store readiness (docs/WAVE2_PLAY.md) ----
+
+    /**
+     * A landscape tablet, 1280 x 800 dp (Nexus 10's size in dp, drawn at 1x to keep the files
+     * small). Android 16 ignores the app's portrait lock on screens 600 dp and wider, so the home
+     * and the finder must work this wide (docs/ANDROID_16.md).
+     */
+    private val tablet = DeviceConfig.NEXUS_10.copy(
+        screenWidth = 1280, screenHeight = 800, xdpi = 160, ydpi = 160, density = com.android.resources.Density.MEDIUM,
+    )
+
+    @Test fun tabletHomeMain() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(tablet))
+        snap { MoshTheme { HomeUnderTest() } }
+    }
+
+    @Test fun tabletFinderGroup() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(tablet))
+        finder(
+            "Foo Fighters night",
+            listOf(
+                ArrowState.Pointing("sam", -40.0, 8.0, Method.UWB, false),
+                ArrowState.Pointing("alex", 52.0, 65.0, Method.GPS_SERVER, false),
+                ArrowState.Pointing("jo", 168.0, 140.0, Method.CROWD_RELAY, true),
+            ),
+        )
+    }
+
+    /** A dialog as the app shows it, centred over the screen (Paparazzi can't draw a dialog's window). */
+    private fun dialog(content: @androidx.compose.runtime.Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) = snap {
+        MoshTheme {
+            androidx.compose.foundation.layout.Box(
+                androidx.compose.ui.Modifier.fillMaxSize().background(Mosh.Ground).padding(24.dp),
+                contentAlignment = androidx.compose.ui.Alignment.Center,
+            ) {
+                PlayDialogCard(androidx.compose.ui.Modifier.fillMaxWidth(), content)
+            }
+        }
+    }
+
+    /** Before Android asks for location: what's shared, how, and that it keeps going with the app closed. */
+    @Test fun locationDisclosure() = dialog { LocationDisclosureContent({}, {}, {}) }
+
+    @Test fun smallPhoneLargeFontDisclosure() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        locationDisclosure()
+    }
+
+    @Test fun tabletDisclosure() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(tablet))
+        locationDisclosure()
+    }
+
+    /** An invite shared from another app: nothing happens until Join. */
+    @Test fun sharedInvite() = dialog {
+        InviteConfirmContent(
+            title = stringResource(nz.waveformlabs.moshpoint.R.string.main_join_name, "Bevan's crew"),
+            body = stringResource(nz.waveformlabs.moshpoint.R.string.play_invite_join_text),
+            note = null,
+            confirm = stringResource(nz.waveformlabs.moshpoint.R.string.main_join),
+            onConfirm = {}, onDismiss = {},
+        )
+    }
+
+    @Test fun smallPhoneLargeFontSharedInvite() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        sharedInvite()
+    }
+
+    /** A friend's code shared from another app. */
+    @Test fun sharedFriendInvite() = dialog {
+        InviteConfirmContent(
+            title = stringResource(nz.waveformlabs.moshpoint.R.string.play_invite_friend_title, "Sam"),
+            body = stringResource(nz.waveformlabs.moshpoint.R.string.play_invite_friend_text),
+            note = null,
+            confirm = stringResource(nz.waveformlabs.moshpoint.R.string.play_invite_add),
+            onConfirm = {}, onDismiss = {},
+        )
+    }
+
+    /** The welcome's second step: why each permission, and the privacy policy link. */
+    @Test fun welcomeLive() = snap {
+        MoshTheme { OnboardingScreen(name = "", onName = {}, onAskPermissions = {}, onDone = {}, onPrivacy = {}, startStep = 1) }
+    }
+
+    @Test fun smallPhoneLargeFontWelcomeLive() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        welcomeLive()
+    }
+
+    /** The bottom of Settings: version, credits, licences and the privacy policy. */
+    @Test fun settingsAbout() = snap {
+        MoshTheme {
+            androidx.compose.foundation.layout.Column(
+                androidx.compose.ui.Modifier.fillMaxWidth().background(Mosh.Deep).padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+            ) {
+                AboutSection(
+                    phoneSummary = "This phone: UWB, Wi-Fi Aware, Bluetooth, compass, GPS", onLicences = {}, onPrivacy = {},
+                    version = "0.1.0 (1)", // not CI's build number, which changes every run
+                )
+            }
+        }
+    }
+
+    /** "Add your photos from that night": a note, then Android's photo picker. */
+    @Test fun cameraRoll() = snap {
+        MoshTheme {
+            androidx.compose.foundation.layout.Box(
+                androidx.compose.ui.Modifier.fillMaxSize().background(Mosh.Ground).padding(24.dp),
+                contentAlignment = androidx.compose.ui.Alignment.Center,
+            ) {
+                CameraRollContent("Foo Fighters night", adding = false, onChoose = {}, onClose = {})
+            }
+        }
     }
 
     @Test fun smallPhoneOneFriend() {

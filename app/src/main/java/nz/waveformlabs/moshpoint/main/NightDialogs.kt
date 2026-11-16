@@ -8,11 +8,13 @@ import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.Invite
+import nz.waveformlabs.moshpoint.core.InviteRelay
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.crew.Bump
 import nz.waveformlabs.moshpoint.crew.CrewRekey
@@ -20,15 +22,17 @@ import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.gigs.GigSearch
 import nz.waveformlabs.moshpoint.gigs.NightStats
+import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.sharing.Sharing
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.home.BumpDialog
 import nz.waveformlabs.moshpoint.ui.home.PlanGigSheet
+import nz.waveformlabs.moshpoint.ui.settings.InviteConfirmDialog
 import nz.waveformlabs.moshpoint.venue.VenueLookup
 
 /**
  * The night's dialogs over the home and finder: plan a gig, bump to join, an invite that
- * arrived by bump or is on the clipboard, and the "Your night" recap.
+ * arrived by bump, is on the clipboard or was shared from another app, and the "Your night" recap.
  * @NonRestartableComposable: see [MainScreen].
  */
 @Composable
@@ -112,6 +116,8 @@ internal fun NightDialogs(a: MainActivity) {
             },
         )
     }
+    // An invite that came from another app: nothing happens until Join (or Add) is tapped here.
+    a.invites.sharedInvite?.let { text -> SharedInviteDialog(a, text) }
     a.home.recap?.let { s ->
         AlertDialog(
             onDismissRequest = { a.home.recap = null },
@@ -147,3 +153,45 @@ internal fun NightDialogs(a: MainActivity) {
         )
     }
 }
+
+/**
+ * Confirms an invite shared from another app (docs/WAVE2_PLAY.md, item 4): what it is, that it
+ * came from elsewhere, and, in test builds, the relay server it would switch to. Only the
+ * confirm button joins (and, for tonight's crew, goes live) or adds the friend.
+ */
+@Composable
+@NonRestartableComposable
+private fun SharedInviteDialog(a: MainActivity, text: String) {
+    val close = { a.invites.sharedInvite = null }
+    val accept = {
+        a.invites.sharedInvite = null
+        a.invites.handleInvite(text)
+        Unit
+    }
+    when (val inv = Invite.find(text)) {
+        is Invite.Group -> {
+            val name = GigGroup.parseQr(inv.qrText, System.currentTimeMillis())?.name ?: stringResource(R.string.main_the_crew)
+            val follow = GigGroup.isFollowInvite(inv.qrText)
+            // Test builds only (release builds never switch relays, so they never say so).
+            val relay = if (BuildConfig.TEST_BUILD) InviteRelay.switchTo(InviteRelay.named(inv.qrText), true, RelayClient.serverInUse, RelayClient.ownRelays) else null
+            InviteConfirmDialog(
+                title = if (follow) stringResource(R.string.main_follow_name, name) else stringResource(R.string.main_join_name, name),
+                body = if (follow) stringResource(R.string.play_invite_follow_text) else stringResource(R.string.play_invite_join_text),
+                note = relay?.let { "Test build: joining also switches this phone to the crew's relay server, $it." },
+                confirm = stringResource(R.string.main_join),
+                onConfirm = accept,
+                onDismiss = close,
+            )
+        }
+        is Invite.Friend -> InviteConfirmDialog(
+            title = stringResource(R.string.play_invite_friend_title, inv.name),
+            body = stringResource(R.string.play_invite_friend_text),
+            note = null,
+            confirm = stringResource(R.string.play_invite_add),
+            onConfirm = accept,
+            onDismiss = close,
+        )
+        null -> androidx.compose.runtime.SideEffect { close() } // nothing to confirm after all
+    }
+}
+

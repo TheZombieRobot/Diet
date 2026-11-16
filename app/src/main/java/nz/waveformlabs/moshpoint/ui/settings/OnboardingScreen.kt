@@ -85,8 +85,12 @@ fun OnboardingScreen(
     onDone: () -> Unit,
     /** Null when the build has no Meta app configured. */
     onFacebook: (() -> Unit)? = null,
+    /** Opens the privacy policy; its link sits with the reasons for each permission. */
+    onPrivacy: (() -> Unit)? = null,
+    /** The step to open on (screenshot tests). */
+    startStep: Int = 0,
 ) {
-    var step by remember { mutableIntStateOf(0) }
+    var step by remember { mutableIntStateOf(startStep) }
     Box(Modifier.fillMaxSize().background(Mosh.Ground)) {
         val glowColour by animateColorAsState(listOf(Mosh.Cyan, Mosh.Lime, Mosh.Pink)[step], tween(800), label = "g")
         GlowBackground(colours = listOf(Mosh.Violet, glowColour, Mosh.Pink))
@@ -136,6 +140,7 @@ fun OnboardingScreen(
                             Need(Mosh.Cyan, stringResource(R.string.setup_onb_need_nearby), stringResource(R.string.offline_need_nearby_why))
                             Need(Mosh.Lime, stringResource(R.string.setup_onb_need_location), stringResource(R.string.setup_onb_need_location_why))
                             Need(Mosh.Pink, stringResource(R.string.setup_onb_need_notifications), stringResource(R.string.setup_onb_need_notifications_why))
+                            if (onPrivacy != null) PrivacyPolicyLink(onPrivacy, Modifier.padding(top = 4.dp))
                         }
                         else -> {
                             NameBadge(name, Modifier.fillMaxWidth(0.45f).widthIn(max = 200.dp).aspectRatio(1f))

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">यह इनवाइट किसी दूसरे ऐप से आया है। तभी शामिल हों जब आपको पता हो कि इसे किसने भेजा है: जब तक आप लाइव हैं, ग्रुप में हर कोई देख सकता है कि आप कहाँ हैं।</string>
+    <string name="play_invite_follow_text">यह फ़ॉलो करने का लिंक किसी दूसरे ऐप से आया है। आपको ग्रुप की फ़ोटो दिखेंगी और यह कि वे सुरक्षित हैं; उन्हें दिखेगा कि आप फ़ॉलो कर रहे हैं।</string>
+    <string name="play_invite_friend_title">%1$s को जोड़ें?</string>
+    <string name="play_invite_friend_text">यह फ़्रेंड कोड किसी दूसरे ऐप से आया है। तभी जोड़ें जब आपको पता हो कि इसे किसने भेजा है: वे लाइव होंगे तो आप उन्हें ढूँढ पाएँगे।</string>
+    <string name="play_invite_add">जोड़ें</string>
+    <string name="play_disclosure_title">Moshpoint आपकी लोकेशन का इस्तेमाल कैसे करता है</string>
+    <string name="play_disclosure_live">जब तक आप लाइव हैं, आपकी लोकेशन आपके ग्रुप और दोस्तों के साथ शेयर होती है, ताकि वे आपको ढूँढ सकें।</string>
+    <string name="play_disclosure_relay">यह आपके फ़ोन पर एन्क्रिप्ट होती है और एक रिले सर्वर से भेजी जाती है, जो इसे पढ़ नहीं सकता।</string>
+    <string name="play_disclosure_background">ऐप बंद होने पर भी लाइव चलता रहता है, एक नोटिफ़िकेशन के साथ, जब तक आप इसे बंद न करें।</string>
+    <string name="play_disclosure_bluetooth">जब तक आप लाइव हैं, आपका फ़ोन दूसरे Moshpoint यूज़र्स के एन्क्रिप्टेड मैसेज भी ब्लूटूथ से आगे भेजता है। वह उन्हें पढ़ नहीं सकता।</string>
+    <string name="play_disclosure_continue">आगे बढ़ें</string>
+    <string name="play_privacy_policy">प्राइवेसी पॉलिसी</string>
+    <string name="play_roll_pick_text">उस रात ली गई फ़ोटो और वीडियो चुनें। ये शो में कॉपी हो जाती हैं, इसलिए गैलरी से डिलीट करने पर भी बनी रहती हैं।</string>
+    <string name="play_roll_choose">फ़ोटो चुनें</string>
+</resources>

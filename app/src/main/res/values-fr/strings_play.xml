@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- French: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">Cette invitation vient d\'une autre app. Ne la rejoins que si tu sais qui l\'a envoyée : quand tu es en live, tout le monde dans la crew voit où tu es.</string>
+    <string name="play_invite_follow_text">Ce lien pour suivre vient d\'une autre app. Tu verras les photos de la crew et que tout va bien ; ils verront que tu les suis.</string>
+    <string name="play_invite_friend_title">Ajouter %1$s ?</string>
+    <string name="play_invite_friend_text">Ce code d\'ami vient d\'une autre app. N\'ajoute cette personne que si tu sais qui l\'a envoyé : tu pourras la trouver quand elle sera en live.</string>
+    <string name="play_invite_add">Ajouter</string>
+    <string name="play_disclosure_title">Comment Moshpoint utilise ta position</string>
+    <string name="play_disclosure_live">Quand tu es en live, ta position est partagée avec ta crew et tes amis, pour qu\'ils puissent te trouver.</string>
+    <string name="play_disclosure_relay">Elle est chiffrée sur ton téléphone et envoyée via un serveur relais, qui ne peut pas la lire.</string>
+    <string name="play_disclosure_background">Le live continue quand l\'app est fermée, avec une notification, jusqu\'à ce que tu l\'arrêtes.</string>
+    <string name="play_disclosure_bluetooth">Quand tu es en live, ton téléphone transmet aussi par Bluetooth les messages chiffrés d\'autres utilisateurs de Moshpoint. Il ne peut pas les lire.</string>
+    <string name="play_disclosure_continue">Continuer</string>
+    <string name="play_privacy_policy">Politique de confidentialité</string>
+    <string name="play_roll_pick_text">Choisis les photos et vidéos que tu as prises ce soir-là. Elles sont copiées dans le concert, donc elles restent même si tu les supprimes de ta galerie.</string>
+    <string name="play_roll_choose">Choisir des photos</string>
+</resources>

@@ -1,8 +1,9 @@
 package nz.waveformlabs.moshpoint.main
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
+import android.net.Uri
+import android.os.Bundle
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -25,41 +26,35 @@ internal class StoryState(private val a: MainActivity) {
     var archiveGig by mutableStateOf<GigArchive.Summary?>(null)
     var archiveItems by mutableStateOf<List<Moments.Item>>(emptyList())
 
-    // ---- "Add your photos from that night" (camera roll) ----
+    // ---- "Add your photos from that night": the phone's own photo picker ----
 
     var rollGig by mutableStateOf<Pair<String, String>?>(null) // (gig id, name)
-    var rollFound by mutableStateOf<List<GigArchive.Found>?>(null)
     var rollAdding by mutableStateOf(false)
 
-    /** The answer to asking for the phone's photos. */
-    fun onMediaPermissions(r: Map<String, Boolean>) {
-        if (r.values.any { it }) findOnPhone() else {
-            rollGig = null
-            a.toast(Txt.s(R.string.main_photos_permission_needed))
-        }
-    }
-
+    /**
+     * Opens "Your photos from that night" for gig [id]: a short note, then Android's photo picker.
+     * The picker hands back only what the person picks, so the app needs no photo permission
+     * (Play's Photo and Video Permissions policy; docs/WAVE2_PLAY.md, item 2).
+     */
     fun startRoll(id: String, name: String) {
         rollGig = id to name
-        rollFound = null
-        val perms = if (Build.VERSION.SDK_INT >= 33) {
-            listOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO) +
-                (if (Build.VERSION.SDK_INT >= 34) listOf(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) else emptyList())
-        } else {
-            listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        rollAdding = false
+    }
+
+    /** "Choose photos": Android's photo picker, photos and videos. */
+    fun chooseFromPhone() {
+        runCatching {
+            a.launchers.pickRoll.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
         }
-        if (perms.any { a.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }) findOnPhone() else a.launchers.mediaPerms.launch(perms.toTypedArray())
     }
 
-    private fun findOnPhone() {
+    /** What the picker gave back (nothing if the person backed out): copied into the gig, originals kept. */
+    fun onPicked(uris: List<Uri>) {
         val (id, _) = rollGig ?: return
-        a.lifecycleScope.launch { rollFound = GigArchive.findOnPhone(a, id) }
-    }
-
-    fun addFromPhone(picked: List<GigArchive.Found>) {
-        val (id, _) = rollGig ?: return
+        if (uris.isEmpty() || rollAdding) return
         rollAdding = true
         a.lifecycleScope.launch {
+            val picked = GigArchive.describePicked(a, id, uris)
             val n = GigArchive.addFromPhone(a, id, picked, a.home.myName.ifBlank { Txt.s(R.string.main_you) })
             rollAdding = false
             rollGig = null
@@ -68,6 +63,15 @@ internal class StoryState(private val a: MainActivity) {
             if (GroupSync.group.value?.let(GigArchive::idFor) == id) Moments.loadCurrent(a)
             archiveGig?.takeIf { it.id == id }?.let { archiveItems = GigArchive.load(a, id) }
         }
+    }
+
+    /** Keeps which gig the picker is for if Android closes the app while it's open. */
+    fun save(out: Bundle) {
+        rollGig?.let { (id, name) -> out.putStringArray(SAVED_ROLL, arrayOf(id, name)) }
+    }
+
+    fun restore(saved: Bundle?) {
+        saved?.getStringArray(SAVED_ROLL)?.takeIf { it.size == 2 }?.let { rollGig = it[0] to it[1] }
     }
 
     /** Copy photos/clips into the phone's gallery, album "Moshpoint / <gig>". */
@@ -84,5 +88,9 @@ internal class StoryState(private val a: MainActivity) {
                 },
             )
         }
+    }
+
+    private companion object {
+        const val SAVED_ROLL = "rollGig"
     }
 }

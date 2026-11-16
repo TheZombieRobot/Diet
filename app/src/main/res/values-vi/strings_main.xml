@@ -19,7 +19,6 @@
 
     <string name="main_my_spot">Chỗ của mình</string>
 
-    <string name="main_photos_permission_needed">Moshpoint cần quyền truy cập ảnh để tìm ảnh của đêm đó</string>
     <string name="main_you">Bạn</string>
     <plurals name="main_added_to_gig">
         <item quantity="other">Đã thêm %d vào show</item>

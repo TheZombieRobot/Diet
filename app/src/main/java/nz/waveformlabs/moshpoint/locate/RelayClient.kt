@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.setup.NetState
+import nz.waveformlabs.moshpoint.core.InviteRelay
 import nz.waveformlabs.moshpoint.core.PutResult
 import nz.waveformlabs.moshpoint.core.RelayBudget
 import nz.waveformlabs.moshpoint.core.RelayUse
@@ -40,22 +41,44 @@ object RelayClient {
     val ownServer get() = base.isNotBlank()
 
     /**
-     * The relay server address: set in the app (Me > Relay server, or carried in a crew's
-     * invite) or baked into the build. Blank = the free public relay.
+     * The build's own relays, in one place: the only relays a release build uses, or follows an
+     * invite to (core [InviteRelay]). Today the production relay (`MOSHPOINT_SERVER`, a
+     * Moshpoint+ feature); the free tier's relay joins this list with billing. Blank ones don't
+     * count: with none, release builds use the public relay.
+     */
+    val ownRelays: List<String> get() = listOf(BuildConfig.MOSHPOINT_SERVER).filter { it.isNotBlank() }
+
+    /**
+     * A relay server chosen on this phone: in a test build from Settings > Relay server or a crew's
+     * invite the person confirmed; in a release build only ever one of [ownRelays], from an
+     * invite. Blank = the one built in, else the free public relay.
      */
     @Volatile var serverUrl: String = ""
         private set
 
+    /** [serverUrl] came from someone's invite, so it's never passed on in ours ([shareableServer]). */
+    @Volatile private var serverFromInvite = false
+
     fun init(c: android.content.Context) {
-        serverUrl = c.applicationContext.getSharedPreferences("relay", android.content.Context.MODE_PRIVATE).getString("url", null).orEmpty()
+        val p = c.applicationContext.getSharedPreferences("relay", android.content.Context.MODE_PRIVATE)
+        serverUrl = p.getString("url", null).orEmpty()
+        // Saved by a version that didn't record where it came from: treat it as from an invite,
+        // so it's never passed on in ours (it may be a stranger's). Retyping it in Settings
+        // makes it this phone's own again.
+        serverFromInvite = p.getBoolean("fromInvite", true)
     }
 
-    /** Use [url] as the relay (blank = public relay / build default). Returns false if it isn't a valid https address. */
-    fun setServer(c: android.content.Context, url: String): Boolean {
+    /**
+     * Use [url] as the relay (blank = public relay / build default); [fromInvite] = it came in a
+     * crew's invite. Returns false if it isn't a valid https address.
+     */
+    fun setServer(c: android.content.Context, url: String, fromInvite: Boolean = false): Boolean {
         val u = url.trim().trimEnd('/')
-        if (u.isNotEmpty() && !Regex("^https://[A-Za-z0-9.-]+(:[0-9]+)?(/[A-Za-z0-9._~/-]*)?$").matches(u)) return false
+        if (u.isNotEmpty() && !InviteRelay.valid(u)) return false
         serverUrl = u
-        c.applicationContext.getSharedPreferences("relay", android.content.Context.MODE_PRIVATE).edit().putString("url", u).apply()
+        serverFromInvite = fromInvite && u.isNotEmpty()
+        c.applicationContext.getSharedPreferences("relay", android.content.Context.MODE_PRIVATE).edit()
+            .putString("url", u).putBoolean("fromInvite", serverFromInvite).apply()
         return true
     }
 
@@ -71,10 +94,25 @@ object RelayClient {
     /** Minimum gap between our own location posts. */
     val uploadGapMs get() = if (ownServer) 15_000L else 75_000L
 
-    private val base get() = serverUrl.ifBlank { BuildConfig.MOSHPOINT_SERVER }.trimEnd('/')
+    /**
+     * The relay in use: the one chosen on this phone, else the one built in, else (blank) the
+     * public relay, as before. A release build ignores a chosen relay that isn't one of its own.
+     */
+    private val base get() = InviteRelay.inUse(BuildConfig.MOSHPOINT_SERVER, serverUrl, BuildConfig.TEST_BUILD, ownRelays)
 
-    /** The address crews should share (blank = public relay). */
-    val shareableServer get() = base
+    /** The relay this phone uses now (blank = the public relay). */
+    val serverInUse get() = base
+
+    /** The relay in use came in someone's invite (test builds; Settings says so). */
+    val serverFromCrew get() = BuildConfig.TEST_BUILD && serverFromInvite && serverUrl.isNotBlank()
+
+    /**
+     * The relay crew invites carry, and what gig search and venue lookups ask (blank = the public
+     * relay). Release: the one in use, always one of [ownRelays]. In a test build, one typed into
+     * Settings counts as its own; one that came in someone else's invite never does, so it can't
+     * spread from phone to phone.
+     */
+    val shareableServer get() = InviteRelay.forInvites(BuildConfig.MOSHPOINT_SERVER, serverUrl, serverFromInvite, BuildConfig.TEST_BUILD, ownRelays)
     private const val NTFY = "https://ntfy.sh"
 
     /** Location shares, intros and the like: [RelayUse.BACKGROUND] unless the caller says otherwise. */

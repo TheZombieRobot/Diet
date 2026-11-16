@@ -87,11 +87,5 @@
     <string name="setup_done">完成</string>
 
     <string name="setup_roll_title">你那晚拍的相片</string>
-    <string name="setup_roll_looking">正在翻你的相片…</string>
-    <string name="setup_roll_nothing">這支手機上沒有那段時間的相片。用別支手機拍的或已經加過的不會顯示在這裡。</string>
-    <string name="setup_roll_tap_to_leave_out">點一下可以排除。相片會複製到這場演出裡，就算從相簿刪掉也還在。</string>
     <string name="setup_roll_adding">新增中…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="other">新增 %d 個到這場演出</item>
-    </plurals>
 </resources>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite that came from another app,
+     the location disclosure shown before Android's permission prompt, the privacy policy link,
+     and adding your own photos with the system photo picker. -->
+<resources>
+    <!-- Invite confirmation. Shown when an invite is shared to Moshpoint from another app (Share → Moshpoint invite).
+         Title is the existing "Join %1$s?" / "Follow %1$s?". Body for a crew: -->
+    <string name="play_invite_join_text">This invite came from another app. Only join if you know who sent it: while you\'re live, everyone in the crew can see where you are.</string>
+    <!-- Body for a follow-along link (people at home follow a crew; they are never findable) -->
+    <string name="play_invite_follow_text">This follow-along link came from another app. You\'ll see the crew\'s photos and that they\'re safe; they\'ll see you\'re following.</string>
+    <!-- Title for a friend's code shared from another app. %1$s = their name -->
+    <string name="play_invite_friend_title">Add %1$s?</string>
+    <string name="play_invite_friend_text">This friend code came from another app. Only add them if you know who sent it: you\'ll be able to find them when they\'re live.</string>
+    <!-- Button: add the friend -->
+    <string name="play_invite_add">Add</string>
+
+    <!-- Location disclosure, shown right before Android asks for location and nearby devices. Title: -->
+    <string name="play_disclosure_title">How Moshpoint uses your location</string>
+    <!-- Four points, each its own line. "Live" = the app's Go live switch: you're findable by your crew. -->
+    <string name="play_disclosure_live">While you\'re live, your location is shared with your crew and friends, so they can find you.</string>
+    <string name="play_disclosure_relay">It\'s encrypted on your phone and sent through a relay server, which can\'t read it.</string>
+    <string name="play_disclosure_background">Live keeps running when the app is closed, with a notification, until you turn it off.</string>
+    <string name="play_disclosure_bluetooth">While you\'re live, your phone also passes on other Moshpoint users\' encrypted messages over Bluetooth. It can\'t read them.</string>
+    <!-- Button: go on to Android's permission prompt -->
+    <string name="play_disclosure_continue">Continue</string>
+    <!-- Link that opens the privacy policy in the browser (onboarding, the disclosure and Settings) -->
+    <string name="play_privacy_policy">Privacy policy</string>
+
+    <!-- Add your photos from that night (a past gig's Story): the phone's own photo picker opens next. -->
+    <string name="play_roll_pick_text">Pick the photos and videos you took that night. They\'re copied into the gig, so they stay even if you delete them from your gallery.</string>
+    <!-- Button: opens the phone's photo picker -->
+    <string name="play_roll_choose">Choose photos</string>
+</resources>

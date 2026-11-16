@@ -36,6 +36,7 @@ import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.IntroRadio
 import nz.waveformlabs.moshpoint.core.CheckIns
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId
@@ -61,8 +62,8 @@ import nz.waveformlabs.moshpoint.service.VisibilityPrefs
  *    members whose phones can't do extended adverts still get the list.
  */
 object GroupSync {
-    /** PLACEHOLDER 16-bit UUID for group intros; register with the Bluetooth SIG before release. */
-    private val INTRO_UUID: ParcelUuid = ParcelUuid.fromString("0000FFA9-0000-1000-8000-00805F9B34FB")
+    /** Crew intros: an extended advert, so Moshpoint's own 128-bit UUID (was 0xFFA9; docs/BLUETOOTH_UUIDS.md). */
+    private val INTRO_UUID: ParcelUuid = ParcelUuid.fromString("E181BEB0-719E-4505-9666-DE4DF5920EA9")
     private const val TAG = "GroupSync"
 
     /** The active group, if any (Compose state for the friends screen). */
@@ -241,7 +242,7 @@ object GroupSync {
         if (g.dormant(System.currentTimeMillis())) return
         val now = System.currentTimeMillis()
         val name = (if (following) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }
-        syncServer(app, g, g.sealIntro(Identity.intro(app, g, name), now), now)
+        syncServer(app, g, g.sealIntro(Identity.intro(app, g, name), now, form2 = true), now)
     }
 
     /** Loved ones following this crew from home (names), so everyone knows who can see. */
@@ -503,30 +504,38 @@ object GroupSync {
             }
             // Our pass in this crew (never our permanent identity) and our signing key.
             val myIntro = Identity.intro(c, g, myName)
-            // The new intro form is 4 bytes longer: only if this phone's adverts have the room.
-            val roomForNew = runCatching {
-                (c.getSystemService(BluetoothManager::class.java)?.adapter?.leMaximumAdvertisingDataLength ?: 0) >= GigGroup.MAX_INTRO2_BYTES + 8
-            }.getOrDefault(false)
+            // Only the second intro form goes out now, on air and to the relay: the first had 4
+            // bytes that stayed the same all night and a nonce that could repeat (audit/release.md,
+            // P2). Both forms are still read. On air it needs the room for itself plus the
+            // advert's 128-bit UUID header (docs/BLUETOOTH_UUIDS.md); a phone without it (none
+            // known) leaves its intro to the relay. Asked again every round (core IntroRadio):
+            // Bluetooth may be off now and on later, with nobody to tell us.
+            val radio = IntroRadio(follower)
             while (true) {
                 val now = System.currentTimeMillis()
-                val mine = introFor(myIntro, now)
+                val mine = introFor(myIntro, now, form2 = true)
                 // Gossip: every other slot we pass on a crew member we know about, so the
                 // whole crew spreads through the room even if two of them never get close.
                 val members = FriendsRepository.friends.filter { it.gigGroupOnly }
-                // On air, the intro form without the constant prefix takes over once every crew
-                // mate's phone has shown it reads it (core IntroForms). Until then ours takes
-                // turns between the two forms. The relay's copy ([mine]) stays as it was.
-                val passes = members.filter { !FriendsRepository.isSimulated(it.id) }.map { it.secret } + this@GroupSync.members.map { unhex(it) }
                 val out = if (slot % 2 == 1 && members.isNotEmpty()) {
                     val m = members[(slot / 2) % members.size]
-                    introFor(GigGroup.Intro(m.secret, m.name, pubOf(m.secret)), now, form2 = roomForNew && introForms.newOnly(passes))
-                } else if (roomForNew && introForms.ownForm2(slot / 2, passes)) {
-                    introFor(myIntro, now, form2 = true)
+                    introFor(GigGroup.Intro(m.secret, m.name, pubOf(m.secret)), now, form2 = true)
                 } else {
                     mine
                 }
                 slot++
-                if (!follower) advertise(c, out)
+                val r = runCatching {
+                    val adapter = c.getSystemService(BluetoothManager::class.java)?.adapter
+                    radio.round(adapter?.isEnabled == true, adapter?.isLeExtendedAdvertisingSupported == true, adapter?.leMaximumAdvertisingDataLength ?: 0)
+                }.getOrDefault(IntroRadio.QUIET)
+                if (r.revive) {
+                    // Bluetooth came (back) on: our advert set and the shared scan died with it.
+                    advertSet = null
+                    advertCallback = null
+                    BleHub.onBluetooth(true)
+                }
+                if (r.listen && !listening) startListening(c, g)
+                if (r.advertise) advertise(c, out)
                 if (now - lastServer > (if (RelayClient.ownServer) 30_000L else 55_000L)) {
                     lastServer = now
                     syncServer(c, g, mine, now)
@@ -906,6 +915,12 @@ object GroupSync {
     /** Listens through the app's one shared scan (see BleHub). Fast while the app is open. */
     private fun startListening(c: Context, g: GigGroup) {
         val adapter = c.getSystemService(BluetoothManager::class.java)?.adapter ?: return
+        if (!adapter.isEnabled) {
+            // Android says "no extended adverts" while Bluetooth is off; the intro loop tries
+            // again once it's on.
+            DebugStatus.set("Gig group", "${g.name}: Bluetooth off (intros by the relay)")
+            return
+        }
         if (!adapter.isLeExtendedAdvertisingSupported) {
             DebugStatus.set("Gig group", "Bluetooth intros unavailable on this phone (internet only)")
             return

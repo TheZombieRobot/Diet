@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Italian: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">Questo invito arriva da un\'altra app. Entra solo se sai chi l\'ha mandato: mentre sei live, tutti nel gruppo vedono dove sei.</string>
+    <string name="play_invite_follow_text">Questo link per seguire arriva da un\'altra app. Vedrai le foto del gruppo e che stanno bene; loro vedranno che li segui.</string>
+    <string name="play_invite_friend_title">Aggiungere %1$s?</string>
+    <string name="play_invite_friend_text">Questo codice amico arriva da un\'altra app. Aggiungilo solo se sai chi l\'ha mandato: potrai trovare questa persona quando è live.</string>
+    <string name="play_invite_add">Aggiungi</string>
+    <string name="play_disclosure_title">Come Moshpoint usa la tua posizione</string>
+    <string name="play_disclosure_live">Mentre sei live, la tua posizione è condivisa con il tuo gruppo e i tuoi amici, così possono trovarti.</string>
+    <string name="play_disclosure_relay">Viene cifrata sul tuo telefono e inviata tramite un server relay, che non può leggerla.</string>
+    <string name="play_disclosure_background">Il live continua anche con l\'app chiusa, con una notifica, finché non lo spegni.</string>
+    <string name="play_disclosure_bluetooth">Mentre sei live, il tuo telefono inoltra anche via Bluetooth i messaggi cifrati di altri utenti Moshpoint. Non può leggerli.</string>
+    <string name="play_disclosure_continue">Continua</string>
+    <string name="play_privacy_policy">Informativa sulla privacy</string>
+    <string name="play_roll_pick_text">Scegli le foto e i video che hai fatto quella sera. Vengono copiati nel concerto, quindi restano anche se li elimini dalla galleria.</string>
+    <string name="play_roll_choose">Scegli foto</string>
+</resources>

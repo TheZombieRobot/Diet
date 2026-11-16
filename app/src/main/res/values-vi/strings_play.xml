@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">Lời mời này đến từ một ứng dụng khác. Chỉ vào nhóm khi bạn biết ai đã gửi: khi bạn đang chia sẻ, mọi người trong nhóm đều thấy bạn ở đâu.</string>
+    <string name="play_invite_follow_text">Link theo dõi này đến từ một ứng dụng khác. Bạn sẽ thấy ảnh của nhóm và biết họ vẫn ổn; họ cũng thấy bạn đang theo dõi.</string>
+    <string name="play_invite_friend_title">Thêm %1$s?</string>
+    <string name="play_invite_friend_text">Mã bạn bè này đến từ một ứng dụng khác. Chỉ thêm khi bạn biết ai đã gửi: bạn sẽ tìm được người đó khi họ đang chia sẻ.</string>
+    <string name="play_invite_add">Thêm</string>
+    <string name="play_disclosure_title">Cách Moshpoint dùng vị trí của bạn</string>
+    <string name="play_disclosure_live">Khi bạn đang chia sẻ, vị trí của bạn được chia sẻ với nhóm và bạn bè để họ tìm được bạn.</string>
+    <string name="play_disclosure_relay">Vị trí được mã hóa trên điện thoại của bạn và gửi qua một máy chủ chuyển tiếp, nơi không thể đọc được nó.</string>
+    <string name="play_disclosure_background">Chia sẻ vẫn chạy khi đã đóng ứng dụng, kèm một thông báo, cho đến khi bạn tắt.</string>
+    <string name="play_disclosure_bluetooth">Khi bạn đang chia sẻ, điện thoại của bạn cũng chuyển tiếp tin nhắn đã mã hóa của người dùng Moshpoint khác qua Bluetooth. Điện thoại không đọc được chúng.</string>
+    <string name="play_disclosure_continue">Tiếp tục</string>
+    <string name="play_privacy_policy">Chính sách quyền riêng tư</string>
+    <string name="play_roll_pick_text">Chọn ảnh và video bạn chụp tối hôm đó. Chúng được sao chép vào show, nên vẫn còn dù bạn xóa khỏi thư viện.</string>
+    <string name="play_roll_choose">Chọn ảnh</string>
+</resources>

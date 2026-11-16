@@ -7,12 +7,14 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.core.PermissionAsks
 import nz.waveformlabs.moshpoint.setup.SetupChecks
 import nz.waveformlabs.moshpoint.ui.home.SetupIssue
 
@@ -27,6 +29,9 @@ internal class PermissionsState(private val a: MainActivity) {
     var setupIssues by mutableStateOf<List<SetupIssue>>(emptyList())
 
     fun refreshSetupIssues() {
+        // Not before onCreate has made the finder engine (a cold start from a shared invite once
+        // got here first and crashed); onResume refreshes them anyway.
+        if (!a.finder.engineReady) return
         setupIssues = SetupChecks.issues(a, a.finder.engine.capabilities.wifiAware, a.home.visibleToMates) { askBattery = true }
     }
 
@@ -67,7 +72,7 @@ internal class PermissionsState(private val a: MainActivity) {
             if (denied(Manifest.permission.BLUETOOTH_SCAN) || denied(Manifest.permission.BLUETOOTH_ADVERTISE)) {
                 out += a.getString(R.string.main_perm_nearby)
             }
-            if (a.finder.engine.capabilities.uwb && denied(Manifest.permission.UWB_RANGING)) out += a.getString(R.string.main_perm_uwb)
+            if (a.finder.engineReady && a.finder.engine.capabilities.uwb && denied(Manifest.permission.UWB_RANGING)) out += a.getString(R.string.main_perm_uwb)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && denied(Manifest.permission.POST_NOTIFICATIONS)) {
             out += a.getString(R.string.main_perm_notifications)
@@ -75,13 +80,95 @@ internal class PermissionsState(private val a: MainActivity) {
         return out
     }
 
-    fun fixPermissions() {
-        // After a second "deny", Android stops showing the prompt, so go to app settings.
-        val canAsk = requested.any { a.shouldShowRequestPermissionRationale(it) }
-        if (canAsk || missing.isEmpty()) {
+    // ---- Asking: Play's prominent disclosure first, never nagging (docs/WAVE2_PLAY.md, item 8) ----
+
+    private val asks by lazy { a.getSharedPreferences("permission_asks", Context.MODE_PRIVATE) }
+    private fun denied(p: String) = a.checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED
+
+    /** What the disclosure is about: location and nearby devices (Bluetooth). */
+    private val disclosed = buildList {
+        add(Manifest.permission.ACCESS_FINE_LOCATION)
+        add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            add(Manifest.permission.BLUETOOTH_SCAN)
+            add(Manifest.permission.BLUETOOTH_ADVERTISE)
+            add(Manifest.permission.BLUETOOTH_CONNECT)
+        }
+    }
+
+    /** The location disclosure is showing (MainScreen draws it, over the welcome too). */
+    var disclosure by mutableStateOf(false)
+
+    /** Location or nearby devices (Bluetooth) not allowed yet: Android's prompt would ask for them. */
+    fun needsDisclosure(): Boolean = disclosed.any(::denied)
+
+    /** Will Android still show its prompt for any of [perms] that's missing (core PermissionAsks)? */
+    private fun androidWillAsk(perms: List<String>): Boolean {
+        val missing = perms.filter(::denied)
+        return PermissionAsks.androidWillAsk(
+            missing = missing.isNotEmpty(),
+            askedBefore = asks.getBoolean(ASKED, false),
+            rationale = missing.any { a.shouldShowRequestPermissionRationale(it) },
+        )
+    }
+
+    /** Android's prompt, or the app's page in Settings once Android won't show it any more. */
+    private fun promptOrSettings() {
+        if (androidWillAsk(requested.toList())) {
+            asks.edit().putBoolean(ASKED, true).apply()
             a.launchers.askPermissions.launch(requested)
-        } else {
+        } else if (requested.any(::denied)) {
             a.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", a.packageName, null)))
         }
+    }
+
+    /**
+     * Every ask the person starts (the welcome's Allow, Go live, the home's "allow" banner): while
+     * location or nearby devices aren't allowed, the disclosure comes first, and Android's prompt
+     * (or Settings) only after they tap Continue in it.
+     */
+    fun askWithDisclosure() {
+        if (needsDisclosure()) disclosure = true else promptOrSettings()
+    }
+
+    /** The home's "allow" banner. */
+    fun fixPermissions() = askWithDisclosure()
+
+    /** The disclosure was answered: Continue goes on to Android's prompt; "Not now" is remembered. */
+    fun onDisclosure(accepted: Boolean) {
+        disclosure = false
+        if (accepted) promptOrSettings() else asks.edit().putBoolean(NOT_NOW, true).apply()
+    }
+
+    /**
+     * In onCreate. The first time, note whether the app has asked before (versions before this
+     * one asked at every start once the welcome was done). Then, at a fresh start only (not after
+     * a rotation), ask for what's missing unless that would nag: not after "Not now" to the
+     * disclosure, and not when Android won't show its prompt any more (core PermissionAsks).
+     */
+    fun atLaunch(fresh: Boolean) {
+        if (!asks.contains(ASKED)) asks.edit().putBoolean(ASKED, a.home.onboarded).apply()
+        if (!fresh) return
+        val ask = PermissionAsks.askAtLaunch(
+            onboarded = a.home.onboarded,
+            missing = requested.any(::denied),
+            needsDisclosure = needsDisclosure(),
+            saidNotNow = asks.getBoolean(NOT_NOW, false),
+            androidWillAskDisclosed = androidWillAsk(disclosed),
+        )
+        if (ask) askWithDisclosure()
+    }
+
+    /** A disclosure on screen survives Android re-creating the activity (rotating a tablet). */
+    fun save(out: Bundle) = out.putBoolean(SAVED_DISCLOSURE, disclosure)
+
+    fun restore(saved: Bundle) {
+        disclosure = saved.getBoolean(SAVED_DISCLOSURE, false) && needsDisclosure()
+    }
+
+    private companion object {
+        const val ASKED = "asked"
+        const val NOT_NOW = "disclosureNotNow"
+        const val SAVED_DISCLOSURE = "disclosure"
     }
 }

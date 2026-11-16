@@ -138,7 +138,7 @@
     <string name="find_share_with_crew">Dela med gruppen</string>
     <string name="find_pinned_where_you_are">Uppsatt där du är nu</string>
     <string name="find_caption_hint">Säg var (valfritt): vänster om ljudbordet</string>
-    <string name="find_moment_privacy">Bara din grupp kan se det. Det försvinner från servern efter några timmar.</string>
+    <string name="find_moment_privacy">Bara din grupp kan se det. Det försvinner från servern inom 24 timmar.</string>
     <string name="find_sending">Skickar…</string>
     <string name="find_send">Skicka</string>
 

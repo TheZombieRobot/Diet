@@ -16,14 +16,20 @@ import java.net.URLEncoder
 object GigSearch {
     data class Gig(val name: String, val venue: String, val city: String, val startsAtSec: Long, val localWhen: String, val lat: Double?, val lon: Double?)
 
+    /**
+     * The build's own relay server (blank = none), which does the searching: worldwide sources,
+     * keys kept there. Not RelayClient.serverUrl, which is blank when the server is built in.
+     */
+    private val server get() = nz.waveformlabs.moshpoint.locate.RelayClient.shareableServer
+
     /** Our server does the searching (worldwide sources, keys kept there); a test key works without it. */
-    val available get() = nz.waveformlabs.moshpoint.locate.RelayClient.ownServer || BuildConfig.TICKETMASTER_KEY.isNotBlank()
+    val available get() = server.isNotBlank() || BuildConfig.TICKETMASTER_KEY.isNotBlank()
 
     /** Upcoming music events matching [query], soonest first. Null = no internet / no key. */
     suspend fun search(query: String, countryCode: String? = java.util.Locale.getDefault().country.takeIf { it.length == 2 }): List<Gig>? =
         withContext(Dispatchers.IO) {
             if (!available || query.isBlank()) return@withContext null
-            if (nz.waveformlabs.moshpoint.locate.RelayClient.ownServer) return@withContext viaServer(query, countryCode)
+            if (server.isNotBlank()) return@withContext viaServer(query, countryCode)
             runCatching {
                 val q = URLEncoder.encode(query.trim(), "UTF-8")
                 val country = countryCode?.let { "&countryCode=$it" }.orEmpty()
@@ -40,7 +46,7 @@ object GigSearch {
         }
 
     private fun viaServer(query: String, countryCode: String?): List<Gig>? = runCatching {
-        val base = nz.waveformlabs.moshpoint.locate.RelayClient.serverUrl.trimEnd('/')
+        val base = server.trimEnd('/')
         val url = "$base/v1/gigs/search?q=${URLEncoder.encode(query.trim(), "UTF-8")}" + (countryCode?.let { "&country=$it" } ?: "")
         val c = URL(url).openConnection() as HttpURLConnection
         c.connectTimeout = 8_000
