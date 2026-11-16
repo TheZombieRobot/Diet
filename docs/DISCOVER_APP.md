@@ -177,6 +177,25 @@ Coming up card goes with it. "Planned ✓" is therefore only seen when the No cr
 while a planned crew exists in Up next. If the card should stay visible while a crew sleeps,
 it could go under the hype group (the README's open question 1, alternative).
 
+### Translations
+
+All 52 new strings are in `strings_discover.xml` in every `values` folder, written with the
+terms each `docs/i18n/*.md` guide fixes for crew, mates, gig and venue (Crew/Freunde/Konzert in
+German, grupo/amigos in Spanish, galera/show in Brazilian Portuguese, geng in Indonesian,
+クルー/仲間/ライブ in Japanese, 小队/小隊 in Chinese, الشلة/أصحاب in Arabic, and so on). New
+words, for a native speaker's read:
+
+- **ticket:** Ticket (de, nl), boleto (es) and entrada (es-ES), billet (fr), biglietto (it),
+  ingresso (pt), bilet (pl, tr), biljett (sv), tiket (id), vé (vi), บัตร (th), チケット (ja),
+  티켓 (ko), 票 (zh), टिकट (hi), تذكرة (ar).
+- **"Got my ticket ✓"** is said by the mate, in the first person where the language allows
+  ("Hab mein Ticket ✓", "J'ai mon billet ✓"); Japanese uses チケット確保 (secured), the usual
+  fan phrase.
+- **"Moshpoint+"** is never translated. Section kickers ("NEAR YOU", "WORLDWIDE") are in
+  capitals where the script has them, and "ELSEWHERE IN %s" becomes "ELSEWHERE · %s" in
+  languages where the preposition would change with the country's name (de, fr, it, nl, pl,
+  pt, tr).
+
 ### For the server (not changed here: app-only branch)
 
 - `DiscoverSources.kt` keeps Bandsintown's offer URL as the show's `tickets`. Bandsintown's
