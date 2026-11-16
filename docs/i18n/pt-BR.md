@@ -163,3 +163,20 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 For a native reviewer: (1) *Postar fotos* vs *Compartilhar fotos* (two lines). (2) *Bateria: 8%* under a face, as a label: *8% de bateria* wraps in the 76 dp column. (3) Portugal reads *galera*, *postar* and *pra* as Brazilian, as elsewhere. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Ao vivo ("ligue o Ao vivo"); "ficar ao vivo" stays as a verb where it reads naturally.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help says about the crew alert once it's tapped (sending, sent, sent nearby, not sent yet and why), the **Go live** button, Live turning itself off, a full phone, and the check-in reminder. Someone reading these may be in trouble, so each says exactly what the English says, never more. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew / Not sent yet | **Enviando…** / **Enviada pra sua galera** / **Ainda não enviada** | Word for word the watch (`sos_sending`, `sos_sent`, `ping_not_yet`). |
+| Sent nearby / Not sent | **Enviada por perto** / **Não enviada** | The chat's own states (`offline_state_nearby`, `offline_state_not_sent`). |
+| Go live (button) | **Ficar ao vivo** | The guide's verb for going live. The line above it names the switch (*Ligue o Ao vivo…*, as in `offline_hint_go_live`). |
+| You're no longer live | **Você não está mais ao vivo** | As `visibility_notification` (*Você está ao vivo*). |
+| Still at the gig? | **Ainda tá no show?** | Casual, like *tô*. |
+| Home yet? | **Já chegou em casa?** | The text under it quotes *Cheguei bem em casa* (`home_home_safe`) word for word. |
+| Your phone's storage is full / check-ins | **O armazenamento do seu celular está cheio** / *check-ins* | *Dar check-in* is the app's term. |
+| (crew phones nearby can) pass it on | *repassar seu alerta* | The everyday word for passing something along. |
+
+For a native reviewer: (1) the status titles keep the watch's feminine *Enviada / Ainda não enviada* (as for messages) while the lines under them say *seu alerta*. (2) *Ficar ao vivo* on the button, under a line that says *Ligue o Ao vivo*. Written without a native reviewer. Confidence: **medium-high**.

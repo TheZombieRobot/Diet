@@ -15,11 +15,28 @@ object VisibilityPrefs {
 
     private fun prefs(c: Context) = c.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
+    /**
+     * Live is meant to be on: you switched it on, or you're in a crew tonight. Whether it really
+     * is running is [VisibilityService.isRunning]; [LiveControl] keeps the two in step.
+     */
     fun isVisible(c: Context) = prefs(c).getBoolean("visible", false)
     fun setVisible(c: Context, v: Boolean) = prefs(c).edit().putBoolean("visible", v).putBoolean("user_hid", !v).apply()
 
-    /** Not visible, but not the user's choice (Android refused): fine to go live again later. */
+    /** Not visible, but not the user's choice (the night ended, or Android refused): fine to go live again later. */
     fun markStopped(c: Context) = prefs(c).edit().putBoolean("visible", false).apply()
+
+    /** This live session: when it began and for which crew (core LiveSession), or null if there's none saved. */
+    fun session(c: Context): nz.waveformlabs.moshpoint.core.LiveSession? =
+        nz.waveformlabs.moshpoint.core.LiveSession.parse(prefs(c).getString("live_session", null))
+
+    fun setSession(c: Context, s: nz.waveformlabs.moshpoint.core.LiveSession) {
+        val text = s.save()
+        if (prefs(c).getString("live_session", null) != text) prefs(c).edit().putString("live_session", text).apply()
+    }
+
+    /** The crew whose session Live itself ended after about 12 hours ("Still at the gig?"): it doesn't go live by itself again. */
+    fun cappedCrew(c: Context): String? = prefs(c).getString("capped_crew", null)
+    fun setCappedCrew(c: Context, crewId: String?) = prefs(c).edit().putString("capped_crew", crewId).apply()
 
     /** The user chose to hide (switch, notification, tile): never go live for them automatically. */
     fun userHid(c: Context) = prefs(c).getBoolean("user_hid", false)

@@ -97,7 +97,7 @@ object VenueMaps {
     private class Want(val id: String, val group: GigGroup)
 
     private var app: Context? = null
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("VenueMaps"))
     private val areas = ArrayList<Area>()
     private val positions = HashMap<String, LatLon>() // venue positions we looked up, by crew
     private val lookupTriedAt = HashMap<String, Long>()

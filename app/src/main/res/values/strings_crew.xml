@@ -129,7 +129,6 @@
 
     <!-- ===== Get help ===== -->
     <string name="crew_help_title">Get help</string>
-    <string name="crew_help_alerted">Crew alerted ✓</string>
     <string name="crew_help_alert">Alert my crew</string>
     <string name="crew_help_alert_sub">Urgent alert with where you are</string>
     <!-- %1$s = emergency contact's name -->

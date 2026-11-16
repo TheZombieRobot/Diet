@@ -94,7 +94,6 @@
     <string name="crew_flare_send">Senden</string>
 
     <string name="crew_help_title">Hilfe holen</string>
-    <string name="crew_help_alerted">Crew alarmiert ✓</string>
     <string name="crew_help_alert">Crew alarmieren</string>
     <string name="crew_help_alert_sub">Dringende Warnung mit deinem Standort</string>
     <string name="crew_help_text_contact">%1$s schreiben</string>

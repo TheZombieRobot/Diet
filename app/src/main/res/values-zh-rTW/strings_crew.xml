@@ -88,7 +88,6 @@
     <string name="crew_flare_send">傳送</string>
 
     <string name="crew_help_title">求助</string>
-    <string name="crew_help_alerted">已通知小隊 ✓</string>
     <string name="crew_help_alert">通知我的小隊</string>
     <string name="crew_help_alert_sub">緊急通知，附上你的位置</string>
     <string name="crew_help_text_contact">傳簡訊給 %1$s</string>

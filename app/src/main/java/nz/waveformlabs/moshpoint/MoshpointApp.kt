@@ -15,6 +15,8 @@ class MoshpointApp : Application() {
         // plug-ins (docs/FINDER_MODULE.md).
         FinderSetup.install()
         Txt.init(this)
+        // Background failures are logged, and a full disk is told once (docs/WAVE2_SAFETY.md).
+        nz.waveformlabs.moshpoint.safety.AppErrors.init(this)
         NetState.init(this)
         nz.waveformlabs.moshpoint.ui.DefaultAvatars.init(this)
     }

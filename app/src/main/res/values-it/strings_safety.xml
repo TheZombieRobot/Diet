@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Italian: safety and the Live state (the Need help crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">Invio…</string>
+    <string name="safety_help_sent">Inviato al tuo gruppo</string>
+    <string name="safety_help_sent_sub">Tutto il gruppo riceve il tuo avviso, con la tua posizione.</string>
+    <string name="safety_help_nearby">Inviato qui vicino</string>
+    <string name="safety_help_nearby_sub">Ce l\'hanno i telefoni del gruppo qui vicino. Il resto del gruppo lo riceve appena uno di voi ha segnale.</string>
+    <string name="safety_help_not_yet">Non ancora inviato</string>
+    <string name="safety_help_wait_go_live">Nessun segnale. Attiva Live e i telefoni del gruppo qui vicino potranno passarlo via Bluetooth.</string>
+    <string name="safety_help_wait_bluetooth">Nessun segnale, e il Bluetooth è spento. Accendilo e i telefoni del gruppo qui vicino potranno passarlo.</string>
+    <string name="safety_help_wait_cant_carry">Nessun segnale. Questo telefono non può passarlo via Bluetooth: partirà quando avrai segnale.</string>
+    <string name="safety_help_wait_nearby">Nessun segnale. Va al primo telefono del gruppo che si avvicina, e a tutti quando avrai segnale.</string>
+    <string name="safety_help_wait_retrying">Non è ancora arrivato al server. Continua a riprovare da solo.</string>
+    <string name="safety_go_live">Vai live</string>
+    <string name="safety_help_not_sent">Non inviato</string>
+    <string name="safety_help_not_sent_sub">Nessuno ha ricevuto il tuo avviso. Tocca per riprovare.</string>
+    <string name="safety_help_text_or_call">Scrivi o chiama qui sotto: funzionano entrambi senza dati mobili.</string>
+    <string name="safety_help_no_sms">Questo telefono non ha un\'app dei messaggi che possa mandare SMS. Chiama, oppure chiedi a qualcuno vicino a te.</string>
+    <string name="safety_help_no_dialler">Questo telefono non può fare chiamate. Chiedi a qualcuno vicino a te di chiamare il %1$s.</string>
+
+    <string name="safety_channel_notices">Notifiche su Live e memoria</string>
+    <string name="safety_live_off_title">Non sei più live</string>
+    <string name="safety_live_off_text">Android ha fermato Moshpoint in background, quindi i tuoi amici non possono trovarti. Tocca per tornare live.</string>
+    <string name="safety_live_cant_start_text">Android ha impedito a Moshpoint di restare live, quindi i tuoi amici non possono trovarti. Controlla che le autorizzazioni di Moshpoint siano attive, poi torna live.</string>
+    <string name="safety_live_long_title">Ancora al concerto?</string>
+    <string name="safety_live_long_text">Eri live da 12 ore, quindi Live si è disattivato per risparmiare batteria.</string>
+    <string name="safety_live_long_notif">Eri live da 12 ore, quindi Live si è disattivato per risparmiare batteria. Tocca se sei ancora lì.</string>
+    <string name="safety_live_bluetooth_off">Il Bluetooth è spento: i tuoi amici non possono trovarti da vicino</string>
+
+    <string name="safety_storage_full_title">La memoria del telefono è piena</string>
+    <string name="safety_storage_full_text">Moshpoint non può salvare nuovi messaggi, foto o check-in finché non liberi un po\' di spazio.</string>
+
+    <string name="safety_checkin_reminder_title">Già a casa?</string>
+    <string name="safety_checkin_reminder_text">Il tuo gruppo verrà avvisato che non hai fatto check-in, a meno che tu non tocchi Sono a casa.</string>
+    <string name="safety_home_safe_waiting">Non ancora inviato. Partirà da solo appena avrai segnale.</string>
+
+    <string name="safety_help_alert_no_location">Avviso urgente, ma senza la tua posizione: questo telefono al momento non sa dove si trova.</string>
+    <string name="safety_checkin_reminder_not_sent">Il tuo gruppo non ha ancora ricevuto il tuo check-in, quindi nessuno verrà avvisato se non arrivi a casa. Scrivi o chiama qualcuno se hai bisogno di aiuto.</string>
+    <string name="safety_live_crew_not_on_text">Il tuo gruppo principale non è attivo ora, quindi Live si è disattivato per risparmiare batteria.</string>
+
+</resources>

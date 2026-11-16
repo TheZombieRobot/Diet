@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: safety and the Live state (what Need help says about the crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">Đang gửi…</string>
+    <string name="safety_help_sent">Đã gửi cho nhóm</string>
+    <string name="safety_help_sent_sub">Cả nhóm sẽ nhận được cảnh báo kèm vị trí của bạn.</string>
+    <string name="safety_help_nearby">Đã gửi cho máy ở gần</string>
+    <string name="safety_help_nearby_sub">Máy của nhóm ở gần đã nhận được. Những người còn lại trong nhóm sẽ nhận được khi một trong các bạn có sóng.</string>
+    <string name="safety_help_not_yet">Chưa gửi được</string>
+    <string name="safety_help_wait_go_live">Mất sóng. Bật Hiển thị để máy của nhóm ở gần có thể chuyển tiếp cảnh báo qua Bluetooth.</string>
+    <string name="safety_help_wait_bluetooth">Mất sóng, và Bluetooth đang tắt. Bật lên để máy của nhóm ở gần có thể chuyển tiếp cảnh báo.</string>
+    <string name="safety_help_wait_cant_carry">Mất sóng. Máy này không chuyển tiếp được qua Bluetooth, nên cảnh báo sẽ gửi khi bạn có sóng.</string>
+    <string name="safety_help_wait_nearby">Mất sóng. Cảnh báo sẽ tới máy đầu tiên của nhóm đến gần bạn, và tới mọi người khi bạn có sóng.</string>
+    <string name="safety_help_wait_retrying">Cảnh báo chưa tới được máy chủ. Vẫn đang tự thử lại.</string>
+    <string name="safety_go_live">Bật chia sẻ</string>
+    <string name="safety_help_not_sent">Chưa gửi được</string>
+    <string name="safety_help_not_sent_sub">Không ai nhận được cảnh báo của bạn. Chạm để thử lại.</string>
+    <string name="safety_help_text_or_call">Nhắn tin hoặc gọi ở bên dưới: cả hai đều không cần dữ liệu di động.</string>
+    <string name="safety_help_no_sms">Máy này không có app tin nhắn nào gửi được SMS. Hãy gọi thay, hoặc nhờ người ở gần.</string>
+    <string name="safety_help_no_dialler">Máy này không gọi điện được. Nhờ người ở gần gọi %1$s giúp.</string>
+
+    <string name="safety_channel_notices">Thông báo về chia sẻ và bộ nhớ</string>
+    <string name="safety_live_off_title">Bạn không còn chia sẻ nữa</string>
+    <string name="safety_live_off_text">Android đã dừng Moshpoint khi chạy nền, nên bạn bè không tìm được bạn. Chạm để bật chia sẻ lại.</string>
+    <string name="safety_live_cant_start_text">Android không cho Moshpoint tiếp tục chia sẻ, nên bạn bè không tìm được bạn. Kiểm tra xem các quyền của app đã bật chưa, rồi bật chia sẻ lại.</string>
+    <string name="safety_live_long_title">Vẫn còn ở show à?</string>
+    <string name="safety_live_long_text">Bạn đã chia sẻ suốt 12 giờ, nên Hiển thị đã tự tắt để tiết kiệm pin cho bạn.</string>
+    <string name="safety_live_long_notif">Bạn đã chia sẻ suốt 12 giờ, nên Hiển thị đã tự tắt để tiết kiệm pin cho bạn. Chạm nếu bạn vẫn còn ở đó.</string>
+    <string name="safety_live_bluetooth_off">Bluetooth đang tắt: ở gần, bạn bè không tìm được bạn</string>
+
+    <string name="safety_storage_full_title">Bộ nhớ máy đã đầy</string>
+    <string name="safety_storage_full_text">Moshpoint không lưu được tin nhắn, ảnh hay check-in mới cho đến khi bạn giải phóng bớt dung lượng.</string>
+
+    <string name="safety_checkin_reminder_title">Về tới nhà chưa?</string>
+    <string name="safety_checkin_reminder_text">Nhóm sẽ được báo là bạn chưa check-in, trừ khi bạn chạm \"Mình về tới nhà an toàn\".</string>
+    <string name="safety_home_safe_waiting">Chưa gửi được. Sẽ tự gửi ngay khi bạn có sóng.</string>
+
+    <string name="safety_help_alert_no_location">Cảnh báo khẩn, nhưng không kèm vị trí của bạn: máy này hiện chưa biết mình đang ở đâu.</string>
+    <string name="safety_checkin_reminder_not_sent">Nhóm chưa nhận được check-in của bạn, nên sẽ không ai được báo nếu bạn không về tới nhà. Hãy nhắn tin hoặc gọi cho ai đó nếu bạn cần giúp.</string>
+    <string name="safety_live_crew_not_on_text">Nhóm chính của bạn hiện không hoạt động, nên Hiển thị đã tự tắt để tiết kiệm pin cho bạn.</string>
+
+</resources>

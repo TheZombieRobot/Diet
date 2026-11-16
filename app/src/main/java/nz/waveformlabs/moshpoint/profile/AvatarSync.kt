@@ -18,7 +18,7 @@ import nz.waveformlabs.moshpoint.locate.RelayClient
  * it's a no-op in builds without one.
  */
 object AvatarSync {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("AvatarSync"))
 
     // Own server keeps photos for a week. The public relay only keeps files a few hours, so
     // there we re-share every 2 h (while the app or Go live is running) and check often.

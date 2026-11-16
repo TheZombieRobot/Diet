@@ -162,3 +162,22 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 None of these strings says "need", so the perlu/butuh rule did not come up. For a native reviewer: «Konser sebelumnya» vs the shorter «Konser lalu». `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «Konser sebelumnya» (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("nyalakan Live"); "Mulai live" stays as a verb in the onboarding title.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help says about the crew alert once it's tapped (sending, sent, sent nearby, not sent yet and why, not sent), the **Go live** button, Live switching off by itself (stopped by Android, or after 12 hours), a full phone, and the reminder before your crew is told you haven't checked in. Each says exactly what the English says, never kinder or more certain. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | **Mengirim…** / **Terkirim ke gengmu** | Word for word the watch (`sos_sending`, `sos_sent`). |
+| Sent nearby | **Terkirim ke HP terdekat** | As `offline_state_nearby`. The line under it says only nearby crew phones have it. |
+| Not sent yet / Not sent | **Belum terkirim** (both) | The watch's `ping_not_yet` and the chat's `offline_state_not_sent` are the same words, so both rows have the same title; the line under each tells them apart. Under Not sent: *Peringatanmu nggak sampai ke siapa pun. Ketuk untuk coba lagi.* |
+| The whole crew gets your alert | Seluruh geng **bakal** menerima peringatanmu | *bakal* keeps it from reading as "has received". *peringatan* as `crew_help_alert_sub`. |
+| Go live (button) | **Mulai live** | Key terms. The line above it says *Nyalakan Live*, as `offline_hint_go_live`. |
+| You're no longer live | **Kamu nggak live lagi** | As `visibility_notification` (*Kamu lagi live*). |
+| Still at the gig? / Home yet? | **Masih di konser?** / **Sudah sampai rumah?** | The reminder quotes "Aku sudah sampai rumah" (`home_home_safe`) exactly, and says *belum ngabarin*, the words of the crew's own notice (`crew_notif_overdue_title`). |
+| Your phone's storage is full / check-ins | **Memori HP-mu penuh** / *kabar* | *Memori* as `main_save_failed`. Check-ins are *kabar*, from the app's *Kabari*. |
+
+*sinyal* for signal, *data seluler* for mobile data. The channel is *Notifikasi live dan memori* (lower-case *live* as in `visibility_channel`). None of these strings says "need", so the perlu/butuh rule did not come up.
+
+For a native reviewer: (1) **Belum terkirim for "Not sent"**: *belum* means "not yet", softer than the English, which means it is no longer being tried; the line under it says plainly that nobody has it. A firmer *Gagal terkirim* would mean changing `offline_state_not_sent`, the watch's `ping_not_sent` / `sos_not_sent` and this file together. (2) *kabar baru* for "new check-ins" in the storage line. (3) *Mulai live* on the button can also sound like starting a livestream. Written without a native reviewer. Confidence: **medium**.

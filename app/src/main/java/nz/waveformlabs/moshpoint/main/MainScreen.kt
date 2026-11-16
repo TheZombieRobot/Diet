@@ -41,6 +41,7 @@ internal fun MainScreen(a: MainActivity) {
             LocationDisclosureDialog(onContinue = { a.permissions.onDisclosure(true) }, onNotNow = { a.permissions.onDisclosure(false) })
         }
         CrewDialogs(a)
+        AppNotices(a)
         if (!a.home.onboarded) {
             Box(Modifier.fillMaxSize().background(Mosh.Ground).safeDrawingPadding()) {
                 OnboardingScreen(

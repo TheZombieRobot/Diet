@@ -78,6 +78,7 @@ internal fun ChatOverlays(a: MainActivity) {
             onInvite = { a.invites.qrCrew = chatCrew; a.invites.showGroupQr = true },
             onRetry = { CrewChat.retry(a, it) },
             offlineHint = OfflineMessages.chatHint(a, chatCrew),
+            onGoLive = { a.home.setVisibility(true) },
             onMakeMain = if (waiting != null && !chatCrew.dormant(a.home.homeNow) && !waiting.following) ({
                 GroupSync.makeMain(a, waiting)
                 CrewChat.show(a, GroupSync.group.value)

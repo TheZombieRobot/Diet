@@ -182,3 +182,23 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 For a native reviewer: (1) «ظاهر» is masculine; the noun «الظهور» (as in `visibility_channel`, «حالة الظهور») is the alternative if an adjective reads oddly next to a switch that is off. (2) «منهم ظاهرون» uses the masculine plural for a mixed group. (3) `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «الحفلات السابقة» too (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): The switch is «ظاهر»; texts that tell people to turn it on name it so (find_searching_help, find_map_no_mates, main_nudge_text, offline_hint_go_live: «فعّل «ظاهر»»). The onboarding title keeps the verb «اظهر».
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help says about the crew alert once it's tapped (sending, sent, sent nearby, not sent yet and why, not sent), the **Go live** button, Live switching off by itself (stopped by Android, or after 12 hours), a full phone, and the reminder before your crew is told you haven't checked in. Each says exactly what the English says, never kinder or more certain. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew / Not sent yet | **جارٍ الإرسال…** / **أُرسلت إلى شلتك** / **لم تُرسَل بعد** | Word for word the watch (`sos_sending`, `sos_sent`, `ping_not_yet`). |
+| Sent nearby / Not sent | **أُرسلت لمن حولك** / **لم تُرسَل** | The chat's states (`offline_state_nearby`, `offline_state_not_sent`). The line under "Sent nearby" says only nearby crew phones have it. |
+| your alert | **تنبيهك** / **التنبيه** | As `crew_help_alert_sub` (تنبيه عاجل). Named in full in the lines under the feminine status words, so no pronoun has to agree with them. "Nobody has your alert" is «لم يصل تنبيهك إلى أحد», with no «بعد»: it is no longer being tried. |
+| Go live (button) | **اظهر** | Key terms, the same root as the switch «ظاهر». The line above it says «فعّل «ظاهر»», as `offline_hint_go_live`. |
+| You're no longer live | **لم تعد ظاهرًا** | Masculine default, as «ابقَ ظاهرًا» (`main_battery_title`). |
+| Still at the gig? / Home yet? | **ما زلت في الحفلة؟** / **وصلت البيت؟** | Both read the same for a man or a woman. «وصلت البيت؟» is answered by the button «وصلت البيت بأمان», which the reminder quotes word for word. |
+| Your crew will be told you haven't checked in | ستُبلَّغ شلتك بأن وصولك لم يُسجَّل | Passive, like the crew's own notice (`crew_notif_overdue_title`: لم يُسجَّل الوصول بعد), so nothing is gendered. |
+| Your phone's storage is full / free up space | **مساحة التخزين في هاتفك ممتلئة** / تُخلي بعض المساحة | Android's own words for storage and for freeing space. |
+| Live and storage notices (channel) | إشعارات الظهور والتخزين | الظهور as in `visibility_channel` (حالة الظهور). |
+
+Bluetooth and Android stay in Latin letters inline, as in the offline hints (لا إشارة، وBluetooth مغلق). The Live notification's title "Bluetooth is off: …" starts with an invisible right-to-left mark (`‏`): the system lays out a notification title in the direction of its first letter, so without it the line would run left to right and read «مغلق: …» before the word Bluetooth. Every other string starts with an Arabic word.
+
+For a native reviewer: (1) «تسجيلات وصول» as the plural noun for check-ins. (2) «تستمر المحاولة تلقائيًا» for "It keeps trying by itself". (3) «اظهر» on the button under a line that says «فعّل «ظاهر»». Written without a native reviewer. Confidence: **medium**.

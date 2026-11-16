@@ -88,7 +88,6 @@
     <string name="crew_flare_send">ส่ง</string>
 
     <string name="crew_help_title">ขอความช่วยเหลือ</string>
-    <string name="crew_help_alerted">แจ้งแก๊งแล้ว ✓</string>
     <string name="crew_help_alert">แจ้งเตือนแก๊ง</string>
     <string name="crew_help_alert_sub">แจ้งเตือนด่วนพร้อมตำแหน่งของคุณ</string>
     <string name="crew_help_text_contact">ส่ง SMS หา %1$s</string>

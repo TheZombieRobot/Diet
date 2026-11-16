@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Safety and the Live state (docs/WAVE2_SAFETY.md): what Need help says about the crew alert, Live going off by
+     itself, a full phone, and the reminder about your own check-in. Someone reading these may be in trouble:
+     keep them plain, short and exactly as true as the English. "Signal" always means phone reception
+     (mobile data or Wi-Fi). "Live" is the name of the switch on the home screen (home_live_switch). -->
+<resources>
+
+    <!-- ===== Need help: the "Alert my crew" button (crew_help_alert), after it's tapped ===== -->
+    <!-- The alert is on its way to the server (there is signal). Same words as the watch (sos_sending) -->
+    <string name="safety_help_sending">Sending…</string>
+    <!-- The server has it, so every phone in the crew gets it. Same words as the watch (sos_sent) -->
+    <string name="safety_help_sent">Sent to your crew</string>
+    <string name="safety_help_sent_sub">The whole crew gets your alert, with where you are.</string>
+    <!-- No signal, but a crew phone close by received it over Bluetooth. Same words as offline_state_nearby -->
+    <string name="safety_help_nearby">Sent nearby</string>
+    <string name="safety_help_nearby_sub">Crew phones close by have it. The rest of your crew get it when one of you has signal.</string>
+    <!-- Big: the alert is still on this phone. Nobody has it yet. Same words as the watch (ping_not_yet) -->
+    <string name="safety_help_not_yet">Not sent yet</string>
+    <!-- Under "Not sent yet", the reason. Not live: Bluetooth isn't passing messages on. A "Go live" button follows -->
+    <string name="safety_help_wait_go_live">No signal. Go live and crew phones nearby can pass it on over Bluetooth.</string>
+    <string name="safety_help_wait_bluetooth">No signal, and Bluetooth is off. Turn it on and crew phones nearby can pass it on.</string>
+    <!-- An older phone whose Bluetooth can't carry a message -->
+    <string name="safety_help_wait_cant_carry">No signal. This phone can\'t pass it on over Bluetooth, so it sends when you have signal.</string>
+    <!-- Live, Bluetooth on, no crew phone in range yet -->
+    <string name="safety_help_wait_nearby">No signal. It goes to the first crew phone that comes near, and to everyone when you have signal.</string>
+    <!-- There is signal, but the server hasn't taken it yet -->
+    <string name="safety_help_wait_retrying">It hasn\'t reached the server yet. It keeps trying by itself.</string>
+    <!-- Button: turn the Live switch on. Short -->
+    <string name="safety_go_live">Go live</string>
+    <!-- Nobody has the alert, and it isn't being tried any more. Same words as offline_state_not_sent -->
+    <string name="safety_help_not_sent">Not sent</string>
+    <string name="safety_help_not_sent_sub">Nobody has your alert. Tap to try again.</string>
+    <!-- Under the crew alert while nobody has it, pointing at the two buttons below it (text your emergency contact, call the emergency number) -->
+    <string name="safety_help_text_or_call">Text or call below: both work without mobile data.</string>
+    <!-- Tapped "Text Mum" on a phone with no app that can send a text message -->
+    <string name="safety_help_no_sms">This phone has no messages app that can send a text. Call instead, or ask someone nearby.</string>
+    <!-- Tapped "Call 111" on a phone that can't make calls (a tablet). %1$s = the emergency number, e.g. 111 -->
+    <string name="safety_help_no_dialler">This phone can\'t make calls. Ask someone nearby to call %1$s.</string>
+
+    <!-- ===== Live going off by itself ===== -->
+    <!-- Name of the notification channel for these notices and "storage full", in the phone's settings -->
+    <string name="safety_channel_notices">Live and storage notices</string>
+    <!-- Android stopped the app while it was in the background, so you're not live any more -->
+    <string name="safety_live_off_title">You\'re no longer live</string>
+    <!-- Notification. Tapping it opens the app, which goes live again -->
+    <string name="safety_live_off_text">Android stopped Moshpoint in the background, so mates can\'t find you. Tap to go live again.</string>
+    <!-- In the app, under "You're no longer live", with "Go live" and "Not now" buttons -->
+    <string name="safety_live_cant_start_text">Android didn\'t let Moshpoint stay live, so mates can\'t find you. Check that its permissions are on, then go live again.</string>
+    <!-- After 12 hours Live turns itself off to save battery, and asks -->
+    <string name="safety_live_long_title">Still at the gig?</string>
+    <!-- In the app, with "Go live" and "Not now" buttons -->
+    <string name="safety_live_long_text">You were live for 12 hours, so Live turned off to save your battery.</string>
+    <!-- Notification. Tapping it opens the app, which asks "Go live?" -->
+    <string name="safety_live_long_notif">You were live for 12 hours, so Live turned off to save your battery. Tap if you\'re still there.</string>
+    <!-- Title of the ongoing Live notification while Bluetooth is off (instead of visibility_notification). "Up close" = in the same room or crowd -->
+    <string name="safety_live_bluetooth_off">Bluetooth is off: mates can\'t find you up close</string>
+
+    <!-- ===== Phone storage full ===== -->
+    <string name="safety_storage_full_title">Your phone\'s storage is full</string>
+    <string name="safety_storage_full_text">Moshpoint can\'t save new messages, photos or check-ins until you free up some space.</string>
+
+    <!-- ===== Your own check-in ("Heading home", home_heading_home_title) ===== -->
+    <!-- A few minutes before your crew is told you haven't checked in. The button on it is home_home_safe ("I'm home safe") -->
+    <string name="safety_checkin_reminder_title">Home yet?</string>
+    <string name="safety_checkin_reminder_text">Your crew will be told you haven\'t checked in, unless you tap I\'m home safe.</string>
+    <!-- "I'm home safe" was tapped on that notification, but there's no signal yet -->
+    <string name="safety_home_safe_waiting">Not sent yet. It sends by itself as soon as you have signal.</string>
+
+    <!-- ===== Review round ===== -->
+    <!-- Under "Alert my crew" / "Sending…" / "Sent to your crew" when the alert has no location: this phone has had no location fix lately -->
+    <string name="safety_help_alert_no_location">Urgent alert, but without where you are: this phone doesn\'t know its location right now.</string>
+    <!-- The "Home yet?" reminder when the check-in never reached the crew (no signal, not live): nobody will be alerted -->
+    <string name="safety_checkin_reminder_not_sent">Your crew hasn\'t got your check-in yet, so nobody will be alerted if you\'re not home. Text or call someone if you need help.</string>
+    <!-- Under "You're no longer live" when Live turned off because the main crew isn't on now (it's for a later date, or followed from home) -->
+    <string name="safety_live_crew_not_on_text">Your main crew isn\'t on right now, so Live turned off to save your battery.</string>
+
+</resources>

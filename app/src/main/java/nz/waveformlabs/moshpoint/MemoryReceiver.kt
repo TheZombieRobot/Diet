@@ -14,7 +14,7 @@ class MemoryReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val app = context.applicationContext
         val done = goAsync()
-        CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("Memories")).launch {
             try {
                 GigArchive.refreshList(app)
                 Memories.today(GigArchive.gigs).firstOrNull()?.let { (g, years) ->

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Polish: safety and the Live state (what Need help says about the crew alert, Live turning off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">Wysyłam…</string>
+    <string name="safety_help_sent">Wysłano do ekipy</string>
+    <string name="safety_help_sent_sub">Cała ekipa dostaje alert z twoją lokalizacją.</string>
+    <string name="safety_help_nearby">Wysłano w pobliżu</string>
+    <string name="safety_help_nearby_sub">Telefony ekipy w pobliżu mają twój alert. Reszta ekipy dostanie go, gdy ktoś z was złapie zasięg.</string>
+    <string name="safety_help_not_yet">Jeszcze nie wysłano</string>
+    <string name="safety_help_wait_go_live">Brak zasięgu. Włącz Widoczność, a telefony ekipy w pobliżu będą mogły przekazać twój alert dalej przez Bluetooth.</string>
+    <string name="safety_help_wait_bluetooth">Brak zasięgu, a Bluetooth jest wyłączony. Włącz go, a telefony ekipy w pobliżu będą mogły przekazać twój alert dalej.</string>
+    <string name="safety_help_wait_cant_carry">Brak zasięgu. Ten telefon nie może przekazać alertu przez Bluetooth, więc zostanie wysłany, gdy złapiesz zasięg.</string>
+    <string name="safety_help_wait_nearby">Brak zasięgu. Alert pójdzie do pierwszego telefonu ekipy, który się zbliży, a do wszystkich, gdy złapiesz zasięg.</string>
+    <string name="safety_help_wait_retrying">Alert jeszcze nie dotarł do serwera. Aplikacja sama próbuje dalej.</string>
+    <string name="safety_go_live">Włącz Widoczność</string>
+    <string name="safety_help_not_sent">Nie wysłano</string>
+    <string name="safety_help_not_sent_sub">Nikt nie dostał twojego alertu. Kliknij, żeby spróbować jeszcze raz.</string>
+    <string name="safety_help_text_or_call">Wyślij SMS-a albo zadzwoń poniżej: jedno i drugie działa bez danych komórkowych.</string>
+    <string name="safety_help_no_sms">Ten telefon nie ma aplikacji, która może wysłać SMS-a. Zamiast tego zadzwoń albo poproś o to kogoś w pobliżu.</string>
+    <string name="safety_help_no_dialler">Z tego telefonu nie da się dzwonić. Poproś kogoś w pobliżu, żeby zadzwonił pod %1$s.</string>
+
+    <string name="safety_channel_notices">Komunikaty o Widoczności i pamięci</string>
+    <string name="safety_live_off_title">Już nie udostępniasz lokalizacji</string>
+    <string name="safety_live_off_text">Android zatrzymał Moshpoint w tle, więc znajomi nie mogą cię znaleźć. Kliknij, żeby znowu udostępnić lokalizację.</string>
+    <string name="safety_live_cant_start_text">Android nie pozwolił Moshpoint dalej udostępniać twojej lokalizacji, więc znajomi nie mogą cię znaleźć. Sprawdź, czy Moshpoint ma włączone uprawnienia, i znowu włącz Widoczność.</string>
+    <string name="safety_live_long_title">Wciąż na koncercie?</string>
+    <string name="safety_live_long_text">Po 12 godzinach udostępniania lokalizacji Widoczność wyłączyła się, żeby oszczędzać baterię.</string>
+    <string name="safety_live_long_notif">Po 12 godzinach udostępniania lokalizacji Widoczność wyłączyła się, żeby oszczędzać baterię. Kliknij, jeśli nadal tam jesteś.</string>
+    <string name="safety_live_bluetooth_off">Bluetooth wyłączony: znajomi nie mogą cię znaleźć z bliska</string>
+
+    <string name="safety_storage_full_title">Pamięć telefonu jest pełna</string>
+    <string name="safety_storage_full_text">Moshpoint nie może zapisać nowych wiadomości, zdjęć ani informacji o powrocie do domu, dopóki nie zwolnisz trochę miejsca.</string>
+
+    <string name="safety_checkin_reminder_title">Już w domu?</string>
+    <string name="safety_checkin_reminder_text">Ekipa dostanie alert, że wciąż nie dajesz znać, chyba że klikniesz „Jestem bezpiecznie w domu”.</string>
+    <string name="safety_home_safe_waiting">Jeszcze nie wysłano. Wyśle się samo, gdy tylko złapiesz zasięg.</string>
+
+    <string name="safety_help_alert_no_location">Pilny alert, ale bez twojej lokalizacji: ten telefon nie zna teraz swojego położenia.</string>
+    <string name="safety_checkin_reminder_not_sent">Ekipa jeszcze nie dostała informacji, że wracasz do domu, więc nikt nie dostanie alertu, jeśli nie dotrzesz. Wyślij SMS-a albo zadzwoń do kogoś, jeśli potrzebujesz pomocy.</string>
+    <string name="safety_live_crew_not_on_text">Twoja główna ekipa nie jest teraz aktywna, więc Widoczność wyłączyła się, żeby oszczędzać baterię.</string>
+
+</resources>

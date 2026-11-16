@@ -23,13 +23,6 @@ data class FriendRecord(
     override fun hashCode() = id.hashCode()
 
     companion object {
-        /**
-         * Safety net for crew members: dropped on load after this. Crews end themselves (the
-         * morning after the gig, which can be days away for a planned gig) and clear their
-         * members then; this only catches leftovers.
-         */
-        const val GIG_GROUP_TTL_MS = 8L * 24 * 60 * 60 * 1000
-
         private val enc = Base64.getUrlEncoder().withoutPadding()
         private val dec = Base64.getUrlDecoder()
 
@@ -41,7 +34,14 @@ data class FriendRecord(
                 r.gigGroupOnly.toString(), r.addedAtMs.toString()).joinToString("\t")
         }
 
-        /** Skips lines it can't read rather than losing the whole list. */
+        /**
+         * Skips lines it can't read rather than losing the whole list. Crew mates are kept however
+         * long ago they joined: a crew planned weeks ahead used to lose its faces on a restart
+         * once a cut-off passed (reliability P2). Crews clear their mates when they end, and a
+         * leftover with no crew at all is cleared when the crews load (FriendsRepository).
+         * [nowMs] is no longer used.
+         */
+        @Suppress("UNUSED_PARAMETER")
         fun parse(text: String, nowMs: Long): List<FriendRecord> = text.lineSequence()
             .filter { it.isNotBlank() }
             .mapNotNull { line ->
@@ -51,7 +51,6 @@ data class FriendRecord(
                     FriendRecord(us(p[1]), us(p[2]), p[3].toInt(), dec.decode(p[4]), p[5].toBooleanStrict(), p[6].toLong())
                 }.getOrNull()
             }
-            .filter { !it.gigGroupOnly || nowMs - it.addedAtMs < GIG_GROUP_TTL_MS }
             .toList()
 
         /** The code you share so a mate can add you. Just your secret, URL-safe Base64. */

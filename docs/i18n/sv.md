@@ -154,3 +154,19 @@ The new home screen: the Live row, the crew header and the ⋯ crew menu, the no
 
 For a native reviewer: *Tidigare spelningar* fits on a 390 dp phone but wraps on a 360 dp one; *Hitta kompisarna i publiken* for "in the crowd". Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("slå på Live"); "gå live" stays as a verb where it reads naturally.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: the crew alert in Need help after it's tapped, Live going off by itself (stopped by Android, or after 12 hours), a full phone, and the reminder before your own check-in is due. Kept exactly as true as the English: nothing reads as sent before it is. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | **Skickar…** / **Skickat till gruppen** | The watch's words (`sos_sending`, `sos_sent`). |
+| Sent nearby | **Skickat i närheten** | As `offline_state_nearby`. The line under it says only the group's phones close by have it. |
+| Not sent yet / Not sent | **Inte skickat än** / **Inte skickat** | As the watch (`ping_not_yet`) and the chat (`offline_state_not_sent`). |
+| Go live (button) | **Gå live** | Key terms. The hint above it says *Slå på Live*, as `offline_hint_go_live`. |
+| Still at the gig? | **Kvar på spelningen?** | *Kvar* = still there; shorter than *Fortfarande på spelningen?*. |
+| Home yet? | **Hemma än?** | The reminder quotes *Jag är hemma* word for word. |
+| Your phone's storage is full | **Telefonens lagringsutrymme är fullt** | *Lagringsutrymme*, *frigör utrymme* and *behörigheter*, as in Android. |
+
+The alert is *ditt larm* (as `crew_help_alert_sub`), and the crew is *gruppen* throughout. Check-ins are *incheckningar*; photos are *bilder*, as everywhere in the app. For a native reviewer: *Kvar på spelningen?*; *Moshpoints behörigheter är på* (casual *på* for permissions that are allowed). Written without a native reviewer. Confidence: **medium-high**.

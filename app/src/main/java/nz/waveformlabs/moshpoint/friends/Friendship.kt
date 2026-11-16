@@ -40,7 +40,7 @@ object Friendship {
     /** Requests waiting for a yes or no (Compose state). */
     val incoming = mutableStateListOf<Pending>()
     private var loaded = false
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("Friendship"))
 
     private fun prefs(c: Context) = c.applicationContext.getSharedPreferences("friendship", Context.MODE_PRIVATE)
     private fun b64(b: ByteArray) = Base64.encodeToString(b, Base64.NO_WRAP)

@@ -99,7 +99,6 @@
     <string name="crew_flare_send">Envoyer</string>
 
     <string name="crew_help_title">Besoin d\'aide</string>
-    <string name="crew_help_alerted">Crew alertée ✓</string>
     <string name="crew_help_alert">Alerter ma crew</string>
     <string name="crew_help_alert_sub">Alerte urgente avec ta position</string>
     <string name="crew_help_text_contact">Écrire à %1$s</string>

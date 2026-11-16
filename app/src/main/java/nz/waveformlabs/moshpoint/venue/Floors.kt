@@ -53,7 +53,7 @@ object Floors {
     val heights = mutableStateMapOf<String, Double>()
 
     private val cfg = FloorConfig()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("Floors"))
     private val history = PressureHistory()
 
     private class Mate {

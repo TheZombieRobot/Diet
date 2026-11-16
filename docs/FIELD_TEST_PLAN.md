@@ -559,6 +559,78 @@ Message routes** open on the phones you're watching.
   Message routes on all three phones during the no-signal tests.
 - For each test: worked or not, how long each message took, and anything confusing in the words.
 
+## 4f. Safety and the Live state (two phones, about 1 hour, plus one overnight check)
+
+What wave 2a changed (docs/WAVE2_SAFETY.md). Each step says what you should see. **A** and
+**B** are in one crew tonight. Note the time of every alert.
+
+### A. Need help with no signal (10 min)
+
+- [ ] Both phones: airplane mode **on**, then Bluetooth back **on**. **A: Live off.**
+- [ ] A: Need help → **Alert my crew**. It must say **Not sent yet**, the reason (no signal,
+  go live), a **Go live** button, and "Text or call below…". It must never say sent.
+- [ ] A: tap **Go live**. Within about a minute (B live, within 10 m) it changes to **Sent
+  nearby**. B gets the alert.
+- [ ] A: airplane mode **off**. Within about a minute: **Sent to your crew**.
+- [ ] Close the dialog and open Need help again: it shows the same alert's state, not a new
+  "Alert my crew" (for 30 minutes).
+- [ ] Optional, a tablet or phone with no SIM and no messages app: **Text …** says the phone
+  has no messages app; **Call 111** says it can't make calls. Nothing fails silently.
+
+### B. An overdue check-in with the app closed (45 min, partly waiting)
+
+- [ ] B: mute **Crew messages** in Android's notification settings for Moshpoint (leave
+  **Crew help requests** on). Swipe Moshpoint away from recents (don't force-stop it:
+  Android then blocks its alarms). Screen off, unplugged, untouched.
+- [ ] A: Heading home → **30 min**. Then swipe Moshpoint away too.
+- [ ] A, at about 25 min: **Home yet?** notification with **I'm home safe**. Leave it.
+- [ ] B, at about 32 min (up to 15 min later if the phone is dozing): **"A hasn't checked in"**,
+  loud, although chat is muted and the app is closed. Tap: the map with A's last spot.
+- [ ] Again, but A taps **I'm home safe** on the reminder: the reminder goes (or says "Not
+  sent yet" with no signal), and B never alarms.
+
+### C. Live after an update, a force-stop, and Bluetooth off (15 min)
+
+- [ ] A: Live on (crew tonight). Install a newer test build over this one (or the same APK
+  again with `adb install -r`). Without opening the app: within a minute or so the live
+  notification is back, and the Quick Settings tile shows Live.
+- [ ] A: Settings → Apps → Moshpoint → **Force stop**. The tile shows **Hidden** (it used to
+  say Live). Open the app: Live starts again by itself, the switch is on.
+- [ ] A: turn Bluetooth off while live. The live notification no longer says "You're live";
+  it says Bluetooth is off. Bluetooth on: "You're live" again.
+- [ ] Android 12+: with A live, `adb shell am kill nz.waveformlabs.moshpoint` (or wait for a
+  Samsung background kill). If Android won't start Live again in the background you get
+  **You're no longer live** (tap opens the app, which goes live again). Never a silent stop.
+
+### D. Doze (needs adb, 20 min)
+
+- [ ] B follows A's crew from home (family invite). Screen off, unplugged.
+  `adb shell dumpsys deviceidle force-idle` on B.
+- [ ] A: Need help. B gets it within about 15 minutes (the followers' check now wakes the phone
+  in Doze; it used to wait for the next maintenance window, hours at night).
+- [ ] `adb shell dumpsys deviceidle unforce` afterwards.
+
+### E. Live switches itself off (10 min, plus overnight)
+
+- [ ] A: **End night** while live: Live goes off with it (quietly).
+- [ ] A: no crew, Live on by hand. Automatic time off, clock forward 12 hours, wait a minute:
+  **Still at the gig?** notification. Open the app: **Go live** / **Not now**. Clock back to
+  automatic afterwards.
+- [ ] Overnight: go to a gig, don't touch Live. The next morning Live is off and the battery
+  graph shows Moshpoint stopped when the crew ended.
+
+### F. Nothing closes the finder (5 min)
+
+- [ ] Start finding a mate. Switch dark mode (or let Bedtime start), change the font size,
+  open split screen, rotate a tablet or foldable. The finder stays open and keeps going.
+- [ ] Record a clip, and while the camera app is open, play a heavy game for a bit (so Android
+  closes Moshpoint). Finish the clip: it's still offered to send.
+
+### What to send back for this part
+
+- For each step: the time, worked or not, and a screenshot of each Need help state.
+- The phones (make, model, Android version), and which steps used adb.
+
 ## 4g. Play Store readiness and Android 16 (wave 2b, two phones, 60 min)
 
 What only a phone can prove about docs/WAVE2_PLAY.md. Both phones on the same new test build
@@ -698,5 +770,8 @@ anything lost in F2; I, for each receiving phone (model, chip) and each advert.
   = 30 m beyond the GPS accuracy after 10 s of footsteps, a floor change = 0.3 hPa, and the
   weather allowance for the pinned spot's floor (3 m an hour). Its walk-away check only runs
   while the app is open or you're live.
+- The safety changes (docs/WAVE2_SAFETY.md) have never run on a phone: Doze may hold a
+  check-in alarm back by up to about 15 minutes, and whether Android lets Live start again after
+  an update or a background kill differs by phone maker.
 - Private messages have never run on a phone. Each is two Bluetooth packets (about 11 seconds on
   air), only crew phones carry them, and a crew mate on an older build never sees them.

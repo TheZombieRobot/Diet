@@ -123,7 +123,10 @@ object Moments {
         val (thumb, cached) = unpackClip(c, m.jpeg, key) ?: (m.jpeg to null)
         // Keep it in this gig's folder (survives restarts and the relay forgetting).
         val g = GroupSync.group.value
-        val kept = g?.let { runCatching { GigArchive.keep(c, it, key, m, mine, thumb, cached, original) }.getOrNull() }
+        val kept = g?.let {
+            runCatching { GigArchive.keep(c, it, key, m, mine, thumb, cached, original) }
+                .onFailure { e -> nz.waveformlabs.moshpoint.safety.AppErrors.failed("Keeping a moment", e) }.getOrNull()
+        }
         val video = kept?.second ?: cached
         val bmp = kept?.first?.let { GigArchive.thumbnail(it) }
             ?: BitmapFactory.decodeByteArray(thumb, 0, thumb.size)
@@ -168,15 +171,26 @@ object Moments {
         return ok
     }
 
-    /** (thumbnail, playable file) for a packed clip, or null if [data] is a plain photo. */
-    private fun unpackClip(c: Context, data: ByteArray, key: String): Pair<ByteArray, java.io.File>? {
+    /**
+     * (thumbnail, playable file) for a packed clip, or null if [data] is a plain photo. The file
+     * is null if it couldn't be written (a full phone): the thumbnail still shows.
+     */
+    private fun unpackClip(c: Context, data: ByteArray, key: String): Pair<ByteArray, java.io.File?>? {
         if (data.size < 8 || String(data, 0, 4, Charsets.US_ASCII) != "MPV1") return null
         val n = java.nio.ByteBuffer.wrap(data, 4, 4).int
-        if (n < 0 || 8 + n > data.size) return null
+        // Compared without adding: 8 + n could overflow for a crafted size, which used to pass
+        // this check and crash every crew phone that fetched the clip (reliability P2).
+        if (n < 0 || n > data.size - 8) return null
+        val thumb = data.copyOfRange(8, 8 + n)
         val dir = java.io.File(c.cacheDir, "clips").apply { mkdirs() }
         val f = java.io.File(dir, "m-${key.hashCode().toUInt()}.mp4")
-        if (!f.exists()) f.writeBytes(data.copyOfRange(8 + n, data.size))
-        return data.copyOfRange(8, 8 + n) to f
+        if (f.exists()) return thumb to f
+        val written = nz.waveformlabs.moshpoint.safety.AppErrors.guard("Saving a clip") {
+            f.writeBytes(data.copyOfRange(8 + n, data.size))
+            f
+        }
+        if (written == null) f.delete() // never a half-written clip that looks whole later
+        return thumb to written
     }
 
     /** Longest side 1280 px, JPEG 78%: roughly 150-300 KB. Sharp on the timeline, quick to send. */

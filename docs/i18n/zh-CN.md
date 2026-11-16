@@ -141,3 +141,21 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 
 For a native reviewer: 在线 as the switch's name (位置共享 is more literal); 看过的演出 vs 过去的演出; 小队共 5 人 · 3 人在线 for the count line. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): The switch is now 在线 (上线 is a verb, not a name; 在线 matches the app's 上线中 / 在线 elsewhere). Texts that name it say 打开“在线”; 上线 stays as a verb ("点一下上线", "他们上线后").
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help shows after **Alert my crew** is tapped (sending, sent, sent nearby, not sent yet and why, not sent), Live switching off by itself, a full phone, and the reminder before your crew is told you haven't checked in. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`. No spaces between Chinese words; spaces only around Moshpoint, Bluetooth, Android, numbers and %1$s, as elsewhere.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | 发送中… / 已发给小队 | The watch's words (`sos_sending`, `sos_sent`). |
+| Sent nearby | 已发给附近队友 | As `offline_state_nearby`. The line under it says only nearby crew phones have it. |
+| Not sent yet / Not sent | **还没发送** / 未发送 | The watch's `ping_not_yet` and `offline_state_not_sent`. "Nobody has your alert" (没有人收到) has no 还: it is no longer being tried. |
+| Go live (button) | **上线** | 上线 stays the verb; texts that name the switch say 打开“在线”, as the offline hints do. |
+| You're no longer live | **你不在线了** | The mirror of `visibility_notification` (你在线了). |
+| Still at the gig? | **还在演出现场吗？** | 演出现场 as in `home_add_mates_text`. |
+| Home yet? | **到家了吗？** | The reminder quotes “我安全到家了” exactly. Check-ins are 报平安. |
+| Your phone's storage is full | 手机存储空间满了 | As `main_save_failed` (手机存储满了吗). |
+| someone nearby (a person) | 身边的人 | 附近的人 is also WeChat's "People Nearby" feature. |
+
+For a native reviewer: *传递* for crew phones that "pass it on" over Bluetooth; *报平安记录* for "check-ins" in the storage note. Written without a native reviewer. Confidence: **medium-high**.

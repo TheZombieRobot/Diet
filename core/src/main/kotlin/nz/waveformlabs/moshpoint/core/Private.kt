@@ -216,25 +216,35 @@ class PrivateBook(
 
     // ---- Saving ----
 
+    /**
+     * The layout only ever grows: each thread header, each line and each pending message is a
+     * block of its own (with its length), so a later version adds fields at the end of a block,
+     * or sections at the end of the file, and an update never throws the threads away
+     * (reliability P2: it used to, on any version change). Version 1 (no blocks) is still read.
+     */
     fun save(): ByteArray {
         val bytes = ByteArrayOutputStream()
         DataOutputStream(bytes).use { d ->
             d.writeByte(SAVE_VERSION)
             d.writeInt(threads.size)
             for ((mate, t) in threads) {
-                d.writeLong(mate)
-                val pub = t.pub
-                d.writeByte(if (pub != null) 1 else 0)
-                if (pub != null) d.write(pub)
-                d.writeInt(t.unread)
-                d.writeBoolean(t.muted)
+                block(d) { b ->
+                    b.writeLong(mate)
+                    val pub = t.pub
+                    b.writeByte(if (pub != null) 1 else 0)
+                    if (pub != null) b.write(pub)
+                    b.writeInt(t.unread)
+                    b.writeBoolean(t.muted)
+                }
                 d.writeInt(t.lines.size)
-                t.lines.forEach { writeLine(d, it) }
+                t.lines.forEach { l -> block(d) { writeLine(it, l) } }
             }
             d.writeInt(pending.size)
             pending.forEach { (sender, l) ->
-                d.writeLong(sender)
-                writeLine(d, l)
+                block(d) { b ->
+                    b.writeLong(sender)
+                    writeLine(b, l)
+                }
             }
             d.writeInt(ids.size)
             ids.forEach { d.writeLong(it) }
@@ -242,7 +252,11 @@ class PrivateBook(
         return bytes.toByteArray()
     }
 
-    /** Load what [save] wrote. Anything unreadable is ignored: better empty threads than a crash. */
+    /**
+     * Load what [save] wrote, from this version or any other (version 1 had no blocks; a later
+     * version's extra fields and sections are skipped). Anything unreadable is ignored: better
+     * empty threads than a crash.
+     */
     fun restore(saved: ByteArray?) {
         threads.clear()
         pending.clear()
@@ -250,22 +264,41 @@ class PrivateBook(
         if (saved == null || saved.isEmpty()) return
         runCatching {
             val d = DataInputStream(ByteArrayInputStream(saved))
-            if (d.readUnsignedByte() != SAVE_VERSION) return
+            val version = d.readUnsignedByte()
+            if (version < 1) return
+            // From version 2 each part is a block: read it from its own bytes, so what a later version adds is skipped.
+            fun part(): DataInputStream = if (version == 1) d else {
+                val n = d.readInt()
+                if (n < 0 || n > MAX_BLOCK) throw java.io.IOException("bad block")
+                DataInputStream(ByteArrayInputStream(ByteArray(n).also { d.readFully(it) }))
+            }
             repeat(d.readInt().coerceIn(0, 1_000)) {
-                val mate = d.readLong()
-                val pub = if (d.readUnsignedByte() == 1) ByteArray(CrewKeys.PUB_BYTES).also { d.readFully(it) } else null
+                val h = part()
+                val mate = h.readLong()
+                val pub = if (h.readUnsignedByte() == 1) ByteArray(CrewKeys.PUB_BYTES).also { h.readFully(it) } else null
                 val t = Thread(pub)
-                t.unread = d.readInt().coerceAtLeast(0)
-                t.muted = d.readBoolean()
-                repeat(d.readInt().coerceIn(0, maxPerThread)) { t.lines += readLine(d) }
+                t.unread = h.readInt().coerceAtLeast(0)
+                t.muted = h.readBoolean()
+                repeat(d.readInt().coerceIn(0, maxPerThread)) { t.lines += readLine(part()) }
                 threads[mate] = t
             }
-            repeat(d.readInt().coerceIn(0, maxPending)) { pending += d.readLong() to readLine(d) }
+            repeat(d.readInt().coerceIn(0, maxPending)) {
+                val b = part()
+                pending += b.readLong() to readLine(b)
+            }
             repeat(d.readInt().coerceIn(0, maxIds)) { ids += d.readLong() }
         }
         // Ours, and everything shown: always remembered, whatever happened to the list of ids.
         threads.values.forEach { t -> t.lines.forEach { ids += it.id } }
         dirty = false
+    }
+
+    /** Writes what [write] writes as one block: its length, then its bytes. */
+    private fun block(d: DataOutputStream, write: (DataOutputStream) -> Unit) {
+        val bytes = ByteArrayOutputStream()
+        DataOutputStream(bytes).use(write)
+        d.writeInt(bytes.size())
+        bytes.writeTo(d)
     }
 
     private fun writeLine(d: DataOutputStream, l: Line) {
@@ -293,6 +326,8 @@ class PrivateBook(
     }
 
     private companion object {
-        const val SAVE_VERSION = 1
+        /** 2: every thread header, line and pending message in a block. Only ever add at the end of a block or the file. */
+        const val SAVE_VERSION = 2
+        const val MAX_BLOCK = 256 * 1024
     }
 }

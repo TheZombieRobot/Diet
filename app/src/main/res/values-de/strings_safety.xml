@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- German: safety and the Live state (the Need help crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">Wird gesendet…</string>
+    <string name="safety_help_sent">An deine Crew gesendet</string>
+    <string name="safety_help_sent_sub">Die ganze Crew bekommt deine Warnung mit deinem Standort.</string>
+    <string name="safety_help_nearby">In der Nähe gesendet</string>
+    <string name="safety_help_nearby_sub">Crew-Handys in der Nähe haben es. Der Rest deiner Crew bekommt es, sobald jemand von euch Empfang hat.</string>
+    <string name="safety_help_not_yet">Noch nicht gesendet</string>
+    <string name="safety_help_wait_go_live">Kein Empfang. Schalte Live ein, dann können es Crew-Handys in der Nähe per Bluetooth weitergeben.</string>
+    <string name="safety_help_wait_bluetooth">Kein Empfang, und Bluetooth ist aus. Schalte es ein, dann können es Crew-Handys in der Nähe weitergeben.</string>
+    <string name="safety_help_wait_cant_carry">Kein Empfang. Dieses Handy kann es nicht per Bluetooth weitergeben. Es wird gesendet, sobald du Empfang hast.</string>
+    <string name="safety_help_wait_nearby">Kein Empfang. Es geht an das erste Crew-Handy, das in die Nähe kommt, und an alle, sobald du Empfang hast.</string>
+    <string name="safety_help_wait_retrying">Es ist noch nicht beim Server angekommen. Moshpoint versucht es von selbst weiter.</string>
+    <string name="safety_go_live">Live gehen</string>
+    <string name="safety_help_not_sent">Nicht gesendet</string>
+    <string name="safety_help_not_sent_sub">Niemand hat deine Warnung bekommen. Tippe, um es nochmal zu versuchen.</string>
+    <string name="safety_help_text_or_call">Unten kannst du schreiben oder anrufen: beides klappt ohne mobile Daten.</string>
+    <string name="safety_help_no_sms">Dieses Handy hat keine App, die SMS schicken kann. Ruf stattdessen an oder frag jemanden in der Nähe.</string>
+    <string name="safety_help_no_dialler">Dieses Handy kann nicht telefonieren. Bitte jemanden in der Nähe, %1$s anzurufen.</string>
+
+    <string name="safety_channel_notices">Hinweise zu Live und Speicher</string>
+    <string name="safety_live_off_title">Du bist nicht mehr live</string>
+    <string name="safety_live_off_text">Android hat Moshpoint im Hintergrund beendet, deshalb können deine Freunde dich nicht finden. Tippe, um wieder live zu gehen.</string>
+    <string name="safety_live_cant_start_text">Android hat Moshpoint nicht live bleiben lassen, deshalb können deine Freunde dich nicht finden. Prüf, ob die Berechtigungen von Moshpoint an sind, und geh dann wieder live.</string>
+    <string name="safety_live_long_title">Noch auf dem Konzert?</string>
+    <string name="safety_live_long_text">Du warst 12 Stunden lang live, deshalb hat sich Live ausgeschaltet, um Akku zu sparen.</string>
+    <string name="safety_live_long_notif">Du warst 12 Stunden lang live, deshalb hat sich Live ausgeschaltet, um Akku zu sparen. Tippe, wenn du noch da bist.</string>
+    <string name="safety_live_bluetooth_off">Bluetooth ist aus: deine Freunde können dich nicht aus der Nähe finden</string>
+
+    <string name="safety_storage_full_title">Dein Handyspeicher ist voll</string>
+    <string name="safety_storage_full_text">Moshpoint kann keine neuen Nachrichten, Fotos oder Check-ins speichern, bis du etwas Speicherplatz freigibst.</string>
+
+    <string name="safety_checkin_reminder_title">Schon zu Hause?</string>
+    <string name="safety_checkin_reminder_text">Deine Crew bekommt Bescheid, dass du dich nicht gemeldet hast, außer du tippst auf Bin gut zu Hause.</string>
+    <string name="safety_home_safe_waiting">Noch nicht gesendet. Es wird von selbst gesendet, sobald du Empfang hast.</string>
+
+    <string name="safety_help_alert_no_location">Dringende Warnung, aber ohne deinen Standort: Dieses Handy kennt seinen Standort gerade nicht.</string>
+    <string name="safety_checkin_reminder_not_sent">Deine Crew hat deinen Check-in noch nicht bekommen, also bekommt niemand Bescheid, wenn du nicht zu Hause ankommst. Schreib oder ruf jemanden an, wenn du Hilfe brauchst.</string>
+    <string name="safety_live_crew_not_on_text">Deine Haupt-Crew ist gerade nicht aktiv, deshalb hat sich Live ausgeschaltet, um Akku zu sparen.</string>
+
+</resources>

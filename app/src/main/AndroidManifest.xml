@@ -81,10 +81,15 @@
         <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" android:value="false" />
         <meta-data android:name="com.facebook.sdk.AdvertiserIDCollectionEnabled" android:value="false" />
 
+        <!-- configChanges: dark mode at night (Bedtime), a font or display size change, split screen,
+             a foldable, or rotation on a large screen (Android 16 ignores the portrait lock there) no
+             longer recreate the activity, which closed a find in progress. Compose redraws for them.
+             A language change still recreates it, on purpose (docs/WAVE2_SAFETY.md). -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode|fontScale|keyboard|keyboardHidden|navigation"
             tools:ignore="DiscouragedApi,LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -103,6 +108,11 @@
 
         <receiver
             android:name=".FollowCheckReceiver"
+            android:exported="false" />
+
+        <!-- Overdue check-ins on time with the app closed (docs/WAVE2_SAFETY.md) -->
+        <receiver
+            android:name=".CheckInAlarmReceiver"
             android:exported="false" />
 
         <receiver
@@ -183,6 +193,8 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <!-- After an app update: Live and the background checks come back (docs/WAVE2_SAFETY.md) -->
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 

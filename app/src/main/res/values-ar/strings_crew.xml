@@ -113,7 +113,6 @@
     <string name="crew_flare_send">أطلق</string>
 
     <string name="crew_help_title">اطلب المساعدة</string>
-    <string name="crew_help_alerted">نُبّهت الشلة ✓</string>
     <string name="crew_help_alert">نبّه شلتي</string>
     <string name="crew_help_alert_sub">تنبيه عاجل مع مكانك</string>
     <string name="crew_help_text_contact">راسل %1$s</string>

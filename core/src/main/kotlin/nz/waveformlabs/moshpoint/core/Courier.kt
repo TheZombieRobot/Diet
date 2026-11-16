@@ -1091,24 +1091,24 @@ class Courier(
 
     // ---- Saving ----
 
-    /** Everything worth keeping if the app is killed: the outbox, what we carry, and what we've seen. */
+    /**
+     * Everything worth keeping if the app is killed: the outbox, what we carry, and what we've seen.
+     *
+     * The layout only ever grows: each parcel is a block of its own (with its length), so a later
+     * version adds fields at the end of a block, or sections at the end of the file, and an
+     * update never throws the outbox away (reliability P2: it used to, on any version change).
+     * Version 1 (no blocks) is still read.
+     */
     fun save(): ByteArray {
         val bytes = ByteArrayOutputStream()
         DataOutputStream(bytes).use { d ->
             d.writeByte(SAVE_VERSION)
             d.writeInt(parcels.size)
             for (p in parcels.values) {
-                d.writeUTF(p.crewId)
-                d.writeLong(p.id)
-                d.writeInt(p.kind)
-                d.writeLong(p.timeSec)
-                d.writeLong(p.sender)
-                d.writeLong(p.heldAtMs)
-                d.writeByte(p.route.ordinal)
-                d.writeByte((if (p.mine) 1 else 0) or (if (p.onServer) 2 else 0) or (if (p.durable) 4 else 0) or (if (p.nearby) 8 else 0) or (if (p.toldAtMs != 0L) 16 else 0) or (if (p.gaveUp) 32 else 0))
-                d.writeByte(p.notified?.ordinal ?: -1)
-                d.writeShort(p.sealed.size)
-                d.write(p.sealed)
+                val block = ByteArrayOutputStream()
+                DataOutputStream(block).use { b -> writeParcel(b, p) }
+                d.writeInt(block.size())
+                block.writeTo(d)
             }
             val ids = seen.toList().takeLast(MAX_SEEN_SAVED)
             d.writeInt(ids.size)
@@ -1122,36 +1122,29 @@ class Courier(
         return bytes.toByteArray()
     }
 
-    /** Load what [save] wrote. Anything unreadable is ignored: better an empty queue than a crash. */
+    /**
+     * Load what [save] wrote, from this version or any other: version 1 had no blocks; a later
+     * version's extra fields and sections are skipped. Anything unreadable is ignored: better an
+     * empty queue than a crash.
+     */
     fun restore(saved: ByteArray?, nowMs: Long) {
         if (saved == null || saved.isEmpty()) return
         runCatching {
             val d = DataInputStream(ByteArrayInputStream(saved))
-            if (d.readUnsignedByte() != SAVE_VERSION) return
+            val version = d.readUnsignedByte()
+            if (version < 1) return
             repeat(d.readInt().coerceIn(0, 2_000)) {
-                val crewId = d.readUTF()
-                val id = d.readLong()
-                val kind = d.readInt()
-                val timeSec = d.readLong()
-                val sender = d.readLong()
-                val heldAt = d.readLong()
-                val route = Route.values()[d.readUnsignedByte().coerceAtMost(Route.values().size - 1)]
-                val flags = d.readUnsignedByte()
-                val notified = d.readByte().toInt()
-                val sealed = ByteArray(d.readUnsignedShort()).also { d.readFully(it) }
-                val p = Parcel(crewId, id, sealed, kind, timeSec, sender, mine = flags and 1 != 0, heldAtMs = minOf(heldAt, nowMs), route = route)
-                p.onServer = flags and 2 != 0
-                p.durable = flags and 4 != 0
-                p.nearby = flags and 8 != 0
-                if (flags and 16 != 0) p.toldAtMs = nowMs
-                p.gaveUp = flags and 32 != 0
-                p.notified = State.values().getOrNull(notified)
-                // Already on air before the restart, as far as anyone waiting is concerned: don't re-send unasked.
-                p.aired = if (p.mine && !p.onServer && !p.nearby) 0 else 1
-                p.boosted = true
-                parcels[id] = p
-                blobIds[blobHash(sealed)] = id
-                seen += id
+                val p = if (version == 1) {
+                    readParcel(d, nowMs)
+                } else {
+                    val n = d.readInt()
+                    if (n < 0 || n > MAX_BLOCK) return
+                    val block = ByteArray(n).also { d.readFully(it) }
+                    readParcel(DataInputStream(ByteArrayInputStream(block)), nowMs)
+                }
+                parcels[p.id] = p
+                blobIds[blobHash(p.sealed)] = p.id
+                seen += p.id
             }
             repeat(d.readInt().coerceIn(0, MAX_SEEN_SAVED)) { seen += d.readLong() }
             repeat(d.readInt().coerceIn(0, 16)) {
@@ -1160,6 +1153,44 @@ class Courier(
                 if (until > nowMs) retired += Retired(GigGroup(key, "", 0L), until, nowMs)
             }
         }
+    }
+
+    private fun writeParcel(d: DataOutputStream, p: Parcel) {
+        d.writeUTF(p.crewId)
+        d.writeLong(p.id)
+        d.writeInt(p.kind)
+        d.writeLong(p.timeSec)
+        d.writeLong(p.sender)
+        d.writeLong(p.heldAtMs)
+        d.writeByte(p.route.ordinal)
+        d.writeByte((if (p.mine) 1 else 0) or (if (p.onServer) 2 else 0) or (if (p.durable) 4 else 0) or (if (p.nearby) 8 else 0) or (if (p.toldAtMs != 0L) 16 else 0) or (if (p.gaveUp) 32 else 0))
+        d.writeByte(p.notified?.ordinal ?: -1)
+        d.writeShort(p.sealed.size)
+        d.write(p.sealed)
+    }
+
+    private fun readParcel(d: DataInputStream, nowMs: Long): Parcel {
+        val crewId = d.readUTF()
+        val id = d.readLong()
+        val kind = d.readInt()
+        val timeSec = d.readLong()
+        val sender = d.readLong()
+        val heldAt = d.readLong()
+        val route = Route.values()[d.readUnsignedByte().coerceAtMost(Route.values().size - 1)]
+        val flags = d.readUnsignedByte()
+        val notified = d.readByte().toInt()
+        val sealed = ByteArray(d.readUnsignedShort()).also { d.readFully(it) }
+        val p = Parcel(crewId, id, sealed, kind, timeSec, sender, mine = flags and 1 != 0, heldAtMs = minOf(heldAt, nowMs), route = route)
+        p.onServer = flags and 2 != 0
+        p.durable = flags and 4 != 0
+        p.nearby = flags and 8 != 0
+        if (flags and 16 != 0) p.toldAtMs = nowMs
+        p.gaveUp = flags and 32 != 0
+        p.notified = State.values().getOrNull(notified)
+        // Already on air before the restart, as far as anyone waiting is concerned: don't re-send unasked.
+        p.aired = if (p.mine && !p.onServer && !p.nearby) 0 else 1
+        p.boosted = true
+        return p
     }
 
     // ---- Small things ----
@@ -1197,7 +1228,10 @@ class Courier(
         const val HELPER_BATCH = 5
         const val MAX_PER_CREW = 200
 
-        private const val SAVE_VERSION = 1
+        /** 2: each parcel in a block (with its length). Only ever add at the end of a block or the file. */
+        private const val SAVE_VERSION = 2
+        /** No parcel block is ever near this (a sealed message is at most 64 KB). */
+        private const val MAX_BLOCK = 256 * 1024
         private const val MAX_SEEN = 4_000
         private const val MAX_SEEN_SAVED = 2_000
         private const val MAX_IN_FLIGHT = 2

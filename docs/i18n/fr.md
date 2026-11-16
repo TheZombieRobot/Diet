@@ -174,3 +174,19 @@ Also: a mate's low battery under their face is **Batterie 15%** (*15% de batteri
 
 For a native reviewer: *Partager des photos* versus a one-line *Photos*; *restent invisibles* for "can't be found". Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("avec Live activé", "active Live"); "passer en live" stays as a verb where it reads naturally.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: the crew alert in Need help after it's tapped, Live going off by itself (stopped by Android, or after 12 hours), a full phone, and the reminder before your own check-in is due. Kept exactly as true as the English: nothing reads as sent before it is. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | **Envoi…** / **Envoyé à ta crew** | The watch's words (`sos_sending`, `sos_sent`). |
+| Sent nearby | **Envoyé à proximité** | As `offline_state_nearby`. The line under it says only the crew's phones close by have it. |
+| Not sent yet / Not sent | **Pas encore envoyé** / **Pas envoyé** | As the watch (`ping_not_yet`) and the chat (`offline_state_not_sent`). |
+| Go live (button) | **Passer en live** | Key terms. The hint above it says *Active Live*, as `offline_hint_go_live`. |
+| Still at the gig? | **Toujours au concert ?** | Short. |
+| Home yet? | **Déjà à la maison ?** | Gender-neutral (not *Déjà rentré·e ?*), and echoes *Je suis à la maison*, which the reminder quotes word for word. |
+| Your phone's storage is full | **Le stockage de ton téléphone est plein** | *Stockage* and *libérer de l'espace*, as in Android. |
+
+The wait lines name *ton alerte* rather than a bare *la*, since the title above them (*Pas encore envoyé*) is masculine. *Ça partira tout seul* avoids a gendered pronoun. For a native reviewer: *Infos Live et stockage* as the notification channel's name. Written without a native reviewer. Confidence: **medium-high**.

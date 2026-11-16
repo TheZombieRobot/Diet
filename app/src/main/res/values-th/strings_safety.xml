@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: safety and the Live state (what Need help says about the crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">กำลังส่ง…</string>
+    <string name="safety_help_sent">ส่งถึงแก๊งแล้ว</string>
+    <string name="safety_help_sent_sub">ทุกคนในแก๊งจะได้รับแจ้งเตือนด่วนของคุณ พร้อมตำแหน่งที่คุณอยู่</string>
+    <string name="safety_help_nearby">ส่งถึงเพื่อนใกล้ๆ แล้ว</string>
+    <string name="safety_help_nearby_sub">มือถือของแก๊งที่อยู่ใกล้ๆ ได้รับแล้ว คนที่เหลือในแก๊งจะได้รับเมื่อมีใครสักคนมีสัญญาณ</string>
+    <string name="safety_help_not_yet">ยังไม่ได้ส่ง</string>
+    <string name="safety_help_wait_go_live">ไม่มีสัญญาณ เปิด “มองเห็นได้” แล้วมือถือของแก๊งที่อยู่ใกล้ๆ จะส่งต่อผ่าน Bluetooth ได้</string>
+    <string name="safety_help_wait_bluetooth">ไม่มีสัญญาณ และ Bluetooth ปิดอยู่ เปิดแล้วมือถือของแก๊งที่อยู่ใกล้ๆ จะส่งต่อได้</string>
+    <string name="safety_help_wait_cant_carry">ไม่มีสัญญาณ มือถือเครื่องนี้ส่งต่อผ่าน Bluetooth ไม่ได้ เลยจะส่งเมื่อคุณมีสัญญาณ</string>
+    <string name="safety_help_wait_nearby">ไม่มีสัญญาณ จะส่งถึงมือถือของแก๊งเครื่องแรกที่เข้ามาใกล้ และส่งถึงทุกคนเมื่อคุณมีสัญญาณ</string>
+    <string name="safety_help_wait_retrying">ยังไปไม่ถึงเซิร์ฟเวอร์ จะลองส่งใหม่เองไปเรื่อยๆ</string>
+    <string name="safety_go_live">เริ่มแชร์</string>
+    <string name="safety_help_not_sent">ส่งไม่สำเร็จ</string>
+    <string name="safety_help_not_sent_sub">ไม่มีใครได้รับแจ้งเตือนด่วนของคุณ แตะเพื่อลองใหม่</string>
+    <string name="safety_help_text_or_call">ส่ง SMS หรือโทรจากปุ่มด้านล่างได้ ทั้งสองอย่างใช้ได้แม้ไม่มีเน็ตมือถือ</string>
+    <string name="safety_help_no_sms">มือถือเครื่องนี้ไม่มีแอปข้อความที่ส่ง SMS ได้ โทรแทน หรือขอให้คนใกล้ๆ ช่วย</string>
+    <string name="safety_help_no_dialler">มือถือเครื่องนี้โทรออกไม่ได้ ขอให้คนใกล้ๆ โทร %1$s ให้</string>
+
+    <string name="safety_channel_notices">แจ้งเตือนการแชร์และพื้นที่เก็บข้อมูล</string>
+    <string name="safety_live_off_title">คุณไม่ได้แชร์อยู่แล้ว</string>
+    <string name="safety_live_off_text">Android หยุด Moshpoint ที่ทำงานเบื้องหลัง เพื่อนเลยหาคุณไม่เจอ แตะเพื่อเริ่มแชร์อีกครั้ง</string>
+    <string name="safety_live_cant_start_text">Android ไม่ยอมให้ Moshpoint แชร์ต่อ เพื่อนเลยหาคุณไม่เจอ เช็กว่าอนุญาตสิทธิ์ให้แอปครบแล้ว จากนั้นเริ่มแชร์อีกครั้ง</string>
+    <string name="safety_live_long_title">ยังอยู่ที่คอนไหม?</string>
+    <string name="safety_live_long_text">คุณแชร์อยู่ครบ 12 ชั่วโมงแล้ว “มองเห็นได้” เลยปิดเองเพื่อประหยัดแบตของคุณ</string>
+    <string name="safety_live_long_notif">คุณแชร์อยู่ครบ 12 ชั่วโมงแล้ว “มองเห็นได้” เลยปิดเองเพื่อประหยัดแบตของคุณ ถ้ายังอยู่ที่นั่นแตะได้เลย</string>
+    <string name="safety_live_bluetooth_off">Bluetooth ปิดอยู่: เพื่อนหาคุณในระยะใกล้ไม่เจอ</string>
+
+    <string name="safety_storage_full_title">พื้นที่เก็บข้อมูลในมือถือของคุณเต็มแล้ว</string>
+    <string name="safety_storage_full_text">Moshpoint บันทึกข้อความ รูป หรือการเช็กอินใหม่ไม่ได้ จนกว่าคุณจะเคลียร์พื้นที่ให้ว่างบ้าง</string>
+
+    <string name="safety_checkin_reminder_title">ถึงบ้านหรือยัง?</string>
+    <string name="safety_checkin_reminder_text">แก๊งจะได้รับแจ้งว่าคุณยังไม่เช็กอิน ถ้าคุณไม่แตะ \"ถึงบ้านปลอดภัยแล้ว\"</string>
+    <string name="safety_home_safe_waiting">ยังไม่ได้ส่ง จะส่งเองทันทีที่คุณมีสัญญาณ</string>
+
+    <string name="safety_help_alert_no_location">แจ้งเตือนด่วน แต่ไม่มีตำแหน่งของคุณ: ตอนนี้มือถือเครื่องนี้ยังไม่รู้ตำแหน่ง</string>
+    <string name="safety_checkin_reminder_not_sent">แก๊งยังไม่ได้รับการเช็กอินของคุณ เลยจะไม่มีใครได้รับแจ้งถ้าคุณไม่ถึงบ้าน ส่ง SMS หรือโทรหาใครสักคนถ้าต้องการความช่วยเหลือ</string>
+    <string name="safety_live_crew_not_on_text">ตอนนี้แก๊งหลักของคุณไม่ได้ใช้งานอยู่ “มองเห็นได้” เลยปิดเองเพื่อประหยัดแบตของคุณ</string>
+
+</resources>

@@ -31,7 +31,8 @@ data class Friend(val record: FriendRecord) : FinderMate {
 
 /**
  * Friends + gig group, saved to app-private storage so they survive restarts.
- * Gig group members expire after [FriendRecord.GIG_GROUP_TTL_MS] (one night).
+ * Gig group members go when their crew ends, or as leftovers when no crew is loaded at all
+ * ([clearLeftoverCrewMates]).
  *
  * Shared by the UI and the background visibility service (same process).
  * TODO: wrap the file with a Keystore key; sync with the server once accounts exist.
@@ -193,12 +194,24 @@ object FriendsRepository {
         save()
     }
 
+    /**
+     * No crew at all, yet crew-only mates are saved: leftovers of a crew that ended (say the app
+     * was closed between the two saves). They go. Simulated test mates stay.
+     */
+    fun clearLeftoverCrewMates() {
+        if (file == null) return
+        if (friends.removeAll { it.gigGroupOnly && !isSimulated(it.id) }) save()
+    }
+
     private fun ByteArray.toHexKey() = joinToString("") { "%02x".format(it) }
 
     private fun save() {
         val f = file ?: return
         val tmp = File(f.parentFile, f.name + ".tmp")
-        tmp.writeText(FriendRecord.serialize(friends.map { it.record }))
-        tmp.renameTo(f)
+        // A full phone must not crash the app (reliability P1-6): the list stays as it was on disk, and you're told once.
+        nz.waveformlabs.moshpoint.safety.AppErrors.guard("Saving friends") {
+            tmp.writeText(FriendRecord.serialize(friends.map { it.record }))
+            if (!tmp.renameTo(f)) throw java.io.IOException("rename failed")
+        }
     }
 }

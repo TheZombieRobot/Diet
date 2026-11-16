@@ -48,7 +48,11 @@ object CrowdRelayRadio {
     val cache = RelayCache()
 
     /** Our own scope, so uploads don't die with (or leak) whichever screen started us. */
-    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val ioScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Main +
+            // A failure here is logged, never a crash of the whole app (docs/WAVE2_SAFETY.md).
+            kotlinx.coroutines.CoroutineExceptionHandler { _, e -> Log.w("CrowdRelay", "relay work failed", e) },
+    )
 
     private const val TAG = "CrowdRelay"
     private const val K = "Crowd relay"
@@ -185,6 +189,12 @@ object CrowdRelayRadio {
                         Log.w(TAG, "no advertise permission", e)
                     } catch (e: IllegalArgumentException) {
                         Log.w(TAG, "packet too big for this phone's adverts", e)
+                    } catch (e: IllegalStateException) {
+                        // Bluetooth off or turning off, or a set that already died: it used to go
+                        // uncaught and crash the live service. Start a new set when it's back.
+                        Log.w(TAG, "Bluetooth isn't ready for adverts", e)
+                        setPending = false
+                        setLive = false
                     }
                 }
                 // A message turn with nothing to send after all gives the air straight back.

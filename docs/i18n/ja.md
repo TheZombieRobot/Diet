@@ -148,3 +148,23 @@ The first-time title (人混みでも\n仲間が見つかる) breaks where onboa
 For a native reviewer: 位置シェア vs plain シェア for the switch (シェア alone can look like a share button); 過去のライブ vs the warmer これまでのライブ; これでクルー結成！ in the no-crew text. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it 「位置シェア」 (「位置シェア」をオンに); 「シェア開始」 was the old button. The onboarding title keeps シェア開始 as a phrase.
 - **Crew chat on the home** (review of the redesign): `home_crew_chat` is チャット (it was クルーチャット), only used on the home, so the button fits beside 写真をシェア as in the design instead of the pair stacking; the chat bubble icon and the crew around it say whose chat it is.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help shows after **Alert my crew** is tapped (sending, sent, sent nearby, not sent yet and why, not sent), Live switching off by itself, a full phone, and the reminder before your crew is told you haven't checked in. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | 送信中… / クルーに送信済み | The watch's words (`sos_sending`, `sos_sent`). |
+| Sent nearby | 近くの仲間に送信済み | As `offline_state_nearby`. The line under it says only nearby crew phones have it (近くのクルーのスマホには届いています). |
+| Not sent yet / Not sent | **まだ未送信** / 未送信 | The watch's `ping_not_yet` and `offline_state_not_sent`. "Nobody has your alert" has no まだ: it is no longer being tried. |
+| Go live (button) | **シェア開始** | Go live as in the key terms. Texts that name the switch say 「位置シェア」をオンに, as the offline hints do. |
+| You're no longer live | 位置シェアが止まりました | Plain: location sharing stopped. |
+| Still at the gig? | **まだライブ会場にいる？** | ライブ会場 as in `home_add_mates_text`. |
+| Home yet? | **もう家に着いた？** | Pairs with もう帰る？. The reminder quotes 「無事に帰ったよ」 exactly. |
+| Your phone's storage is full | スマホのストレージがいっぱいです | ストレージ as in `main_save_failed`. Check-ins are 到着確認. |
+| (crew phones) pass it on | 中継 | The older-phone line keeps 渡せない from `offline_hint_unsupported`. |
+
+The Need help lines end in 〜してください, as `crew_help_no_signal` does; the Live notices use 〜してね.
+
+For a native reviewer: *まだ未送信* inside a sentence (`safety_home_safe_waiting`); *中継* for "pass it on"; *続けさせなかった* for "Android didn't let Moshpoint stay live". Written without a native reviewer. Confidence: **medium**.

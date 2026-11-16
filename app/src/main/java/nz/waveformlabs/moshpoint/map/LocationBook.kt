@@ -49,13 +49,18 @@ object LocationBook {
         }
     }
 
-    /** A fresh shared location for [friendId]; ignored if we already have a newer one. */
+    /**
+     * A fresh shared location for [friendId]; ignored if we already have a newer one. A stamp
+     * from the future (a mate's clock running fast) counts as now: it used to beat every real
+     * update after it, and show as seen "in" the future (reliability P2; core MessageClock).
+     */
     fun update(friendId: String, loc: SharedLocation) {
+        val t = nz.waveformlabs.moshpoint.core.MessageClock.sortTime(loc.timeSec, System.currentTimeMillis() / 1000)
         val prev = seen[friendId]
-        if (prev != null && prev.timeSec >= loc.timeSec) return
-        val s = Seen(loc.lat, loc.lon, loc.timeSec, loc.accuracyM, loc.batteryPct, loc.lastGasp)
+        if (prev != null && prev.timeSec >= t) return
+        val s = Seen(loc.lat, loc.lon, t, loc.accuracyM, loc.batteryPct, loc.lastGasp)
         seen[friendId] = s
-        val cutoff = loc.timeSec - TRAIL_MS / 1000
+        val cutoff = t - TRAIL_MS / 1000
         trails[friendId] = (trails[friendId].orEmpty() + s).filter { it.timeSec >= cutoff }.takeLast(60)
         save()
     }

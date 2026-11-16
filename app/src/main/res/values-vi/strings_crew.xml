@@ -88,7 +88,6 @@
     <string name="crew_flare_send">Gửi</string>
 
     <string name="crew_help_title">Cần giúp đỡ</string>
-    <string name="crew_help_alerted">Đã báo nhóm ✓</string>
     <string name="crew_help_alert">Báo động cho nhóm</string>
     <string name="crew_help_alert_sub">Cảnh báo khẩn kèm vị trí của bạn</string>
     <string name="crew_help_text_contact">Nhắn tin cho %1$s</string>

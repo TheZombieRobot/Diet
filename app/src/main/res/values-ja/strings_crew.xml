@@ -88,7 +88,6 @@
     <string name="crew_flare_send">送信</string>
 
     <string name="crew_help_title">助けを呼ぶ</string>
-    <string name="crew_help_alerted">クルーに通知しました ✓</string>
     <string name="crew_help_alert">クルーに知らせる</string>
     <string name="crew_help_alert_sub">居場所付きの緊急通知</string>
     <string name="crew_help_text_contact">%1$sにSMS</string>

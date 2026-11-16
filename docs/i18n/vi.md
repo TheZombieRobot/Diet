@@ -158,3 +158,22 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 For a native reviewer: the switch is Hiển thị, so it no longer shares a word with the button Chia sẻ ảnh. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «Show đã qua» (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): The switch is now Hiển thị (it was Chia sẻ, which clashed with "Chia sẻ ảnh", Share photos). Texts that name it say "bật Hiển thị"; "bật chia sẻ" stays as a verb where it reads naturally.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help says about the crew alert once it's tapped (sending, sent, sent nearby, not sent yet and why, not sent), the **Go live** button, Live switching off by itself (stopped by Android, or after 12 hours), a full phone, and the reminder before your crew is told you haven't checked in. Each says exactly what the English says, never kinder or more certain. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | **Đang gửi…** / **Đã gửi cho nhóm** | Word for word the watch (`sos_sending`, `sos_sent`). |
+| Sent nearby | **Đã gửi cho máy ở gần** | As `offline_state_nearby`. The line under it says only nearby crew phones have it. |
+| Not sent yet / Not sent | **Chưa gửi được** (both) | The watch's `ping_not_yet` and the chat's `offline_state_not_sent` are the same words, so both rows have the same title; the line under each tells them apart. Under Not sent: *Không ai nhận được cảnh báo của bạn* (*Không ai*, not *Chưa ai*: it is no longer being tried). |
+| The whole crew gets your alert | Cả nhóm **sẽ** nhận được cảnh báo | *sẽ* keeps it from reading as "has received". *cảnh báo* as `crew_help_alert_sub`. |
+| Go live (button) | **Bật chia sẻ** | Key terms. The line above it says *Bật Hiển thị*, as `offline_hint_go_live`; the app already pairs the two in the nudge (`main_nudge_title` / `main_nudge_text`). |
+| You're no longer live / Live turned off | **Bạn không còn chia sẻ nữa** / Hiển thị đã tự tắt | *Đang chia sẻ* is the live state (`visibility_notification`); the switch by its name. |
+| Still at the gig? / Home yet? | **Vẫn còn ở show à?** / **Về tới nhà chưa?** | *show* for gig. The reminder quotes "Mình về tới nhà an toàn" (`home_home_safe`) exactly, in quotes so *Mình* isn't read as part of the sentence. |
+| Your phone's storage is full | **Bộ nhớ máy đã đầy** | *máy* and *bộ nhớ* as `main_save_failed`; *giải phóng dung lượng* for "free up space", as Android says it. |
+
+*sóng* for signal (*Mất sóng*, *có sóng*), *dữ liệu di động* for mobile data, *máy chủ* for server. The channel is *Thông báo về chia sẻ và bộ nhớ*.
+
+For a native reviewer: (1) **Chưa gửi được for "Not sent"**: *chưa* means "not yet", softer than the English, which means it is no longer being tried; the line under it says plainly that nobody has it. A firmer *Không gửi được* would mean changing `offline_state_not_sent`, the watch's `ping_not_sent` / `sos_not_sent` and this file together. (2) *Bật chia sẻ* on the button under a line that says *Bật Hiển thị*. Written without a native reviewer. Confidence: **medium**.

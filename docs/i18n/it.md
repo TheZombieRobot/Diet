@@ -154,3 +154,19 @@ Also: a mate's low battery under their face is **Batteria 15%** (*15% di batteri
 
 For a native reviewer: *Condividi la serata in famiglia* could read as "share the night as a family"; *Crea un gruppo stasera* is as wide as the English button text, so it may wrap on some phones. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("attiva Live"); "Vai live" stays as a verb in the onboarding title.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: the crew alert in Need help after it's tapped, Live going off by itself (stopped by Android, or after 12 hours), a full phone, and the reminder before your own check-in is due. Kept exactly as true as the English: nothing reads as sent before it is. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | **Invio…** / **Inviato al tuo gruppo** | The watch's words (`sos_sending`, `sos_sent`). |
+| Sent nearby | **Inviato qui vicino** | As `offline_state_nearby`. The line under it says only the group's phones close by have it. |
+| Not sent yet / Not sent | **Non ancora inviato** / **Non inviato** | As the watch (`ping_not_yet`) and the chat (`offline_state_not_sent`). |
+| Go live (button) | **Vai live** | Key terms. The hint above it says *Attiva Live*, as `offline_hint_go_live`. |
+| Still at the gig? | **Ancora al concerto?** | Short. |
+| Home yet? | **Già a casa?** | Echoes *Sono a casa*, which the reminder quotes word for word. |
+| Your phone's storage is full | **La memoria del telefono è piena** | *Memoria piena* is what people say; Android's settings say *Spazio di archiviazione*. |
+
+The alert is *il tuo avviso* (as `crew_help_alert_sub`). *Eri live da 12 ore* avoids the gendered *sei stato/stata*. Permissions are *autorizzazioni*, as in Android's settings. For a native reviewer: *memoria* versus *spazio di archiviazione*; *Notifiche su Live e memoria* as the channel's name. Written without a native reviewer. Confidence: **medium-high**.

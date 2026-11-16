@@ -44,7 +44,7 @@ object CrewRekey {
     private const val RESEND_FOR_MS = 72 * 3600_000L
     private const val RESEND_EVERY_MS = 6 * 3600_000L
     private const val MAX_GRACE = 8
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("CrewRekey"))
 
     private fun prefs(c: Context) = c.applicationContext.getSharedPreferences("rekeys", Context.MODE_PRIVATE)
     private fun b64(b: ByteArray) = Base64.encodeToString(b, Base64.NO_WRAP)

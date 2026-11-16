@@ -148,3 +148,21 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 For a native reviewer: มองเห็นได้ for the switch (it was การแชร์, too vague). Up next and Coming up are both เร็วๆ นี้, as before. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «คอนที่ผ่านมา» (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium**.
 - **The Live switch's name in other texts** (review of the redesign): The switch is now มองเห็นได้ ("visible"; การแชร์ was vague). Texts that name it say เปิด “มองเห็นได้”; เริ่มแชร์ stays as a verb where it reads naturally.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help says about the crew alert once it's tapped (sending, sent, sent nearby, not sent yet and why, not sent), the **Go live** button, Live switching off by itself (stopped by Android, or after 12 hours), a full phone, and the reminder before your crew is told you haven't checked in. Each says exactly what the English says, never kinder or more certain. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew / Not sent yet | **กำลังส่ง…** / **ส่งถึงแก๊งแล้ว** / **ยังไม่ได้ส่ง** | Word for word the watch (`sos_sending`, `sos_sent`, `ping_not_yet`). |
+| Sent nearby / Not sent | **ส่งถึงเพื่อนใกล้ๆ แล้ว** / **ส่งไม่สำเร็จ** | The chat's states (`offline_state_nearby`, `offline_state_not_sent`). The line under "Sent nearby" says only nearby crew phones have it. |
+| The whole crew gets your alert | ทุกคนในแก๊ง**จะ**ได้รับแจ้งเตือนด่วนของคุณ | จะ keeps it from reading as "everyone has received it". แจ้งเตือนด่วน as `crew_help_alert_sub`, so it isn't taken for ordinary notifications (การแจ้งเตือน). "Nobody has your alert" has no ยัง: it is no longer being tried. |
+| Go live (button) | **เริ่มแชร์** | Key terms. The line above it says เปิด “มองเห็นได้”, as `offline_hint_go_live`; the app already pairs the two in the nudge (`main_nudge_title` / `main_nudge_text`). |
+| You're no longer live / Live turned off | **คุณไม่ได้แชร์อยู่แล้ว** / “มองเห็นได้” เลยปิดเอง | แชร์อยู่ is the live state (`visibility_notification`); the switch by its name, ปิดเอง ("turned itself off"). |
+| Still at the gig? / Home yet? | **ยังอยู่ที่คอนไหม?** / **ถึงบ้านหรือยัง?** | คอน for gig. The reminder quotes "ถึงบ้านปลอดภัยแล้ว" (`home_home_safe`) exactly. |
+| Your phone's storage is full | **พื้นที่เก็บข้อมูลในมือถือของคุณเต็มแล้ว** | พื้นที่เก็บข้อมูล, the phone's own name for storage. |
+
+สัญญาณ for signal and เน็ตมือถือ for mobile data, as in the offline hints and `find_searching_help`. The channel is แจ้งเตือนการแชร์และพื้นที่เก็บข้อมูล (การแชร์ as in `visibility_channel`).
+
+For a native reviewer: (1) เริ่มแชร์ on the button under a line that names “มองเห็นได้”. (2) ในระยะใกล้ for "up close" in the Live notification. (3) การเช็กอิน as a noun in the storage line. Written without a native reviewer. Confidence: **medium**.

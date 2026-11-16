@@ -99,7 +99,6 @@
     <string name="crew_flare_send">Enviar</string>
 
     <string name="crew_help_title">Pedir ajuda</string>
-    <string name="crew_help_alerted">Galera avisada ✓</string>
     <string name="crew_help_alert">Alertar minha galera</string>
     <string name="crew_help_alert_sub">Alerta urgente com onde você está</string>
     <string name="crew_help_text_contact">Mandar SMS pra %1$s</string>

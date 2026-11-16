@@ -14,6 +14,9 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.crew.GroupSync
@@ -22,6 +25,7 @@ import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio
 import nz.waveformlabs.moshpoint.locate.Findable
 import nz.waveformlabs.moshpoint.locate.FinderMate
+import nz.waveformlabs.moshpoint.safety.AppErrors
 
 /**
  * Keeps you visible to your mates, even with the app closed.
@@ -54,9 +58,10 @@ class VisibilityService : LifecycleService() {
             return START_NOT_STICKY
         }
         if (!startInForeground()) {
-            // Android refused (e.g. restarted from the background on Android 12+). Give up
-            // quietly; visibility comes back next time the app is opened.
-            VisibilityPrefs.markStopped(this) // so the app and tile don't claim we're visible
+            // Android refused (restarted from the background on Android 12+, or a permission
+            // was taken away). Said, never silent: off in the app with a notice if it's on
+            // screen, else "You're no longer live" (tap to open), and opening the app tries again.
+            LiveControl.couldNotStart(this)
             stopSelf()
             return START_NOT_STICKY
         }
@@ -64,10 +69,13 @@ class VisibilityService : LifecycleService() {
         return START_STICKY
     }
 
+    /** The service's own work: cancelled with it, and a failure in one part is logged, not a crash (reliability P1-6). */
+    private val scope by lazy { CoroutineScope(lifecycleScope.coroutineContext + AppErrors.handler("Live service")) }
+
     private fun begin() {
         FriendsRepository.init(this)
         val f = Findable(
-            this, lifecycleScope,
+            this, scope,
             identity = { mySecret },
             mates = { FriendsRepository.friends.toList() },
             // Upstairs/downstairs: our pressure rides in the advert (phones without the sensor send none).
@@ -76,22 +84,36 @@ class VisibilityService : LifecycleService() {
             onMateLooking = { uploader?.boost() },
             onAskedToLight = ::onAskedToLight,
             onMateLightingUp = ::onMateLightingUp,
-            onBluetoothToggled = { on -> GroupSync.onBluetooth(this, on) },
+            onBluetoothToggled = { on ->
+                GroupSync.onBluetooth(this, on)
+                // "You're live" is only said while Bluetooth is on (mates can't find you up close without it).
+                refreshNotification(this)
+            },
         )
         findable = f
         // First, as always: the advert, rotating with our code (and following a change of crew).
         f.startAdvertising()
 
-        uploader = LocationUploader(this, lifecycleScope) { mySecret }.also { it.start() }
+        uploader = LocationUploader(this, scope) { mySecret }.also { it.start() }
         registerReceiver(batteryReceiver, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         GroupSync.load(this)
         GroupSync.acquire(this) // keep introducing ourselves to the gig group while visible
+        // Off by itself when the night is over, or after about 12 hours (core LiveRules).
+        scope.launch {
+            while (true) {
+                LiveControl.check(this@VisibilityService)?.let {
+                    LiveControl.switchOff(this@VisibilityService, it)
+                    return@launch
+                }
+                delay(CHECK_EVERY_MS)
+            }
+        }
         nz.waveformlabs.moshpoint.venue.VenueMaps.sync(this) // and keep the venue map download going
         // Upstairs/downstairs: our pressure rides in the advert, rebuilt when it moves.
         nz.waveformlabs.moshpoint.venue.Floors.onAdvertChange = { f.readvertise() }
         nz.waveformlabs.moshpoint.venue.Floors.acquire(this, live = true)
         CrowdRelayRadio.startListening(this)
-        CrowdRelayRadio.startBroadcasting(this, lifecycleScope)
+        CrowdRelayRadio.startBroadcasting(this, scope)
         // Messages without signal ride the relay's adverts: only while live, so only from here.
         nz.waveformlabs.moshpoint.chat.OfflineMessages.startRadio(this)
         // Then, as always: Wi-Fi Aware, Bluetooth/Wi-Fi coming back, UWB, and the low-power listen
@@ -175,6 +197,8 @@ class VisibilityService : LifecycleService() {
 
     override fun onDestroy() {
         running = false
+        runningState.value = false
+        VisibilityTile.refreshAll(this)
         uploader?.stop()
         runCatching { unregisterReceiver(batteryReceiver) }
         if (findable != null) {
@@ -199,22 +223,25 @@ class VisibilityService : LifecycleService() {
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL, getString(R.string.visibility_channel), NotificationManager.IMPORTANCE_LOW),
         )
-        val notification: Notification = buildNotification(this, crewLine)
+        val notification: Notification = buildNotification(this, crewLine, bluetoothOn(this))
         // Add the location type when we can, so GPS sharing keeps working with the app
         // closed. Android refuses it in some cases (e.g. started at boot without the
         // app being opened), so fall back to Bluetooth-only visibility.
         val base = ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
         val withLocation = base or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
         val canLocate = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        return try {
+        val started = try {
             ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, if (canLocate) withLocation else base)
-            running = true
             true
         } catch (e: SecurityException) {
-            runCatching { ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, base) }.isSuccess.also { running = it }
+            runCatching { ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, base) }.isSuccess
         } catch (e: IllegalStateException) {
             false // ForegroundServiceStartNotAllowedException
         }
+        running = started
+        runningState.value = started
+        if (started) VisibilityTile.refreshAll(this)
+        return started
     }
 
     companion object {
@@ -223,17 +250,27 @@ class VisibilityService : LifecycleService() {
         @Volatile private var running = false
         @Volatile private var crewLine: String? = null
 
+        /** Live is really running now (in the foreground), not merely meant to be on ([VisibilityPrefs.isVisible]). */
+        val isRunning: Boolean get() = running
+
+        /** The same as Compose state (set on the main thread), so the app's Live switch follows Live going off by itself. */
+        val runningState = androidx.compose.runtime.mutableStateOf(false)
+
+        private fun bluetoothOn(c: Context): Boolean =
+            runCatching { c.getSystemService(android.bluetooth.BluetoothManager::class.java)?.adapter?.isEnabled == true }.getOrDefault(false)
+
         /**
          * The ongoing notification, like a Live Activity: "You're live" plus where the crew is
-         * ("Bevan 40 m · Jo 1.2 km"). Tap opens the app; "Go hidden" stops sharing.
+         * ("Bevan 40 m · Jo 1.2 km"). Tap opens the app; "Go hidden" stops sharing. With
+         * Bluetooth off it doesn't say "You're live": mates can't find you up close then.
          */
-        private fun buildNotification(c: Context, crew: String?): Notification {
+        private fun buildNotification(c: Context, crew: String?, bluetooth: Boolean): Notification {
             val open = PendingIntent.getActivity(c, 0, Intent(c, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
             val stopIntent = PendingIntent.getService(
                 c, 1, Intent(c, VisibilityService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE,
             )
             return NotificationCompat.Builder(c, CHANNEL)
-                .setContentTitle(c.getString(R.string.visibility_notification))
+                .setContentTitle(c.getString(if (bluetooth) R.string.visibility_notification else R.string.safety_live_bluetooth_off))
                 .apply { if (crew != null) setContentText(crew).setStyle(NotificationCompat.BigTextStyle().bigText(crew)) }
                 .setSmallIcon(R.drawable.ic_launcher_monochrome)
                 .setOngoing(true)
@@ -259,11 +296,18 @@ class VisibilityService : LifecycleService() {
         fun showCrew(c: Context, line: String?) {
             if (line == crewLine) return
             crewLine = line
+            refreshNotification(c)
+        }
+
+        private fun refreshNotification(c: Context) {
             if (!running) return
             runCatching {
-                c.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification(c.applicationContext, line))
+                c.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification(c.applicationContext, crewLine, bluetoothOn(c)))
             }
         }
+
+        /** How often a running Live checks whether it should go off by itself. */
+        private const val CHECK_EVERY_MS = 60_000L
         private const val REQUEST_CHANNEL = "requests"
         /** "Light up" requests, one per friend: a range of their own (5000 up used to reach into the crew alerts' ids, Need help among them). */
         private const val REQUEST_NOTIFICATION_BASE = 0x40000000
@@ -272,13 +316,39 @@ class VisibilityService : LifecycleService() {
         private const val LIGHTING_EVERY_MS = 180_000L
         private const val ACTION_STOP = "nz.waveformlabs.moshpoint.STOP_VISIBLE"
 
-        fun start(context: Context) {
+        /**
+         * Live on, as a new session (you, the tile, or being in a crew tonight). False if Android
+         * wouldn't start it from here (Android 12+ won't from the background).
+         */
+        fun start(context: Context): Boolean {
             VisibilityPrefs.setVisible(context, true)
+            LiveControl.started(context)
+            return launch(context)
+        }
+
+        /** Start the same session again (after an update, a reboot, or Android stopping it). */
+        fun restore(context: Context): Boolean = launch(context)
+
+        private fun launch(context: Context): Boolean = try {
             ContextCompat.startForegroundService(context, Intent(context, VisibilityService::class.java))
+            true
+        } catch (e: IllegalStateException) {
+            // ForegroundServiceStartNotAllowedException (an IllegalStateException): not from the background.
+            DebugStatus.log("Live service not started: ${e.javaClass.simpleName}")
+            false
+        } catch (e: SecurityException) {
+            DebugStatus.log("Live service not started: ${e.javaClass.simpleName}")
+            false
         }
 
         fun stop(context: Context) {
             VisibilityPrefs.setVisible(context, false)
+            context.stopService(Intent(context, VisibilityService::class.java))
+        }
+
+        /** Off, but not your choice (the night is over, or 12 hours): the next crew still goes live by itself. */
+        fun stopByApp(context: Context) {
+            VisibilityPrefs.markStopped(context)
             context.stopService(Intent(context, VisibilityService::class.java))
         }
     }

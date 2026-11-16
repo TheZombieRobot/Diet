@@ -42,17 +42,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.R
-import nz.waveformlabs.moshpoint.safety.Safety
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.ui.DefaultAvatar
 import nz.waveformlabs.moshpoint.ui.Mosh
@@ -98,6 +94,8 @@ internal fun CrewChatScreen(
     colourOf: (String) -> Int? = { null },
     /** A line for when messages can't go the usual way ("No signal. Messages are passed to crew phones nearby…"). */
     offlineHint: String? = null,
+    /** Need help's "Go live", for an alert waiting with no signal while you're not live. */
+    onGoLive: (() -> Unit)? = null,
 ) {
     BackHandler(onBack = onBack)
     var draft by remember { mutableStateOf("") }
@@ -179,7 +177,7 @@ internal fun CrewChatScreen(
         }
         if (!readOnly) {
             Column(Modifier.background(Mosh.Deep).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (nightTools) PingBar(onPing = onPing, onCheckIn = onCheckIn)
+                if (nightTools) PingBar(onPing = onPing, onCheckIn = onCheckIn, onGoLive = onGoLive)
                 else Text(
                     stringResource(R.string.crew_chat_night_tools_later),
                     style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 4.dp),
@@ -463,83 +461,4 @@ private fun FlarePicker(onPick: (String) -> Unit, onClose: () -> Unit) {
         confirmButton = { TextButton(onClick = { if (own.isNotBlank()) onPick(own.trim()) }, enabled = own.isNotBlank()) { Text(stringResource(R.string.crew_flare_send), style = Mosh.Label.copy(color = Mosh.Amber)) } },
         dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.crew_cancel), style = Mosh.Label) } },
     )
-}
-
-/**
- * "Need help": the crew alert, plus help beyond the crew: a text to your emergency contact
- * with where you are (plain SMS, works without data), and 111. Nothing is sent until a
- * choice here is tapped. [onAlertCrew] null = no crew to alert (no crew tonight, a crew
- * asleep until gig day, or following from home): the rest is still offered.
- */
-@Composable
-internal fun HelpDialog(onAlertCrew: (() -> Unit)?, onClose: () -> Unit) {
-    val c = LocalContext.current
-    var contact by remember { mutableStateOf(Safety.contact(c)) }
-    var adding by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf("") }
-    var number by remember { mutableStateOf("") }
-    var crewSent by remember { mutableStateOf(false) }
-    AlertDialog(
-        onDismissRequest = onClose,
-        containerColor = Mosh.Deep,
-        title = { Text(stringResource(R.string.crew_help_title), style = Mosh.Heading) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (onAlertCrew != null) {
-                    HelpAction(
-                        if (crewSent) stringResource(R.string.crew_help_alerted) else stringResource(R.string.crew_help_alert),
-                        stringResource(R.string.crew_help_alert_sub), Mosh.Danger,
-                    ) {
-                        if (!crewSent) { onAlertCrew(); crewSent = true }
-                    }
-                }
-                val who = contact
-                if (who != null) {
-                    HelpAction(stringResource(R.string.crew_help_text_contact, who.name), stringResource(R.string.crew_help_text_contact_sub), Mosh.Amber) { Safety.textContact(c) }
-                } else if (!adding) {
-                    HelpAction(stringResource(R.string.crew_help_add_contact), stringResource(R.string.crew_help_add_contact_sub), Mosh.Amber) { adding = true }
-                } else {
-                    OutlinedTextField(name, { name = it }, singleLine = true, placeholder = { Text(stringResource(R.string.crew_help_contact_name)) }, textStyle = Mosh.Body.copy(color = Mosh.Text))
-                    OutlinedTextField(
-                        number, { number = it }, singleLine = true, placeholder = { Text(stringResource(R.string.crew_help_contact_number)) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), textStyle = Mosh.Body.copy(color = Mosh.Text),
-                    )
-                    TextButton(onClick = {
-                        if (number.count { it.isDigit() } >= 6) {
-                            Safety.setContact(c, name, number)
-                            contact = Safety.contact(c)
-                            adding = false
-                        }
-                    }) { Text(stringResource(R.string.crew_help_save_contact), style = Mosh.Label.copy(color = Mosh.Amber)) }
-                }
-                // The emergency number(s) where you are now (abroad at a festival too).
-                val numbers = remember { nz.waveformlabs.moshpoint.safety.EmergencyNumbers.here(c) }
-                numbers.forEach { n ->
-                    val sub = when (n.kind) {
-                        nz.waveformlabs.moshpoint.safety.EmergencyNumbers.Kind.ALL -> stringResource(R.string.crew_help_call_sub)
-                        nz.waveformlabs.moshpoint.safety.EmergencyNumbers.Kind.POLICE -> stringResource(R.string.crew_help_call_police)
-                        nz.waveformlabs.moshpoint.safety.EmergencyNumbers.Kind.AMBULANCE -> stringResource(R.string.crew_help_call_ambulance)
-                    }
-                    HelpAction(stringResource(R.string.crew_help_call, n.digits), sub, Mosh.Alarm) { Safety.callEmergency(c, n.digits) }
-                }
-                Text(
-                    stringResource(R.string.crew_help_no_signal, numbers.first().digits),
-                    style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
-                )
-            }
-        },
-        confirmButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.crew_close), style = Mosh.Label) } },
-    )
-}
-
-@Composable
-private fun HelpAction(title: String, sub: String, colour: Color, onClick: () -> Unit) {
-    Column(
-        Modifier.fillMaxWidth().background(colour.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
-            .border(1.dp, colour.copy(alpha = 0.55f), RoundedCornerShape(14.dp)).clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-    ) {
-        Text(title, style = Mosh.Label.copy(fontSize = 16.sp, color = colour))
-        Text(sub, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 16.sp, color = Mosh.TextDim))
-    }
 }

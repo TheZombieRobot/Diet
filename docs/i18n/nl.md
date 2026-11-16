@@ -156,3 +156,19 @@ The new home screen: the Live row, the crew header and the ⋯ crew menu, the no
 
 For a native reviewer: *LID WORDEN VAN EEN CREW* over the Scan / Paste buttons matches the join dialog (*Lid worden van %1$s?*); *DOE MEE MET EEN CREW* is the more casual option. *Eerdere* versus *Vorige concerten*. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("zet Live aan"); "Ga live" stays as a verb in the onboarding title.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: the crew alert in Need help after it's tapped, Live going off by itself (stopped by Android, or after 12 hours), a full phone, and the reminder before your own check-in is due. Kept exactly as true as the English: nothing reads as sent before it is. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | **Versturen…** / **Verstuurd naar je crew** | The watch's words (`sos_sending`, `sos_sent`). |
+| Sent nearby | **Verstuurd in de buurt** | As `offline_state_nearby`. The line under it says only crew phones close by have it. |
+| Not sent yet / Not sent | **Nog niet verstuurd** / **Niet verstuurd** | As the watch (`ping_not_yet`) and the chat (`offline_state_not_sent`). |
+| Go live (button) | **Ga live** | Key terms. The hint above it says *Zet Live aan*, as `offline_hint_go_live`. |
+| Still at the gig? | **Nog op het concert?** | Short. |
+| Home yet? | **Al thuis?** | The reminder quotes *Veilig thuis* word for word. |
+| Your phone's storage is full | **De opslag van je telefoon is vol** | *Opslag*, *ruimte vrijmaken* and *rechten* (permissions), as in Android. |
+
+The alert is *je melding* (as `crew_help_alert_sub`); the notification channel is *Meldingen over Live en opslag*, as Android calls notifications *meldingen*. For a native reviewer: *Nog op het concert?* versus *Nog bij het concert?*. Written without a native reviewer. Confidence: **medium-high**.
