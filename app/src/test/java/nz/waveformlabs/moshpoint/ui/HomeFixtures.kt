@@ -43,6 +43,8 @@ internal object HomeFixtures {
     const val JAN_16 = 1_800_082_800L
     /** Saturday 13 March 2027, 7:30 pm in Auckland: the hype group's gig (Discover mock-ups). */
     const val MAR_13 = 1_804_919_400L
+    /** The same evening by the screenshot machine's clock (UTC), so the pictures say 7:30 pm like the mock-ups. */
+    const val MAR_13_SHOWN = 1_804_966_200L
 
     /** A mate with their own key (tonight's crew is matched by key). */
     fun mate(id: String, name: String, colour: Long, gig: Boolean) =

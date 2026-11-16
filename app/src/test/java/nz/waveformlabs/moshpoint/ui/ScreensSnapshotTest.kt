@@ -484,7 +484,7 @@ open class ScreensSnapshotTest {
 
     private fun hypeView(link: Boolean = true, mine: Boolean = false, days: Int = 117) = nz.waveformlabs.moshpoint.ui.home.HypeView(
         days = days, name = "Ivory Tide", venue = "Tidewater Arena, Auckland",
-        whenText = nz.waveformlabs.moshpoint.discover.HypeData.whenText(HomeFixtures.MAR_13),
+        whenText = nz.waveformlabs.moshpoint.discover.HypeData.whenText(HomeFixtures.MAR_13_SHOWN),
         ticketLink = if (link) "https://tickets.example.com/ivory-tide" else null,
         ticks = mapOf("rae" to true, "sam" to true),
         mine = mine,
@@ -542,7 +542,7 @@ open class ScreensSnapshotTest {
         }
     }
 
-    private fun planForm() = nz.waveformlabs.moshpoint.ui.home.PlanForm(HomeFixtures.MAR_13).apply { name = "Ivory Tide" }
+    private fun planForm() = nz.waveformlabs.moshpoint.ui.home.PlanForm(HomeFixtures.MAR_13_SHOWN).apply { name = "Ivory Tide" }
 
     private fun snapPlanFree() = snapSheet {
         PlanGigContent(planForm(), member = false, search = null, onPick = {}, lookupVenue = null, onWhatsPlus = {})

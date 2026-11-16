@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,9 +32,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,24 +73,47 @@ class HypeView(
     val chatFace: Friend? = null,
 )
 
-/** "in 117 days", with the number in the brand gradient; "tomorrow" and "tonight" as they are. */
-@OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+/** "in 117 days" (or "tomorrow", "tonight"), and where the number is in it. */
 @Composable
-private fun countdownText(days: Int): AnnotatedString {
+private fun countdownText(days: Int): Pair<String, IntRange?> {
     val text = when (days) {
         0 -> stringResource(R.string.countdown_tonight)
         1 -> stringResource(R.string.countdown_tomorrow)
         else -> pluralStringResource(R.plurals.countdown_days, days, days)
     }
-    val digits = Regex("\\p{Nd}+").find(text)
-    return buildAnnotatedString {
-        append(text)
-        if (digits != null) {
-            addStyle(
-                SpanStyle(brush = Brush.linearGradient(listOf(Mosh.Pink, Mosh.Violet, Mosh.Cyan), start = Offset(0f, 0f), end = Offset(260f, 60f))),
-                digits.range.first, digits.range.last + 1,
-            )
+    return text to Regex("\\p{Nd}+").find(text)?.range
+}
+
+/**
+ * The countdown headline, its number in the brand gradient from pink to cyan across the digits
+ * themselves (measured first, so it's the same in every language and at every width).
+ */
+@OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+@Composable
+private fun CountdownHeadline(days: Int, modifier: Modifier = Modifier) {
+    val (text, digits) = countdownText(days)
+    val style = HomeType.Hero.copy(fontSize = 42.sp.capScale(1.3f), lineHeight = 48.sp.capScale(1.3f), letterSpacing = (-1).sp)
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints(modifier) {
+        val width = constraints.maxWidth
+        val shown = remember(text, digits, style, width) {
+            buildAnnotatedString {
+                append(text)
+                if (digits != null) {
+                    val layout = measurer.measure(text, style, constraints = Constraints(maxWidth = width))
+                    val a = layout.getHorizontalPosition(digits.first, usePrimaryDirection = true)
+                    val b = layout.getHorizontalPosition(digits.last + 1, usePrimaryDirection = true)
+                    val from = minOf(a, b)
+                    val to = maxOf(a, b).coerceAtLeast(from + 1f)
+                    val top = layout.getLineTop(layout.getLineForOffset(digits.first))
+                    addStyle(
+                        SpanStyle(brush = Brush.linearGradient(listOf(Mosh.Pink, Mosh.Violet, Mosh.Cyan), start = Offset(from, top), end = Offset(to, top))),
+                        digits.first, digits.last + 1,
+                    )
+                }
+            }
         }
+        Text(shown, style = style, modifier = Modifier.semantics { heading() })
     }
 }
 
@@ -109,11 +135,7 @@ internal fun HypeGroupBody(
         Column(Modifier.fillMaxWidth().padding(horizontal = HomeSide)) {
             Kicker(stringResource(R.string.home_eyebrow_coming_up))
             Row(verticalAlignment = Alignment.Top) {
-                Text(
-                    countdownText(hype.days),
-                    style = HomeType.Hero.copy(fontSize = 42.sp.capScale(1.3f), lineHeight = 48.sp.capScale(1.3f), letterSpacing = (-1).sp),
-                    modifier = Modifier.weight(1f).padding(top = 4.dp).semantics { heading() },
-                )
+                CountdownHeadline(hype.days, Modifier.weight(1f).padding(top = 4.dp))
                 Spacer(Modifier.width(12.dp))
                 RoundIconButton(HomeIcons.More, stringResource(R.string.home_crew_options), onMenu)
             }
@@ -252,8 +274,10 @@ private fun ChatRow(hype: HypeView, unread: Int, onOpen: () -> Unit, modifier: M
             }
             val text = hype.chatText
             if (from != null && text != null) {
+                // Each part keeps its own direction: an English line in an Arabic chat row reads "Sam: Barrier or balcony?", not "?Sam: …".
+                val bidi = android.text.BidiFormatter.getInstance()
                 Text(
-                    stringResource(R.string.hype_chat_line, from, text),
+                    stringResource(R.string.hype_chat_line, bidi.unicodeWrap(from), bidi.unicodeWrap(text)),
                     style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 19.sp, color = Mosh.TextDim),
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )

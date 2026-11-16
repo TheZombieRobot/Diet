@@ -10,16 +10,15 @@ _Handover, kept current at every push. A new session can resume from this sectio
 
 | Stage | State |
 |---|---|
-| 1. Hype group, for everyone | **written, first CI run pending.** Core: message, rules, link, courier (595 core tests pass locally). App: `discover/HypeTickets.kt` (ticks, our toggle, daily re-post, the nudge), `discover/HypeData.kt` (the view, Get tickets), `ui/home/HypeGroup.kt` (the screen), crews store `tk`/`tks`, `strings_discover.xml` (20 folders, checker OK), screenshot tests `hypeGroup`, `hypeGroupTicked`, `smallPhoneHypeGroup`, `largeFontHypeGroup`, `smallPhoneLargeFontHypeGroup`, field test 4k |
-| 2. Plan a gig, free view | not started |
-| 3. Smart search, members | not started |
+| 1. Hype group, for everyone | **done, CI green (run 328, `e7fb39b`)**: phone and watch debug and release builds, core and server tests, translations, screenshots. Core: message, rules, link, courier. App: `discover/HypeTickets.kt` (ticks, our toggle, daily re-post, the nudge), `discover/HypeData.kt` (the view, Get tickets), `ui/home/HypeGroup.kt` (the screen), crews store `tk`/`tks`. Screenshots `hypeGroup`, `hypeGroupTicked`, `smallPhoneHypeGroup`, `largeFontHypeGroup`, `smallPhoneLargeFontHypeGroup`, looked at (English, German at 130% on a small phone, Arabic). Field test 4k |
+| 2. Plan a gig, free view | **written, CI run pending.** `ui/home/PlanGig.kt`: the form state is hoisted (`PlanForm`), hand entry in the order who's playing, date and time, venue (optional, hint "Venue and town"); the quiet Moshpoint+ card for non-members (`Entitlements.plus` false); "What's in Moshpoint+" swaps the sheet to `PlusInfoContent` and back with what was typed kept ("coming soon", no billing). Members keep the old gig search until stage 3. Screenshots `planGigFree`, `smallPhonePlanGigFree`, `largeFontPlanGigFree`, `plusInfo`, `smallPhoneLargeFontPlusInfo` |
+| 3. Smart search, members | **written locally, not pushed yet** (pushed right after stage 2's run is green): `core/DiscoverRules.kt` (+ tests, pass locally), `discover/DiscoverClient.kt`, the search in `PlanGig.kt`, strings, screenshots `smartSearch`, `smallPhoneLargeFontSmartSearch`, `smartSearchPicked` |
 | 4. Coming up near you, members | not started |
 
-**Last green CI run:** none yet on this branch.
+**Last green CI run:** 328 (`e7fb39b`, stage 1).
 
-**Exact next step:** check the CI run for the stage 1 push (compile, then the screenshot step's
-log for failing tests, then look at the new pictures on `ui-screenshots-claude-discover-app-h7v2rk`),
-fix, then stage 2.
+**Exact next step:** the CI run for stage 2 (look at `planGigFree` and `plusInfo`, small phone and
+large font), then push stage 3 and do the same, then stage 4.
 
 **How to work on it:**
 
