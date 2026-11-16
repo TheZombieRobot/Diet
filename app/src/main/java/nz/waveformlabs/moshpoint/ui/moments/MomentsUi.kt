@@ -47,6 +47,8 @@ internal fun MomentViewer(
     onMap: (() -> Unit)?,
     onFind: (() -> Unit)?,
     onClose: () -> Unit,
+    /** Someone else's photo or clip: block them (docs/REPORT_BLOCK.md). Null = not offered. */
+    onBlock: (() -> Unit)? = null,
 ) {
     AlertDialog(
         onDismissRequest = onClose,
@@ -77,7 +79,12 @@ internal fun MomentViewer(
                 if (onFind != null) TextButton(onClick = onFind) { Text(stringResource(R.string.find_find_name, m.from), style = Mosh.Label.copy(color = Mosh.Pink)) }
             }
         },
-        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.find_close), style = Mosh.Label) } },
+        dismissButton = {
+            Row {
+                if (onBlock != null) TextButton(onClick = onBlock) { Text(stringResource(R.string.mod_block_name, m.from), style = Mosh.Label.copy(color = Mosh.Danger)) }
+                TextButton(onClick = onClose) { Text(stringResource(R.string.find_close), style = Mosh.Label) }
+            }
+        },
     )
 }
 

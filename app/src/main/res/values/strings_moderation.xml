@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <!-- A choice when you hold a crew mate's face, a chat message, or open their photo or clip. Hides their messages, photos and clips on this phone. %1$s = their name. -->
+    <string name="mod_block_name">Block %1$s</string>
+    <!-- The same choice once they're blocked. %1$s = their name. -->
+    <string name="mod_unblock_name">Unblock %1$s</string>
+    <!-- Title of the confirmation before blocking. %1$s = their name. -->
+    <string name="mod_block_title">Block %1$s?</string>
+    <!-- Under that title: what blocking does. "They" = the person being blocked. Nothing is sent to them. -->
+    <string name="mod_block_text">You won\'t see their messages, photos or clips on this phone, and their private messages won\'t reach you. They aren\'t told, and they stay in the crew.</string>
+    <!-- Added under it when you made the crew (only the maker can remove people). %1$s = their name. -->
+    <string name="mod_block_owner">You made this crew, so you can also remove %1$s from it.</string>
+    <!-- Button under that line: opens the usual "Remove from the crew?" confirmation. %1$s = their name. -->
+    <string name="mod_remove_name">Remove %1$s from the crew</string>
+    <!-- The confirming button. -->
+    <string name="mod_block">Block</string>
+    <!-- Short message after blocking. %1$s = their name. -->
+    <string name="mod_blocked_done">%1$s is blocked on this phone.</string>
+    <!-- Short message after unblocking. %1$s = their name. -->
+    <string name="mod_unblocked_done">%1$s is unblocked.</string>
+    <!-- Settings row and the title of the list of blocked people. -->
+    <string name="mod_blocked_people">Blocked people</string>
+    <!-- Under "Blocked people" in Settings. %d = how many. -->
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d person blocked</item>
+        <item quantity="other">%d people blocked</item>
+    </plurals>
+    <!-- The list when nobody is blocked: how to block someone. -->
+    <string name="mod_blocked_none">Nobody is blocked. To block someone, hold their face or one of their messages, or open their photo.</string>
+    <!-- Under the list title: what blocking does, for everyone on the list. -->
+    <string name="mod_blocked_about">Their messages, photos and clips are hidden on this phone, and their private messages are dropped. They aren\'t told.</string>
+    <!-- Button beside each blocked person in the list. -->
+    <string name="mod_unblock">Unblock</string>
+    <!-- At the top of a private chat with someone you blocked. Tapping it unblocks. %1$s = their name. -->
+    <string name="mod_thread_blocked">You blocked %1$s. Their messages are hidden, and new ones don\'t reach you. Tap to unblock.</string>
+    <!-- Button on a crew mate's photo or clip, and the screen reader's name for holding a message. -->
+    <string name="mod_report_or_block">Report or block</string>
+    <!-- Title of the community rules, shown once before your first chat message, photo, clip or private message. -->
+    <string name="mod_rules_title">Before you post</string>
+    <!-- First line of the rules. -->
+    <string name="mod_rules_intro">The crew chat, photos, clips and private messages are for your crew. Keep to these rules:</string>
+    <!-- Rule 1. -->
+    <string name="mod_rules_harassment">No harassment, bullying or hate.</string>
+    <!-- Rule 2. -->
+    <string name="mod_rules_illegal">Nothing illegal, and nothing sexual involving anyone under 18.</string>
+    <!-- Rule 3. -->
+    <string name="mod_rules_threats">No threats or violence.</string>
+    <!-- After the rules: reports, review and what happens if you break them. -->
+    <string name="mod_rules_reports">Anyone in your crew can report what you post. A report sends Moshpoint what they saw, and it may be reviewed. Breaking these rules can get you blocked from Moshpoint.</string>
+    <!-- Button: agree to the rules (asked once). -->
+    <string name="mod_rules_agree">I agree</string>
+    <!-- Menu choice and title of the report sheet for a chat or private message. -->
+    <string name="mod_report_message">Report this message</string>
+    <!-- The same for a photo. -->
+    <string name="mod_report_photo">Report this photo</string>
+    <!-- The same for a short video clip. -->
+    <string name="mod_report_clip">Report this clip</string>
+    <!-- The same for a person (from their face). %1$s = their name. -->
+    <string name="mod_report_name">Report %1$s</string>
+    <!-- Above the list of reasons. -->
+    <string name="mod_report_why">What\'s wrong?</string>
+    <!-- Reason. -->
+    <string name="mod_reason_harassment">Harassment or bullying</string>
+    <!-- Reason: hate speech. -->
+    <string name="mod_reason_hate">Hate</string>
+    <!-- Reason. -->
+    <string name="mod_reason_sexual">Sexual content</string>
+    <!-- Reason. -->
+    <string name="mod_reason_violence">Violence or threats</string>
+    <!-- Reason. -->
+    <string name="mod_reason_spam">Spam</string>
+    <!-- Reason. -->
+    <string name="mod_reason_other">Something else</string>
+    <!-- Hint in the optional text box. -->
+    <string name="mod_report_note">Add a note (optional)</string>
+    <!-- Before sending: why the phone sends a copy. Followed by a list of what is sent. -->
+    <string name="mod_report_e2e">Messages are end-to-end encrypted, so Moshpoint can\'t see them. Your report sends what you can see:</string>
+    <!-- List item: what is sent (a message). -->
+    <string name="mod_report_sends_message">This message</string>
+    <!-- List item: what is sent (a photo, made smaller). -->
+    <string name="mod_report_sends_photo">This photo, smaller, with its caption</string>
+    <!-- List item: what is sent (a few still frames of a clip, made smaller). -->
+    <string name="mod_report_sends_clip">A few frames of this clip, smaller, with its caption</string>
+    <!-- List item: who it is about. %1$s = their name. "Key" = their ID in this crew. The crew's code isn't its name. -->
+    <string name="mod_report_sends_who">%1$s\'s name and their key in this crew, a code for the crew (not its name) and the time</string>
+    <!-- List item: the note from the text box. -->
+    <string name="mod_report_sends_note">Your note, if you add one</string>
+    <!-- Under the list. %1$s = the person reported. -->
+    <string name="mod_report_kept">Reports are kept for 90 days. %1$s isn\'t told who reported them.</string>
+    <!-- Tick box: block them as well. %1$s = their name. -->
+    <string name="mod_report_block_too">Also block %1$s</string>
+    <!-- The sending button. -->
+    <string name="mod_report_send">Send report</string>
+    <!-- The button while sending. -->
+    <string name="mod_report_sending">Sending…</string>
+    <!-- Short message once the report is sent. -->
+    <string name="mod_report_sent">Report sent. Thanks for looking out for your crew.</string>
+    <!-- Short message when it couldn't be sent. -->
+    <string name="mod_report_failed">The report couldn\'t be sent. Check your connection and try again.</string>
+    <!-- Short message when this phone has sent too many reports for now. -->
+    <string name="mod_report_limit">Too many reports from this phone. Try again later.</string>
+</resources>

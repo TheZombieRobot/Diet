@@ -124,6 +124,7 @@ object CrewRekey {
     /** Everything kept for the crew moves to its new key: settings, chat, our key, photos. */
     private fun migrate(c: Context, old: GigGroup, fresh: GigGroup, removedPub: ByteArray?, removedTags: Set<Long> = setOfNotNull(removedPub?.let { CrewKeys.tagOf(it) })) {
         Identity.migrate(c, old, fresh)
+        nz.waveformlabs.moshpoint.moderation.Blocks.migrate(c, old, fresh)
         // Private threads move with the crew, without whoever was removed: first, so nothing to
         // them is sealed again under the new key just below (docs/PRIVATE_MESSAGES.md).
         PrivateMessages.migrate(c, old, fresh, removedTags)

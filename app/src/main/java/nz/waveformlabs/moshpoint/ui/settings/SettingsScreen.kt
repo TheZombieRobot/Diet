@@ -49,6 +49,9 @@ import nz.waveformlabs.moshpoint.R
 import androidx.compose.ui.res.stringResource
 import nz.waveformlabs.moshpoint.ui.DefaultAvatar
 import nz.waveformlabs.moshpoint.ui.GlassButton
+import nz.waveformlabs.moshpoint.ui.moderation.BlockedPeopleContent
+import nz.waveformlabs.moshpoint.ui.moderation.BlockedPeopleRow
+import nz.waveformlabs.moshpoint.ui.moderation.ModerationDialog
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.pressScale
 import nz.waveformlabs.moshpoint.ui.rememberPress
@@ -307,6 +310,9 @@ internal fun SettingsContent(
                     nz.waveformlabs.moshpoint.watch.WatchDebugTools()
                 }
             }
+            // Who's blocked on this phone, with Unblock (docs/REPORT_BLOCK.md). After the test-build
+            // tools, so the screenshots (a test build) don't change; in release it follows the contact.
+            BlockedPeopleSetting()
             AboutSection(phoneSummary, onLicences = { showLicences = true }, onPrivacy = rememberOpenPrivacyPolicy())
             if (showLicences) AcknowledgementsScreen(onClose = { showLicences = false })
         }
@@ -355,5 +361,22 @@ fun FacebookButton(onClick: () -> Unit, modifier: Modifier = Modifier.fillMaxWid
         }
         Spacer(Modifier.width(10.dp))
         Text(stringResource(R.string.setup_continue_facebook), style = Mosh.Label.copy(color = Color.White))
+    }
+}
+
+/** Settings → Blocked people: the row, and the list it opens. */
+@Composable
+private fun BlockedPeopleSetting() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var open by remember { mutableStateOf(false) }
+    val blocked = nz.waveformlabs.moshpoint.moderation.Blocks.list.value
+    BlockedPeopleRow(blocked.entries.size, onOpen = { open = true })
+    if (open) {
+        ModerationDialog(onDismiss = { open = false }) {
+            BlockedPeopleContent(blocked.newestFirst(), onUnblock = { b ->
+                nz.waveformlabs.moshpoint.moderation.Blocks.unblock(context, b.id)
+                android.widget.Toast.makeText(context, context.getString(R.string.mod_unblocked_done, b.name), android.widget.Toast.LENGTH_SHORT).show()
+            }, onClose = { open = false })
+        }
     }
 }

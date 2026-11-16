@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">封鎖 %1$s</string>
+    <string name="mod_unblock_name">解除封鎖 %1$s</string>
+    <string name="mod_block_title">要封鎖 %1$s 嗎？</string>
+    <string name="mod_block_text">你在這支手機上將看不到對方的訊息、相片和影片，對方的私訊也不會再傳到你這裡。對方不會收到通知，並會留在小隊中。</string>
+    <string name="mod_block_owner">這個小隊是你建立的，所以你也可以將 %1$s 移出小隊。</string>
+    <string name="mod_remove_name">將 %1$s 移出小隊</string>
+    <string name="mod_block">封鎖</string>
+    <string name="mod_blocked_done">已在這支手機上封鎖 %1$s。</string>
+    <string name="mod_unblocked_done">已解除封鎖 %1$s。</string>
+    <string name="mod_blocked_people">已封鎖的人</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="other">已封鎖 %d 人</item>
+    </plurals>
+    <string name="mod_blocked_none">還沒有封鎖任何人。要封鎖某人，請長按對方的頭像或其中一則訊息，或打開對方的相片。</string>
+    <string name="mod_blocked_about">被封鎖者的訊息、相片和影片會在這支手機上隱藏，他們的私訊會被丟棄。對方不會收到通知。</string>
+    <string name="mod_unblock">解除封鎖</string>
+    <string name="mod_thread_blocked">你已封鎖 %1$s。對方的訊息已隱藏，新訊息也不會送達。輕觸即可解除封鎖。</string>
+    <string name="mod_report_or_block">檢舉或封鎖</string>
+    <string name="mod_rules_title">發布之前</string>
+    <string name="mod_rules_intro">小隊聊天、相片、影片和私訊都是為你的小隊準備的。請遵守以下規則：</string>
+    <string name="mod_rules_harassment">禁止騷擾、霸凌和仇恨言論。</string>
+    <string name="mod_rules_illegal">禁止任何違法內容，嚴禁任何涉及未滿 18 歲者的色情內容。</string>
+    <string name="mod_rules_threats">禁止威脅和暴力。</string>
+    <string name="mod_rules_reports">小隊裡的任何人都可以檢舉你發布的內容。檢舉會將對方看到的內容傳送給 Moshpoint，並可能被審查。違反這些規則可能會被 Moshpoint 封鎖。</string>
+    <string name="mod_rules_agree">我同意</string>
+    <string name="mod_report_message">檢舉這則訊息</string>
+    <string name="mod_report_photo">檢舉這張相片</string>
+    <string name="mod_report_clip">檢舉這部影片</string>
+    <string name="mod_report_name">檢舉 %1$s</string>
+    <string name="mod_report_why">發生了什麼問題？</string>
+    <string name="mod_reason_harassment">騷擾或霸凌</string>
+    <string name="mod_reason_hate">仇恨</string>
+    <string name="mod_reason_sexual">色情內容</string>
+    <string name="mod_reason_violence">暴力或威脅</string>
+    <string name="mod_reason_spam">垃圾訊息</string>
+    <string name="mod_reason_other">其他</string>
+    <string name="mod_report_note">新增備註（選填）</string>
+    <string name="mod_report_e2e">訊息經過端對端加密，Moshpoint 看不到。所以檢舉會傳送你看得到的內容：</string>
+    <string name="mod_report_sends_message">這則訊息</string>
+    <string name="mod_report_sends_photo">這張相片（縮小）及說明</string>
+    <string name="mod_report_sends_clip">這部影片的幾格畫面（縮小）及說明</string>
+    <string name="mod_report_sends_who">%1$s 的名稱和其在這個小隊中的金鑰、代表小隊的代碼（不是小隊名稱）以及時間</string>
+    <string name="mod_report_sends_note">你的備註（如有）</string>
+    <string name="mod_report_kept">檢舉會保留 90 天。%1$s 不會知道是誰檢舉的。</string>
+    <string name="mod_report_block_too">同時封鎖 %1$s</string>
+    <string name="mod_report_send">送出檢舉</string>
+    <string name="mod_report_sending">傳送中…</string>
+    <string name="mod_report_sent">檢舉已送出。謝謝你照顧自己的小隊。</string>
+    <string name="mod_report_failed">無法送出檢舉。請檢查網路連線後再試一次。</string>
+    <string name="mod_report_limit">這支手機的檢舉次數過多，請稍後再試。</string>
+</resources>

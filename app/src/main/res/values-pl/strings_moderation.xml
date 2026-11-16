@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">Zablokuj: %1$s</string>
+    <string name="mod_unblock_name">Odblokuj: %1$s</string>
+    <string name="mod_block_title">Zablokować: %1$s?</string>
+    <string name="mod_block_text">Nie zobaczysz na tym telefonie wiadomości, zdjęć ani klipów tej osoby, a jej prywatne wiadomości nie będą do ciebie docierać. Ta osoba nie dostanie powiadomienia i zostanie w ekipie.</string>
+    <string name="mod_block_owner">Ta ekipa jest twoja, więc możesz też usunąć z niej osobę %1$s.</string>
+    <string name="mod_remove_name">Usuń z ekipy: %1$s</string>
+    <string name="mod_block">Zablokuj</string>
+    <string name="mod_blocked_done">Zablokowano na tym telefonie: %1$s.</string>
+    <string name="mod_unblocked_done">Odblokowano: %1$s.</string>
+    <string name="mod_blocked_people">Zablokowane osoby</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d zablokowana osoba</item>
+        <item quantity="few">%d zablokowane osoby</item>
+        <item quantity="many">%d zablokowanych osób</item>
+        <item quantity="other">%d zablokowanej osoby</item>
+    </plurals>
+    <string name="mod_blocked_none">Nikt nie jest zablokowany. Aby kogoś zablokować, przytrzymaj twarz lub wiadomość tej osoby albo otwórz jej zdjęcie.</string>
+    <string name="mod_blocked_about">Wiadomości, zdjęcia i klipy tych osób są ukryte na tym telefonie, a ich prywatne wiadomości są odrzucane. Te osoby nie dostają powiadomienia.</string>
+    <string name="mod_unblock">Odblokuj</string>
+    <string name="mod_thread_blocked">Zablokowano: %1$s. Wiadomości tej osoby są ukryte, a nowe do ciebie nie docierają. Dotknij, aby odblokować.</string>
+    <string name="mod_report_or_block">Zgłoś lub zablokuj</string>
+    <string name="mod_rules_title">Zanim coś opublikujesz</string>
+    <string name="mod_rules_intro">Czat ekipy, zdjęcia, klipy i prywatne wiadomości są dla twojej ekipy. Trzymaj się tych zasad:</string>
+    <string name="mod_rules_harassment">Żadnego nękania, prześladowania ani nienawiści.</string>
+    <string name="mod_rules_illegal">Nic nielegalnego i nic o charakterze seksualnym z udziałem osób poniżej 18 lat.</string>
+    <string name="mod_rules_threats">Żadnych gróźb ani przemocy.</string>
+    <string name="mod_rules_reports">Każdy w twojej ekipie może zgłosić to, co publikujesz. Zgłoszenie wysyła do Moshpoint to, co ta osoba widziała, i może zostać sprawdzone. Za łamanie tych zasad można zostać zablokowanym w Moshpoint.</string>
+    <string name="mod_rules_agree">Zgadzam się</string>
+    <string name="mod_report_message">Zgłoś tę wiadomość</string>
+    <string name="mod_report_photo">Zgłoś to zdjęcie</string>
+    <string name="mod_report_clip">Zgłoś ten klip</string>
+    <string name="mod_report_name">Zgłoś: %1$s</string>
+    <string name="mod_report_why">Co jest nie tak?</string>
+    <string name="mod_reason_harassment">Nękanie lub prześladowanie</string>
+    <string name="mod_reason_hate">Nienawiść</string>
+    <string name="mod_reason_sexual">Treści seksualne</string>
+    <string name="mod_reason_violence">Przemoc lub groźby</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Coś innego</string>
+    <string name="mod_report_note">Dodaj notatkę (opcjonalnie)</string>
+    <string name="mod_report_e2e">Wiadomości są szyfrowane end-to-end, więc Moshpoint ich nie widzi. Zgłoszenie wysyła to, co widzisz ty:</string>
+    <string name="mod_report_sends_message">Tę wiadomość</string>
+    <string name="mod_report_sends_photo">To zdjęcie, pomniejszone, z podpisem</string>
+    <string name="mod_report_sends_clip">Kilka klatek z tego klipu, pomniejszonych, z podpisem</string>
+    <string name="mod_report_sends_who">Imię i klucz tej osoby w ekipie (%1$s), kod ekipy (nie jej nazwę) i godzinę</string>
+    <string name="mod_report_sends_note">Twoją notatkę, jeśli ją dodasz</string>
+    <string name="mod_report_kept">Zgłoszenia są przechowywane przez 90 dni. Osoba %1$s nie dowie się, kto ją zgłosił.</string>
+    <string name="mod_report_block_too">Zablokuj też: %1$s</string>
+    <string name="mod_report_send">Wyślij zgłoszenie</string>
+    <string name="mod_report_sending">Wysyłanie…</string>
+    <string name="mod_report_sent">Zgłoszenie wysłane. Dzięki, że dbasz o swoją ekipę.</string>
+    <string name="mod_report_failed">Nie udało się wysłać zgłoszenia. Sprawdź połączenie i spróbuj ponownie.</string>
+    <string name="mod_report_limit">Za dużo zgłoszeń z tego telefonu. Spróbuj później.</string>
+</resources>

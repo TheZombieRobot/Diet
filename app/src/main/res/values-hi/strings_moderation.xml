@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">%1$s को ब्लॉक करें</string>
+    <string name="mod_unblock_name">%1$s को अनब्लॉक करें</string>
+    <string name="mod_block_title">%1$s को ब्लॉक करें?</string>
+    <string name="mod_block_text">इस फ़ोन पर आपको उनके मैसेज, फ़ोटो या क्लिप नहीं दिखेंगे, और उनके प्राइवेट मैसेज आप तक नहीं पहुँचेंगे। उन्हें बताया नहीं जाता और वे ग्रुप में बने रहते हैं।</string>
+    <string name="mod_block_owner">यह ग्रुप आपने बनाया है, इसलिए आप %1$s को इससे हटा भी सकते हैं।</string>
+    <string name="mod_remove_name">%1$s को ग्रुप से हटाएँ</string>
+    <string name="mod_block">ब्लॉक करें</string>
+    <string name="mod_blocked_done">%1$s इस फ़ोन पर ब्लॉक है।</string>
+    <string name="mod_unblocked_done">%1$s अब ब्लॉक नहीं है।</string>
+    <string name="mod_blocked_people">ब्लॉक किए गए लोग</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d व्यक्ति ब्लॉक है</item>
+        <item quantity="other">%d लोग ब्लॉक हैं</item>
+    </plurals>
+    <string name="mod_blocked_none">कोई ब्लॉक नहीं है। किसी को ब्लॉक करने के लिए उनके चेहरे या उनके किसी मैसेज को दबाकर रखें, या उनकी फ़ोटो खोलें।</string>
+    <string name="mod_blocked_about">उनके मैसेज, फ़ोटो और क्लिप इस फ़ोन पर छिपे रहते हैं, और उनके प्राइवेट मैसेज हटा दिए जाते हैं। उन्हें बताया नहीं जाता।</string>
+    <string name="mod_unblock">अनब्लॉक करें</string>
+    <string name="mod_thread_blocked">आपने %1$s को ब्लॉक किया है। उनके मैसेज छिपे हैं और नए मैसेज आप तक नहीं पहुँचते। अनब्लॉक करने के लिए टैप करें।</string>
+    <string name="mod_report_or_block">रिपोर्ट या ब्लॉक करें</string>
+    <string name="mod_rules_title">पोस्ट करने से पहले</string>
+    <string name="mod_rules_intro">ग्रुप चैट, फ़ोटो, क्लिप और प्राइवेट मैसेज आपके ग्रुप के लिए हैं। ये नियम मानें:</string>
+    <string name="mod_rules_harassment">कोई उत्पीड़न, धमकाना या नफ़रत नहीं।</string>
+    <string name="mod_rules_illegal">कुछ भी गैरकानूनी नहीं, और 18 साल से कम उम्र के किसी को शामिल करने वाला कुछ भी यौन नहीं।</string>
+    <string name="mod_rules_threats">कोई धमकी या हिंसा नहीं।</string>
+    <string name="mod_rules_reports">आपके ग्रुप में कोई भी आपकी पोस्ट रिपोर्ट कर सकता है। रिपोर्ट में Moshpoint को वह भेजा जाता है जो उन्होंने देखा, और उसकी समीक्षा हो सकती है। ये नियम तोड़ने पर आपको Moshpoint पर ब्लॉक किया जा सकता है।</string>
+    <string name="mod_rules_agree">मैं सहमत हूँ</string>
+    <string name="mod_report_message">इस मैसेज की रिपोर्ट करें</string>
+    <string name="mod_report_photo">इस फ़ोटो की रिपोर्ट करें</string>
+    <string name="mod_report_clip">इस क्लिप की रिपोर्ट करें</string>
+    <string name="mod_report_name">%1$s की रिपोर्ट करें</string>
+    <string name="mod_report_why">क्या गलत है?</string>
+    <string name="mod_reason_harassment">उत्पीड़न या धमकाना</string>
+    <string name="mod_reason_hate">नफ़रत</string>
+    <string name="mod_reason_sexual">यौन सामग्री</string>
+    <string name="mod_reason_violence">हिंसा या धमकी</string>
+    <string name="mod_reason_spam">स्पैम</string>
+    <string name="mod_reason_other">कुछ और</string>
+    <string name="mod_report_note">नोट जोड़ें (वैकल्पिक)</string>
+    <string name="mod_report_e2e">मैसेज एंड-टू-एंड एन्क्रिप्टेड हैं, इसलिए Moshpoint उन्हें नहीं देख सकता। आपकी रिपोर्ट वही भेजती है जो आपको दिखता है:</string>
+    <string name="mod_report_sends_message">यह मैसेज</string>
+    <string name="mod_report_sends_photo">यह फ़ोटो, छोटे साइज़ में, कैप्शन के साथ</string>
+    <string name="mod_report_sends_clip">इस क्लिप के कुछ फ़्रेम, छोटे साइज़ में, कैप्शन के साथ</string>
+    <string name="mod_report_sends_who">%1$s का नाम और इस ग्रुप में उनकी चाबी, ग्रुप का एक कोड (नाम नहीं) और समय</string>
+    <string name="mod_report_sends_note">आपका नोट, अगर आप जोड़ें</string>
+    <string name="mod_report_kept">रिपोर्ट 90 दिन तक रखी जाती हैं। %1$s को यह नहीं बताया जाता कि रिपोर्ट किसने की।</string>
+    <string name="mod_report_block_too">%1$s को भी ब्लॉक करें</string>
+    <string name="mod_report_send">रिपोर्ट भेजें</string>
+    <string name="mod_report_sending">भेजा जा रहा है…</string>
+    <string name="mod_report_sent">रिपोर्ट भेज दी गई। अपने ग्रुप का ध्यान रखने के लिए धन्यवाद।</string>
+    <string name="mod_report_failed">रिपोर्ट नहीं भेजी जा सकी। अपना कनेक्शन देखें और फिर से कोशिश करें।</string>
+    <string name="mod_report_limit">इस फ़ोन से बहुत ज़्यादा रिपोर्ट। बाद में फिर कोशिश करें।</string>
+</resources>

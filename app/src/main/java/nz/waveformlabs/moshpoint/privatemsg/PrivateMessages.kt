@@ -57,6 +57,11 @@ object PrivateMessages {
     /** Is the open thread's mate muted on this phone (Compose state)? */
     val muted = mutableStateOf(false)
 
+    /** Is the open thread's mate blocked on this phone (Compose state)? Their messages are hidden. */
+    val blocked = mutableStateOf(false)
+
+    private fun isBlocked(c: Context, tag: Long) = nz.waveformlabs.moshpoint.moderation.Blocks.now(c).blocksTag(tag)
+
     /** True while the thread screen is showing (set by the screen). */
     var onScreen = false
 
@@ -169,8 +174,11 @@ object PrivateMessages {
         val o = open.value ?: return
         val book = book(c, o.crewId)
         muted.value = book.isMuted(o.mate)
+        // Blocked: only our own side of the thread shows (theirs is kept, hidden, until unblocked).
+        val hide = isBlocked(c, o.mate)
+        blocked.value = hide
         val myTag = crewOf(c, o.crewId)?.let { Identity.tag(c, it) } ?: 0L
-        val shown = book.thread(o.mate).map { l ->
+        val shown = book.thread(o.mate).filter { !hide || it.mine }.map { l ->
             CrewChat.Line(
                 if (l.mine) me(c) else o.name, l.sortSec, l.text, l.mine,
                 sender = if (l.mine) myTag else o.mate, state = l.state, id = GigGroup.idText(l.id),
@@ -192,6 +200,26 @@ object PrivateMessages {
         refresh(app)
     }
 
+    /**
+     * Someone with [tag] in [crewId] was blocked or unblocked (moderation.Blocks): their thread's
+     * notification goes, the open thread redraws, and unread counts are worked out again.
+     */
+    fun blockedChanged(c: Context, crewId: String, tag: Long) {
+        if (!onMain()) {
+            scope.launch { blockedChanged(c, crewId, tag) }
+            return
+        }
+        val app = c.applicationContext
+        if (tag != 0L && isBlocked(app, tag)) {
+            clearNotification(app, crewId, tag)
+            if (prefs(app).getString(crewId, null) != null || crewId in books) {
+                if (book(app, crewId).markRead(tag)) save(app, crewId)
+            }
+        }
+        version.value++
+        if (open.value?.crewId == crewId) refresh(app)
+    }
+
     /** Unread private messages from each mate of the main crew, by friend id (for their faces and the finder). Read while drawing. */
     fun unreadByFriend(c: Context): Map<String, Int> {
         version.value // redraw when a thread changes
@@ -200,8 +228,10 @@ object PrivateMessages {
         val book = book(c.applicationContext, GigArchive.idFor(g))
         if (book.totalUnread() == 0) return emptyMap()
         val out = HashMap<String, Int>()
+        val blocks = nz.waveformlabs.moshpoint.moderation.Blocks.list.value
         FriendsRepository.friends.forEach { f ->
             val pub = GroupSync.pubOf(f.secret) ?: return@forEach
+            if (blocks.blocksKey(pub)) return@forEach
             val n = book.unread(CrewKeys.tagOf(pub))
             if (n > 0) out[f.id] = n
         }
@@ -308,6 +338,8 @@ object PrivateMessages {
         }
         val app = c.applicationContext
         if (!takesPart(g)) return
+        // Blocked on this phone: dropped on arrival, never kept, shown or announced.
+        if (isBlocked(app, p.sender)) return
         val crewId = GigArchive.idFor(g)
         val book = book(app, crewId)
         val mate = mateOf(app, g, p.sender)
@@ -346,6 +378,7 @@ object PrivateMessages {
         val crewId = GigArchive.idFor(g)
         val book = book(c, crewId)
         for (tag in book.waitingSenders()) {
+            if (isBlocked(c, tag)) continue
             val mate = mateOf(c, g, tag) ?: continue
             val viewing = viewing(crewId, tag)
             val shown = book.known(tag, mate.pub, viewing)

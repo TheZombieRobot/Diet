@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">%1$s님 차단</string>
+    <string name="mod_unblock_name">%1$s님 차단 해제</string>
+    <string name="mod_block_title">%1$s님을 차단할까요?</string>
+    <string name="mod_block_text">이 휴대폰에서 상대의 메시지, 사진, 영상이 보이지 않고, 개인 메시지도 받지 않아요. 상대에게는 알리지 않으며 크루에도 그대로 남아요.</string>
+    <string name="mod_block_owner">이 크루를 만든 사람이라서 %1$s님을 크루에서 내보낼 수도 있어요.</string>
+    <string name="mod_remove_name">%1$s님을 크루에서 내보내기</string>
+    <string name="mod_block">차단</string>
+    <string name="mod_blocked_done">이 휴대폰에서 %1$s님을 차단했어요.</string>
+    <string name="mod_unblocked_done">%1$s님 차단을 해제했어요.</string>
+    <string name="mod_blocked_people">차단한 사람</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="other">%d명 차단 중</item>
+    </plurals>
+    <string name="mod_blocked_none">차단한 사람이 없어요. 차단하려면 상대의 얼굴이나 메시지를 길게 누르거나 사진을 열어 주세요.</string>
+    <string name="mod_blocked_about">차단한 사람의 메시지, 사진, 영상은 이 휴대폰에서 숨겨지고, 개인 메시지는 버려져요. 상대에게는 알리지 않아요.</string>
+    <string name="mod_unblock">차단 해제</string>
+    <string name="mod_thread_blocked">%1$s님을 차단했어요. 메시지는 숨겨지고 새 메시지도 오지 않아요. 탭해서 차단 해제.</string>
+    <string name="mod_report_or_block">신고 또는 차단</string>
+    <string name="mod_rules_title">올리기 전에</string>
+    <string name="mod_rules_intro">크루 채팅, 사진, 영상, 개인 메시지는 크루를 위한 거예요. 이 규칙을 지켜 주세요:</string>
+    <string name="mod_rules_harassment">괴롭힘, 따돌림, 혐오 금지.</string>
+    <string name="mod_rules_illegal">불법적인 것, 18세 미만이 관련된 성적인 것은 절대 금지.</string>
+    <string name="mod_rules_threats">위협이나 폭력 금지.</string>
+    <string name="mod_rules_reports">크루의 누구나 내가 올린 걸 신고할 수 있어요. 신고하면 그 사람이 본 내용이 Moshpoint로 전송되고, 검토될 수 있어요. 규칙을 어기면 Moshpoint 이용이 차단될 수 있어요.</string>
+    <string name="mod_rules_agree">동의해요</string>
+    <string name="mod_report_message">이 메시지 신고</string>
+    <string name="mod_report_photo">이 사진 신고</string>
+    <string name="mod_report_clip">이 영상 신고</string>
+    <string name="mod_report_name">%1$s님 신고</string>
+    <string name="mod_report_why">어떤 문제인가요?</string>
+    <string name="mod_reason_harassment">괴롭힘 또는 따돌림</string>
+    <string name="mod_reason_hate">혐오</string>
+    <string name="mod_reason_sexual">성적인 콘텐츠</string>
+    <string name="mod_reason_violence">폭력 또는 위협</string>
+    <string name="mod_reason_spam">스팸</string>
+    <string name="mod_reason_other">기타</string>
+    <string name="mod_report_note">메모 추가(선택)</string>
+    <string name="mod_report_e2e">메시지는 종단간 암호화되어 Moshpoint는 볼 수 없어요. 그래서 신고에는 내가 볼 수 있는 내용이 담겨요:</string>
+    <string name="mod_report_sends_message">이 메시지</string>
+    <string name="mod_report_sends_photo">이 사진(축소)과 설명</string>
+    <string name="mod_report_sends_clip">이 영상의 몇 장면(축소)과 설명</string>
+    <string name="mod_report_sends_who">%1$s님의 이름과 이 크루에서의 키, 크루를 나타내는 코드(이름 아님), 시간</string>
+    <string name="mod_report_sends_note">내 메모(추가한 경우)</string>
+    <string name="mod_report_kept">신고는 90일 동안 보관돼요. %1$s님은 누가 신고했는지 알 수 없어요.</string>
+    <string name="mod_report_block_too">%1$s님도 차단</string>
+    <string name="mod_report_send">신고 보내기</string>
+    <string name="mod_report_sending">보내는 중…</string>
+    <string name="mod_report_sent">신고를 보냈어요. 크루를 챙겨 줘서 고마워요.</string>
+    <string name="mod_report_failed">신고를 보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.</string>
+    <string name="mod_report_limit">이 휴대폰에서 신고가 너무 많아요. 나중에 다시 시도해 주세요.</string>
+</resources>

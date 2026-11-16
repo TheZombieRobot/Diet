@@ -83,6 +83,7 @@ internal fun MainScreen(a: MainActivity) {
             ChatOverlays(a)
             StoryOverlays(a)
             MapOverlay(a)
+            ModerationOverlays(a)
             a.momentFlow.CameraOverlay()
             a.story.rollGig?.let { (_, name) ->
                 CameraRollPicker(name, a.story.rollAdding, onChoose = a.story::chooseFromPhone, onClose = { a.story.rollGig = null })

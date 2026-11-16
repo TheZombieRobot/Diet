@@ -30,6 +30,9 @@ import nz.waveformlabs.moshpoint.ui.home.dotLine
 import nz.waveformlabs.moshpoint.ui.map.MapPlace
 import nz.waveformlabs.moshpoint.ui.map.MapScreen
 import nz.waveformlabs.moshpoint.ui.moments.StoryScreen
+import nz.waveformlabs.moshpoint.ui.moderation.BlockConfirmContent
+import nz.waveformlabs.moshpoint.ui.moderation.BlockedPeopleContent
+import nz.waveformlabs.moshpoint.ui.moderation.PersonMenuContent
 import nz.waveformlabs.moshpoint.ui.settings.AcknowledgementsContent
 import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
 import nz.waveformlabs.moshpoint.ui.settings.SettingsContent
@@ -728,6 +731,43 @@ open class ScreensSnapshotTest {
                 }
             }
         }
+    }
+
+    // ---- Block (docs/REPORT_BLOCK.md) ----
+
+    /** Holding someone's message, or their photo's "Block": the menu (Report joins it later). */
+    @Test fun moderationMenu() = dialog {
+        PersonMenuContent("Jo", blocked = false, onBlock = {}, onUnblock = {}, onClose = {})
+    }
+
+    /** "Block Jo?": what it does; the crew's maker is offered removal too. */
+    @Test fun blockConfirm() = dialog {
+        BlockConfirmContent("Jo", canRemove = true, onBlock = {}, onRemove = {}, onCancel = {})
+    }
+
+    @Test fun smallPhoneLargeFontBlockConfirm() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        blockConfirm()
+    }
+
+    private val blockedSample = listOf(
+        nz.waveformlabs.moshpoint.core.Blocked(1L, "", "Jo", "c1", "Laneway crew", 2),
+        nz.waveformlabs.moshpoint.core.Blocked(2L, "", "Bevan Featherstonehaugh", "c2", "The Midnight Lantern Parade After-Party Crew", 1),
+    )
+
+    /** Settings → Blocked people, with Unblock. */
+    @Test fun blockedPeople() = dialog {
+        BlockedPeopleContent(blockedSample, onUnblock = {}, onClose = {})
+    }
+
+    @Test fun smallPhoneLargeFontBlockedPeople() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        blockedPeople()
+    }
+
+    /** Settings → Blocked people when nobody is: how to block someone. */
+    @Test fun blockedPeopleEmpty() = dialog {
+        BlockedPeopleContent(emptyList(), onUnblock = {}, onClose = {})
     }
 
     /** Right-to-left set on Compose itself: the renderer's own setting doesn't reach every screen. */

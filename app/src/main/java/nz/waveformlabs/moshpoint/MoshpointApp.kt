@@ -19,6 +19,8 @@ class MoshpointApp : Application() {
         nz.waveformlabs.moshpoint.safety.AppErrors.init(this)
         NetState.init(this)
         nz.waveformlabs.moshpoint.ui.DefaultAvatars.init(this)
+        // Who's blocked on this phone (docs/REPORT_BLOCK.md): before anything arrives or is shown.
+        nz.waveformlabs.moshpoint.moderation.Blocks.init(this)
     }
 }
 

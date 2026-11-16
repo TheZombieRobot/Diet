@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Block, community rules and report (Google Play's User Generated Content policy). See docs/REPORT_BLOCK.md. -->
+<resources>
+    <string name="mod_block_name">Blockera %1$s</string>
+    <string name="mod_unblock_name">Avblockera %1$s</string>
+    <string name="mod_block_title">Blockera %1$s?</string>
+    <string name="mod_block_text">Du ser inte längre personens meddelanden, bilder eller klipp på den här telefonen, och deras privata meddelanden når dig inte. Personen får inte veta det och är kvar i gruppen.</string>
+    <string name="mod_block_owner">Du skapade gruppen, så du kan också ta bort %1$s från den.</string>
+    <string name="mod_remove_name">Ta bort %1$s från gruppen</string>
+    <string name="mod_block">Blockera</string>
+    <string name="mod_blocked_done">%1$s är blockerad på den här telefonen.</string>
+    <string name="mod_unblocked_done">%1$s är inte längre blockerad.</string>
+    <string name="mod_blocked_people">Blockerade personer</string>
+    <plurals name="mod_blocked_count">
+        <item quantity="one">%d person blockerad</item>
+        <item quantity="other">%d personer blockerade</item>
+    </plurals>
+    <string name="mod_blocked_none">Ingen är blockerad. För att blockera någon, håll på deras ansikte eller ett av deras meddelanden, eller öppna deras bild.</string>
+    <string name="mod_blocked_about">Deras meddelanden, bilder och klipp döljs på den här telefonen, och deras privata meddelanden kastas. De får inte veta det.</string>
+    <string name="mod_unblock">Avblockera</string>
+    <string name="mod_thread_blocked">Du har blockerat %1$s. Deras meddelanden är dolda och nya når dig inte. Tryck för att avblockera.</string>
+    <string name="mod_report_or_block">Rapportera eller blockera</string>
+    <string name="mod_rules_title">Innan du postar</string>
+    <string name="mod_rules_intro">Gruppchatten, bilder, klipp och privata meddelanden är för din grupp. Följ de här reglerna:</string>
+    <string name="mod_rules_harassment">Inga trakasserier, ingen mobbning och inget hat.</string>
+    <string name="mod_rules_illegal">Inget olagligt och inget sexuellt som involverar någon under 18.</string>
+    <string name="mod_rules_threats">Inga hot eller våld.</string>
+    <string name="mod_rules_reports">Alla i din grupp kan rapportera det du postar. En rapport skickar det personen såg till Moshpoint, och den kan granskas. Den som bryter mot reglerna kan blockeras från Moshpoint.</string>
+    <string name="mod_rules_agree">Jag godkänner</string>
+    <string name="mod_report_message">Rapportera meddelandet</string>
+    <string name="mod_report_photo">Rapportera bilden</string>
+    <string name="mod_report_clip">Rapportera klippet</string>
+    <string name="mod_report_name">Rapportera %1$s</string>
+    <string name="mod_report_why">Vad är fel?</string>
+    <string name="mod_reason_harassment">Trakasserier eller mobbning</string>
+    <string name="mod_reason_hate">Hat</string>
+    <string name="mod_reason_sexual">Sexuellt innehåll</string>
+    <string name="mod_reason_violence">Våld eller hot</string>
+    <string name="mod_reason_spam">Spam</string>
+    <string name="mod_reason_other">Något annat</string>
+    <string name="mod_report_note">Lägg till en kommentar (valfritt)</string>
+    <string name="mod_report_e2e">Meddelanden är totalsträckskrypterade, så Moshpoint kan inte se dem. Din rapport skickar det du kan se:</string>
+    <string name="mod_report_sends_message">Det här meddelandet</string>
+    <string name="mod_report_sends_photo">Den här bilden, förminskad, med bildtext</string>
+    <string name="mod_report_sends_clip">Några bildrutor ur klippet, förminskade, med bildtext</string>
+    <string name="mod_report_sends_who">Namnet %1$s och personens nyckel i gruppen, en kod för gruppen (inte namnet) och tiden</string>
+    <string name="mod_report_sends_note">Din kommentar, om du skriver en</string>
+    <string name="mod_report_kept">Rapporter sparas i 90 dagar. %1$s får inte veta vem som rapporterade.</string>
+    <string name="mod_report_block_too">Blockera också %1$s</string>
+    <string name="mod_report_send">Skicka rapport</string>
+    <string name="mod_report_sending">Skickar…</string>
+    <string name="mod_report_sent">Rapporten är skickad. Tack för att du ser efter din grupp.</string>
+    <string name="mod_report_failed">Rapporten kunde inte skickas. Kontrollera anslutningen och försök igen.</string>
+    <string name="mod_report_limit">För många rapporter från den här telefonen. Försök igen senare.</string>
+</resources>

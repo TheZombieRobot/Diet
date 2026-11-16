@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -96,6 +97,8 @@ internal fun CrewChatScreen(
     offlineHint: String? = null,
     /** Need help's "Go live", for an alert waiting with no signal while you're not live. */
     onGoLive: (() -> Unit)? = null,
+    /** Holding someone else's message: block (and report) them (docs/REPORT_BLOCK.md). Null = not offered. */
+    onLineOptions: ((CrewChat.Line) -> Unit)? = null,
 ) {
     BackHandler(onBack = onBack)
     var draft by remember { mutableStateOf("") }
@@ -170,6 +173,7 @@ internal fun CrewChatScreen(
                     colour = colourOf(l.from)?.let { Color(it) },
                     myName = myName,
                     onRetry = onRetry,
+                    onOptions = onLineOptions,
                 )
             }
             }
@@ -254,6 +258,7 @@ private fun FlareRow(f: CrewChat.Flare, nowSec: Long, mine: Boolean, onEnd: () -
 }
 
 /** One message in the chat: a bubble with name, face and how it went. Also draws private threads (see PrivateChatUi). */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun ChatLine(
     l: CrewChat.Line,
@@ -264,6 +269,8 @@ internal fun ChatLine(
     colour: Color? = null,
     myName: String = "",
     onRetry: (CrewChat.Line) -> Unit = {},
+    /** Holding someone else's bubble opens their options (block, report). Null: nothing to hold (screenshots draw it so). */
+    onOptions: ((CrewChat.Line) -> Unit)? = null,
 ) {
     if (!isBubble(l.kind)) {
         // "Jo pinned: …" / "Jo sent a flare: …" as a quiet centred note.
@@ -305,6 +312,15 @@ internal fun ChatLine(
                         RoundedCornerShape(18.dp),
                     )
                     .border(1.dp, if (l.mine) Color.Transparent else ring.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+                    .then(
+                        if (onOptions != null && !l.mine) {
+                            Modifier.clip(RoundedCornerShape(18.dp)).combinedClickable(
+                                onClick = {},
+                                onLongClickLabel = stringResource(R.string.home_friend_options, l.from),
+                                onLongClick = { onOptions(l) },
+                            )
+                        } else Modifier,
+                    )
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
             when {
