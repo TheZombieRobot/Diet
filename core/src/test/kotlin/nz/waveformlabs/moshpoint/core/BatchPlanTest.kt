@@ -183,6 +183,43 @@ class BatchPlanTest {
     }
 
     /**
+     * Review finding F3 (docs/WAVE2C_REVIEW.md): with batches, our relay's budget counts every
+     * request, not just what the batch replaced. A burst in the background (here
+     * `AvatarSync.fetchFriends`: this week's photo, then last week's, for 20 friends who have
+     * none, every 6 hours) must never refuse the minute's batch or the finder's polls.
+     */
+    @Test fun aBackgroundBurstNeverStarvesTheBatchOrTheFinder() {
+        // Our relay with batches, as RelayClient builds it.
+        val b = RelayBudget(
+            messagesPerDay = 1_000_000, requestsPerMinute = 30, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
+            throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, safetyAlwaysHasRoom = true, random = { 0.0 },
+        )
+        var now = 0L
+        var photos = 0
+        repeat(40) {
+            b.take(RelayUse.BACKGROUND, false, now)?.let { t ->
+                b.settle(t, RelayBudget.Outcome.REFUSED, now) // 404: no photo this week
+                photos++
+            }
+            now += 250L
+        }
+        assertTrue(photos >= 20, "at least one photo asked for each friend ($photos)")
+        // The rest of the minute: the finder's poll every 4 s, and the sync's batch at 30 s.
+        while (now < 60_000L) {
+            if (now % 4_000L == 0L) {
+                val poll = assertNotNull(b.take(RelayUse.MESSAGE, false, now), "the finder's poll at ${now / 1000} s")
+                b.settle(poll, RelayBudget.Outcome.OK, now)
+            }
+            if (now == 30_000L) {
+                val batch = assertNotNull(b.take(RelayUse.MESSAGE, true, now), "the minute's batch")
+                b.settle(batch, RelayBudget.Outcome.OK, now)
+            }
+            now += 1_000L
+        }
+        assertNotNull(b.take(RelayUse.SAFETY, true, now), "and safety, as ever")
+    }
+
+    /**
      * The hard rule: Need help never waits for the batch. A real courier posts it while a batch
      * is half a minute away: its upload starts at once, on its own, and no batch ever carries it.
      * Its durable copy for the chat mailbox goes the same way. A chat message posted at the same
