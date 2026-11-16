@@ -16,10 +16,10 @@ _Kept current at every push. Branch `claude/ugc-moderation-b5k8q2`, started from
 
 | Stage | State |
 |---|---|
-| 1. Block (app only) | **done**, run 320 at `5c4ceec`: secrets, translations, core and server tests, phone debug and release builds passed. Screenshots: all 1,711 existing phone and 798 watch images byte-identical to `ui-screenshots` / `ui-screenshots-watch`; 126 new (6 tests × 21 languages), looked at (small phone, large font): nothing cut off |
+| 1. Block (app only) | **done, green**: run 320 at `5c4ceec`: secrets, translations, core and server tests, phone debug and release builds passed. Screenshots: all 1,711 existing phone and 798 watch images byte-identical to `ui-screenshots` / `ui-screenshots-watch`; 126 new (6 tests × 21 languages), looked at (small phone, large font): nothing cut off |
 | 2. Community rules before the first post | **pushed** at `af17acb`, run 321 (its own run) |
-| 3. Report (sheet, relay endpoints, server tests) | **pushed**; 10 relay tests (`ReportTest`) pass locally; CI with stage 4 |
-| 4. Docs (MODERATION.md, PRIVACY.md, PLAY_STORE.md, SECRETS.md, FIELD_TEST_PLAN.md 4j) | **pushed**; CI with stage 3 |
+| 3. Report (sheet, relay endpoints, server tests) | **pushed**; 10 relay tests (`ReportTest`) pass locally; CI: the run for the commit "Report and block: CI for stages 3 and 4" (run 322 or the next) |
+| 4. Docs (MODERATION.md, PRIVACY.md, PLAY_STORE.md, SECRETS.md, FIELD_TEST_PLAN.md 4j) | **pushed**; CI in the same run as stage 3 |
 
 **Exact next step:** check run 321 (stage 2) and the run for the head (stages 3 and 4): green,
 every old screenshot byte-identical (`bash` the comparison in "How to work on it"), and the new
