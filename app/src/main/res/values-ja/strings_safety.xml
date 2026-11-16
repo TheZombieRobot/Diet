@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">「無事に帰ったよ」をタップしないと、到着確認がないことがクルーに通知されます。</string>
     <string name="safety_home_safe_waiting">まだ未送信。電波が戻りしだい自動で送信されます。</string>
 
+    <string name="safety_help_alert_no_location">緊急通知ですが、居場所は付きません。このスマホは今、位置がわかりません。</string>
+    <string name="safety_checkin_reminder_not_sent">クルーにはまだ到着確認の予定が届いていないので、家に着かなくても誰にも通知されません。助けが必要なら、誰かにSMSか電話で連絡してください。</string>
+    <string name="safety_live_crew_not_on_text">メインのクルーは今は開催中ではないので、バッテリー節約のため「位置シェア」がオフになりました。</string>
+
 </resources>

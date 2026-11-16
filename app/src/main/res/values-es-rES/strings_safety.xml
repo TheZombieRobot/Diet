@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">Tu grupo recibirá una alerta de que no has avisado, a menos que toques Ya estoy en casa.</string>
     <string name="safety_home_safe_waiting">Aún no enviado. Se enviará automáticamente en cuanto tengas cobertura.</string>
 
+    <string name="safety_help_alert_no_location">Alerta urgente, pero sin tu ubicación: este móvil no sabe dónde está ahora mismo.</string>
+    <string name="safety_checkin_reminder_not_sent">Tu grupo todavía no ha recibido tu aviso, así que nadie recibirá una alerta si no llegas a casa. Escribe o llama a alguien si necesitas ayuda.</string>
+    <string name="safety_live_crew_not_on_text">Tu grupo principal no está activo ahora, así que En directo se ha desactivado para ahorrar batería.</string>
+
 </resources>

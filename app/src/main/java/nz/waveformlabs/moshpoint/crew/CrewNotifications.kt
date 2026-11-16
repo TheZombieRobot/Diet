@@ -53,11 +53,14 @@ object CrewNotifications {
         urgent = true,
     )
 
-    /** Our own check-in is nearly due: "Home yet?", with "I'm home safe" right on it. */
-    fun checkInReminder(c: Context) = post(
+    /**
+     * Our own check-in is nearly due: "Home yet?", with "I'm home safe" right on it. It says the
+     * crew will be told only when they have the check-in ([crewHasIt]); otherwise that they don't.
+     */
+    fun checkInReminder(c: Context, crewHasIt: Boolean) = post(
         c, HELP_CHANNEL,
         title = Txt.s(R.string.safety_checkin_reminder_title),
-        text = Txt.s(R.string.safety_checkin_reminder_text),
+        text = Txt.s(if (crewHasIt) R.string.safety_checkin_reminder_text else R.string.safety_checkin_reminder_not_sent),
         urgent = true, openMap = false,
         notificationId = CheckInAlarm.REMINDER_NOTIFICATION,
         action = NotificationCompat.Action(0, Txt.s(R.string.home_home_safe), CheckInAlarm.homeSafeIntent(c)),

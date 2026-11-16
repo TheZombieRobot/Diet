@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">แก๊งจะได้รับแจ้งว่าคุณยังไม่เช็กอิน ถ้าคุณไม่แตะ \"ถึงบ้านปลอดภัยแล้ว\"</string>
     <string name="safety_home_safe_waiting">ยังไม่ได้ส่ง จะส่งเองทันทีที่คุณมีสัญญาณ</string>
 
+    <string name="safety_help_alert_no_location">แจ้งเตือนด่วน แต่ไม่มีตำแหน่งของคุณ: ตอนนี้มือถือเครื่องนี้ยังไม่รู้ตำแหน่ง</string>
+    <string name="safety_checkin_reminder_not_sent">แก๊งยังไม่ได้รับการเช็กอินของคุณ เลยจะไม่มีใครได้รับแจ้งถ้าคุณไม่ถึงบ้าน ส่ง SMS หรือโทรหาใครสักคนถ้าต้องการความช่วยเหลือ</string>
+    <string name="safety_live_crew_not_on_text">ตอนนี้แก๊งหลักของคุณไม่ได้ใช้งานอยู่ “มองเห็นได้” เลยปิดเองเพื่อประหยัดแบตของคุณ</string>
+
 </resources>

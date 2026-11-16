@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">Deine Crew bekommt Bescheid, dass du dich nicht gemeldet hast, außer du tippst auf Bin gut zu Hause.</string>
     <string name="safety_home_safe_waiting">Noch nicht gesendet. Es wird von selbst gesendet, sobald du Empfang hast.</string>
 
+    <string name="safety_help_alert_no_location">Dringende Warnung, aber ohne deinen Standort: Dieses Handy kennt seinen Standort gerade nicht.</string>
+    <string name="safety_checkin_reminder_not_sent">Deine Crew hat deinen Check-in noch nicht bekommen, also bekommt niemand Bescheid, wenn du nicht zu Hause ankommst. Schreib oder ruf jemanden an, wenn du Hilfe brauchst.</string>
+    <string name="safety_live_crew_not_on_text">Deine Haupt-Crew ist gerade nicht aktiv, deshalb hat sich Live ausgeschaltet, um Akku zu sparen.</string>
+
 </resources>

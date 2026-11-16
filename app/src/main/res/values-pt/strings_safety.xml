@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">Sua galera vai ser avisada que você não deu check-in, a menos que você toque em Cheguei bem em casa.</string>
     <string name="safety_home_safe_waiting">Ainda não enviada. Vai ser enviada automaticamente assim que você tiver sinal.</string>
 
+    <string name="safety_help_alert_no_location">Alerta urgente, mas sem onde você está: este celular não sabe onde está agora.</string>
+    <string name="safety_checkin_reminder_not_sent">Sua galera ainda não recebeu seu check-in, então ninguém vai ser avisado se você não chegar em casa. Mande SMS ou ligue pra alguém se precisar de ajuda.</string>
+    <string name="safety_live_crew_not_on_text">Sua galera principal não está ativa agora, então o Ao vivo desligou pra economizar sua bateria.</string>
+
 </resources>

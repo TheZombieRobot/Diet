@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">Il tuo gruppo verrà avvisato che non hai fatto check-in, a meno che tu non tocchi Sono a casa.</string>
     <string name="safety_home_safe_waiting">Non ancora inviato. Partirà da solo appena avrai segnale.</string>
 
+    <string name="safety_help_alert_no_location">Avviso urgente, ma senza la tua posizione: questo telefono al momento non sa dove si trova.</string>
+    <string name="safety_checkin_reminder_not_sent">Il tuo gruppo non ha ancora ricevuto il tuo check-in, quindi nessuno verrà avvisato se non arrivi a casa. Scrivi o chiama qualcuno se hai bisogno di aiuto.</string>
+    <string name="safety_live_crew_not_on_text">Il tuo gruppo principale non è attivo ora, quindi Live si è disattivato per risparmiare batteria.</string>
+
 </resources>

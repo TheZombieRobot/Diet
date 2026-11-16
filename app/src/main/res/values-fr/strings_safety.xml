@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">Ta crew sera prévenue que tu n\'as pas fait ton check-in, sauf si tu appuies sur Je suis à la maison.</string>
     <string name="safety_home_safe_waiting">Pas encore envoyé. Ça partira tout seul dès que tu auras du réseau.</string>
 
+    <string name="safety_help_alert_no_location">Alerte urgente, mais sans ta position : ce téléphone ne connaît pas sa position pour l\'instant.</string>
+    <string name="safety_checkin_reminder_not_sent">Ta crew n\'a pas encore reçu ton check-in, donc personne ne sera prévenu si tu ne rentres pas. Écris ou appelle quelqu\'un si tu as besoin d\'aide.</string>
+    <string name="safety_live_crew_not_on_text">Ta crew principale n\'est pas active en ce moment, donc Live s\'est désactivé pour économiser ta batterie.</string>
+
 </resources>

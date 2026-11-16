@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">Je crew krijgt te horen dat je niet hebt ingecheckt, tenzij je op Veilig thuis tikt.</string>
     <string name="safety_home_safe_waiting">Nog niet verstuurd. Het wordt vanzelf verstuurd zodra je bereik hebt.</string>
 
+    <string name="safety_help_alert_no_location">Dringende melding, maar zonder waar je bent: deze telefoon weet nu niet waar hij is.</string>
+    <string name="safety_checkin_reminder_not_sent">Je crew heeft je check-in nog niet gekregen, dus niemand krijgt een melding als je niet thuiskomt. Sms of bel iemand als je hulp nodig hebt.</string>
+    <string name="safety_live_crew_not_on_text">Je hoofdcrew is nu niet actief, dus Live is uitgegaan om batterij te sparen.</string>
+
 </resources>

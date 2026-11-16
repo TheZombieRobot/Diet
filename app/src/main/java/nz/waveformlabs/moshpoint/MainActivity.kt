@@ -133,7 +133,7 @@ class MainActivity : ComponentActivity() {
         // unless you've chosen to hide (or haven't answered "Still at the gig?" for this crew).
         if (!home.visibleToMates && home.onboarded && GroupSync.group.value != null && !GroupSync.sleeping && !GroupSync.following &&
             !VisibilityPrefs.userHid(this) && permissions.missing.isEmpty() &&
-            LiveRules.mayAutoStart(LiveControl.crewOnNow(), VisibilityPrefs.cappedCrew(this))
+            LiveRules.mayAutoStart(LiveControl.crewOnNow(this), VisibilityPrefs.cappedCrew(this))
         ) {
             home.setVisibility(true)
         }

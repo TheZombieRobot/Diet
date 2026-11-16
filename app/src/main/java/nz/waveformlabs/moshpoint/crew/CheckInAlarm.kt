@@ -46,10 +46,19 @@ object CheckInAlarm {
     /** Wake at [atSec] (unix s) to see who's overdue; null = nobody is on their way home. */
     fun planDue(c: Context, atSec: Long?) = plan(c, ACTION_DUE, atSec)
 
-    /** Remind us at [atSec] about our own check-in; null = none (or we're home safe). */
-    fun planReminder(c: Context, atSec: Long?) {
-        plan(c, ACTION_REMIND, atSec)
-        if (atSec == null) cancelReminderNotification(c)
+    /** Remind us at [atSec] about our own check-in; null = no alarm (none due, or shown already). Never touches a reminder already showing. */
+    fun planReminder(c: Context, atSec: Long?) = plan(c, ACTION_REMIND, atSec)
+
+    private fun prefs(c: Context) = c.applicationContext.getSharedPreferences("checkin_alarm", Context.MODE_PRIVATE)
+
+    /** The deadline (unix s) of the check-in whose reminder was last shown, or 0. */
+    fun remindedFor(c: Context): Long = prefs(c).getLong("reminded_for", 0L)
+
+    /** The reminder for the check-in due at [deadlineSec] is showing now: false if it already was (once per check-in). */
+    fun markReminded(c: Context, deadlineSec: Long): Boolean {
+        if (remindedFor(c) == deadlineSec) return false
+        prefs(c).edit().putLong("reminded_for", deadlineSec).apply()
+        return true
     }
 
     fun cancelReminderNotification(c: Context) {

@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">Gruppen får veta att du inte har checkat in, om du inte trycker på Jag är hemma.</string>
     <string name="safety_home_safe_waiting">Inte skickat än. Det skickas automatiskt så fort du har täckning.</string>
 
+    <string name="safety_help_alert_no_location">Brådskande larm, men utan var du är: telefonen vet inte var den är just nu.</string>
+    <string name="safety_checkin_reminder_not_sent">Gruppen har inte fått din incheckning än, så ingen larmas om du inte kommer hem. Sms:a eller ring någon om du behöver hjälp.</string>
+    <string name="safety_live_crew_not_on_text">Din huvudgrupp är inte igång just nu, så Live stängdes av för att spara batteri.</string>
+
 </resources>

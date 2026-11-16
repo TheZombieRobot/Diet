@@ -2,6 +2,7 @@ package nz.waveformlabs.moshpoint.service
 
 import android.content.Context
 import nz.waveformlabs.moshpoint.core.LiveRules
+import nz.waveformlabs.moshpoint.crew.CrewClock
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
@@ -25,8 +26,13 @@ import nz.waveformlabs.moshpoint.safety.Notices
  *    when the crew's night is over, or after about 12 hours (core [LiveRules]).
  */
 object LiveControl {
-    /** The main crew if it's on now: on the night, not asleep until a later date, not followed from home. Its id. */
-    fun crewOnNow(nowMs: Long = System.currentTimeMillis()): String? {
+    /**
+     * The main crew if it's on now: on the night, not asleep until a later date, not followed from
+     * home. Its id. By a clock that hasn't just jumped forward ([CrewClock]), as crews end.
+     */
+    fun crewOnNow(c: Context): String? = crewOnNow(CrewClock.now(c))
+
+    private fun crewOnNow(nowMs: Long): String? {
         val g = GroupSync.group.value ?: return null
         if (GroupSync.following || g.dormant(nowMs) || nowMs >= g.expiresAtMs) return null
         return GigArchive.idFor(g)
@@ -34,14 +40,14 @@ object LiveControl {
 
     /** Live was just switched on (by you, the tile, or being in a crew tonight): a new session. */
     fun started(c: Context) {
-        val now = System.currentTimeMillis()
+        val now = CrewClock.now(c)
         VisibilityPrefs.setSession(c, LiveRules.start(crewOnNow(now), now))
         VisibilityPrefs.setCappedCrew(c, null)
     }
 
     /** Should Live go off now? Saves the session as the rules update it; null = carry on. */
     fun check(c: Context): LiveRules.Off? {
-        val now = System.currentTimeMillis()
+        val now = CrewClock.now(c)
         val r = LiveRules.check(VisibilityPrefs.session(c), crewOnNow(now), now)
         VisibilityPrefs.setSession(c, r.session)
         return r.off
@@ -54,8 +60,13 @@ object LiveControl {
     fun switchOff(c: Context, off: LiveRules.Off) {
         DebugStatus.log("Live off by itself: $off")
         if (off == LiveRules.Off.TOO_LONG) VisibilityPrefs.setCappedCrew(c, VisibilityPrefs.session(c)?.crewId)
+        // Quiet only when the night really is over; off while the crew is still on is said.
+        val crewOver = GroupSync.group.value?.let { CrewClock.now(c) >= it.expiresAtMs } ?: true
         VisibilityService.stopByApp(c)
-        if (off == LiveRules.Off.TOO_LONG) Notices.show(c, Notices.Kind.LIVE_TOO_LONG)
+        when {
+            off == LiveRules.Off.TOO_LONG -> Notices.show(c, Notices.Kind.LIVE_TOO_LONG)
+            !LiveRules.quiet(off, crewOver) -> Notices.show(c, Notices.Kind.LIVE_CREW_NOT_ON)
+        }
     }
 
     /** The main crew changed (ended, left, expired): Live may have to go off now. */
@@ -90,6 +101,12 @@ object LiveControl {
         // The rules need the crew; the live service loads it the same way.
         FriendsRepository.init(app)
         if (GroupSync.group.value == null) GroupSync.load(app)
+        // Older builds left Live marked on after the service was killed, with no session saved:
+        // without one, and with no crew tonight, an update or reboot doesn't switch Live on.
+        if (!LiveRules.restoresAfterUpdate(VisibilityPrefs.session(app), crewOnNow(app))) {
+            VisibilityPrefs.markStopped(app)
+            return
+        }
         check(app)?.let {
             switchOff(app, it)
             return

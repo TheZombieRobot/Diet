@@ -148,6 +148,21 @@ object LiveRules {
     fun shouldRestore(wanted: Boolean, running: Boolean, check: Check): Boolean = wanted && !running && check.off == null
 
     /**
+     * After an app update: Live comes back only for a real session (one this version saved) or a
+     * crew on tonight. Older builds left Live marked on after the service was killed, with no
+     * session saved, so without this the first update would switch Live on for people who
+     * weren't live.
+     */
+    fun restoresAfterUpdate(session: LiveSession?, crewOnNow: String?): Boolean = session != null || crewOnNow != null
+
+    /**
+     * Live going off by itself is quiet only when the night really is over ([crewOver]: no main
+     * crew, or past its end by a clock that hasn't just jumped). Off while the crew is still on
+     * (now asleep until a later date, or followed from home): you're told.
+     */
+    fun quiet(off: Off, crewOver: Boolean): Boolean = off == Off.CREW_ENDED && crewOver
+
+    /**
      * Going live by itself because you're in a crew tonight (the app opened) is skipped for
      * the crew whose session the app itself turned off after [MAX_MS]: you said nothing yet to
      * "Still at the gig?". A later crew goes live as usual.
@@ -210,6 +225,27 @@ object CheckInReminder {
 
     /** When to remind for a check-in due home at [deadlineSec], sent at [sentSec]. */
     fun atSec(sentSec: Long, deadlineSec: Long): Long = maxOf(sentSec + (deadlineSec - sentSec) / 2, deadlineSec - BEFORE_SEC)
+
+    /**
+     * When to set the reminder's alarm, or null for none. Once per check-in: never again after it
+     * was shown for this deadline ([shownForDeadline]), and never once the deadline has passed.
+     * It used to be set again on every plan, in the past too, so it went off over and over. One
+     * whose time went by while the phone was off comes once, now (a few seconds on).
+     */
+    fun armAt(sentSec: Long, deadlineSec: Long, nowSec: Long, shownForDeadline: Long): Long? {
+        if (deadlineSec <= 0L || shownForDeadline == deadlineSec || nowSec >= deadlineSec) return null
+        return maxOf(atSec(sentSec, deadlineSec), nowSec + LATE_DELAY_SEC)
+    }
+
+    /** A reminder that's late (its time went by while the phone was off) comes this soon. */
+    const val LATE_DELAY_SEC = 5L
+
+    /**
+     * The crew has our check-in (the relay, or a crew phone nearby, has it) when the outbox says
+     * [outbox] ([OutboxState], null = unknown). Only then may the reminder say the crew will be
+     * told; otherwise it says they haven't got it (launch blocker 1's rule, for check-ins).
+     */
+    fun crewHasIt(outbox: Int?): Boolean = outbox == OutboxState.SENT || outbox == OutboxState.NEARBY
 }
 
 /**

@@ -66,4 +66,12 @@
     <!-- "I'm home safe" was tapped on that notification, but there's no signal yet -->
     <string name="safety_home_safe_waiting">Not sent yet. It sends by itself as soon as you have signal.</string>
 
+    <!-- ===== Review round ===== -->
+    <!-- Under "Alert my crew" / "Sending…" / "Sent to your crew" when the alert has no location: this phone has had no location fix lately -->
+    <string name="safety_help_alert_no_location">Urgent alert, but without where you are: this phone doesn\'t know its location right now.</string>
+    <!-- The "Home yet?" reminder when the check-in never reached the crew (no signal, not live): nobody will be alerted -->
+    <string name="safety_checkin_reminder_not_sent">Your crew hasn\'t got your check-in yet, so nobody will be alerted if you\'re not home. Text or call someone if you need help.</string>
+    <!-- Under "You're no longer live" when Live turned off because the main crew isn't on now (it's for a later date, or followed from home) -->
+    <string name="safety_live_crew_not_on_text">Your main crew isn\'t on right now, so Live turned off to save your battery.</string>
+
 </resources>

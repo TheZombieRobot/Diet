@@ -36,6 +36,9 @@ object Notices {
 
         /** The phone's storage is full (core StorageNotice): said once a day at most. */
         STORAGE_FULL(4),
+
+        /** Live went off by itself while the crew is still on (now asleep until a later date, or followed from home). */
+        LIVE_CREW_NOT_ON(5),
         ;
 
         /** Asks you something (Go live?), so it waits for the app to be opened. */
@@ -117,6 +120,7 @@ object Notices {
             Kind.LIVE_STOPPED, Kind.LIVE_CANT_START -> R.string.safety_live_off_title to R.string.safety_live_off_text
             Kind.LIVE_TOO_LONG -> R.string.safety_live_long_title to R.string.safety_live_long_notif
             Kind.STORAGE_FULL -> R.string.safety_storage_full_title to R.string.safety_storage_full_text
+            Kind.LIVE_CREW_NOT_ON -> R.string.safety_live_off_title to R.string.safety_live_crew_not_on_text
         }
         // Opens the app, nothing more: going live is always your tap in the app, never an intent.
         val open = PendingIntent.getActivity(

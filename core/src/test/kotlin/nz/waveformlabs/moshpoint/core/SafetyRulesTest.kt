@@ -296,4 +296,43 @@ class SafetyRulesTest {
         assertNull(ClockCheck.Anchor.parse("1,2,3"))
         assertNull(ClockCheck.Anchor.parse(null))
     }
+
+    // ---- Review round: the reminder, the update, quiet or told ----
+
+    @Test fun theReminderIsSetOnceAndNeverInThePast() {
+        val sent = now
+        val deadline = now + 45 * 60
+        val at = CheckInReminder.atSec(sent, deadline)
+        assertEquals(at, CheckInReminder.armAt(sent, deadline, now + 60, shownForDeadline = 0L))
+        // Shown: never again for this check-in, whatever plans it again.
+        assertNull(CheckInReminder.armAt(sent, deadline, now + 60, shownForDeadline = deadline))
+        assertNull(CheckInReminder.armAt(sent, deadline, at + 1, shownForDeadline = deadline))
+        // Past the deadline: nothing.
+        assertNull(CheckInReminder.armAt(sent, deadline, deadline, shownForDeadline = 0L))
+        // Its time went by with the phone off, deadline still ahead: once, now, not in the past.
+        assertEquals(at + 60 + CheckInReminder.LATE_DELAY_SEC, CheckInReminder.armAt(sent, deadline, at + 60, shownForDeadline = 0L))
+        // A new check-in (a new deadline) gets its own reminder.
+        assertEquals(CheckInReminder.atSec(now + 7200, now + 9000), CheckInReminder.armAt(now + 7200, now + 9000, now + 7200, shownForDeadline = deadline))
+        assertNull(CheckInReminder.armAt(0L, 0L, now, 0L))
+    }
+
+    @Test fun theReminderOnlyPromisesAnAlertTheCrewCanRaise() {
+        assertTrue(CheckInReminder.crewHasIt(OutboxState.SENT))
+        assertTrue(CheckInReminder.crewHasIt(OutboxState.NEARBY))
+        listOf(OutboxState.SENDING, OutboxState.WAITING, OutboxState.FAILED, null)
+            .forEach { assertFalse(CheckInReminder.crewHasIt(it), "$it") }
+    }
+
+    @Test fun anUpdateDoesntSwitchLiveOnForSomeoneWhoWasntLive() {
+        // Old builds: Live left marked on, no session saved, no crew tonight: stays off.
+        assertFalse(LiveRules.restoresAfterUpdate(null, null))
+        assertTrue(LiveRules.restoresAfterUpdate(null, "crewA"))
+        assertTrue(LiveRules.restoresAfterUpdate(LiveSession(t0, ""), null))
+    }
+
+    @Test fun offIsQuietOnlyWhenTheNightIsReallyOver() {
+        assertTrue(LiveRules.quiet(LiveRules.Off.CREW_ENDED, crewOver = true))
+        assertFalse(LiveRules.quiet(LiveRules.Off.CREW_ENDED, crewOver = false))
+        assertFalse(LiveRules.quiet(LiveRules.Off.TOO_LONG, crewOver = true))
+    }
 }

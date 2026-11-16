@@ -625,11 +625,12 @@ open class ScreensSnapshotTest {
         wait: nz.waveformlabs.moshpoint.core.HelpRules.Wait? = null,
         textFailed: Boolean = false,
         callFailed: String? = null,
+        withLocation: Boolean = true,
     ) = snap {
         MoshTheme {
             DialogFrame(stringResource(nz.waveformlabs.moshpoint.R.string.crew_help_title), stringResource(nz.waveformlabs.moshpoint.R.string.crew_close)) {
                 nz.waveformlabs.moshpoint.ui.chat.HelpBody(
-                    crewAlert = nz.waveformlabs.moshpoint.ui.chat.CrewAlertUi(outcome, wait),
+                    crewAlert = nz.waveformlabs.moshpoint.ui.chat.CrewAlertUi(outcome, wait, withLocation),
                     onAlertCrew = {}, onGoLive = {}, contact = mum, onText = {}, textFailed = textFailed,
                     onSaveContact = { _, _ -> }, numbers = nz111, onCall = {}, callFailed = callFailed,
                 )
@@ -652,6 +653,9 @@ open class ScreensSnapshotTest {
 
     /** Nobody has it (the outbox refused it), and this phone can neither text nor call: each says so where its button is. */
     @Test fun helpNotSent() = help(nz.waveformlabs.moshpoint.core.watch.PingOutcome.FAILED, textFailed = true, callFailed = "111")
+
+    /** Sent, but this phone had no location to add: it doesn't claim "with where you are". */
+    @Test fun helpSentNoLocation() = help(nz.waveformlabs.moshpoint.core.watch.PingOutcome.SENT, withLocation = false)
 
     /** Every reason "Not sent yet" can give, one under another. */
     @Test fun helpWaitReasons() = snap {
@@ -691,6 +695,9 @@ open class ScreensSnapshotTest {
     @Test fun noticeStillAtTheGig() = notice(nz.waveformlabs.moshpoint.safety.Notices.Kind.LIVE_TOO_LONG)
 
     @Test fun noticeStorageFull() = notice(nz.waveformlabs.moshpoint.safety.Notices.Kind.STORAGE_FULL)
+
+    /** Live went off while the main crew is still on (now for a later date, or followed from home). */
+    @Test fun noticeCrewNotOn() = notice(nz.waveformlabs.moshpoint.safety.Notices.Kind.LIVE_CREW_NOT_ON)
 
     @Test fun smallPhoneLargeFontNoticeNoLongerLive() {
         paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))

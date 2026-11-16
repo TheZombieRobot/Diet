@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">‘집에 잘 도착했어요’를 탭하지 않으면 체크인하지 않았다고 크루에게 알림이 가요.</string>
     <string name="safety_home_safe_waiting">아직 전송 안 됨. 신호가 잡히면 바로 자동으로 전송돼요.</string>
 
+    <string name="safety_help_alert_no_location">긴급 알림이지만 내 위치는 빠져요: 이 폰이 지금 위치를 몰라요.</string>
+    <string name="safety_checkin_reminder_not_sent">크루가 아직 내 체크인을 받지 못해서, 집에 도착하지 않아도 아무에게도 알림이 가지 않아요. 도움이 필요하면 누군가에게 문자나 전화를 하세요.</string>
+    <string name="safety_live_crew_not_on_text">메인 크루가 지금은 진행 중이 아니라서 배터리를 아끼기 위해 ‘위치 공유’가 꺼졌어요.</string>
+
 </resources>

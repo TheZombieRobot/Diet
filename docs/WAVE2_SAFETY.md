@@ -28,12 +28,54 @@ _Keep this section current: whoever picks this up next starts here._
   PermissionAsks (`askWithDisclosure`) is what `HomeState.setVisibility` now calls before the
   honest go-live path added here.
 - **CI:** green, run 310 on 10a5965 (see "CI runs" at the end).
+- **Review round:** the eight findings of the independent review are fixed (see "Review
+  round"); CI and the report follow.
 - **Next:** merge into ccr (the main branch already contains wave 2b, merged here), then the
   field tests in docs/FIELD_TEST_PLAN.md section 4f on phones. Nothing from the list is left.
 - **If ccr moves on:** the shared files touched here are small, local edits: `AndroidManifest.xml`
   (configChanges, one receiver, MY_PACKAGE_REPLACED), `GroupSync` (sendPing's result, check-in
   alarms, Live on crew change), `MainActivity` (onResume reconcile, BackgroundChecks at start),
   `HomeState.setVisibility`, `MainScreen` (one line: `AppNotices(a)`).
+
+## Review round (independent review of fba4a69)
+
+Confirmed sound: Need help's states, the check-in alarm plumbing, Live reconcile and the 12 h
+flow, the v1→v2 migration, configChanges, housekeeping. Fixed:
+
+1. **Crash loop (must fix).** `myCheckInSent` wasn't in GroupSync's `longKeys`, so `activate()`
+   brought it back as a String and `getLong` threw on every start (Heading home on crew A, then
+   B made main or ended). Every Long saved there is listed now (`myCheckInSent`, `myCheckInId`
+   too), and the typed reads (`longOf`, `boolOf`) also accept a value stored as text, so a phone
+   already in that state opens again.
+2. **"Home yet?" no longer promises an alert that may never come (must fix).** `startCheckIn`
+   keeps the Check in's message id; with nothing queued (no crew, refused) there's no "heading
+   home" and no reminder. The reminder reads the outbox (`followedState`, else the courier's
+   saved state): the crew has it (Sent, or Sent nearby: those crew phones raise the alarm) →
+   "Your crew will be told…"; otherwise → "Your crew hasn't got your check-in yet, so nobody will
+   be alerted if you're not home. Text or call someone if you need help." (core
+   `CheckInReminder.crewHasIt`), in every language.
+3. **The reminder comes once.** Core `CheckInReminder.armAt`: never after it was shown for this
+   deadline (remembered in prefs `checkin_alarm`), never after the deadline, never in the past;
+   one missed while the phone was off comes once, a few seconds on. Cancelling the alarm no
+   longer removes a reminder already showing; Home safe and the crew ending do.
+4. **Location honesty.** `HelpSent.withLocation`; before sending, whether this phone has a fix
+   (`CrewStatus.myLocation`, as the alert will). Without one: "Urgent alert, but without where
+   you are: this phone doesn't know its location right now." instead of "with where you are".
+5. **An update doesn't switch Live on for someone who wasn't live.** Core
+   `LiveRules.restoresAfterUpdate`: no saved session and no crew tonight → marked stopped
+   (older builds left Live flagged on after the service was killed).
+6. **"Tap to try again" never sends a second alert.** While the outbox still holds the alert
+   (it gave up after refusals, and may still be on air), the same message is retried
+   (`OfflineMessages.retryNow`); a new one only when the old one is gone.
+7. **Live ends the night by the trusted clock** (`CrewClock`, as crews do), and goes off quietly
+   only when the crew really is over (core `LiveRules.quiet`); off while the crew is still on
+   (asleep until a later date, followed from home) → "You're no longer live. Your main crew
+   isn't on right now…" (`Notices.Kind.LIVE_CREW_NOT_ON`).
+8. **The outbox is fsynced** before it replaces the old file. Downgrades: a build from before
+   save format 2 can't read a v2 outbox or private threads (it starts them empty). Installing an
+   older test build over this one loses unsent messages; Play never downgrades.
+
+New screenshots: `helpSentNoLocation`, `noticeCrewNotOn` (every language).
 
 ## What changed, item by item
 

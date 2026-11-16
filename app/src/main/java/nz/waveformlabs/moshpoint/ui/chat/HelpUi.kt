@@ -37,6 +37,7 @@ import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.core.HelpRules
 import nz.waveformlabs.moshpoint.core.watch.PingOutcome
+import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.safety.EmergencyNumbers
 import nz.waveformlabs.moshpoint.safety.Safety
@@ -67,6 +68,10 @@ internal fun HelpDialog(onAlertCrew: (() -> Unit)?, onGoLive: (() -> Unit)? = nu
     val outcome: PingOutcome? = alert?.let { HelpRules.outcomeOf(OfflineMessages.followedState(it.id)) }
         ?: if (nothingSent) PingOutcome.FAILED else null
     val wait = if (outcome == PingOutcome.WAITING) OfflineMessages.waitReason() else null
+    // "with where you are" only when it is: before sending, whether this phone knows where it is
+    // (as the alert will look); after, whether the alert really carried it.
+    val hasFix = remember { CrewStatus.myLocation(c) != null }
+    val withLocation = alert?.withLocation ?: hasFix
     var textFailed by remember { mutableStateOf(false) }
     var callFailed by remember { mutableStateOf<String?>(null) }
     // The emergency number(s) where you are now (abroad at a festival too).
@@ -77,9 +82,14 @@ internal fun HelpDialog(onAlertCrew: (() -> Unit)?, onGoLive: (() -> Unit)? = nu
         title = { Text(stringResource(R.string.crew_help_title), style = Mosh.Heading) },
         text = {
             HelpBody(
-                crewAlert = if (onAlertCrew != null) CrewAlertUi(outcome, wait) else null,
+                crewAlert = if (onAlertCrew != null) CrewAlertUi(outcome, wait, withLocation) else null,
                 onAlertCrew = {
-                    if (onAlertCrew != null && HelpRules.maySend(outcome)) {
+                    val held = alert?.let { OfflineMessages.holds(it.id) } == true
+                    if (onAlertCrew != null && HelpRules.maySend(outcome) && held) {
+                        // Still in the outbox (it gave up after refusals, and may still go out over
+                        // Bluetooth): try that same alert again, never a second one beside it.
+                        OfflineMessages.retryNow(c)
+                    } else if (onAlertCrew != null && HelpRules.maySend(outcome)) {
                         val before = GroupSync.lastHelp.value
                         onAlertCrew()
                         val sent = GroupSync.lastHelp.value
@@ -109,8 +119,11 @@ internal fun HelpDialog(onAlertCrew: (() -> Unit)?, onGoLive: (() -> Unit)? = nu
     )
 }
 
-/** The crew alert's row: [outcome] null = not sent from here yet; [wait] = why it's "Not sent yet". */
-internal class CrewAlertUi(val outcome: PingOutcome?, val wait: HelpRules.Wait?)
+/**
+ * The crew alert's row: [outcome] null = not sent from here yet; [wait] = why it's "Not sent yet";
+ * [withLocation] = it carries (or will carry) where you are.
+ */
+internal class CrewAlertUi(val outcome: PingOutcome?, val wait: HelpRules.Wait?, val withLocation: Boolean = true)
 
 /**
  * Need help's contents, drawn from plain state (so every state can be screenshot-tested; a
@@ -180,12 +193,13 @@ internal fun HelpBody(
 /** "Alert my crew", then what the outbox says about the alert. Read out when it changes. */
 @Composable
 internal fun CrewAlertRow(a: CrewAlertUi, onAlertCrew: () -> Unit, onGoLive: (() -> Unit)?) {
+    val noLocation = stringResource(R.string.safety_help_alert_no_location)
     val (title, sub, colour) = when (a.outcome) {
-        null -> Triple(stringResource(R.string.crew_help_alert), stringResource(R.string.crew_help_alert_sub), Mosh.Danger)
-        PingOutcome.UNCONFIRMED -> Triple(stringResource(R.string.safety_help_sending), stringResource(R.string.crew_help_alert_sub), Mosh.Danger)
+        null -> Triple(stringResource(R.string.crew_help_alert), if (a.withLocation) stringResource(R.string.crew_help_alert_sub) else noLocation, Mosh.Danger)
+        PingOutcome.UNCONFIRMED -> Triple(stringResource(R.string.safety_help_sending), if (a.withLocation) stringResource(R.string.crew_help_alert_sub) else noLocation, Mosh.Danger)
         PingOutcome.WAITING -> Triple(stringResource(R.string.safety_help_not_yet), waitText(a.wait), Mosh.Danger)
         PingOutcome.SENT_NEARBY -> Triple(stringResource(R.string.safety_help_nearby), stringResource(R.string.safety_help_nearby_sub), Mosh.Amber)
-        PingOutcome.SENT -> Triple(stringResource(R.string.safety_help_sent), stringResource(R.string.safety_help_sent_sub), Mosh.Lime)
+        PingOutcome.SENT -> Triple(stringResource(R.string.safety_help_sent), if (a.withLocation) stringResource(R.string.safety_help_sent_sub) else noLocation, Mosh.Lime)
         // FAILED, and anything else: nobody has it.
         else -> Triple(stringResource(R.string.safety_help_not_sent), stringResource(R.string.safety_help_not_sent_sub), Mosh.Danger)
     }

@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">如果不點「我平安到家了」，小隊會收到你還沒報平安的通知。</string>
     <string name="safety_home_safe_waiting">還沒傳送。一有訊號就會自動傳送。</string>
 
+    <string name="safety_help_alert_no_location">緊急通知，但不含你的位置：這支手機現在不知道自己在哪裡。</string>
+    <string name="safety_checkin_reminder_not_sent">小隊還沒收到你的回家報平安，所以你沒到家也不會有人收到通知。需要幫助的話，傳簡訊或打電話給別人。</string>
+    <string name="safety_live_crew_not_on_text">你的主要小隊現在沒有在進行中，為了省電，「在線」已自動關閉。</string>
+
 </resources>

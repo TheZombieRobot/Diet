@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">ستُبلَّغ شلتك بأن وصولك لم يُسجَّل، إلا إذا ضغطت «وصلت البيت بأمان».</string>
     <string name="safety_home_safe_waiting">لم تُرسَل بعد. ستُرسَل تلقائيًا فور توفر الإشارة.</string>
 
+    <string name="safety_help_alert_no_location">تنبيه عاجل، لكن بدون مكانك: هذا الهاتف لا يعرف موقعه الآن.</string>
+    <string name="safety_checkin_reminder_not_sent">لم تستلم شلتك تسجيل وصولك بعد، لذا لن يُنبَّه أحد إن لم تصل البيت. راسل أو اتصل بأحد إن احتجت مساعدة.</string>
+    <string name="safety_live_crew_not_on_text">شلتك الرئيسية غير نشطة الآن، لذا توقف «ظاهر» لتوفير بطاريتك.</string>
+
 </resources>

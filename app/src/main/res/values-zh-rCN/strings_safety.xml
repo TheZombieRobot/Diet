@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">如果不点“我安全到家了”，小队会收到你还没报平安的提醒。</string>
     <string name="safety_home_safe_waiting">还没发送。一有信号就会自动发送。</string>
 
+    <string name="safety_help_alert_no_location">紧急提醒，但不带你的位置：这台手机现在不知道自己在哪儿。</string>
+    <string name="safety_checkin_reminder_not_sent">小队还没收到你的回家报平安，所以你没到家也不会有人收到提醒。需要帮助的话，给别人发短信或打电话。</string>
+    <string name="safety_live_crew_not_on_text">你的主小队现在不在进行中，为了省电，“在线”已自动关闭。</string>
+
 </resources>

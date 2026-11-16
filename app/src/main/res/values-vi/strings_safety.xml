@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">Nhóm sẽ được báo là bạn chưa check-in, trừ khi bạn chạm \"Mình về tới nhà an toàn\".</string>
     <string name="safety_home_safe_waiting">Chưa gửi được. Sẽ tự gửi ngay khi bạn có sóng.</string>
 
+    <string name="safety_help_alert_no_location">Cảnh báo khẩn, nhưng không kèm vị trí của bạn: máy này hiện chưa biết mình đang ở đâu.</string>
+    <string name="safety_checkin_reminder_not_sent">Nhóm chưa nhận được check-in của bạn, nên sẽ không ai được báo nếu bạn không về tới nhà. Hãy nhắn tin hoặc gọi cho ai đó nếu bạn cần giúp.</string>
+    <string name="safety_live_crew_not_on_text">Nhóm chính của bạn hiện không hoạt động, nên Hiển thị đã tự tắt để tiết kiệm pin cho bạn.</string>
+
 </resources>

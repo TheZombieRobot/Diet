@@ -169,7 +169,8 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
                 val failure = withContext(Dispatchers.IO) {
                     runCatching {
                         val tmp = File(c.filesDir, "courier.tmp")
-                        tmp.writeBytes(bytes)
+                        // On the disk before it replaces the old file, so a power cut can't leave an empty outbox.
+                        java.io.FileOutputStream(tmp).use { out -> out.write(bytes); out.fd.sync() }
                         if (!tmp.renameTo(file(c))) throw java.io.IOException("rename failed")
                     }.exceptionOrNull()
                 }
@@ -256,6 +257,15 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
 
     /** Where our followed message [id] has got to (OutboxState), or null if it isn't one. Compose state. */
     fun followedState(id: Long): Int? = followed[id]
+
+    /** Where our message [id] stands by the courier's own (saved) record, or null if it no longer holds it. */
+    fun stateOf(id: Long): Int? = when (if (id == 0L) null else courier.stateOf(id)) {
+        Courier.State.WAITING -> OutboxState.WAITING
+        Courier.State.NEARBY -> OutboxState.NEARBY
+        Courier.State.SENT -> OutboxState.SENT
+        Courier.State.GAVE_UP -> OutboxState.FAILED
+        null -> null
+    }
 
     /**
      * Why our messages are waiting rather than going, for Need help's "Not sent yet" (core

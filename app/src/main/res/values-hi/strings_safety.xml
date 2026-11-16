@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">अगर आप \"घर पहुँचकर सुरक्षित हूँ\" पर टैप नहीं करते, तो आपके ग्रुप को बताया जाएगा कि आपने चेक-इन नहीं किया।</string>
     <string name="safety_home_safe_waiting">अभी नहीं भेजा गया। सिग्नल मिलते ही अपने-आप भेज दिया जाएगा।</string>
 
+    <string name="safety_help_alert_no_location">ज़रूरी अलर्ट, पर आपकी जगह के बिना: इस फ़ोन को अभी अपनी लोकेशन पता नहीं है।</string>
+    <string name="safety_checkin_reminder_not_sent">आपके ग्रुप को अभी आपका चेक-इन नहीं मिला है, इसलिए अगर आप घर नहीं पहुँचे तो किसी को अलर्ट नहीं मिलेगा। मदद चाहिए तो किसी को मैसेज या कॉल करें।</string>
+    <string name="safety_live_crew_not_on_text">आपका मेन ग्रुप अभी चालू नहीं है, इसलिए आपकी बैटरी बचाने के लिए लाइव बंद हो गया।</string>
+
 </resources>

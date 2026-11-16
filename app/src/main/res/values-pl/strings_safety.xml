@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">Ekipa dostanie alert, że wciąż nie dajesz znać, chyba że klikniesz „Jestem bezpiecznie w domu”.</string>
     <string name="safety_home_safe_waiting">Jeszcze nie wysłano. Wyśle się samo, gdy tylko złapiesz zasięg.</string>
 
+    <string name="safety_help_alert_no_location">Pilny alert, ale bez twojej lokalizacji: ten telefon nie zna teraz swojego położenia.</string>
+    <string name="safety_checkin_reminder_not_sent">Ekipa jeszcze nie dostała informacji, że wracasz do domu, więc nikt nie dostanie alertu, jeśli nie dotrzesz. Wyślij SMS-a albo zadzwoń do kogoś, jeśli potrzebujesz pomocy.</string>
+    <string name="safety_live_crew_not_on_text">Twoja główna ekipa nie jest teraz aktywna, więc Widoczność wyłączyła się, żeby oszczędzać baterię.</string>
+
 </resources>

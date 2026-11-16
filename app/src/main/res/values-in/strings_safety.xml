@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">Gengmu akan diberi tahu kamu belum ngabarin, kecuali kamu ketuk \"Aku sudah sampai rumah\".</string>
     <string name="safety_home_safe_waiting">Belum terkirim. Dikirim otomatis begitu kamu dapat sinyal.</string>
 
+    <string name="safety_help_alert_no_location">Peringatan darurat, tapi tanpa lokasimu: HP ini lagi nggak tahu lokasinya.</string>
+    <string name="safety_checkin_reminder_not_sent">Gengmu belum menerima kabarmu, jadi nggak ada yang bakal diberi tahu kalau kamu nggak sampai rumah. SMS atau telepon seseorang kalau kamu butuh bantuan.</string>
+    <string name="safety_live_crew_not_on_text">Geng utamamu lagi nggak aktif, jadi Live otomatis dimatikan untuk hemat baterai.</string>
+
 </resources>

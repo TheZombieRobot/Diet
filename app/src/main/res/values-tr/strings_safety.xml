@@ -36,4 +36,8 @@
     <string name="safety_checkin_reminder_text">\"Evdeyim, her şey yolunda\"ya dokunmazsan ekibine haber vermediğin bildirilecek.</string>
     <string name="safety_home_safe_waiting">Henüz gönderilmedi. Sinyal gelir gelmez kendiliğinden gönderilecek.</string>
 
+    <string name="safety_help_alert_no_location">Acil uyarı, ama konumun olmadan: bu telefon şu an nerede olduğunu bilmiyor.</string>
+    <string name="safety_checkin_reminder_not_sent">Ekibin eve dönüş bildirimini henüz almadı, bu yüzden eve varmazsan kimse uyarılmayacak. Yardıma ihtiyacın varsa birine SMS gönder ya da ara.</string>
+    <string name="safety_live_crew_not_on_text">Ana ekibin şu an aktif değil, bu yüzden pil tasarrufu için Görünürlük kapandı.</string>
+
 </resources>
