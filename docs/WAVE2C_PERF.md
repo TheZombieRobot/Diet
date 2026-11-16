@@ -13,17 +13,15 @@ branch: `ui-screenshots-claude-wave2c-perf-m4x7rd`, compared with `ui-screenshot
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Item 1 (photos): built and checked by CI (run 317, 0efbb3e).** Every step up to and
-  including the screenshots passed; screenshots: phone 1711 of 1711 and watch 798 of 798
-  byte-identical to `ui-screenshots` / `ui-screenshots-watch`, every language.
-- **Items 2, 3 and 4: code done** (c998ad0, fdb84f3, 2fa9472, saved with [skip ci] so nothing
-  was lost), **CI run 318 dispatched on b3edd12** (all three together: a run takes about 25
-  minutes and a dispatch only runs the branch's head). Next: when it finishes, compare its
-  screenshots (`ui-screenshots-claude-wave2c-perf-m4x7rd`, whose commit says "for b3edd12") with
-  `ui-screenshots`; if it fails, the item is in the commit message of the file that broke.
-  Field tests: FIELD_TEST_PLAN.md section 4i (written).
-- **Left:** CI and the screenshot comparison for items 1-4, and the report to the parent
-  session (session_01Sw3Y2WCFVzhNwUVdFGVbRq).
+- **Done: the whole list (items 1-4), with the proofs.** Last green run: **318** (dispatched on
+  b3edd12, items 1-4 together; conclusion success). Item 1 alone: run 317 (0efbb3e), success.
+- **Screenshots:** both runs, phone 1711 of 1711 and watch 798 of 798 **byte-identical** to
+  `ui-screenshots` / `ui-screenshots-watch`, every language folder (so pixel-identical; no
+  differences to explain). Core and server tests passed in both runs.
+- **Deviation from the plan:** items 2, 3 and 4 were saved with [skip ci] and checked by one CI
+  run together (318) instead of one each, to keep the work pushed while CI ran; all green.
+- **Next (owner):** the phone checks in FIELD_TEST_PLAN.md section 4i; then merge. "Left" under
+  item 3 (the compass heading) and "Found, not changed" below are for a later wave.
 - **How to check locally:** only core tests run here (Google Maven is blocked; CI builds the app).
 
 ## 1. Photos: memory and freezes (performance P1-6, P1-7)
@@ -125,6 +123,17 @@ not safe without a phone to test on, so not done here. The map no longer recompo
   remembers them by what they capture). The face tiles (`CrewTiles`), the friends strip, the
   friends and past-gigs sheets, the Up next rows and the memory card can skip recomposing.
   Lambdas inside the dialogs and menus (shown rarely) are unchanged.
+
+## Found, not changed (outside this list)
+
+- `HomeGigLists` decodes each past gig's cover (`GigArchive.thumbnail`, about 1.5 MB) in
+  composition, on the main thread, the first time the list shows. Same fix as the Story: read
+  it off the main thread into `MomentImages`.
+- `MomentFlow.Dialogs` takes a recorded clip's first frame (`MediaMetadataRetriever`) in
+  composition, on the main thread, when the "Share with crew" box opens (50-100 ms).
+- `FullScreenMedia` decodes a camera-roll original without its EXIF rotation (as before), so a
+  portrait photo stored sideways shows sideways in full screen. Kept as it was here (a fix would
+  change what's shown).
 
 ## Proof
 
