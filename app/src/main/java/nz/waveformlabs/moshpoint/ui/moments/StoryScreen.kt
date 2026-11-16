@@ -401,21 +401,25 @@ internal fun FullScreenMedia(m: Moments.Item, onClose: () -> Unit) {
 
 /**
  * [m]'s best picture (your original, else the shared photo) for full screen, read at about twice
- * the size it's shown on a [screenW] x [screenH] screen: room to zoom, a quarter of the memory of
- * a big original. Never bigger than it was read before (longest side under 4,800 px).
+ * the size it's shown on a [screenW] x [screenH] screen (room to zoom), in power-of-two steps and
+ * never over 2,600 px on the long side: about 12 MB for a 12 MP original, never a full 48 MB.
+ * Your own camera's originals are its untouched files, turned upright by their EXIF orientation
+ * (as Moshpoint's camera always showed them); other files are shown as stored, as before.
  */
 private fun bestImage(m: Moments.Item, screenW: Int, screenH: Int): androidx.compose.ui.graphics.ImageBitmap? {
     val file = m.originalFile?.takeIf { it.exists() } ?: m.photoFile ?: return null
     val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
     android.graphics.BitmapFactory.decodeFile(file.absolutePath, bounds)
-    val w = bounds.outWidth
-    val h = bounds.outHeight
-    if (w <= 0 || h <= 0) return null
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+    val turn = if (file == m.originalFile && m.key.startsWith("mine-")) exifDegrees(file) else 0
+    val (w, h) = if (turn % 180 == 0) bounds.outWidth to bounds.outHeight else bounds.outHeight to bounds.outWidth
     // Shown to fit the screen: twice that, but a power-of-two step may land a little under.
     val wanted = 0.9f * minOf(1f, 2f * minOf(screenW.toFloat() / w, screenH.toFloat() / h))
     var sample = 1
-    while (maxOf(w, h) / (sample * 2) >= 2400 || 1f / (sample * 2) >= wanted) sample *= 2
-    return android.graphics.BitmapFactory.decodeFile(file.absolutePath, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
+    while (maxOf(w, h) / sample > 2600 || maxOf(w, h) / (sample * 2) >= 2400 || 1f / (sample * 2) >= wanted) sample *= 2
+    val bmp = android.graphics.BitmapFactory.decodeFile(file.absolutePath, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }) ?: return null
+    val upright = if (turn == 0) bmp else android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, android.graphics.Matrix().apply { postRotate(turn.toFloat()) }, true)
+    return upright.asImageBitmap()
 }
 
 /** A dark board with a faint dot grid, like felt under the Polaroids. */

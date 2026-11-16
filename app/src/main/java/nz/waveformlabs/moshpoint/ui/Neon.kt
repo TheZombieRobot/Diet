@@ -87,31 +87,45 @@ fun GlowBackground(modifier: Modifier = Modifier, colours: List<Color> = listOf(
 
 /**
  * [colours] is read at draw time, so an animating colour redraws without recomposing the screen.
- * Static (performance P1-5): the blobs sit where their slow drift used to start, which is where
- * calm motion always showed them, and are drawn again only when the size or a colour changes.
- * They used to drift over 14 s, painting three screen-sized gradients every frame.
+ * Each blob is drawn once into its own layer (again only when the size or a colour changes), and
+ * the slow 14 s drift moves the layers: no recomposition and no repainting of three screen-sized
+ * gradients every frame (performance P1-5). Calm motion holds them where the drift starts.
  */
 @Composable
 fun GlowBackground(modifier: Modifier = Modifier, colours: () -> List<Color>) {
-    Spacer(
-        modifier.fillMaxSize().drawWithCache {
-            val colours = colours()
-            val w = size.width
-            val h = size.height
-            val drift = 0f
-            val a = drift * 2 * Math.PI
-            val spots = listOf(
-                Offset(w * (0.85f + 0.08f * cos(a).toFloat()), h * (0.05f + 0.05f * sin(a).toFloat())) to colours[0],
-                Offset(w * (0.05f + 0.10f * sin(a).toFloat()), h * (0.45f + 0.06f * cos(a).toFloat())) to colours[1 % colours.size],
-                Offset(w * (0.70f + 0.10f * cos(a + 2).toFloat()), h * (0.90f + 0.04f * sin(a + 2).toFloat())) to colours[2 % colours.size],
+    val t = rememberInfiniteTransition(label = "glow")
+    val drift = t.ambient(0f, 1f, infiniteRepeatable(tween(14_000, easing = LinearEasing)), label = "drift")
+    Box(modifier.fillMaxSize()) {
+        for (i in 0 until 3) {
+            Spacer(
+                Modifier.fillMaxSize()
+                    .graphicsLayer {
+                        // How far blob i has drifted from where it's drawn (its place at the start).
+                        val o = glowSpot(i, size.width, size.height, drift.value) - glowSpot(i, size.width, size.height, 0f)
+                        translationX = if (kotlin.math.abs(o.x) < 0.001f) 0f else o.x
+                        translationY = if (kotlin.math.abs(o.y) < 0.001f) 0f else o.y
+                    }
+                    .drawWithCache {
+                        val all = colours()
+                        val col = all[i % all.size]
+                        val c = glowSpot(i, size.width, size.height, 0f)
+                        val r = size.width * 0.75f
+                        val brush = Brush.radialGradient(listOf(col.copy(alpha = 0.20f), col.copy(alpha = 0f)), center = c, radius = r)
+                        onDrawBehind { drawCircle(brush, radius = r, center = c) }
+                    },
             )
-            val r = w * 0.75f
-            val blobs = spots.map { (c, col) -> c to Brush.radialGradient(listOf(col.copy(alpha = 0.20f), col.copy(alpha = 0f)), center = c, radius = r) }
-            onDrawBehind {
-                for ((c, brush) in blobs) drawCircle(brush, radius = r, center = c)
-            }
-        },
-    )
+        }
+    }
+}
+
+/** Where glow blob [i] is at [drift] (0..1 round its slow loop) on a [w] x [h] screen. */
+private fun glowSpot(i: Int, w: Float, h: Float, drift: Float): Offset {
+    val a = drift * 2 * Math.PI
+    return when (i) {
+        0 -> Offset(w * (0.85f + 0.08f * cos(a).toFloat()), h * (0.05f + 0.05f * sin(a).toFloat()))
+        1 -> Offset(w * (0.05f + 0.10f * sin(a).toFloat()), h * (0.45f + 0.06f * cos(a).toFloat()))
+        else -> Offset(w * (0.70f + 0.10f * cos(a + 2).toFloat()), h * (0.90f + 0.04f * sin(a + 2).toFloat()))
+    }
 }
 
 /** Rings that pulse outward from the centre, like a radar ping. */

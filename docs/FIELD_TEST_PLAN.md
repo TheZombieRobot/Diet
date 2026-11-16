@@ -825,9 +825,10 @@ memory or less** matters most; a recent flagship as well if you have one.
 - [ ] Open the camera from the Story (or the home screen's camera button) and take 10 photos as
   fast as you can, one after another (tap, send, tap again). The preview never stutters or
   freezes when you tap; each photo shows in the "Share with crew" box as before.
-- [ ] The photos look the same as before (framing, sharpness on the phone's screen, colours).
-  **Save to phone** on one of your own camera photos: it's about 2048 px wide now (was the
-  camera's full size); one added from the camera roll keeps its full size.
+- [ ] The photos look the same as before (framing, sharpness on the phone's screen, colours),
+  upright in every way you hold the phone, front camera too. **Save to phone** on one of your own
+  camera photos: it's the camera's full size and upright in the phone's gallery; full screen in
+  the Story shows it upright too. One added from the camera roll keeps its full size.
 - [ ] Record a clip (hold the shutter) and send it, while a crew mate sends you clips: the app
   doesn't freeze when their clips arrive (each was opened on the main thread before).
 - [ ] Faces: the home screen, the finder and the map show everyone's photos as before, straight
@@ -851,8 +852,8 @@ memory or less** matters most; a recent flagship as well if you have one.
 - [ ] Finder on one mate, then on the whole crew (the radar): the arrows swivel, breathe and
   their rings spin as before, smoothly, on the low-end phone too. With "Profile HWUI rendering"
   (Developer options) on, the bars stay mostly under the green line.
-- [ ] The finder's soft background lights don't drift any more (they sit still, as they always
-  did with battery saver on); everything else looks the same.
+- [ ] The finder's soft background lights still drift slowly (they sit still with battery saver
+  on, as before); everything else looks the same.
 
 ### What to send back for this part
 

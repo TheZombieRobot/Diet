@@ -34,11 +34,22 @@ class MomentFlow(
 ) {
     private var askMomentSource by mutableStateOf(false)
     private var momentPhoto by mutableStateOf<android.graphics.Bitmap?>(null)
+    /** Our camera's full-size file for [momentPhoto] (kept as your original), if it came from our camera. */
+    private var momentOriginal: java.io.File? = null
+
+    /** A new photo to share; any earlier one's camera file goes (a sent one was copied into the gig). */
+    private fun setPhoto(bmp: android.graphics.Bitmap?, original: java.io.File? = null) {
+        momentOriginal?.takeIf { it != original }?.delete()
+        momentOriginal = original
+        momentPhoto = bmp
+    }
+
+    private fun newPhotoFile() = java.io.File(java.io.File(activity.cacheDir, "captures").apply { mkdirs() }, "photo-${System.currentTimeMillis()}.jpg")
     private var sendingMoment by mutableStateOf(false)
     private var viewingMoment by mutableStateOf<Moments.Item?>(null)
 
     private val takeMoment = activity.registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bmp ->
-        if (bmp != null) momentPhoto = bmp
+        if (bmp != null) setPhoto(bmp)
     }
     private val cameraForMoment = activity.registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         if (ok) runCatching { takeMoment.launch(null) }
@@ -47,7 +58,7 @@ class MomentFlow(
         if (uri == null) return@registerForActivityResult
         val type = activity.contentResolver.getType(uri).orEmpty()
         activity.lifecycleScope.launch {
-            if (type.startsWith("video/")) useClip(copyToClips(uri)) else momentPhoto = decodeScaled(uri)
+            if (type.startsWith("video/")) useClip(copyToClips(uri)) else setPhoto(decodeScaled(uri))
         }
     }
 
@@ -150,7 +161,7 @@ class MomentFlow(
             toast(Txt.s(R.string.find_join_crew_first))
             return
         }
-        activity.lifecycleScope.launch { momentPhoto = decodeScaled(uri) }
+        activity.lifecycleScope.launch { setPhoto(decodeScaled(uri)) }
     }
 
     // ---- Our own camera (tap = photo, hold = clip) ----
@@ -192,10 +203,10 @@ class MomentFlow(
         sendingMoment = true
         activity.lifecycleScope.launch {
             val loc = lastLocation()
-            val ok = Moments.share(activity, photo, caption, loc?.latitude, loc?.longitude)
+            val ok = Moments.share(activity, photo, caption, loc?.latitude, loc?.longitude, momentOriginal)
             sendingMoment = false
             if (ok) {
-                momentPhoto = null
+                setPhoto(null)
                 toast(Txt.s(R.string.find_shared_with_crew))
             } else {
                 toast(Txt.s(R.string.find_send_failed))
@@ -232,7 +243,8 @@ class MomentFlow(
             withAudio = withAudio,
             hq = !ShareQuality.dataSaver.value,
             newClipFile = ::newClipFile,
-            onPhoto = { bmp -> capturing = false; momentPhoto = bmp },
+            newPhotoFile = ::newPhotoFile,
+            onPhoto = { bmp, file -> capturing = false; setPhoto(bmp, file) },
             onClip = { f -> capturing = false; useClip(f) },
             onGallery = {
                 capturing = false
@@ -283,7 +295,7 @@ class MomentFlow(
         }
         momentPhoto?.let { bmp ->
             val img = androidx.compose.runtime.remember(bmp) { bmp.asImageBitmap() }
-            nz.waveformlabs.moshpoint.ui.moments.MomentComposer(img, sendingMoment, onSend = ::sendMoment, onCancel = { momentPhoto = null })
+            nz.waveformlabs.moshpoint.ui.moments.MomentComposer(img, sendingMoment, onSend = ::sendMoment, onCancel = { setPhoto(null) })
         }
         viewingMoment?.let { m ->
             val me = lastLocation()

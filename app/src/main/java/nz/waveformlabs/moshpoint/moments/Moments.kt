@@ -65,17 +65,22 @@ object Moments {
     private val seenUrls = HashSet<String>()
     private var lastCheckMs = 0L
 
-    /** Share a photo with the crew. Returns false if it couldn't be sent (no crew, no internet). */
-    suspend fun share(c: Context, photo: Bitmap, caption: String, lat: Double?, lon: Double?): Boolean {
+    /**
+     * Share a photo with the crew. Returns false if it couldn't be sent (no crew, no internet).
+     * [originalFile]: our camera's full-size JPEG, kept untouched as your original.
+     */
+    suspend fun share(c: Context, photo: Bitmap, caption: String, lat: Double?, lon: Double?, originalFile: java.io.File? = null): Boolean {
         val g = GroupSync.group.value ?: return false
         if (!RelayClient.filesEnabled) return false
         val app = c.applicationContext
         val (maxPx, q) = ShareQuality.photo
         val jpeg = withContext(Dispatchers.Default) { shrink(photo, maxPx, q) }
-        // Your own original, full quality, kept on your phone for "Save to phone".
-        val original = withContext(Dispatchers.Default) {
-            ByteArrayOutputStream().also { photo.compress(Bitmap.CompressFormat.JPEG, 94, it) }.toByteArray()
-        }
+        // Your own original, full quality, kept on your phone for "Save to phone": from our camera,
+        // its own full-size file, untouched (as camera-roll originals are kept); else the photo.
+        val original = originalFile?.let { f -> withContext(Dispatchers.IO) { runCatching { f.readBytes() }.getOrNull() } }
+            ?: withContext(Dispatchers.Default) {
+                ByteArrayOutputStream().also { photo.compress(Bitmap.CompressFormat.JPEG, 94, it) }.toByteArray()
+            }
         val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), jpeg)
         val sealed = withContext(Dispatchers.Default) { g.sealMoment(m) }
         val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)

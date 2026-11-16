@@ -13,11 +13,18 @@ branch: `ui-screenshots-claude-wave2c-perf-m4x7rd`, compared with `ui-screenshot
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Done: the whole list (items 1-4), with the proofs.** Last green run: **318** (dispatched on
+- **Follow-up (after the merge into ccr at 16c6eeb): done.** Full-size originals from the
+  in-app camera again, and the glow's drift back (see "Follow-up" below). Last green run:
+  **319** (push, 5f7a2f4, success); screenshots phone 1711 of 1711 and watch 798 of 798
+  byte-identical to `ui-screenshots` / `ui-screenshots-watch`, every language. Reported to the
+  parent session. Next (owner): FIELD_TEST_PLAN.md section 4i, then merge.
+- **Done before the follow-up: the whole list (items 1-4), with the proofs.** Last green run: **318** (dispatched on
   b3edd12, items 1-4 together; conclusion success). Item 1 alone: run 317 (0efbb3e), success.
 - **Screenshots:** both runs, phone 1711 of 1711 and watch 798 of 798 **byte-identical** to
   `ui-screenshots` / `ui-screenshots-watch`, every language folder (so pixel-identical; no
   differences to explain). Core and server tests passed in both runs.
+- **Trade-offs left after the follow-up:** a fast scroll through a long Story can show a dark
+  square for a moment; full screen shows the board image for a moment before the sharp one.
 - **Deviation from the plan:** items 2, 3 and 4 were saved with [skip ci] and checked by one CI
   run together (318) instead of one each, to keep the work pushed while CI ran; all green.
 - **Next (owner):** the phone checks in FIELD_TEST_PLAN.md section 4i; then merge. "Left" under
@@ -123,6 +130,29 @@ not safe without a phone to test on, so not done here. The map no longer recompo
   remembers them by what they capture). The face tiles (`CrewTiles`), the friends strip, the
   friends and past-gigs sheets, the Up next rows and the memory card can skip recomposing.
   Lambdas inside the dialogs and menus (shown rarely) are unchanged.
+
+## Follow-up: full-size originals and the glow's drift
+
+- **Moshpoint's camera keeps full-size originals again** (`ui/moments/CaptureScreen.kt`): the
+  camera captures at its full resolution (no `ResolutionSelector`) straight to a file
+  (`ImageCapture.OutputFileOptions`, not mirrored), so no full-size bitmap is ever decoded. That
+  file is kept untouched as your original (`Moments.share(..., originalFile)` reads its bytes;
+  `GigArchive.keep` writes them as `.orig.jpg`, as camera-roll imports do), so "Save to phone"
+  is full size again. The photo shared with the crew and the board images come from
+  `uprightCopy`: a power-of-two smaller read of the file (about 2,000 px on the long side for a
+  12 MP camera, at least 1,600 unless the photo is smaller; about 12 MB) turned by its EXIF
+  orientation, on a background thread. The capture file lives in `cache/captures` until the
+  photo is sent (copied into the gig) or cancelled. Shared photos are now at most that size
+  (about 2,000 px, was 2,048).
+- **Full screen** (`StoryScreen.bestImage`): your own camera's original is turned upright by its
+  EXIF orientation (items keyed `mine-`); everything else is shown as stored, as before. The
+  read is capped at 2,600 px on the long side (power-of-two steps), so a 12 MP original is
+  about 12 MB, never 48.
+- **The glow drifts again** (`ui/Neon.kt` `GlowBackground`): each of the three blobs is drawn once
+  into its own layer (`drawWithCache`, again only when the size or a colour changes) and the
+  drift moves the layers (`graphicsLayer` translation read from the animation): no
+  recomposition and no repaint per frame. At the drift's start (screenshots, calm motion) the
+  layers sit exactly where the static version drew the blobs.
 
 ## Found, not changed (outside this list)
 
