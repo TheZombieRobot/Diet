@@ -62,10 +62,12 @@ internal fun MomentViewer(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Image(
-                    m.image, contentDescription = null, contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp).clip(RoundedCornerShape(16.dp)),
-                )
+                rememberMomentImage(m)?.let { img ->
+                    Image(
+                        img, contentDescription = null, contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp).clip(RoundedCornerShape(16.dp)),
+                    )
+                }
                 if (m.caption.isNotBlank()) Text(m.caption, style = Mosh.Body.copy(color = Mosh.Text))
             }
         },

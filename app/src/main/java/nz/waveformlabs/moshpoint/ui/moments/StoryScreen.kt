@@ -69,6 +69,21 @@ internal fun clockTime(timeSec: Long): String =
 /** A slight, steady tilt per photo (same every time you look), like Polaroids on a pinboard. */
 private fun tilt(key: String) = ((key.hashCode() % 7) - 3) * 1.1f
 
+/**
+ * [m]'s board image: at once if it's in memory, else read off the main thread (null until then).
+ * Only the Polaroids on screen are read, into a small cache (performance P1-7).
+ */
+@Composable
+internal fun rememberMomentImage(m: Moments.Item): androidx.compose.ui.graphics.ImageBitmap? {
+    val img = remember(m) { mutableStateOf(m.imageNow()) }
+    if (img.value == null) {
+        androidx.compose.runtime.LaunchedEffect(m) {
+            img.value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { m.loadImage() }
+        }
+    }
+    return img.value
+}
+
 /** One Polaroid: white frame, the photo, and a handwritten line underneath. */
 @Composable
 internal fun Polaroid(m: Moments.Item, width: Dp, modifier: Modifier = Modifier, tilted: Boolean = true, tiltScale: Float = 1f) {
@@ -80,10 +95,13 @@ internal fun Polaroid(m: Moments.Item, width: Dp, modifier: Modifier = Modifier,
             .padding(start = pad, end = pad, top = pad, bottom = pad * 0.6f),
     ) {
         Box {
-            Image(
-                m.image, contentDescription = stringResource(R.string.find_photo_from, m.from), contentScale = ContentScale.Crop,
-                modifier = Modifier.size(width - pad * 2).background(Color(0xFF222222)),
-            )
+            val photo = Modifier.size(width - pad * 2).background(Color(0xFF222222))
+            val img = rememberMomentImage(m)
+            if (img != null) {
+                Image(img, contentDescription = stringResource(R.string.find_photo_from, m.from), contentScale = ContentScale.Crop, modifier = photo)
+            } else {
+                Box(photo) // read from the gig's folder in a moment
+            }
             if (m.isVideo) {
                 Box(
                     Modifier.align(Alignment.Center).size(width * 0.22f).background(Color(0x99000000), RoundedCornerShape(50)),
@@ -335,33 +353,34 @@ internal fun FullScreenMedia(m: Moments.Item, onClose: () -> Unit) {
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            // Best version we have: your original, else the shared photo.
-            val best = remember(m.key) {
-                val f = m.originalFile?.takeIf { it.exists() } ?: m.photoFile
-                f?.let { file ->
-                    val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                    android.graphics.BitmapFactory.decodeFile(file.absolutePath, bounds)
-                    var sample = 1
-                    while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 2400) sample *= 2
-                    android.graphics.BitmapFactory.decodeFile(file.absolutePath, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
-                } ?: m.image
+            // Best version we have: your original, else the shared photo. Read off the main thread
+            // at about twice the size it's shown (performance P1-6); the board image until then.
+            val screen = androidx.compose.ui.platform.LocalContext.current.resources.displayMetrics
+            val bestState = remember(m.key) { mutableStateOf(m.imageNow()) }
+            androidx.compose.runtime.LaunchedEffect(m.key) {
+                val w = screen.widthPixels
+                val h = screen.heightPixels
+                bestState.value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { bestImage(m, w, h) ?: m.loadImage() }
+                    ?: bestState.value
             }
             var scale by remember { mutableStateOf(1f) }
             var offset by remember { mutableStateOf(Offset.Zero) }
-            Image(
-                best, contentDescription = null, contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize()
-                    .pointerInput(m.key) {
-                        detectTapGestures(onDoubleTap = { scale = 1f; offset = Offset.Zero })
-                    }
-                    .pointerInput(m.key) {
-                        detectTransformGestures { _, pan, zoom, _ ->
-                            scale = (scale * zoom).coerceIn(1f, 6f)
-                            offset = if (scale == 1f) Offset.Zero else offset + pan
+            bestState.value?.let { best ->
+                Image(
+                    best, contentDescription = null, contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                        .pointerInput(m.key) {
+                            detectTapGestures(onDoubleTap = { scale = 1f; offset = Offset.Zero })
                         }
-                    }
-                    .graphicsLayer { scaleX = scale; scaleY = scale; translationX = offset.x; translationY = offset.y },
-            )
+                        .pointerInput(m.key) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                scale = (scale * zoom).coerceIn(1f, 6f)
+                                offset = if (scale == 1f) Offset.Zero else offset + pan
+                            }
+                        }
+                        .graphicsLayer { scaleX = scale; scaleY = scale; translationX = offset.x; translationY = offset.y },
+                )
+            }
         }
         TextButton(
             onClick = onClose,
@@ -378,6 +397,25 @@ internal fun FullScreenMedia(m: Moments.Item, onClose: () -> Unit) {
                 .padding(horizontal = 12.dp, vertical = 6.dp),
         )
     }
+}
+
+/**
+ * [m]'s best picture (your original, else the shared photo) for full screen, read at about twice
+ * the size it's shown on a [screenW] x [screenH] screen: room to zoom, a quarter of the memory of
+ * a big original. Never bigger than it was read before (longest side under 4,800 px).
+ */
+private fun bestImage(m: Moments.Item, screenW: Int, screenH: Int): androidx.compose.ui.graphics.ImageBitmap? {
+    val file = m.originalFile?.takeIf { it.exists() } ?: m.photoFile ?: return null
+    val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    android.graphics.BitmapFactory.decodeFile(file.absolutePath, bounds)
+    val w = bounds.outWidth
+    val h = bounds.outHeight
+    if (w <= 0 || h <= 0) return null
+    // Shown to fit the screen: twice that, but a power-of-two step may land a little under.
+    val wanted = 0.9f * minOf(1f, 2f * minOf(screenW.toFloat() / w, screenH.toFloat() / h))
+    var sample = 1
+    while (maxOf(w, h) / (sample * 2) >= 2400 || 1f / (sample * 2) >= wanted) sample *= 2
+    return android.graphics.BitmapFactory.decodeFile(file.absolutePath, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
 }
 
 /** A dark board with a faint dot grid, like felt under the Polaroids. */

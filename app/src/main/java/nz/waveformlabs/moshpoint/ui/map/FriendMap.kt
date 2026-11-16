@@ -72,8 +72,8 @@ class MapFocus(val n: Int, val points: List<LatLng>, val minZoom: Double? = null
 /** Where someone has been lately, drawn as a faint line in their colour. */
 class MapTrail(val color: Int, val points: List<Pair<Double, Double>>)
 
-/** A crew photo pinned where it was taken. */
-class MapMoment(val key: String, val label: String, val lat: Double, val lon: Double, val image: androidx.compose.ui.graphics.ImageBitmap)
+/** A crew photo pinned where it was taken: [icon] is its pin ([momentIcon]). */
+class MapMoment(val key: String, val label: String, val lat: Double, val lon: Double, val icon: Bitmap)
 
 /** A saved spot or the crew's meet-up pin. */
 data class MapPlace(val id: String, val name: String, val lat: Double, val lon: Double, val meetUp: Boolean)
@@ -295,7 +295,7 @@ fun FriendMap(
                 },
             ),
         )
-        moments.forEach { style.addImage("m-${it.key}", momentBitmap(it.image)) }
+        moments.forEach { style.addImage("m-${it.key}", it.icon) }
         style.getSourceAs<GeoJsonSource>(SRC_MOMENTS)?.setGeoJson(
             FeatureCollection.fromFeatures(
                 moments.map { m ->
@@ -460,10 +460,8 @@ private fun placeBitmap(meetUp: Boolean): Bitmap {
     return out
 }
 
-/** A crew photo as a small rounded square with a white border (cached per image). */
-private val momentIcons = java.util.WeakHashMap<androidx.compose.ui.graphics.ImageBitmap, Bitmap>()
-
-private fun momentBitmap(img: androidx.compose.ui.graphics.ImageBitmap): Bitmap = momentIcons.getOrPut(img) {
+/** A crew photo as a small rounded square with a white border (callers keep it: [MapMoment]). */
+internal fun momentIcon(img: androidx.compose.ui.graphics.ImageBitmap): Bitmap {
     val size = 104
     val src = img.asAndroidBitmap()
     val out = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
@@ -479,5 +477,5 @@ private fun momentBitmap(img: androidx.compose.ui.graphics.ImageBitmap): Bitmap 
     c.drawBitmap(src, Rect((src.width - side) / 2, (src.height - side) / 2, (src.width + side) / 2, (src.height + side) / 2), inner, paint)
     paint.xfermode = null
     c.restoreToCount(layer)
-    out
+    return out
 }

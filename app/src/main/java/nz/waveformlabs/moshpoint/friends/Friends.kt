@@ -160,8 +160,8 @@ object FriendsRepository {
                 )
             }
         }
-        // The crew-pass entry for the same person isn't needed any more.
-        if (already >= 0 && i >= 0 && friends.getOrNull(i)?.gigGroupOnly == true) friends.removeAt(i)
+        // The crew-pass entry for the same person isn't needed any more (nor its photo).
+        if (already >= 0 && i >= 0 && friends.getOrNull(i)?.gigGroupOnly == true) PhotoStore.remove(friends.removeAt(i).id)
         save()
     }
 
@@ -190,8 +190,10 @@ object FriendsRepository {
 
     fun clearGigGroup() {
         removedGig.clear()
+        val gone = friends.filter { it.gigGroupOnly }
         friends.removeAll { it.gigGroupOnly }
         save()
+        gone.forEach { PhotoStore.remove(it.id) } // their faces too (performance P1-6)
     }
 
     /**
@@ -200,7 +202,9 @@ object FriendsRepository {
      */
     fun clearLeftoverCrewMates() {
         if (file == null) return
+        val gone = friends.filter { it.gigGroupOnly && !isSimulated(it.id) }
         if (friends.removeAll { it.gigGroupOnly && !isSimulated(it.id) }) save()
+        gone.forEach { PhotoStore.remove(it.id) }
     }
 
     private fun ByteArray.toHexKey() = joinToString("") { "%02x".format(it) }
