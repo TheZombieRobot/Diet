@@ -54,8 +54,8 @@ _Keep this section current: whoever picks this up next starts here._
 F6 keeps room for **one** safety ping a minute on ntfy.sh (2 requests), as asked ("sized to what
 one Need help ... actually sends"). A second, different safety ping within the same minute (a
 Check in, then a Need help 20 s later) still goes at once unless everything else had already
-used its 6 before the first; then it waits for the minute (at most about 40 s, retried every
-15 s). Room for two would be `safetyRequestReserve = 4`: everything else would then get 4 a
+taken more than 4 of its 6 before the first; then it waits for the minute (at most about 40 s,
+retried every 15 s). Room for two would be `safetyRequestReserve = 4`: everything else would then get 4 a
 minute on ntfy.sh instead of 6.
 
 ## How this was checked
