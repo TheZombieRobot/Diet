@@ -28,4 +28,22 @@
     <string name="plus_info_soon_title">近日公開</string>
     <string name="plus_info_soon_text">Moshpoint+はまだ購入できません。ライブの入力、クルー、チャット、仲間探しは無料のままです。</string>
     <string name="plus_info_back">プランに戻る</string>
+    <string name="search_hint">バンド・アーティスト名</string>
+    <string name="search_clear">クリア</string>
+    <string name="search_near">近くの公演</string>
+    <string name="search_near_region">近くの公演 · %1$s</string>
+    <string name="search_elsewhere">%1$sのその他の地域</string>
+    <string name="search_worldwide">世界</string>
+    <plurals name="search_shows_in">
+        <item quantity="other">%2$sで%1$d公演</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="other">世界で%1$d公演</item>
+    </plurals>
+    <string name="search_next">次は%1$s</string>
+    <string name="search_getting_list">リストを取得中…</string>
+    <string name="search_type_own">自分でライブを入力</string>
+    <string name="search_type_own_sub">見つからない？手入力で追加</string>
+    <string name="plan_tickets_from">チケットリンク：%1$s</string>
+    <string name="plan_tickets_remove">チケットリンクを削除</string>
 </resources>

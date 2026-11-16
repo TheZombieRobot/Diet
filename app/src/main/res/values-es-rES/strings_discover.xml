@@ -28,4 +28,26 @@
     <string name="plus_info_soon_title">MUY PRONTO</string>
     <string name="plus_info_soon_text">Moshpoint+ aún no está a la venta. Escribir tu concierto, los grupos, el chat y encontrar a tus amigos siguen siendo gratis.</string>
     <string name="plus_info_back">Volver al plan</string>
+    <string name="search_hint">Grupo o artista</string>
+    <string name="search_clear">Borrar</string>
+    <string name="search_near">CERCA DE TI</string>
+    <string name="search_near_region">CERCA DE TI · %1$s</string>
+    <string name="search_elsewhere">EN OTRAS PARTES DE %1$s</string>
+    <string name="search_worldwide">EN TODO EL MUNDO</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d concierto en %2$s</item>
+        <item quantity="many">%1$d conciertos en %2$s</item>
+        <item quantity="other">%1$d conciertos en %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d concierto en el mundo</item>
+        <item quantity="many">%1$d conciertos en el mundo</item>
+        <item quantity="other">%1$d conciertos en el mundo</item>
+    </plurals>
+    <string name="search_next">el próximo: %1$s</string>
+    <string name="search_getting_list">Cargando la lista…</string>
+    <string name="search_type_own">Escribe tu propio concierto</string>
+    <string name="search_type_own_sub">¿No aparece? Añádelo a mano</string>
+    <string name="plan_tickets_from">Enlace de entradas: %1$s</string>
+    <string name="plan_tickets_remove">Quitar el enlace de entradas</string>
 </resources>

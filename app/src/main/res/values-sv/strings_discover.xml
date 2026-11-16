@@ -28,4 +28,24 @@
     <string name="plus_info_soon_title">KOMMER SNART</string>
     <string name="plus_info_soon_text">Moshpoint+ går inte att köpa än. Att skriva in spelningen, grupper, chatt och att hitta kompisarna förblir gratis.</string>
     <string name="plus_info_back">Tillbaka till planen</string>
+    <string name="search_hint">Band eller artist</string>
+    <string name="search_clear">Rensa</string>
+    <string name="search_near">NÄRA DIG</string>
+    <string name="search_near_region">NÄRA DIG · %1$s</string>
+    <string name="search_elsewhere">PÅ ANDRA HÅLL I %1$s</string>
+    <string name="search_worldwide">I HELA VÄRLDEN</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d spelning i %2$s</item>
+        <item quantity="other">%1$d spelningar i %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d spelning i världen</item>
+        <item quantity="other">%1$d spelningar i världen</item>
+    </plurals>
+    <string name="search_next">nästa %1$s</string>
+    <string name="search_getting_list">Hämtar listan…</string>
+    <string name="search_type_own">Skriv in din egen spelning</string>
+    <string name="search_type_own_sub">Finns den inte? Lägg till den själv</string>
+    <string name="plan_tickets_from">Biljettlänk: %1$s</string>
+    <string name="plan_tickets_remove">Ta bort biljettlänken</string>
 </resources>

@@ -28,4 +28,22 @@
     <string name="plus_info_soon_title">곧 출시</string>
     <string name="plus_info_soon_text">Moshpoint+는 아직 구매할 수 없어요. 공연 입력, 크루, 채팅, 친구 찾기는 계속 무료예요.</string>
     <string name="plus_info_back">계획으로 돌아가기</string>
+    <string name="search_hint">밴드 또는 아티스트</string>
+    <string name="search_clear">지우기</string>
+    <string name="search_near">내 주변</string>
+    <string name="search_near_region">내 주변 · %1$s</string>
+    <string name="search_elsewhere">%1$s 다른 지역</string>
+    <string name="search_worldwide">전 세계</string>
+    <plurals name="search_shows_in">
+        <item quantity="other">%2$s 공연 %1$d개</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="other">전 세계 공연 %1$d개</item>
+    </plurals>
+    <string name="search_next">다음 %1$s</string>
+    <string name="search_getting_list">목록을 가져오는 중…</string>
+    <string name="search_type_own">직접 공연 입력</string>
+    <string name="search_type_own_sub">목록에 없나요? 직접 추가하세요</string>
+    <string name="plan_tickets_from">티켓 링크: %1$s</string>
+    <string name="plan_tickets_remove">티켓 링크 삭제</string>
 </resources>

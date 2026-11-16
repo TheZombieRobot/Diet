@@ -28,4 +28,32 @@
     <string name="plus_info_soon_title">قريبًا</string>
     <string name="plus_info_soon_text">لا يمكن شراء Moshpoint+ بعد. كتابة حفلتك والشلة والدردشة والعثور على أصحابك تبقى مجانية.</string>
     <string name="plus_info_back">العودة إلى الخطة</string>
+    <string name="search_hint">فرقة أو فنان</string>
+    <string name="search_clear">مسح</string>
+    <string name="search_near">بالقرب منك</string>
+    <string name="search_near_region">بالقرب منك · %1$s</string>
+    <string name="search_elsewhere">في مناطق أخرى من %1$s</string>
+    <string name="search_worldwide">حول العالم</string>
+    <plurals name="search_shows_in">
+        <item quantity="zero">%1$d عرض في %2$s</item>
+        <item quantity="one">عرض واحد في %2$s</item>
+        <item quantity="two">عرضان في %2$s</item>
+        <item quantity="few">%1$d عروض في %2$s</item>
+        <item quantity="many">%1$d عرضًا في %2$s</item>
+        <item quantity="other">%1$d عرض في %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="zero">%1$d عرض حول العالم</item>
+        <item quantity="one">عرض واحد حول العالم</item>
+        <item quantity="two">عرضان حول العالم</item>
+        <item quantity="few">%1$d عروض حول العالم</item>
+        <item quantity="many">%1$d عرضًا حول العالم</item>
+        <item quantity="other">%1$d عرض حول العالم</item>
+    </plurals>
+    <string name="search_next">الأقرب %1$s</string>
+    <string name="search_getting_list">جارٍ جلب القائمة…</string>
+    <string name="search_type_own">اكتب حفلتك بنفسك</string>
+    <string name="search_type_own_sub">غير موجودة؟ أضفها بنفسك</string>
+    <string name="plan_tickets_from">رابط التذاكر: %1$s</string>
+    <string name="plan_tickets_remove">إزالة رابط التذاكر</string>
 </resources>

@@ -28,4 +28,26 @@
     <string name="plus_info_soon_title">EM BREVE</string>
     <string name="plus_info_soon_text">O Moshpoint+ ainda não está à venda. Digitar seu show, a galera, o chat e achar seus amigos continuam de graça.</string>
     <string name="plus_info_back">Voltar ao plano</string>
+    <string name="search_hint">Banda ou artista</string>
+    <string name="search_clear">Limpar</string>
+    <string name="search_near">PERTO DE VOCÊ</string>
+    <string name="search_near_region">PERTO DE VOCÊ · %1$s</string>
+    <string name="search_elsewhere">EM OUTROS LUGARES · %1$s</string>
+    <string name="search_worldwide">NO MUNDO</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d show · %2$s</item>
+        <item quantity="many">%1$d shows · %2$s</item>
+        <item quantity="other">%1$d shows · %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d show no mundo</item>
+        <item quantity="many">%1$d shows no mundo</item>
+        <item quantity="other">%1$d shows no mundo</item>
+    </plurals>
+    <string name="search_next">próximo %1$s</string>
+    <string name="search_getting_list">Buscando a lista…</string>
+    <string name="search_type_own">Digite seu próprio show</string>
+    <string name="search_type_own_sub">Não achou? Adicione na mão</string>
+    <string name="plan_tickets_from">Link dos ingressos: %1$s</string>
+    <string name="plan_tickets_remove">Remover o link dos ingressos</string>
 </resources>

@@ -28,4 +28,22 @@
     <string name="plus_info_soon_title">SẮP RA MẮT</string>
     <string name="plus_info_soon_text">Moshpoint+ chưa bán. Tự nhập buổi diễn, nhóm, chat và tìm bạn bè vẫn miễn phí.</string>
     <string name="plus_info_back">Quay lại kế hoạch</string>
+    <string name="search_hint">Ban nhạc hoặc nghệ sĩ</string>
+    <string name="search_clear">Xóa</string>
+    <string name="search_near">GẦN BẠN</string>
+    <string name="search_near_region">GẦN BẠN · %1$s</string>
+    <string name="search_elsewhere">NƠI KHÁC Ở %1$s</string>
+    <string name="search_worldwide">TOÀN THẾ GIỚI</string>
+    <plurals name="search_shows_in">
+        <item quantity="other">%1$d buổi diễn ở %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="other">%1$d buổi diễn trên thế giới</item>
+    </plurals>
+    <string name="search_next">gần nhất %1$s</string>
+    <string name="search_getting_list">Đang tải danh sách…</string>
+    <string name="search_type_own">Tự nhập buổi diễn</string>
+    <string name="search_type_own_sub">Không có? Tự thêm</string>
+    <string name="plan_tickets_from">Link mua vé: %1$s</string>
+    <string name="plan_tickets_remove">Xóa link mua vé</string>
 </resources>

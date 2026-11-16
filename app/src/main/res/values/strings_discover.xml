@@ -55,4 +55,38 @@
     <string name="plus_info_soon_text">Moshpoint+ isn\'t on sale yet. Typing your gig in, crews, chat and finding your mates stay free.</string>
     <!-- Button at the bottom of the explanation: back to Plan a gig, with what was typed kept. -->
     <string name="plus_info_back">Back to the plan</string>
+    <!-- Grey hint in the empty smart-search box (members). The relay matches the start of an act's name or of any word in it. -->
+    <string name="search_hint">Band or artist</string>
+    <!-- What a screen reader says for the ✕ in the search box. -->
+    <string name="search_clear">Clear</string>
+    <!-- Small capitals over the first group of suggestions: acts with a show in your region. -->
+    <string name="search_near">NEAR YOU</string>
+    <!-- The same with the region's name ("NEAR YOU · NORTH ISLAND"). -->
+    <string name="search_near_region">NEAR YOU · %1$s</string>
+    <!-- Second group: the rest of the country. %1$s is the country ("NEW ZEALAND"), in capitals where the script has them. -->
+    <string name="search_elsewhere">ELSEWHERE IN %1$s</string>
+    <!-- Third group: acts with no show in your country. -->
+    <string name="search_worldwide">WORLDWIDE</string>
+    <!-- Under an act's name: how many shows it has in the country (%2$s, "New Zealand"). Followed by the next one ("· next Sat 13 Mar, Auckland"). -->
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d show in %2$s</item>
+        <item quantity="other">%1$d shows in %2$s</item>
+    </plurals>
+    <!-- Under an act with no show in your country: how many it has worldwide. Followed by the next one. -->
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d show worldwide</item>
+        <item quantity="other">%1$d shows worldwide</item>
+    </plurals>
+    <!-- After that count when there's more than one: the soonest ("next Sat 13 Mar, Auckland"). -->
+    <string name="search_next">next %1$s</string>
+    <!-- While the relay builds this country's list for the first time (about a minute). -->
+    <string name="search_getting_list">Getting the list…</string>
+    <!-- Pinned under the suggestions: back to typing the gig in by hand. -->
+    <string name="search_type_own">Type your own gig</string>
+    <!-- Under "Type your own gig". -->
+    <string name="search_type_own_sub">Not listed? Add it by hand</string>
+    <!-- Under the venue once a show was picked: the ticket page's site ("ticketmaster.co.nz"). It travels with the crew's invite. -->
+    <string name="plan_tickets_from">Ticket link: %1$s</string>
+    <!-- What a screen reader says for the ✕ next to the ticket link. -->
+    <string name="plan_tickets_remove">Remove the ticket link</string>
 </resources>

@@ -28,4 +28,22 @@
     <string name="plus_info_soon_title">เร็ว ๆ นี้</string>
     <string name="plus_info_soon_text">ยังซื้อ Moshpoint+ ไม่ได้ การพิมพ์คอน แก๊ง แชท และการหาเพื่อนยังฟรีเหมือนเดิม</string>
     <string name="plus_info_back">กลับไปที่แผน</string>
+    <string name="search_hint">วงหรือศิลปิน</string>
+    <string name="search_clear">ล้าง</string>
+    <string name="search_near">ใกล้คุณ</string>
+    <string name="search_near_region">ใกล้คุณ · %1$s</string>
+    <string name="search_elsewhere">ที่อื่นใน %1$s</string>
+    <string name="search_worldwide">ทั่วโลก</string>
+    <plurals name="search_shows_in">
+        <item quantity="other">%1$d คอนใน%2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="other">%1$d คอนทั่วโลก</item>
+    </plurals>
+    <string name="search_next">ถัดไป %1$s</string>
+    <string name="search_getting_list">กำลังโหลดรายการ…</string>
+    <string name="search_type_own">พิมพ์คอนเอง</string>
+    <string name="search_type_own_sub">ไม่มีในรายการ? เพิ่มเอง</string>
+    <string name="plan_tickets_from">ลิงก์ซื้อบัตร: %1$s</string>
+    <string name="plan_tickets_remove">ลบลิงก์ซื้อบัตร</string>
 </resources>

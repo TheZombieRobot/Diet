@@ -28,4 +28,24 @@
     <string name="plus_info_soon_title">ÇOK YAKINDA</string>
     <string name="plus_info_soon_text">Moshpoint+ henüz satışta değil. Konserini yazmak, ekipler, sohbet ve arkadaşlarını bulmak ücretsiz kalıyor.</string>
     <string name="plus_info_back">Plana dön</string>
+    <string name="search_hint">Grup ya da sanatçı</string>
+    <string name="search_clear">Temizle</string>
+    <string name="search_near">YAKININDA</string>
+    <string name="search_near_region">YAKININDA · %1$s</string>
+    <string name="search_elsewhere">%1$s · DİĞER YERLER</string>
+    <string name="search_worldwide">DÜNYA ÇAPINDA</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%2$s · %1$d konser</item>
+        <item quantity="other">%2$s · %1$d konser</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">dünya çapında %1$d konser</item>
+        <item quantity="other">dünya çapında %1$d konser</item>
+    </plurals>
+    <string name="search_next">sıradaki %1$s</string>
+    <string name="search_getting_list">Liste alınıyor…</string>
+    <string name="search_type_own">Konserini kendin yaz</string>
+    <string name="search_type_own_sub">Listede yok mu? Kendin ekle</string>
+    <string name="plan_tickets_from">Bilet bağlantısı: %1$s</string>
+    <string name="plan_tickets_remove">Bilet bağlantısını kaldır</string>
 </resources>

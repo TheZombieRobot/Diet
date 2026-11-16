@@ -28,4 +28,24 @@
     <string name="plus_info_soon_title">BALD VERFÜGBAR</string>
     <string name="plus_info_soon_text">Moshpoint+ gibt es noch nicht zu kaufen. Konzert eingeben, Crews, Chat und Freunde finden bleiben kostenlos.</string>
     <string name="plus_info_back">Zurück zum Plan</string>
+    <string name="search_hint">Band oder Künstler</string>
+    <string name="search_clear">Löschen</string>
+    <string name="search_near">IN DEINER NÄHE</string>
+    <string name="search_near_region">IN DEINER NÄHE · %1$s</string>
+    <string name="search_elsewhere">WOANDERS · %1$s</string>
+    <string name="search_worldwide">WELTWEIT</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d Konzert in %2$s</item>
+        <item quantity="other">%1$d Konzerte in %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d Konzert weltweit</item>
+        <item quantity="other">%1$d Konzerte weltweit</item>
+    </plurals>
+    <string name="search_next">nächstes %1$s</string>
+    <string name="search_getting_list">Liste wird geladen…</string>
+    <string name="search_type_own">Eigenes Konzert eingeben</string>
+    <string name="search_type_own_sub">Nicht dabei? Gib es selbst ein</string>
+    <string name="plan_tickets_from">Ticketlink: %1$s</string>
+    <string name="plan_tickets_remove">Ticketlink entfernen</string>
 </resources>

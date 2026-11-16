@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asImageBitmap
@@ -533,10 +532,9 @@ open class ScreensSnapshotTest {
                     pings = emptyList(), meetUp = null, chatUnread = 0,
                 )
                 androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().background(Mosh.Scrim))
+                // The contents scroll by themselves in the height the sheet gets (as on the phone).
                 androidx.compose.foundation.layout.Box(
-                    androidx.compose.ui.Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
-                        .heightIn(max = maxHeight - 32.dp)
-                        .verticalScroll(androidx.compose.foundation.rememberScrollState()),
+                    androidx.compose.ui.Modifier.align(androidx.compose.ui.Alignment.BottomCenter).heightIn(max = maxHeight - 32.dp),
                 ) { nz.waveformlabs.moshpoint.ui.home.SheetFrame(content = panel) }
             }
         }
@@ -559,6 +557,47 @@ open class ScreensSnapshotTest {
     @Test fun largeFontPlanGigFree() {
         paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.PIXEL_5).copy(fontScale = 1.3f))
         snapPlanFree()
+    }
+
+    // ---- Smart search, members (docs/DISCOVER_APP.md, SmartSearch.png). Made-up acts and venues. ----
+
+    private fun show(artist: String, date: String, city: String, country: String = "NZ") = nz.waveformlabs.moshpoint.core.DiscoverShow(
+        artist.lowercase(), artist, artist, date, "19:30", 0L, "Tidewater Arena", city, "north", country, -36.85, 174.76,
+        "https://tickets.example.com/${artist.lowercase().replace(' ', '-')}",
+    )
+
+    private fun act(artist: String, shows: Int, next: nz.waveformlabs.moshpoint.core.DiscoverShow) =
+        nz.waveformlabs.moshpoint.core.Suggestion(artist, 0.8, shows, shows, next)
+
+    private val suggestions = nz.waveformlabs.moshpoint.core.SuggestAnswer(
+        "NZ", "I", "north", true,
+        near = listOf(act("Ivory Tide", 3, show("Ivory Tide", "2027-03-13", "Auckland")), act("Inkwell Saints", 1, show("Inkwell Saints", "2027-01-22", "Wellington"))),
+        elsewhere = listOf(act("Idle Comets", 2, show("Idle Comets", "2027-02-06", "Christchurch")), act("Iris Undertow", 1, show("Iris Undertow", "2027-04-15", "Dunedin"))),
+        worldwide = listOf(act("Indigo Parade", 40, show("Indigo Parade", "2027-04-09", "Tokyo", "JP")), act("Ice Harbour", 18, show("Ice Harbour", "2027-03-20", "Sydney", "AU"))),
+    )
+
+    private val planSearch = nz.waveformlabs.moshpoint.ui.home.PlanSearch(
+        "NZ", "North Island", suggest = { nz.waveformlabs.moshpoint.discover.DiscoverClient.Answer.Ok(suggestions) }, startOf = { HomeFixtures.MAR_13 },
+    )
+
+    private fun snapSearch() = snapSheet {
+        val form = nz.waveformlabs.moshpoint.ui.home.PlanForm(HomeFixtures.MAR_13).apply { query = "I"; answer = suggestions }
+        PlanGigContent(form, member = true, search = planSearch, onPick = {}, lookupVenue = null, onWhatsPlus = {})
+    }
+
+    /** "I" typed: near you, elsewhere in New Zealand, worldwide; "Type your own gig" pinned underneath. */
+    @Test fun smartSearch() = snapSearch()
+
+    @Test fun smallPhoneLargeFontSmartSearch() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        snapSearch()
+    }
+
+    /** A show picked: the plan is filled in (name, date, venue) with its ticket link, ready for Start the crew. */
+    @Test fun smartSearchPicked() = snapSheet {
+        val form = nz.waveformlabs.moshpoint.ui.home.PlanForm(HomeFixtures.MAR_13_SHOWN)
+        form.fill(suggestions.near[0].next!!, "Ivory Tide", HomeFixtures.MAR_13_SHOWN)
+        PlanGigContent(form, member = true, search = planSearch, onPick = {}, lookupVenue = null, onWhatsPlus = {})
     }
 
     /** "What's in Moshpoint+": what it adds, and that it can't be bought yet. */

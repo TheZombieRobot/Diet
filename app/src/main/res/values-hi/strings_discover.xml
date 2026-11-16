@@ -28,4 +28,24 @@
     <string name="plus_info_soon_title">जल्द आ रहा है</string>
     <string name="plus_info_soon_text">Moshpoint+ अभी खरीदा नहीं जा सकता। अपना शो लिखना, ग्रुप, चैट और दोस्तों को ढूँढना फ़्री रहेगा।</string>
     <string name="plus_info_back">प्लान पर वापस</string>
+    <string name="search_hint">बैंड या आर्टिस्ट</string>
+    <string name="search_clear">साफ़ करें</string>
+    <string name="search_near">आपके पास</string>
+    <string name="search_near_region">आपके पास · %1$s</string>
+    <string name="search_elsewhere">%1$s में और कहीं</string>
+    <string name="search_worldwide">दुनिया भर में</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%2$s में %1$d शो</item>
+        <item quantity="other">%2$s में %1$d शो</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">दुनिया भर में %1$d शो</item>
+        <item quantity="other">दुनिया भर में %1$d शो</item>
+    </plurals>
+    <string name="search_next">अगला %1$s</string>
+    <string name="search_getting_list">लिस्ट आ रही है…</string>
+    <string name="search_type_own">अपना शो खुद लिखें</string>
+    <string name="search_type_own_sub">लिस्ट में नहीं? खुद जोड़ें</string>
+    <string name="plan_tickets_from">टिकट लिंक: %1$s</string>
+    <string name="plan_tickets_remove">टिकट लिंक हटाएँ</string>
 </resources>

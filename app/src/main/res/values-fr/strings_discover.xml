@@ -28,4 +28,26 @@
     <string name="plus_info_soon_title">BIENTÔT</string>
     <string name="plus_info_soon_text">Moshpoint+ n\'est pas encore en vente. Saisir ton concert, les crews, le chat et retrouver tes potes restent gratuits.</string>
     <string name="plus_info_back">Retour au plan</string>
+    <string name="search_hint">Groupe ou artiste</string>
+    <string name="search_clear">Effacer</string>
+    <string name="search_near">PRÈS DE CHEZ TOI</string>
+    <string name="search_near_region">PRÈS DE CHEZ TOI · %1$s</string>
+    <string name="search_elsewhere">AILLEURS · %1$s</string>
+    <string name="search_worldwide">DANS LE MONDE</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d concert · %2$s</item>
+        <item quantity="many">%1$d concerts · %2$s</item>
+        <item quantity="other">%1$d concerts · %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d concert dans le monde</item>
+        <item quantity="many">%1$d concerts dans le monde</item>
+        <item quantity="other">%1$d concerts dans le monde</item>
+    </plurals>
+    <string name="search_next">prochain %1$s</string>
+    <string name="search_getting_list">Récupération de la liste…</string>
+    <string name="search_type_own">Saisis ton propre concert</string>
+    <string name="search_type_own_sub">Pas dans la liste ? Ajoute-le à la main</string>
+    <string name="plan_tickets_from">Lien des billets : %1$s</string>
+    <string name="plan_tickets_remove">Retirer le lien des billets</string>
 </resources>

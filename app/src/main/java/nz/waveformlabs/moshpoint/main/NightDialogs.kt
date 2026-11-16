@@ -16,17 +16,20 @@ import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.Invite
 import nz.waveformlabs.moshpoint.core.InviteRelay
 import nz.waveformlabs.moshpoint.core.LatLon
+import nz.waveformlabs.moshpoint.core.ShowStart
+import nz.waveformlabs.moshpoint.discover.DiscoverClient
+import nz.waveformlabs.moshpoint.discover.DiscoverWhere
 import nz.waveformlabs.moshpoint.crew.Bump
 import nz.waveformlabs.moshpoint.crew.CrewRekey
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.gigs.GigArchive
-import nz.waveformlabs.moshpoint.gigs.GigSearch
 import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.sharing.Sharing
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.home.BumpDialog
 import nz.waveformlabs.moshpoint.ui.home.PlanGigSheet
+import nz.waveformlabs.moshpoint.ui.home.PlanSearch
 import nz.waveformlabs.moshpoint.ui.home.PlannedGig
 import nz.waveformlabs.moshpoint.watch.Entitlements
 import nz.waveformlabs.moshpoint.ui.settings.InviteConfirmDialog
@@ -41,11 +44,24 @@ import nz.waveformlabs.moshpoint.venue.VenueLookup
 @NonRestartableComposable
 internal fun NightDialogs(a: MainActivity) {
     if (a.home.planGig) {
-        // Moshpoint+ members get search; free users type it in, with a quiet Moshpoint+ card (docs/DISCOVER_APP.md).
+        // Moshpoint+ members get smart search; free users type it in, with a quiet Moshpoint+ card
+        // (docs/DISCOVER_APP.md). Only the country and at most the region go to the relay.
         val member = Entitlements.plus(a)
+        val search = if (member && DiscoverClient.available) {
+            val country = DiscoverWhere.country(a)
+            val region = DiscoverWhere.region(a, country, a.lastKnownLocation()?.let { LatLon(it.latitude, it.longitude) })
+            PlanSearch(
+                country = country,
+                regionName = DiscoverWhere.regionName(a, country, region),
+                suggest = { q -> DiscoverClient.suggest(country, q, region) },
+                startOf = { show -> ShowStart.of(show, country, java.time.ZoneId.systemDefault()) },
+            )
+        } else {
+            null
+        }
         PlanGigSheet(
             member = member,
-            search = if (member && GigSearch.available) ({ q -> GigSearch.search(q) }) else null,
+            search = search,
             onPick = { p -> startPlannedCrew(a, p) },
             onClose = { a.home.planGig = false },
             lookupVenue = { text ->

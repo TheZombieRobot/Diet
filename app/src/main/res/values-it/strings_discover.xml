@@ -28,4 +28,26 @@
     <string name="plus_info_soon_title">PRESTO DISPONIBILE</string>
     <string name="plus_info_soon_text">Moshpoint+ non è ancora in vendita. Scrivere il tuo concerto, i gruppi, la chat e trovare gli amici restano gratis.</string>
     <string name="plus_info_back">Torna al piano</string>
+    <string name="search_hint">Band o artista</string>
+    <string name="search_clear">Cancella</string>
+    <string name="search_near">VICINO A TE</string>
+    <string name="search_near_region">VICINO A TE · %1$s</string>
+    <string name="search_elsewhere">ALTROVE · %1$s</string>
+    <string name="search_worldwide">NEL MONDO</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d concerto · %2$s</item>
+        <item quantity="many">%1$d concerti · %2$s</item>
+        <item quantity="other">%1$d concerti · %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d concerto nel mondo</item>
+        <item quantity="many">%1$d concerti nel mondo</item>
+        <item quantity="other">%1$d concerti nel mondo</item>
+    </plurals>
+    <string name="search_next">prossimo %1$s</string>
+    <string name="search_getting_list">Sto caricando la lista…</string>
+    <string name="search_type_own">Scrivi tu il concerto</string>
+    <string name="search_type_own_sub">Non c\'è? Aggiungilo a mano</string>
+    <string name="plan_tickets_from">Link ai biglietti: %1$s</string>
+    <string name="plan_tickets_remove">Togli il link ai biglietti</string>
 </resources>

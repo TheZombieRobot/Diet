@@ -28,4 +28,22 @@
     <string name="plus_info_soon_title">SEGERA HADIR</string>
     <string name="plus_info_soon_text">Moshpoint+ belum bisa dibeli. Ketik konser, geng, chat, dan cari teman tetap gratis.</string>
     <string name="plus_info_back">Kembali ke rencana</string>
+    <string name="search_hint">Band atau artis</string>
+    <string name="search_clear">Hapus</string>
+    <string name="search_near">DI DEKATMU</string>
+    <string name="search_near_region">DI DEKATMU · %1$s</string>
+    <string name="search_elsewhere">TEMPAT LAIN DI %1$s</string>
+    <string name="search_worldwide">SELURUH DUNIA</string>
+    <plurals name="search_shows_in">
+        <item quantity="other">%1$d konser di %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="other">%1$d konser di seluruh dunia</item>
+    </plurals>
+    <string name="search_next">berikutnya %1$s</string>
+    <string name="search_getting_list">Lagi ambil daftarnya…</string>
+    <string name="search_type_own">Ketik konser sendiri</string>
+    <string name="search_type_own_sub">Nggak ada? Tambah sendiri</string>
+    <string name="plan_tickets_from">Link tiket: %1$s</string>
+    <string name="plan_tickets_remove">Hapus link tiket</string>
 </resources>

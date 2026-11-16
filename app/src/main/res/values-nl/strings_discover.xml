@@ -28,4 +28,24 @@
     <string name="plus_info_soon_title">BINNENKORT</string>
     <string name="plus_info_soon_text">Moshpoint+ is nog niet te koop. Je concert intypen, crews, chat en je vrienden vinden blijven gratis.</string>
     <string name="plus_info_back">Terug naar het plan</string>
+    <string name="search_hint">Band of artiest</string>
+    <string name="search_clear">Wissen</string>
+    <string name="search_near">BIJ JOU IN DE BUURT</string>
+    <string name="search_near_region">BIJ JOU IN DE BUURT · %1$s</string>
+    <string name="search_elsewhere">ELDERS · %1$s</string>
+    <string name="search_worldwide">WERELDWIJD</string>
+    <plurals name="search_shows_in">
+        <item quantity="one">%1$d concert in %2$s</item>
+        <item quantity="other">%1$d concerten in %2$s</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="one">%1$d concert wereldwijd</item>
+        <item quantity="other">%1$d concerten wereldwijd</item>
+    </plurals>
+    <string name="search_next">volgende %1$s</string>
+    <string name="search_getting_list">Lijst ophalen…</string>
+    <string name="search_type_own">Typ zelf je concert in</string>
+    <string name="search_type_own_sub">Staat het er niet bij? Voeg het zelf toe</string>
+    <string name="plan_tickets_from">Ticketlink: %1$s</string>
+    <string name="plan_tickets_remove">Ticketlink verwijderen</string>
 </resources>

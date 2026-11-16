@@ -28,4 +28,22 @@
     <string name="plus_info_soon_title">即將推出</string>
     <string name="plus_info_soon_text">Moshpoint+ 尚未開賣。手動輸入演出、小隊、聊天和找朋友都繼續免費。</string>
     <string name="plus_info_back">回到計畫</string>
+    <string name="search_hint">樂團或藝人</string>
+    <string name="search_clear">清除</string>
+    <string name="search_near">你附近</string>
+    <string name="search_near_region">你附近 · %1$s</string>
+    <string name="search_elsewhere">%1$s其他地區</string>
+    <string name="search_worldwide">全球</string>
+    <plurals name="search_shows_in">
+        <item quantity="other">%2$s有 %1$d 場演出</item>
+    </plurals>
+    <plurals name="search_shows_worldwide">
+        <item quantity="other">全球 %1$d 場演出</item>
+    </plurals>
+    <string name="search_next">下一場 %1$s</string>
+    <string name="search_getting_list">正在取得清單…</string>
+    <string name="search_type_own">自己輸入演出</string>
+    <string name="search_type_own_sub">沒找到？手動新增</string>
+    <string name="plan_tickets_from">購票連結：%1$s</string>
+    <string name="plan_tickets_remove">移除購票連結</string>
 </resources>
