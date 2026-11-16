@@ -121,8 +121,11 @@ for a busy crew).
   every reader are untouched. `HeldMirrorTest` checks the copy always reads exactly like the
   relay's whole mailbox, against a model of the relay's store.
 - MORE (an answer full at 512 KB) asks again at once, up to 20 asks a poll.
-- A cursor the relay doesn't know (it was replaced, or another relay) comes back as
-  everything with a `next` below what was asked: the copy starts again from that answer.
+- A cursor the relay doesn't know (above anything it has handed out) comes back as everything
+  with a `next` below what was asked: the copy starts again from that answer. Another relay may
+  take our cursor as its own (one that started later has higher numbers), so the copy is kept
+  for one relay: a phone moved to another starts again from everything (`HeldMirror.relay`,
+  review finding F4, [WAVE2C_REVIEW.md](WAVE2C_REVIEW.md)).
 - In memory only, at most 4 MB (least recently used mailboxes go first; never one the poll is
   reading); a mailbox not asked about for 6 hours is forgotten. Forgetting is always safe: the
   next ask is from cursor 0, everything, as before. So every start of the app begins with one

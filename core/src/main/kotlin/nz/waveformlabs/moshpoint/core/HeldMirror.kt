@@ -39,6 +39,23 @@ class HeldMirror(
     private val boxes = LinkedHashMap<String, Box>()
     private var bytes = 0L
 
+    /** The relay this copy is of. */
+    private var relay = ""
+
+    /**
+     * The relay the next asks go to. A copy of another relay's mailboxes is dropped: its cursors
+     * mean nothing to this one, and a relay whose store started later takes them as its own
+     * (every start raises its numbers to the clock), so its answers would mix in with the old
+     * copy (docs/WAVE2C_REVIEW.md, F4). The next ask of each mailbox is from everything.
+     */
+    @Synchronized
+    fun relay(base: String) {
+        if (base == relay) return
+        relay = base
+        boxes.clear()
+        bytes = 0L
+    }
+
     /** The cursor to ask mailbox [id] (hex) with: 0 = everything. */
     @Synchronized
     fun cursor(id: String): Long = boxes[id]?.cursor ?: 0L

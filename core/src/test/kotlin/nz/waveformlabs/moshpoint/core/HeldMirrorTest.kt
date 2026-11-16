@@ -136,12 +136,19 @@ class HeldMirrorTest {
         val m = HeldMirror()
         val id = "chat"
         repeat(5) { first.put(id, msg(it)) }
+        m.relay("https://first")
         m.poll(first, id)
         assertSame(first, m, id)
         repeat(3) { later.put(id, msg(500 + it)) }
         assertTrue(m.cursor(id) < later.seq, "our cursor looks like one of its own to the later relay")
         // The same mailbox id, asked of the relay now in use, as RelayClient.heldSince does.
+        m.relay("https://later")
+        assertEquals(0L, m.cursor(id), "asked from everything")
         m.poll(later, id)
+        assertSame(later, m, id)
+        // The same relay again keeps the copy: a poll with nothing new still downloads nothing.
+        m.relay("https://later")
+        assertEquals(0, later.since(id, m.cursor(id)).records.size)
         assertSame(later, m, id)
     }
 

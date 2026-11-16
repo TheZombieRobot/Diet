@@ -246,6 +246,8 @@ object RelayClient {
      * `/v1/heldlookup` gave it. Null if [b] has no `/v1/heldsince` (an older relay): use the old lookup.
      */
     private suspend fun heldSince(ids: List<ByteArray>, b: String): Held? = heldPolls.withLock {
+        // Cursors and the copy belong to one relay: a phone moved to another starts again from everything.
+        mirror.relay(b)
         val keys = ids.map { it.hex() }
         var asks = ids.indices.toList()
         var rounds = 0
