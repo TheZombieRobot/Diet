@@ -13,11 +13,11 @@ branch: `ui-screenshots-claude-wave2c-perf-m4x7rd`, compared with `ui-screenshot
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Follow-up (after the merge into ccr at 16c6eeb): code done, pushed for CI.** Full-size
-  originals from the in-app camera again, and the glow's drift back (see "Follow-up" below).
-  If CI fails, the files are `ui/moments/CaptureScreen.kt`, `moments/MomentFlow.kt`,
-  `moments/Moments.kt`, `ui/moments/StoryScreen.kt` and `ui/Neon.kt`; then compare the
-  screenshots as below and report to the parent session.
+- **Follow-up (after the merge into ccr at 16c6eeb): done.** Full-size originals from the
+  in-app camera again, and the glow's drift back (see "Follow-up" below). Last green run:
+  **319** (push, 5f7a2f4, success); screenshots phone 1711 of 1711 and watch 798 of 798
+  byte-identical to `ui-screenshots` / `ui-screenshots-watch`, every language. Reported to the
+  parent session. Next (owner): FIELD_TEST_PLAN.md section 4i, then merge.
 - **Done before the follow-up: the whole list (items 1-4), with the proofs.** Last green run: **318** (dispatched on
   b3edd12, items 1-4 together; conclusion success). Item 1 alone: run 317 (0efbb3e), success.
 - **Screenshots:** both runs, phone 1711 of 1711 and watch 798 of 798 **byte-identical** to
