@@ -46,6 +46,42 @@ class BatchPlanTest {
         assertEquals(Long.MAX_VALUE, plan.dueAtMs())
     }
 
+    /**
+     * Review finding F1 (docs/WAVE2C_REVIEW.md): `RelayClient`'s flusher sleeps until the batch is
+     * due, and with nothing waiting until it's woken. With no crew sync to take the puts (no crew,
+     * or a dormant one: friends finding each other), every location queued for the minute's batch
+     * must still go within a minute: the first one, and every one after the queue has emptied.
+     * The flusher here is the app's: asleep until [BatchPlan.dueAtMs] as it last read it, woken
+     * only when queuing a put says so.
+     */
+    @Test fun everyPutForTheMinuteGoesWithinAMinuteWithNoCrewSync() {
+        val plan = BatchPlan()
+        var started = false // the first put starts the flusher, which then reads when the batch is due
+        var sleepUntil = Long.MAX_VALUE // nothing waiting: asleep until woken
+        val waited = ArrayList<Long>() // how long each location waited before its batch went
+        val queuedAt = HashMap<Int, Long>()
+        var fix = 0
+        for (s in 0..600) {
+            val now = s * 1_000L
+            // A location every 15 s, each under that minute's rotating id (5 minutes in the app).
+            if (s % 15 == 0) {
+                fix++
+                queuedAt[fix] = now
+                val before = plan.dueAtMs()
+                plan.add(BatchPlan.Put(id(s / 300), rec(fix), held = false, replaceable = true), BatchPlan.Timing.MINUTE, now)
+                // The app wakes its flusher only for a put someone is waiting for (Timing.SOON).
+                if (!started || (false && before > plan.dueAtMs())) sleepUntil = plan.dueAtMs()
+                started = true
+            }
+            if (now >= sleepUntil) {
+                plan.take(emptyList(), now).puts.forEach { p -> waited += now - queuedAt.getValue(queuedAt.keys.single { rec(it).contentEquals(p.record) }) }
+                sleepUntil = plan.dueAtMs()
+            }
+        }
+        assertTrue(waited.size >= 9, "a batch about every minute for ten minutes (${waited.size} locations went)")
+        assertTrue(waited.all { it <= 60_000L }, "none waits over a minute: $waited")
+    }
+
     @Test fun getsFirstThenTheOldestPutsThatFit() {
         val plan = BatchPlan()
         repeat(150) { plan.add(loc(it, it), BatchPlan.Timing.MINUTE, it.toLong()) }
