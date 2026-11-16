@@ -190,10 +190,7 @@ class BatchPlanTest {
      */
     @Test fun aBackgroundBurstNeverStarvesTheBatchOrTheFinder() {
         // Our relay with batches, as RelayClient builds it.
-        val b = RelayBudget(
-            messagesPerDay = 1_000_000, requestsPerMinute = 30, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
-            throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, safetyAlwaysHasRoom = true, random = { 0.0 },
-        )
+        val b = RelayBudget.withBatches(random = { 0.0 })
         var now = 0L
         var photos = 0
         repeat(40) {
@@ -217,6 +214,10 @@ class BatchPlanTest {
             now += 1_000L
         }
         assertNotNull(b.take(RelayUse.SAFETY, true, now), "and safety, as ever")
+        // Still a net for a runaway loop: a minute of requests back to back stops at the relay's own rate.
+        var looped = 0
+        repeat(500) { b.take(RelayUse.MESSAGE, false, now)?.let { t -> b.settle(t, RelayBudget.Outcome.OK, now); looped++ } }
+        assertTrue(looped < 120, "a runaway loop is held back ($looped went)")
     }
 
     /**

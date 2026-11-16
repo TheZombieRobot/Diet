@@ -166,10 +166,13 @@ crowd-relay packet (10 to 20 a minute in a crowd), floor box and intro.
   most 90 s for its batch, then the courier is told "no answer".
 - **Older relay:** `404`, `405`, `400`, `413` or an unreadable answer: everything waiting goes
   the old way at once, one request each, and the old lookups for an hour (`RelayEndpoints`).
-- **Budget (11.6):** with batches, our relay's budget drops from 600 requests a minute to 30.
-  Decision: not "about 10": the finder polls our relay every 4 s while it's open (15 a minute),
-  which must never be held back. Safety never counts against it (`safetyAlwaysHasRoom`); the
-  public relay's budget is unchanged. Without batches (an older relay) the old 600 stands.
+- **Budget (11.6):** with batches, our relay's budget drops from 600 requests a minute to 120
+  (core `RelayBudget.withBatches`), of which the background may take at most 90. Decision: not
+  "about 10", and not 30 as first built: the budget counts every request, and much never rides
+  in the batch (the finder's poll every 4 s, the open chat's polls, moments, profile photos), so
+  a background burst filled 30 and refused the batch and the finder (review finding F3,
+  [WAVE2C_REVIEW.md](WAVE2C_REVIEW.md)). Safety never counts against it (`safetyAlwaysHasRoom`);
+  the public relay's budget is unchanged. Without batches (an older relay) the old 600 stands.
 - **Sync interval:** 60 s with batches (was 30 s on our relay), unchanged without them.
 - **The app's bytes against the real relay:** core `AppRequestFixtureTest` builds a sync batch
   and a chat poll with the app's own code and checks them against
