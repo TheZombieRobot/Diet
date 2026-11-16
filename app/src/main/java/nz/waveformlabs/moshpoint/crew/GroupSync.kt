@@ -136,6 +136,8 @@ object GroupSync {
     }
     private var advertCallback: AdvertisingSetCallback? = null
     private var advertSet: AdvertisingSet? = null
+    /** The interval the current (or pending) intro advert set was started with: true = every second. */
+    private var advertSlow = false
 
     // ---- Persistence ----
 
@@ -539,7 +541,7 @@ object GroupSync {
                     BleHub.onBluetooth(true)
                 }
                 if (r.listen && !listening) startListening(c, g)
-                if (r.advertise) advertise(c, out)
+                if (r.advertise) advertise(c, out, slow = IntroRadio.slow(now - startedAtMs))
                 if (now - lastServer > (if (RelayClient.ownServer) 30_000L else 55_000L)) {
                     lastServer = now
                     syncServer(c, g, mine, now)
@@ -956,12 +958,19 @@ object GroupSync {
         DebugStatus.set("Gig group", "${g.name}: listening for members")
     }
 
+    /** [slow]: every second instead of 250 ms (after the first half hour, core IntroRadio). */
     @SuppressLint("MissingPermission")
-    private fun advertise(c: Context, intro: ByteArray) {
+    private fun advertise(c: Context, intro: ByteArray, slow: Boolean) {
         val adapter = c.getSystemService(BluetoothManager::class.java)?.adapter ?: return
         if (!adapter.isEnabled || !adapter.isLeExtendedAdvertisingSupported) return
         val data = AdvertiseData.Builder().addServiceData(INTRO_UUID, intro).build()
         try {
+            if (slow != advertSlow && advertCallback != null) {
+                // The interval is fixed when a set starts: stop this one; a new one starts below.
+                advertCallback?.let { old -> runCatching { adapter.bluetoothLeAdvertiser?.stopAdvertisingSet(old) } }
+                advertCallback = null
+                advertSet = null
+            }
             val set = advertSet
             if (set != null) {
                 set.setAdvertisingData(data)
@@ -983,10 +992,12 @@ object GroupSync {
                 }
             }
             advertCallback = cb
+            advertSlow = slow
             adapter.bluetoothLeAdvertiser?.startAdvertisingSet(
                 AdvertisingSetParameters.Builder()
                     .setLegacyMode(false).setConnectable(false).setScannable(false)
-                    .setInterval(AdvertisingSetParameters.INTERVAL_MEDIUM) // ~250 ms: each intro in the rotation gets heard
+                    // ~250 ms while the crew meets, so each intro in the rotation gets heard; then ~1 s.
+                    .setInterval(if (slow) AdvertisingSetParameters.INTERVAL_LOW else AdvertisingSetParameters.INTERVAL_MEDIUM)
                     .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_MEDIUM)
                     .setPrimaryPhy(BluetoothDevice.PHY_LE_1M).setSecondaryPhy(BluetoothDevice.PHY_LE_1M)
                     .build(),
