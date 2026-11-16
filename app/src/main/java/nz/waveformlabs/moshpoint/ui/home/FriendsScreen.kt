@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -68,6 +69,12 @@ fun FriendsScreen(
     inviteActions: HomeInviteActions,
     gigActions: HomeGigActions,
 ) {
+    // The action holders are made anew on every home redraw. The lambdas below that use them read
+    // the latest through these, so they stay the same objects from one redraw to the next and the
+    // face tiles, friends strip, Up next rows, memory card and sheets can skip redrawing
+    // (PRODUCTION_AUDIT.md, "Home redraw efficiency").
+    val crewNow = rememberUpdatedState(crewActions)
+    val gigsNow = rememberUpdatedState(gigActions)
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
@@ -259,12 +266,12 @@ fun FriendsScreen(
     }
     if (friendsOpen) {
         MoshSheet(onClose = { friendsOpen = false }) {
-            FriendsListContent(permanent, crew.seen, crew.nowSec, onFind = { friendsOpen = false; crewActions.onFind(setOf(it)) }, onOptions = { options = it })
+            FriendsListContent(permanent, crew.seen, crew.nowSec, onFind = { friendsOpen = false; crewNow.value.onFind(setOf(it)) }, onOptions = { options = it })
         }
     }
     if (gigsOpen) {
         MoshSheet(onClose = { gigsOpen = false }) {
-            PastGigsContent(past) { g -> gigsOpen = false; gigActions.onOpenGig(g) }
+            PastGigsContent(past) { g -> gigsOpen = false; gigsNow.value.onOpenGig(g) }
         }
     }
 
@@ -366,7 +373,7 @@ fun FriendsScreen(
                                 // Tonight, with mates in: the faces and Find everyone are the loudest things here.
                                 CrewTiles(
                                     gig, crew.seen, crew.nowSec,
-                                    onFind = { crewActions.onFind(setOf(it)) }, onOptions = { options = it },
+                                    onFind = { crewNow.value.onFind(setOf(it)) }, onOptions = { options = it },
                                     distances = crew.distances, badges = crew.privateUnread, flares = crew.flareNotes,
                                 )
                                 DotLineText(
@@ -406,14 +413,14 @@ fun FriendsScreen(
                         SectionTitle(stringResource(R.string.home_section_up_next), Modifier.padding(top = 18.dp))
                         HomeDivider()
                         gigs.upNext.forEach { card ->
-                            UpNextRow(card) { gigActions.onOpenUpNext(card.id) }
+                            UpNextRow(card) { gigsNow.value.onOpenUpNext(card.id) }
                             HomeDivider()
                         }
                     }
                     // "Remember last year?": a gig on this day in an earlier year.
                     nz.waveformlabs.moshpoint.gigs.Memories.today(gigs.pastGigs, if (crew.nowSec > 0) crew.nowSec * 1000 else System.currentTimeMillis()).firstOrNull()?.let { (g, years) ->
                         Spacer(Modifier.height(28.dp))
-                        MemoryCard(g, years) { gigActions.onOpenGig(g) }
+                        MemoryCard(g, years) { gigsNow.value.onOpenGig(g) }
                     }
                     if (past.isNotEmpty()) {
                         SectionTitle(stringResource(R.string.home_section_past_gigs), Modifier.padding(top = 18.dp), onSeeAll = { gigsOpen = true })
@@ -431,7 +438,7 @@ fun FriendsScreen(
                             modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 6.dp),
                         )
                     } else {
-                        FriendsStrip(permanent, crew.seen, crew.nowSec, onFind = { crewActions.onFind(setOf(it)) }, onOptions = { options = it })
+                        FriendsStrip(permanent, crew.seen, crew.nowSec, onFind = { crewNow.value.onFind(setOf(it)) }, onOptions = { options = it })
                         DotLineText(
                             stringResource(R.string.home_tap_mate_hint),
                             style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
