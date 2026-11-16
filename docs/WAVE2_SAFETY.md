@@ -9,13 +9,15 @@ Branch: `claude/wave2-safety-k7m3p9` (from `ccr-5839ed7c-1q0ztj`).
 _Keep this section current: whoever picks this up next starts here._
 
 - **Done (code):** items 1–8 below, and all eight P2 items (see "P2").
-- **Core tests:** `SafetyRulesTest` (33 tests: Need help status, Live rules, alarm plan, storage
-  notice, check-in alarm and reminder times, clock check), the save-format migrations in
+- **Core tests:** `SafetyRulesTest` (37 tests: Need help status, Live rules, alarm plan, storage
+  notice, check-in alarm and reminder times, clock check, and the review round's rules: the
+  once-only reminder, whether the crew has the check-in, restoring after an update, quiet
+  off), the save-format migrations in
   `CourierSimTest` and `PrivateTest`, `FriendRecordTest` updated; all core tests pass locally
   (scratch Gradle build that includes only `:core`, as docs/WATCH.md describes).
 - **App tests:** `RadarLogicTest` (the radar crash); screenshot tests for every new UI state in
   `ScreensSnapshotTest` (so in all 21 language folders).
-- **Translations:** `strings_safety.xml` (30 strings) in all 20 values folders, each checked
+- **Translations:** `strings_safety.xml` (33 strings, 3 of them from the review round) in all 20 values folders, each checked
   against the app's and the watch's existing words (Sent, Sent nearby, Not sent yet, I'm home
   safe, the word for "signal"); a "Safety and Live" section in each docs/i18n guide with the
   choices and doubts. `crew_help_alerted` ("Crew alerted ✓", the misleading label) removed from
@@ -27,9 +29,10 @@ _Keep this section current: whoever picks this up next starts here._
   scan) is separate from everything here (check-ins, Need help, Live on crew change), and its
   PermissionAsks (`askWithDisclosure`) is what `HomeState.setVisibility` now calls before the
   honest go-live path added here.
-- **CI:** green, run 310 on 10a5965 (see "CI runs" at the end).
+- **CI:** green, run 311 on 41d9f3d, the review fixes (before that, run 310 on 10a5965; see
+  "CI runs" at the end). ccr hadn't moved since ebe3c26, which is merged here.
 - **Review round:** the eight findings of the independent review are fixed (see "Review
-  round"); CI and the report follow.
+  round"), CI green, reported.
 - **Next:** merge into ccr (the main branch already contains wave 2b, merged here), then the
   field tests in docs/FIELD_TEST_PLAN.md section 4f on phones. Nothing from the list is left.
 - **If ccr moves on:** the shared files touched here are small, local edits: `AndroidManifest.xml`
@@ -227,6 +230,8 @@ All new; no existing screen should change by a pixel.
   `helpWaitReasons`, `smallPhoneLargeFontHelpNotSentYet`: the Need help dialog's contents.
 - `noticeNoLongerLive`, `noticeStillAtTheGig`, `noticeStorageFull`,
   `smallPhoneLargeFontNoticeNoLongerLive`: the app's own notices.
+- Review round: `helpSentNoLocation` (the alert went without a location) and `noticeCrewNotOn`
+  (Live off while the main crew isn't on).
 - Not drawable in tests: the notifications (live with Bluetooth off, "You're no longer live",
   "Still at the gig?", "Home yet?", storage full, overdue on the help channel).
 
@@ -254,3 +259,8 @@ Bluetooth off; Doze (adb force-idle, followers' check); Live switching itself of
   store-security): all 1,417 phone and 798 watch screenshots byte-identical; the only
   difference is the 252 new ones. The small-phone, large-font Need help now keeps Close on
   screen and scrolls, in every language.
+- **Run 311 (41d9f3d, the review fixes): green**, phone and watch, every step. Compared with
+  main + 2b: all 1,417 phone and 798 watch screenshots byte-identical, 294 new (the 14 tests
+  above × 21); compared with run 310, the only difference is the 42 new ones
+  (`helpSentNoLocation`, `noticeCrewNotOn`). Both checked by eye in every language: nothing
+  clipped; the titles that wrap to two lines (de, pl, tr, vi, pt) stay inside the card.
