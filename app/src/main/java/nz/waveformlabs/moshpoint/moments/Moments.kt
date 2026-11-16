@@ -16,10 +16,12 @@ import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.core.MomentFetch
 import nz.waveformlabs.moshpoint.crew.CrewNotifications
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
+import nz.waveformlabs.moshpoint.setup.NetState
 import java.io.ByteArrayOutputStream
 
 /**
@@ -65,6 +67,9 @@ object Moments {
     private val seenUrls = HashSet<String>()
     private var lastCheckMs = 0L
 
+    /** Moments too big for the background on mobile data (clips): fetched when the Story opens, or on Wi-Fi. */
+    private val leftOver = HashSet<String>()
+
     /**
      * Share a photo with the crew. Returns false if it couldn't be sent (no crew, no internet).
      * [originalFile]: our camera's full-size JPEG, kept untouched as your original.
@@ -83,7 +88,8 @@ object Moments {
             }
         val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), jpeg)
         val sealed = withContext(Dispatchers.Default) { g.sealMoment(m) }
-        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)
+        // Sealed again (a new nonce) if our relay says the bytes look like an ordinary file (core Reseal).
+        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed) { withContext(Dispatchers.Default) { g.sealMoment(m) } }
         if (ok) {
             add(app, m, "mine-${m.timeSec}", mine = true, original = original)
             NightStats.moment(app)
@@ -92,20 +98,34 @@ object Moments {
         return ok
     }
 
-    /** While the Story is open: check every 30 s (the board feels live). */
-    suspend fun refreshNow(c: Context, g: GigGroup) = refresh(c, g, minGapMs = 25_000)
+    /** While the Story is open: check every 30 s (the board feels live), clips included (someone tapped to watch). */
+    suspend fun refreshNow(c: Context, g: GigGroup) = refresh(c, g, minGapMs = 25_000, opened = true)
 
-    /** Check for new moments (at most every 2 minutes). Called from the crew sync loop. */
-    suspend fun refresh(c: Context, g: GigGroup, minGapMs: Long = 120_000) {
+    /**
+     * Check for new moments (at most every 2 minutes). Called from the crew sync loop. In the
+     * background on mobile data only what shows a moment exists comes (photos); a clip waits for
+     * the Story ([opened]) or Wi-Fi (core MomentFetch, performance P1-8).
+     */
+    suspend fun refresh(c: Context, g: GigGroup, minGapMs: Long = 120_000, opened: Boolean = false) {
         if (!RelayClient.filesEnabled) return
         val now = System.currentTimeMillis()
         if (now - lastCheckMs < minGapMs) return
         lastCheckMs = now
         val day = Math.floorDiv(now / 1000, 86_400L)
         val files = RelayClient.listFiles(listOf(g.momentsIdForDay(day), g.momentsIdForDay(day - 1))) ?: return
+        val unmetered = NetState.unmetered
+        val limit = MomentFetch.limit(opened, unmetered, RelayClient.MAX_FILE.toLong())
         for ((_, url) in files.take(12)) {
             if (url in seenUrls || items.any { it.key == url }) continue
-            val blob = RelayClient.download(url) ?: continue // try again next time
+            // Known to be big (a clip): not asked for again on mobile data in the background.
+            if (url in leftOver && !MomentFetch.retryLeftOver(opened, unmetered)) continue
+            val got = RelayClient.fetch(url, limit)
+            if (got.tooBig) {
+                leftOver += url
+                continue
+            }
+            val blob = got.bytes ?: continue // try again next time
+            leftOver -= url
             seenUrls += url
             // Opened off the main thread: a clip is up to 12 MB (performance P1-6).
             val m = withContext(Dispatchers.Default) { g.openMoment(blob) } ?: continue
@@ -132,6 +152,7 @@ object Moments {
     fun clear() {
         items.clear()
         seenUrls.clear()
+        leftOver.clear()
         lastCheckMs = 0L
     }
 
@@ -197,7 +218,7 @@ object Moments {
         }
         val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), packed)
         val sealed = withContext(Dispatchers.Default) { g.sealMoment(m) } // up to 12 MB: off the main thread
-        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)
+        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed) { withContext(Dispatchers.Default) { g.sealMoment(m) } }
         if (ok) {
             add(app, m, "mine-${m.timeSec}", mine = true)
             NightStats.moment(app)

@@ -92,7 +92,9 @@ object VenueLookup {
     private fun viaServer(q: String, near: LatLon?): Result = runCatching {
         val base = RelayClient.shareableServer
         val box = VenueQuery.viewbox(near)?.let { "&box=" + URLEncoder.encode(it, "UTF-8") }.orEmpty()
-        val c = URL("$base/v1/venue?q=${URLEncoder.encode(q, "UTF-8")}$box").openConnection() as HttpURLConnection
+        val url = "$base/v1/venue?q=${URLEncoder.encode(q, "UTF-8")}$box"
+        val c = URL(url).openConnection() as HttpURLConnection
+        RelayClient.sign(c, url)
         c.connectTimeout = 5_000
         c.readTimeout = 8_000
         val code = c.responseCode

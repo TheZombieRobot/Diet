@@ -554,7 +554,8 @@ object GroupSync {
                 }
                 if (r.listen && !listening) startListening(c, g)
                 if (r.advertise) advertise(c, out, slow = IntroRadio.slow(now - startedAtMs))
-                if (now - lastServer > (if (RelayClient.ownServer) 30_000L else 55_000L)) {
+                // Once a minute with our relay's batches (one request for everything), else as before.
+                if (now - lastServer > RelayClient.syncGapMs) {
                     lastServer = now
                     syncServer(c, g, mine, now)
                 }
@@ -593,7 +594,9 @@ object GroupSync {
         checkOverdue(c)
         CrewChat.tick()
         ChatSync.pollAll(c, minGapMs = 120_000)
-        val found = RelayClient.lookup(ids) ?: return
+        // With our own relay, one batch: these lookups plus every location, floor, crowd-relay
+        // packet, intro and crew message waiting to go up (RelayClient.sync). Else a lookup, as before.
+        val found = RelayClient.sync(ids) ?: return
         found.subList(0, 2).flatten().forEach { received(c, g, it) }
         // The courier notes what's on the relay, so nothing it carries is uploaded twice, and
         // says which pings this phone has never had before.

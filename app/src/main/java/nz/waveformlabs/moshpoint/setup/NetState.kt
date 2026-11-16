@@ -30,6 +30,10 @@ object NetState {
     @Volatile var up = true
         private set
 
+    /** The network in use isn't metered (Wi-Fi, usually): crew clips download in the background only then (core MomentFetch). */
+    @Volatile var unmetered = false
+        private set
+
     private var registered = false
     private val main = Handler(Looper.getMainLooper())
     private val listeners = ArrayList<(Boolean) -> Unit>()
@@ -46,14 +50,18 @@ object NetState {
         // Needs ACCESS_NETWORK_STATE (granted at install). If any of this fails we stay
         // "online" and simply try, exactly as before.
         runCatching {
-            set(cm.getNetworkCapabilities(cm.activeNetwork)?.let { reachesInternet(it) } == true)
+            val now = cm.getNetworkCapabilities(cm.activeNetwork)
+            unmetered = now?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) == true
+            set(now?.let { reachesInternet(it) } == true)
             cm.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
                 override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
                     val ok = reachesInternet(caps)
+                    unmetered = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
                     main.post { set(ok) }
                 }
 
                 override fun onLost(network: Network) {
+                    unmetered = false
                     main.post { set(false) }
                 }
             })

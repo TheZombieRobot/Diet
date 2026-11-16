@@ -68,7 +68,9 @@ object DiscoverClient {
         if (!available) return@withContext Answer.Closed
         runCatching {
             runInterruptible {
-                val c = URL(server.trimEnd('/') + path).openConnection() as HttpURLConnection
+                val url = server.trimEnd('/') + path
+                val c = URL(url).openConnection() as HttpURLConnection
+                RelayClient.sign(c, url)
                 try {
                     c.connectTimeout = 8_000
                     c.readTimeout = 10_000

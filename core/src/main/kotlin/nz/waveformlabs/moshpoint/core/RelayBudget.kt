@@ -70,6 +70,12 @@ class RelayBudget(
     private val lookUpFreeFails: Int = 2,
     private val lookUpQuietBaseMs: Long = 5_000L,
     private val lookUpQuietMaxMs: Long = 30_000L,
+    /**
+     * Safety pings never count against [requestsPerMinute] (our own relay with batches: its cap
+     * is low, and a busy minute must never hold up a Need help). Off for the public relay, whose
+     * limits are real.
+     */
+    private val safetyAlwaysHasRoom: Boolean = false,
 ) {
     internal class Request(val atMs: Long, val background: Boolean, val message: Boolean)
 
@@ -124,7 +130,7 @@ class RelayBudget(
         if (message && messages >= messageCap(use)) return -1
         prune(nowMs)
         var wait = 0L
-        if (requests.size >= requestsPerMinute) wait = requests.first().atMs + MINUTE_MS - nowMs
+        if (requests.size >= requestsPerMinute && !safetyRoom(use)) wait = requests.first().atMs + MINUTE_MS - nowMs
         if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) {
             // (No background request to wait out means background has no share at all: waiting won't help.)
             val oldest = requests.firstOrNull { it.background } ?: return -1
@@ -167,12 +173,14 @@ class RelayBudget(
         // Look-ups that keep getting no answer hold off too (uploads keep their own pace).
         if (lookUpQuiet(use, message, nowMs)) return PutResult.NO_NETWORK
         prune(nowMs)
-        if (requests.size >= requestsPerMinute) return PutResult.THROTTLED
+        if (requests.size >= requestsPerMinute && !safetyRoom(use)) return PutResult.THROTTLED
         if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) return PutResult.THROTTLED
         if (uploadsFull(use, message)) return PutResult.THROTTLED
         if (message && messages >= messageCap(use)) return PutResult.THROTTLED
         return null
     }
+
+    private fun safetyRoom(use: RelayUse) = safetyAlwaysHasRoom && use == RelayUse.SAFETY
 
     /** A look-up: reading mailboxes (a [RelayUse.MESSAGE] request that publishes nothing). */
     private fun isLookUp(use: RelayUse, message: Boolean) = use == RelayUse.MESSAGE && !message
@@ -191,9 +199,14 @@ class RelayBudget(
         while (requests.isNotEmpty() && nowMs - requests.first().atMs >= MINUTE_MS) requests.removeFirst()
     }
 
-    /** The request ended. Only an answer from the relay costs anything. */
+    /**
+     * The request ended. Only an answer from the relay costs anything. [pauseMs]: for
+     * [Outcome.THROTTLED], how long the relay itself asked everything to wait (its `Retry-After`
+     * for a `client` or `address` limit, docs/RELAY_API.md section 11.2); null = this budget's own
+     * back-off, as before.
+     */
     @Synchronized
-    fun settle(ticket: Ticket, outcome: Outcome, nowMs: Long) {
+    fun settle(ticket: Ticket, outcome: Outcome, nowMs: Long, pauseMs: Long? = null) {
         if (outcome != Outcome.NO_ANSWER) {
             // The relay answered: look-ups may go at their own pace again.
             lookUpFails = 0
@@ -221,11 +234,16 @@ class RelayBudget(
                 // ping sent through it, say nothing new. Only a request made after the last
                 // pause was set makes the next one longer.
                 if (!ticket.duringPause && ticket.request.atMs >= throttleSetAtMs) {
-                    // With the defaults: 1 min, 2, 4, 8, then 15 at most, each stretched by up to half again.
-                    val base = minOf(throttleBaseMs shl throttleStep.coerceAtMost(4), throttleMaxMs)
-                    throttledUntilMs = nowMs + base + (base * 0.5 * random()).toLong()
+                    if (pauseMs != null) {
+                        // The relay said how long (already stretched by the caller): no growing back-off.
+                        throttledUntilMs = nowMs + pauseMs
+                    } else {
+                        // With the defaults: 1 min, 2, 4, 8, then 15 at most, each stretched by up to half again.
+                        val base = minOf(throttleBaseMs shl throttleStep.coerceAtMost(4), throttleMaxMs)
+                        throttledUntilMs = nowMs + base + (base * 0.5 * random()).toLong()
+                        throttleStep++
+                    }
                     throttleSetAtMs = nowMs
-                    throttleStep++
                 }
             }
             Outcome.NO_ANSWER -> {

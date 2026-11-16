@@ -2,13 +2,29 @@ package nz.waveformlabs.moshpoint.locate
 
 import android.os.SystemClock
 import android.util.Base64
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.setup.NetState
+import nz.waveformlabs.moshpoint.core.BatchPlan
+import nz.waveformlabs.moshpoint.core.HeldMirror
+import nz.waveformlabs.moshpoint.core.InstallToken
 import nz.waveformlabs.moshpoint.core.InviteRelay
 import nz.waveformlabs.moshpoint.core.PutResult
 import nz.waveformlabs.moshpoint.core.RelayBudget
+import nz.waveformlabs.moshpoint.core.RelayEndpoints
+import nz.waveformlabs.moshpoint.core.RelayHolds
+import nz.waveformlabs.moshpoint.core.RelayWire
+import nz.waveformlabs.moshpoint.core.Reseal
 import nz.waveformlabs.moshpoint.core.RelayUse
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -33,6 +49,9 @@ import java.net.URLEncoder
  */
 object RelayClient {
     private const val LOOKUP_CHUNK = 60
+
+    /** Asks in one chat poll at most (each answer carries up to 512 KB): the rest waits for the next poll. */
+    private const val MAX_HELD_ROUNDS = 20
 
     /** Always on: our server if configured, else the public relay. */
     val enabled get() = true
@@ -66,6 +85,9 @@ object RelayClient {
         // so it's never passed on in ours (it may be a stranger's). Retyping it in Settings
         // makes it this phone's own again.
         serverFromInvite = p.getBoolean("fromInvite", true)
+        prefs = p
+        tokens = InstallToken(p.getString("token", null))
+        askToken()
     }
 
     /**
@@ -87,6 +109,12 @@ object RelayClient {
 
     /** Shown in the debug panel. */
     val label get() = if (ownServer) "own server" else "ntfy.sh (public, encrypted)"
+
+    /**
+     * How often the crew sync talks to the relay: once a minute with batches (our own relay, one
+     * request carrying everything); without them as before (30 s on our relay, 55 s on the public one).
+     */
+    val syncGapMs: Long get() = if (batching) 60_000L else if (ownServer) 30_000L else 55_000L
 
     /** How often finders should poll for locations. */
     val pollMs get() = if (ownServer) 4_000L else 15_000L
@@ -115,8 +143,20 @@ object RelayClient {
     val shareableServer get() = InviteRelay.forInvites(BuildConfig.MOSHPOINT_SERVER, serverUrl, serverFromInvite, BuildConfig.TEST_BUILD, ownRelays)
     private const val NTFY = "https://ntfy.sh"
 
-    /** Location shares, intros and the like: [RelayUse.BACKGROUND] unless the caller says otherwise. */
-    suspend fun put(id: ByteArray, sealed: ByteArray, use: RelayUse = RelayUse.BACKGROUND): Boolean = send(id, sealed, use).ok
+    /**
+     * Location shares, floor boxes, crowd-relay packets and crew intros: [RelayUse.BACKGROUND]
+     * unless the caller says otherwise. With our own relay these wait for the minute's batch
+     * (docs/RELAY_API.md section 11.4), the newest copy for each rotating id; [soon] = someone is
+     * waiting for it (a mate is looking for us): it goes within a couple of seconds. [alone]: never
+     * batched (the last-gasp location at 5%). True once the relay has it, or it's waiting for the batch.
+     */
+    suspend fun put(id: ByteArray, sealed: ByteArray, use: RelayUse = RelayUse.BACKGROUND, soon: Boolean = false, alone: Boolean = false): Boolean {
+        if (!alone && use == RelayUse.BACKGROUND && !offline && batching && sealed.size in RelayWire.MIN_RECORD..RelayWire.MAX_BOX_RECORD) {
+            queue(BatchPlan.Put(id, sealed, held = false, replaceable = true), if (soon) BatchPlan.Timing.SOON else BatchPlan.Timing.MINUTE)
+            return true
+        }
+        return send(id, sealed, use).ok
+    }
 
     /**
      * Post one sealed record under [id] and say how it went. [held] = the crew-chat mailbox
@@ -125,9 +165,9 @@ object RelayClient {
     suspend fun send(id: ByteArray, sealed: ByteArray, use: RelayUse, held: Boolean = false): PutResult = withContext(Dispatchers.IO) {
         waitForRoom(use)
         if (ownServer) {
-            return@withContext ownPut("$base/v1/${if (held) "held" else "box"}/${id.hex()}", sealed, if (held) 6_000 else 5_000, use)
+            return@withContext ownPut("$base/v1/${if (held) "held" else "box"}/${id.hex()}", sealed, if (held) 6_000 else 5_000, use, RelayHolds.Traffic.RECORDS, id.hex())
         }
-        exchange(use, message = true) {
+        exchange(use, message = true, RelayHolds.Traffic.RECORDS) {
             val c = URL("$NTFY/${topic(id)}").openConnection() as HttpURLConnection
             c.requestMethod = "POST"
             c.doOutput = true
@@ -142,20 +182,23 @@ object RelayClient {
         }.first
     }
 
-    /** Upload an encrypted profile photo (see core AvatarBox). Own server only. */
-    suspend fun putAvatar(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
+    /**
+     * Upload an encrypted profile photo (see core AvatarBox). Own server only. [reseal] seals it
+     * again: a `400` means its bytes happened to look like an ordinary file (core [Reseal]).
+     */
+    suspend fun putAvatar(id: ByteArray, sealed: ByteArray, reseal: (suspend () -> ByteArray)? = null): Boolean = withContext(Dispatchers.IO) {
         if (!avatarsEnabled) return@withContext false
-        ownPut("$base/v1/avatar/${id.hex()}", sealed, 8_000, RelayUse.BACKGROUND).ok
+        sealedPut("$base/v1/avatar/${id.hex()}", sealed, reseal, 8_000, id.hex())
     }
 
     /** Fetch an encrypted profile photo, or null if there isn't one (or no network). */
     suspend fun getAvatar(id: ByteArray): ByteArray? = withContext(Dispatchers.IO) {
         if (!avatarsEnabled) return@withContext null
-        exchange(RelayUse.BACKGROUND, message = false) {
-            val c = URL("$base/v1/avatar/${id.hex()}").openConnection() as HttpURLConnection
+        exchange(RelayUse.BACKGROUND, message = false, RelayHolds.Traffic.DOWNLOADS) {
+            val c = open("$base/v1/avatar/${id.hex()}")
             c.connectTimeout = 8_000
             c.readTimeout = 8_000
-            val code = c.responseCode
+            val code = c.status()
             val bytes = if (code == 200) c.inputStream.use { it.readBytes() } else null
             c.disconnect()
             code to bytes
@@ -175,8 +218,71 @@ object RelayClient {
             val parts = ids.chunked(LOOKUP_CHUNK).map { lookupHeld(it) ?: return@withContext null }
             return@withContext parts.flatten()
         }
-        if (ownServer) return@withContext ownLookup(ids, "$base/v1/heldlookup", wide = true)
+        if (ownServer) {
+            val b = base
+            // Only what's new since the last look; an older relay (404) gets the old lookup.
+            if (endpoints.usable(RelayEndpoints.Endpoint.HELD_SINCE, b, SystemClock.elapsedRealtime())) {
+                heldSince(ids, b)?.let { return@withContext it.lists }
+            }
+            return@withContext ownLookup(ids, "$b/v1/heldlookup", wide = true)
+        }
         lookup(ids, "12h")
+    }
+
+    /** What a cursor poll came to: [lists] null = no answer (as a failed lookup). */
+    private class Held(val lists: List<List<ByteArray>>?)
+
+    /** Chat mailboxes as last seen, kept up to date with cursors (core [HeldMirror]). */
+    private val mirror = HeldMirror()
+    private val endpoints = RelayEndpoints()
+
+    /** One chat poll at a time, so cursor answers never cross. */
+    private val heldPolls = Mutex()
+
+    /**
+     * Crew chat with cursors (docs/RELAY_API.md sections 8 and 11.3): each mailbox is asked only
+     * for what arrived since the last look (a poll with nothing new costs 14 bytes a mailbox), and
+     * the answer is still every record in it, newest first, from core [HeldMirror], exactly as
+     * `/v1/heldlookup` gave it. Null if [b] has no `/v1/heldsince` (an older relay): use the old lookup.
+     */
+    private suspend fun heldSince(ids: List<ByteArray>, b: String): Held? = heldPolls.withLock {
+        val keys = ids.map { it.hex() }
+        var asks = ids.indices.toList()
+        var rounds = 0
+        // On MORE (an answer filled up at 512 KB) the rest is asked for straight away.
+        while (asks.isNotEmpty() && rounds++ < MAX_HELD_ROUNDS) {
+            val cursors = asks.map { mirror.cursor(keys[it]) }
+            val body = RelayWire.heldSince(asks.map { ids[it] }.zip(cursors))
+            var code = 0
+            var unreadable = false
+            val blocks = exchange(RelayUse.MESSAGE, message = false) {
+                val c = open("$b/v1/heldsince")
+                c.requestMethod = "POST"
+                c.doOutput = true
+                c.connectTimeout = 5_000
+                c.readTimeout = 5_000
+                c.setFixedLengthStreamingMode(body.size)
+                c.setRequestProperty("Content-Type", "application/octet-stream")
+                c.outputStream.use { it.write(body) }
+                code = c.status()
+                if (code != 200) {
+                    c.disconnect()
+                    return@exchange code to null
+                }
+                val answer = c.inputStream.use { it.readBytes() }
+                c.disconnect()
+                val parsed = RelayWire.parseHeldSince(answer, asks.size)
+                unreadable = parsed == null
+                code to parsed
+            }.second
+            val now = SystemClock.elapsedRealtime()
+            if (endpoints.answered(RelayEndpoints.Endpoint.HELD_SINCE, b, code, now, unreadable)) return@withLock null
+            if (blocks == null) return@withLock Held(null)
+            asks = asks.filterIndexed { j, i -> mirror.apply(keys[i], cursors[j], blocks[j], now) }
+        }
+        val now = SystemClock.elapsedRealtime()
+        mirror.trim(keys, now)
+        Held(keys.map { mirror.newestFirst(it, now) })
     }
 
     /** For each id, the sealed records posted under it (newest first). Null on network failure. */
@@ -220,11 +326,14 @@ object RelayClient {
     /** Photos (crew moments) go as encrypted file attachments: public relay only for now. */
     val filesEnabled get() = true
 
-    /** Upload an encrypted file (e.g. a crew moment) under [id]. ntfy.sh keeps it a few hours. */
-    suspend fun putFile(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
-        if (ownServer) return@withContext ownPut("$base/v1/file/${id.hex()}", sealed, 20_000, RelayUse.BACKGROUND).ok
+    /**
+     * Upload an encrypted file (e.g. a crew moment) under [id]. ntfy.sh keeps it a few hours. On
+     * our own relay [reseal] seals it again after a `400` (its bytes looked like an ordinary file).
+     */
+    suspend fun putFile(id: ByteArray, sealed: ByteArray, reseal: (suspend () -> ByteArray)? = null): Boolean = withContext(Dispatchers.IO) {
+        if (ownServer) return@withContext sealedPut("$base/v1/file/${id.hex()}", sealed, reseal, 20_000, id.hex())
         if (!filesEnabled) return@withContext false
-        exchange(RelayUse.BACKGROUND, message = true) {
+        exchange(RelayUse.BACKGROUND, message = true, RelayHolds.Traffic.UPLOADS) {
             val c = URL("$NTFY/${topic(id)}").openConnection() as HttpURLConnection
             c.requestMethod = "PUT"
             c.doOutput = true
@@ -310,17 +419,32 @@ object RelayClient {
     }
 
     /** Download a file from the relay (capped at [MAX_FILE]). */
-    suspend fun download(url: String): ByteArray? = withContext(Dispatchers.IO) {
+    suspend fun download(url: String): ByteArray? = fetch(url, MAX_FILE.toLong()).bytes
+
+    /** What [fetch] got: the file, or [tooBig] (over the limit asked for: left for later). */
+    class Fetched(val bytes: ByteArray?, val tooBig: Boolean = false)
+
+    /**
+     * Download a file from the relay, at most [limit] bytes (core MomentFetch): a bigger one stops
+     * as soon as its `Content-Length` says so, before any of it is read, or once [limit] bytes have
+     * come without one. Our relay doesn't count a download cut short against the file.
+     */
+    suspend fun fetch(url: String, limit: Long): Fetched = withContext(Dispatchers.IO) {
         val mine = ownServer && url.startsWith("$base/v1/file/")
-        if (!mine && !url.startsWith("$NTFY/")) return@withContext null // only ever fetch from the relay itself
-        exchange(RelayUse.BACKGROUND, message = false) {
-            val c = URL(url).openConnection() as HttpURLConnection
+        if (!mine && !url.startsWith("$NTFY/")) return@withContext Fetched(null) // only ever fetch from the relay itself
+        val cap = minOf(limit, MAX_FILE.toLong())
+        exchange(RelayUse.BACKGROUND, message = false, RelayHolds.Traffic.DOWNLOADS) {
+            val c = open(url)
             c.connectTimeout = 8_000
             c.readTimeout = 20_000
-            val code = c.responseCode
+            val code = c.status()
             if (code != 200) {
                 c.disconnect()
                 return@exchange code to null
+            }
+            if (c.contentLengthLong > cap) {
+                c.disconnect()
+                return@exchange code to Fetched(null, tooBig = true)
             }
             val bytes = c.inputStream.use { input ->
                 val buf = java.io.ByteArrayOutputStream()
@@ -330,13 +454,13 @@ object RelayClient {
                     val n = input.read(chunk)
                     if (n < 0) break
                     buf.write(chunk, 0, n)
-                    if (buf.size() > MAX_FILE) tooBig = true
+                    if (buf.size() > cap) tooBig = true
                 }
                 if (tooBig) null else buf.toByteArray()
             }
             c.disconnect()
-            code to bytes
-        }.second
+            code to Fetched(bytes, tooBig = bytes == null)
+        }.second ?: Fetched(null)
     }
 
     private fun topic(id: ByteArray) = "mp" + id.hex()
@@ -347,10 +471,10 @@ object RelayClient {
     /** Own server: (time, download URL) of files under [id] since [sinceSec]. */
     private fun ownList(id: ByteArray, sinceSec: Long): List<Pair<Long, String>>? =
         exchange(RelayUse.BACKGROUND, message = false) {
-            val c = URL("$base/v1/files/${id.hex()}?since=$sinceSec").openConnection() as HttpURLConnection
+            val c = open("$base/v1/files/${id.hex()}?since=$sinceSec")
             c.connectTimeout = 6_000
             c.readTimeout = 8_000
-            val code = c.responseCode
+            val code = c.status()
             if (code != 200) {
                 c.disconnect()
                 return@exchange code to null
@@ -383,43 +507,67 @@ object RelayClient {
     suspend fun postReport(json: ByteArray): Int = withContext(Dispatchers.IO) {
         if (!ownServer) return@withContext -1
         runCatching {
-            val c = URL("$base/v1/report").openConnection() as HttpURLConnection
+            val c = open("$base/v1/report")
             c.requestMethod = "POST"
             c.doOutput = true
             c.connectTimeout = 15_000
             c.readTimeout = 20_000
             c.setRequestProperty("Content-Type", "application/json")
             c.outputStream.use { it.write(json) }
-            val code = c.responseCode
+            val code = c.status()
             c.disconnect()
             code
         }.getOrDefault(0)
     }
 
-    private fun ownPut(url: String, body: ByteArray, timeout: Int, use: RelayUse): PutResult =
-        exchange(use, message = true) {
-            val c = URL(url).openConnection() as HttpURLConnection
+    /**
+     * A moment or a profile photo to our own relay (docs/RELAY_API.md section 11.5): a `400` means
+     * the sealed bytes looked like an ordinary file by chance, so it's sealed again ([reseal], a new
+     * nonce) and sent once more (core [Reseal]).
+     */
+    private suspend fun sealedPut(url: String, sealed: ByteArray, reseal: (suspend () -> ByteArray)?, timeout: Int, mailbox: String): Boolean {
+        var body = sealed
+        var attempt = 1
+        while (true) {
+            var code = 0
+            val result = ownPut(url, body, timeout, RelayUse.BACKGROUND, RelayHolds.Traffic.UPLOADS, mailbox) { code = it }
+            if (reseal == null || !Reseal.again(code, attempt)) return result.ok
+            body = reseal()
+            attempt++
+        }
+    }
+
+    /**
+     * One PUT to our own relay. The length goes first (`Content-Length`, streamed as it's written,
+     * never copied whole in memory): the relay can refuse an upload that's too big, or over its
+     * budget, before it's sent, and tell a cut-off body from a whole one. [seen] gets the status.
+     */
+    private fun ownPut(url: String, body: ByteArray, timeout: Int, use: RelayUse, traffic: RelayHolds.Traffic, mailbox: String, seen: (Int) -> Unit = {}): PutResult =
+        exchange(use, message = true, traffic, mailbox) {
+            val c = open(url)
             c.requestMethod = "PUT"
             c.doOutput = true
             c.connectTimeout = timeout
             c.readTimeout = timeout
+            c.setFixedLengthStreamingMode(body.size)
             c.setRequestProperty("Content-Type", "application/octet-stream")
             c.outputStream.use { it.write(body) }
-            val code = c.responseCode
+            val code = c.status()
+            seen(code)
             c.disconnect()
             code to Unit
         }.first
 
     private fun ownLookup(ids: List<ByteArray>, url: String = "$base/v1/lookup", wide: Boolean = false): List<List<ByteArray>>? =
         exchange(RelayUse.MESSAGE, message = false) {
-            val c = URL(url).openConnection() as HttpURLConnection
+            val c = open(url)
             c.requestMethod = "POST"
             c.doOutput = true
             c.connectTimeout = 5_000
             c.readTimeout = 5_000
             c.setRequestProperty("Content-Type", "application/octet-stream")
             c.outputStream.use { out -> ids.forEach { out.write(it) } }
-            val code = c.responseCode
+            val code = c.status()
             if (code != 200) {
                 c.disconnect()
                 return@exchange code to null
@@ -439,6 +587,309 @@ object RelayClient {
                 b.copyOfRange(i, i + len).also { i += len }
             }
         }
+    }
+
+    // ---- One batch a minute (docs/RELAY_API.md sections 9 and 11.4) ----
+
+    /** Our own relay, and it takes batches (an older one answered 404 in the last hour: no). */
+    val batching: Boolean get() = ownServer && endpoints.usable(RelayEndpoints.Endpoint.BATCH, base, SystemClock.elapsedRealtime())
+
+    /** What waits for the next batch (core [BatchPlan]); [plan] and [waiters] are guarded by [batchLock]. */
+    private val plan = BatchPlan()
+    private val batchLock = Any()
+
+    /** The courier's messages waiting in a batch, by their put's key: the answer goes back to the courier. */
+    private val waiters = HashMap<Long, CompletableDeferred<PutResult>>()
+    private var nextKey = 1L
+
+    /** One batch request at a time. */
+    private val batchSend = Mutex()
+    private val nudges = Channel<Unit>(Channel.CONFLATED)
+    @Volatile private var flusherStarted = false
+
+    private const val MAX_SYNC_GETS = 150
+    private const val MAX_BATCH_ROUNDS = 10
+
+    /** The longest a crew message waits for its batch before the courier is told "no answer" (and tries again). */
+    private const val BATCH_WAIT_MS = 90_000L
+
+    /**
+     * One of the courier's crew messages (never safety: that goes at once, on its own, with
+     * [send]) in the next batch. Waits for the batch carrying it and says how it went, as [send]
+     * does. [soon]: a message just written: it goes within a couple of seconds, taking whatever
+     * else is waiting with it. Without batches, [send] as before.
+     */
+    suspend fun sendBatched(id: ByteArray, sealed: ByteArray, use: RelayUse, held: Boolean, soon: Boolean): PutResult {
+        val max = if (held) RelayWire.MAX_HELD_RECORD else RelayWire.MAX_BOX_RECORD
+        if (BatchPlan.route(use) == BatchPlan.Route.ALONE || offline || !batching || sealed.size !in RelayWire.MIN_RECORD..max) {
+            return send(id, sealed, use, held)
+        }
+        val waiter = CompletableDeferred<PutResult>()
+        val key = synchronized(batchLock) {
+            val k = nextKey++
+            waiters[k] = waiter
+            plan.add(BatchPlan.Put(id, sealed, held, replaceable = false, key = k), if (soon) BatchPlan.Timing.SOON else BatchPlan.Timing.MINUTE, SystemClock.elapsedRealtime())
+            k
+        }
+        startFlusher()
+        nudges.trySend(Unit)
+        return withTimeoutOrNull(BATCH_WAIT_MS) { waiter.await() } ?: synchronized(batchLock) {
+            waiters.remove(key)
+            plan.cancel(key)
+            PutResult.NO_NETWORK
+        }
+    }
+
+    /**
+     * The crew sync's mailboxes, read in the minute's batch together with everything waiting to
+     * go up: for each id its records, newest first, exactly as [lookup] answers. Without batches
+     * (an older relay, the public relay), [lookup] as before.
+     */
+    suspend fun sync(ids: List<ByteArray>): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
+        if (ids.isEmpty()) return@withContext null
+        if (batching && !offline && ids.size <= MAX_SYNC_GETS) {
+            val gets = ids.map { BatchPlan.Get(it, held = false, since = 0L) }.toMutableList()
+            val oldestFirst = List(ids.size) { ArrayList<ByteArray>() }
+            var asking = ids.indices.toList()
+            var rounds = 0
+            var answered = true
+            while (asking.isNotEmpty() && rounds++ < MAX_BATCH_ROUNDS) {
+                when (val out = sendBatch(asking.map { gets[it] })) {
+                    is BatchOut.Done -> asking = asking.filterIndexed { j, i ->
+                        val block = out.blocks[j]
+                        block?.records?.let { oldestFirst[i].addAll(it) }
+                        // The answer filled up: the rest of this mailbox, from where it stopped.
+                        (block?.status == RelayWire.MORE).also { more -> if (more) gets[i] = BatchPlan.Get(ids[i], held = false, since = block!!.next) }
+                    }
+                    BatchOut.Failed -> return@withContext null
+                    BatchOut.Missing -> {
+                        answered = false
+                        break
+                    }
+                }
+            }
+            if (answered) return@withContext oldestFirst.map { it.asReversed().toList() }
+        }
+        lookup(ids)
+    }
+
+    /** How a batch went: [Done] with each get's block (null: none), [Failed] (no answer, too many), [Missing] (this relay has no batches). */
+    private sealed class BatchOut {
+        class Done(val blocks: List<RelayWire.Block?>) : BatchOut()
+        object Failed : BatchOut()
+        object Missing : BatchOut()
+    }
+
+    private fun queue(p: BatchPlan.Put, timing: BatchPlan.Timing) {
+        synchronized(batchLock) { plan.add(p, timing, SystemClock.elapsedRealtime()) }
+        startFlusher()
+        if (timing == BatchPlan.Timing.SOON) nudges.trySend(Unit)
+    }
+
+    /**
+     * Sends what's waiting when it's due and no crew sync has taken it first: a minute after the
+     * oldest put, or a couple of seconds after one someone is waiting for. Asleep while nothing waits.
+     */
+    private fun startFlusher() {
+        if (flusherStarted) return
+        synchronized(batchLock) {
+            if (flusherStarted) return
+            flusherStarted = true
+        }
+        background.launch {
+            while (true) {
+                try {
+                    val due = synchronized(batchLock) { plan.dueAtMs() }
+                    val wait = if (due == Long.MAX_VALUE) Long.MAX_VALUE else due - SystemClock.elapsedRealtime()
+                    when {
+                        wait == Long.MAX_VALUE -> nudges.receive()
+                        wait > 0 -> withTimeoutOrNull(wait) { nudges.receive() }
+                        // The relay changed, or stopped taking batches: what's waiting goes one by one.
+                        !batching -> sendAlone(synchronized(batchLock) { plan.drain() })
+                        offline -> delay(5_000)
+                        // No answer, or everything waiting is held (a busy mailbox, a byte budget): look again in a bit.
+                        sendBatch(emptyList()) !is BatchOut.Done || synchronized(batchLock) { plan.dueAtMs() } <= SystemClock.elapsedRealtime() -> delay(5_000)
+                    }
+                } catch (e: Exception) {
+                    delay(5_000)
+                }
+            }
+        }
+    }
+
+    /**
+     * One `POST /v1/batch`: everything waiting that may go now, after [gets]. Puts are answered to
+     * their waiters (the courier), or wait again (locations) when the batch got no answer.
+     */
+    private suspend fun sendBatch(gets: List<BatchPlan.Get>): BatchOut = batchSend.withLock {
+        val b = base
+        val start = SystemClock.elapsedRealtime()
+        val taken = synchronized(batchLock) {
+            plan.take(gets, start) { p ->
+                holds.heldUntil(RelayHolds.Traffic.RECORDS, p.id.hex(), if (p.replaceable) RelayUse.BACKGROUND else RelayUse.MESSAGE, start) <= start
+            }
+        }
+        if (taken.isEmpty) return@withLock BatchOut.Done(emptyList())
+        val ops = taken.ops
+        val body = RelayWire.batch(ops)
+        var code = 0
+        var unreadable = false
+        // A lookup when it reads mailboxes, else uploads: the budget treats it as either did before.
+        val use = if (gets.isNotEmpty() || taken.puts.any { !it.replaceable }) RelayUse.MESSAGE else RelayUse.BACKGROUND
+        val (result, answers) = exchange(use, message = taken.puts.isNotEmpty()) {
+            val c = open("$b/v1/batch")
+            c.requestMethod = "POST"
+            c.doOutput = true
+            c.connectTimeout = 8_000
+            c.readTimeout = 10_000
+            c.setFixedLengthStreamingMode(body.size)
+            c.setRequestProperty("Content-Type", "application/octet-stream")
+            c.outputStream.use { it.write(body) }
+            code = c.status()
+            if (code != 200) {
+                c.disconnect()
+                return@exchange code to null
+            }
+            val answer = c.inputStream.use { it.readBytes() }
+            c.disconnect()
+            val parsed = RelayWire.parseBatch(answer, ops)
+            unreadable = parsed == null
+            code to parsed
+        }
+        val now = SystemClock.elapsedRealtime()
+        val missing = endpoints.answered(RelayEndpoints.Endpoint.BATCH, b, code, now, unreadable)
+        if (missing || (code in 400..499 && code != 429)) {
+            // An older relay, or one that won't take this batch (too big, refused): everything goes the old way, now.
+            sendAlone(taken.puts + synchronized(batchLock) { plan.drain() })
+            return@withLock BatchOut.Missing
+        }
+        if (answers == null) {
+            // No answer, or "too many": locations wait for the next batch, the courier decides about its messages.
+            synchronized(batchLock) { plan.putBack(taken.puts, now) }
+            taken.puts.forEach { answer(it, result) }
+            return@withLock BatchOut.Failed
+        }
+        val retry = ArrayList<BatchPlan.Put>()
+        val alone = ArrayList<BatchPlan.Put>()
+        taken.puts.forEachIndexed { i, p ->
+            val r = when (answers[i].status) {
+                RelayWire.OK -> PutResult.SENT
+                RelayWire.BAD -> PutResult.REFUSED
+                RelayWire.MAILBOX -> PutResult.THROTTLED.also { holds.mailboxBusy(p.id.hex(), now) }
+                RelayWire.BYTES -> PutResult.THROTTLED.also { holds.recordsOverBudget(now) }
+                RelayWire.UNKNOWN -> null.also { alone += p }
+                else -> PutResult.NO_NETWORK // FULL: the relay is full or low on disk, as a 503
+            }
+            if (r != null && r != PutResult.SENT && r != PutResult.REFUSED) retry += p
+            if (r != null) answer(p, r)
+        }
+        synchronized(batchLock) { plan.putBack(retry, now) }
+        if (alone.isNotEmpty()) sendAlone(alone)
+        BatchOut.Done(answers.drop(taken.puts.size).map { it.block })
+    }
+
+    /** A put's answer to whoever waits for it (the courier); locations have nobody waiting. */
+    private fun answer(p: BatchPlan.Put, r: PutResult) {
+        if (p.key == 0L) return
+        synchronized(batchLock) { waiters.remove(p.key) }?.complete(r)
+    }
+
+    /** Puts that can't go in a batch after all: one request each, the old way, answered to their waiters. */
+    private fun sendAlone(puts: List<BatchPlan.Put>) {
+        if (puts.isEmpty()) return
+        background.launch {
+            for (p in puts) answer(p, send(p.id, p.record, if (p.replaceable) RelayUse.BACKGROUND else RelayUse.MESSAGE, p.held))
+        }
+    }
+
+    // ---- Install token (docs/RELAY_API.md sections 7 and 11.1) ----
+
+    private var prefs: android.content.SharedPreferences? = null
+
+    /**
+     * Our own relay's install token, so this phone gets limits of its own instead of sharing its
+     * carrier address's with everyone behind it (the rule: core [InstallToken]). Never sent to
+     * the public relay or to any other relay; requests work the same without one.
+     */
+    @Volatile private var tokens = InstallToken()
+    private val background = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * Ask our own relay for an install token if the rule says it's time: at first start, then at
+     * most once an hour while there isn't one. In the background: no request waits for it.
+     */
+    private fun askToken() {
+        val b = base
+        val t = tokens
+        val now = System.currentTimeMillis()
+        if (b.isEmpty() || offline || !t.shouldAsk(b, now)) return
+        t.asking(now)
+        background.launch {
+            val answer = runCatching {
+                val c = URL("$b/v1/install").openConnection() as HttpURLConnection
+                try {
+                    c.requestMethod = "POST"
+                    c.doOutput = true
+                    c.connectTimeout = 8_000
+                    c.readTimeout = 8_000
+                    c.setFixedLengthStreamingMode(0)
+                    c.outputStream.close()
+                    val code = c.responseCode
+                    code to if (code == 200) readSmall(c, 256) else null
+                } finally {
+                    c.disconnect()
+                }
+            }.getOrNull()
+            val at = System.currentTimeMillis()
+            // The relay's host answering 5xx or 408 is no answer from the relay (as in [exchange]).
+            if (answer == null || answer.first >= 500 || answer.first == 408) t.noAnswer(at) else t.answered(b, answer.first, answer.second, at)
+            saveToken(t)
+        }
+    }
+
+    /** At most [max] characters of a short text answer. */
+    private fun readSmall(c: HttpURLConnection, max: Int): String = c.inputStream.reader(Charsets.US_ASCII).use { r ->
+        val out = StringBuilder()
+        val buf = CharArray(64)
+        while (out.length < max) {
+            val n = r.read(buf)
+            if (n < 0) break
+            out.append(buf, 0, n)
+        }
+        out.toString()
+    }
+
+    private fun saveToken(t: InstallToken) {
+        prefs?.edit()?.putString("token", t.save())?.apply()
+    }
+
+    /** A connection to [url], carrying our install token if [url] is on the relay that issued it. */
+    private fun open(url: String): HttpURLConnection = (URL(url).openConnection() as HttpURLConnection).also { sign(it, url) }
+
+    /**
+     * Adds our install token to a request for [url] when it goes to our own relay, the one that
+     * issued it (venue lookups and Discover ask the same relay). Never to the public relay.
+     */
+    fun sign(c: HttpURLConnection, url: String) {
+        val b = base
+        if (b.isEmpty() || !url.startsWith("$b/")) return
+        tokens.tokenFor(b)?.let { c.setRequestProperty(InstallToken.HEADER, it) }
+    }
+
+    /** The answer's status. `X-Moshpoint-Token: invalid` means the relay no longer knows our token: drop it and ask again. */
+    private fun HttpURLConnection.status(): Int {
+        val code = responseCode
+        if (getHeaderField(InstallToken.HEADER) == InstallToken.INVALID) tokenInvalid()
+        // Which limit, and for how long: read by [exchange] on this same thread (docs/RELAY_API.md section 11.2).
+        if (code == 429) limitSeen.set(getHeaderField(RelayHolds.LIMIT_HEADER) to getHeaderField(RelayHolds.RETRY_AFTER))
+        return code
+    }
+
+    private fun tokenInvalid() {
+        val t = tokens
+        if (!t.invalid(base)) return
+        saveToken(t)
+        askToken()
     }
 
     // ---- Budget and "is there any network?" ----
@@ -466,12 +917,29 @@ object RelayClient {
         messagesPerDay = 1_000_000, requestsPerMinute = 600, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
         throttleBaseMs = 5_000L, throttleMaxMs = 30_000L,
     )
-    private val budget get() = if (ownServer) ownBudget else publicBudget
+
+    /**
+     * Our own relay with batches (docs/RELAY_API.md section 11.6): everything in the background
+     * is one request a minute, so 30 a minute is a safety net against a runaway loop, with room
+     * for the finder's poll every 4 s while it's open. Safety pings are never held by it.
+     */
+    private val batchBudget = RelayBudget(
+        messagesPerDay = 1_000_000, requestsPerMinute = 30, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
+        throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, safetyAlwaysHasRoom = true,
+    )
+    private val budget get() = if (!ownServer) publicBudget else if (batching) batchBudget else ownBudget
+
+    /** What our relay's last "too many" answers hold back: one mailbox, one kind of traffic, or (in the budget) everything. */
+    private val holds = RelayHolds()
+
+    /** A 429's `X-Moshpoint-Limit` and `Retry-After`, from [status] to [exchange] (same thread). */
+    private val limitSeen = ThreadLocal<Pair<String?, String?>?>()
 
     /** The phone has a network again: stop holding requests back. */
     fun networkBack() {
         publicBudget.networkBack()
         ownBudget.networkBack()
+        batchBudget.networkBack()
     }
 
     /**
@@ -493,12 +961,22 @@ object RelayClient {
      * One HTTP exchange, inside the budget. [call] returns the HTTP status and the parsed
      * answer, and throws if the relay never answered. The budget is only charged when it did.
      */
-    private inline fun <T> exchange(use: RelayUse, message: Boolean, call: () -> Pair<Int, T?>): Pair<PutResult, T?> {
+    private inline fun <T> exchange(
+        use: RelayUse,
+        message: Boolean,
+        traffic: RelayHolds.Traffic = RelayHolds.Traffic.READS,
+        mailbox: String? = null,
+        call: () -> Pair<Int, T?>,
+    ): Pair<PutResult, T?> {
         if (offline) return PutResult.NO_NETWORK to null
+        askToken()
         val b = budget
         val start = SystemClock.elapsedRealtime()
+        // That mailbox, or that kind of traffic, is waiting out the relay's "too many" (a safety ping never waits here).
+        if (holds.heldUntil(traffic, mailbox, use, start) > start) return PutResult.THROTTLED to null
         val ticket = b.take(use, message, start) ?: return (b.refusal(use, message, start) ?: PutResult.THROTTLED) to null
         return try {
+            limitSeen.set(null)
             val (code, value) = call()
             when {
                 code in 200..299 -> {
@@ -506,7 +984,17 @@ object RelayClient {
                     PutResult.SENT to value
                 }
                 code == 429 -> {
-                    b.settle(ticket, RelayBudget.Outcome.THROTTLED, SystemClock.elapsedRealtime())
+                    // By kind (core RelayHolds): a client or address limit pauses everything for the
+                    // relay's Retry-After; a mailbox or byte budget holds only that; no header (an
+                    // older relay, or the public one) pauses everything as before.
+                    val seen = limitSeen.get()
+                    limitSeen.set(null)
+                    val now = SystemClock.elapsedRealtime()
+                    when (val hold = holds.limited(seen?.first, seen?.second, traffic, mailbox, now)) {
+                        is RelayHolds.Hold.All -> b.settle(ticket, RelayBudget.Outcome.THROTTLED, now, pauseMs = hold.ms)
+                        RelayHolds.Hold.Some -> b.settle(ticket, RelayBudget.Outcome.REFUSED, now)
+                        RelayHolds.Hold.Unknown -> b.settle(ticket, RelayBudget.Outcome.THROTTLED, now)
+                    }
                     PutResult.THROTTLED to null
                 }
                 // The relay's host answered but the relay didn't (a gateway error, a restart, a

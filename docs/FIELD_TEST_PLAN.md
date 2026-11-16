@@ -984,6 +984,75 @@ joins. Use a date at least a week away so the crew sleeps.
 - Whether any tick took more than 5 minutes to show with both phones online.
 - Screenshots of B2, C2 and D1, and how long C2's first answer took.
 
+
+## 4l. The relay's new endpoints (wave 2c part 3; two phones, 60 min)
+
+What changed and why: docs/WAVE2C_ENDPOINTS.md. Phone A runs this branch's build; phone B runs
+**build 312** for parts A to D, then this build for part E. Both in one crew, both live.
+
+Two relays: **ours** (a build with `MOSHPOINT_SERVER` set, or Settings > Relay server in a test
+build) and **the free fallback** (no relay set: ntfy.sh). Parts A to D on ours, then part E on
+the free one. Debug builds show what went where under Technology status ("Location", the
+courier's route log).
+
+### A. A crew across versions, on our relay (15 min)
+
+- [ ] A and B see each other's position on the map and the home faces, both ways (A's position
+  can take up to a minute to reach B while nobody is looking for A).
+- [ ] Chat both ways: A's lines reach B and B's reach A, in order, no duplicates. A's bubble goes
+  from "Sending…" to sent within a few seconds.
+- [ ] Quick pings both ways (On my way, All good), a meet-up pin set on A and on B, and an
+  "I'm here" pin: each shows on the other phone.
+- [ ] A moment (a photo) from each phone shows on the other's Story.
+- [ ] Private messages both ways.
+
+### B. Need help never waits (10 min)
+
+- [ ] On A, with the chat closed and the phone idle for a minute (a batch is pending), tap
+  **Need help**: B's alert arrives as quickly as with build 312 on both phones (a few seconds
+  with signal), not up to a minute later. Repeat with **Check in** (set a time) and
+  **Home safe**. Repeat with B as the sender.
+- [ ] Let a check-in run overdue on A: the overdue alert on B comes as before.
+- [ ] With the finder open on A (it polls every 4 s), send Need help from A: it still goes at once.
+
+### C. A mate looking for you, and the radio idling (15 min)
+
+- [ ] B opens the finder on A, A in a pocket: A's GPS position reaches B's finder within about
+  15 s of A's phone hearing B's finder (as with build 312), not a minute later.
+- [ ] A in a pocket, Live on, 10 minutes, nobody looking: with adb, `adb shell dumpsys netstats`
+  or Battery Historian shows A's mobile radio waking about once a minute, not every few seconds.
+  (Compare B on build 312.)
+- [ ] Chat open on A for 2 minutes in a busy crew: the debug log shows chat polls downloading
+  only new messages (a quiet poll is a few hundred bytes).
+
+### D. Clips on Wi-Fi (10 min)
+
+- [ ] B shares a **clip**. A is on **mobile data** in the background (home screen or locked): the
+  clip does **not** download (A's data usage for Moshpoint doesn't jump by the clip's size).
+  A **photo** from B does arrive on A's Story as before.
+- [ ] Open the Story on A: the clip downloads and plays within a few seconds.
+- [ ] Another clip from B while A is on **Wi-Fi** in the background: it downloads in the
+  background as before.
+- [ ] Data saver (Settings) on A still makes A's own shared photos and clips smaller, and
+  nothing else.
+
+### E. The free fallback, and an older relay (10 min)
+
+- [ ] Both phones with no relay set (ntfy.sh), both on this build, then A on this build and B on
+  312: positions, chat, pings, pins and moments still reach each other, as before. Nothing is
+  asked of ntfy.sh that it doesn't have (if you can watch the traffic: no `/v1/install`,
+  `/v1/batch` or `/v1/heldsince`).
+- [ ] Over Bluetooth with no signal (airplane mode, Bluetooth on, both live, side by side):
+  chat, pings and Need help still pass between A and B (build 312 and this one), as before.
+- [ ] If you have an older relay (one without the new endpoints): A still works on it, with the
+  old requests (it asks for the new ones again after an hour).
+
+### What to send back for this part
+
+For each tick that failed: what you did, what you saw, and roughly when (so it can be found in
+the debug log); the Need help timings (sent on one phone, alerted on the other); and Moshpoint's
+mobile data use for parts C and D on A and B.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).

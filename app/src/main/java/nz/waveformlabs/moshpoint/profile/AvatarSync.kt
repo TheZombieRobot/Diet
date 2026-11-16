@@ -45,7 +45,7 @@ object AvatarSync {
             val week = AvatarBox.weekAt(now)
             val ok = identities.map { secret ->
                 if (RelayClient.ownServer) {
-                    listOf(week, week + 1).all { RelayClient.putAvatar(AvatarBox.idFor(secret, it), AvatarBox.seal(secret, jpeg)) }
+                    listOf(week, week + 1).all { RelayClient.putAvatar(AvatarBox.idFor(secret, it), AvatarBox.seal(secret, jpeg)) { AvatarBox.seal(secret, jpeg) } }
                 } else {
                     RelayClient.putFile(AvatarBox.idFor(secret, week), AvatarBox.seal(secret, jpeg))
                 }
