@@ -86,7 +86,12 @@ class Discover(
             trim(asked, config.maxCountries)
             trim(nearby, config.maxNearby)
         }
-        if (lists[country] == null) wake.trySend(Unit)
+        if (lists[country] == null) {
+            // Built before (and dropped from memory, or before a restart): read it back. Else the refresher builds it.
+            val stored = store.loadList(country)
+            if (stored != null && lists.putIfAbsent(country, stored) == null) version.incrementAndGet()
+            if (stored == null || stored.nearby) wake.trySend(Unit)
+        }
     }
 
     private fun trim(m: ConcurrentHashMap<String, Long>, max: Int) {
@@ -188,9 +193,10 @@ class Discover(
                 if (page + 1 >= p.pages) break
             }
         }
-        if (full) lookUpActs(if (found.isNotEmpty()) biggestActs(found) else biggestActsAnywhere(), now)
+        val here = found.filter { it.country == country }
+        if (full) lookUpActs(if (here.isNotEmpty()) biggestActs(here) else biggestActsAnywhere(), now)
         found += acts.showsIn(country)
-        val old = lists[country]
+        val old = lists[country] ?: store.loadList(country)?.also { lists.putIfAbsent(country, it) }
         if (short && old != null && found.size < old.shows.size / 2) {
             log.info("Discover: {} kept its last list (the sources answered too little)", country)
             return false

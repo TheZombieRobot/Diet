@@ -1,0 +1,65 @@
+{
+  "events": [
+    {
+      "id": 7000001,
+      "title": "Ivy Lanes",
+      "type": "concert",
+      "datetime_utc": "2027-06-12T02:00:00",
+      "datetime_local": "2027-06-11T19:00:00",
+      "date_tbd": false,
+      "time_tbd": false,
+      "score": 0.71,
+      "url": "https://seatgeek.com/ivy-lanes-tickets/los-angeles-california-crypto-com-arena-2027-06-11-7-pm/concert/7000001",
+      "taxonomies": [{"id": 2000000, "name": "concert", "parent_id": null}],
+      "performers": [
+        {"name": "Ivy Lanes", "primary": true, "image": "https://seatgeek.com/images/performers-landscape/ivy-lanes-sample/huge.jpg", "num_upcoming_events": 48, "score": 0.74}
+      ],
+      "venue": {"name": "Crypto.com Arena", "city": "Los Angeles", "state": "CA", "country": "US", "location": {"lat": 34.043, "lon": -118.2673}, "capacity": 20000, "score": 0.81}
+    },
+    {
+      "id": 7000002,
+      "title": "Harbour Sound Weekend",
+      "type": "music_festival",
+      "datetime_utc": "2027-04-16T19:00:00",
+      "datetime_local": "2027-04-16T12:00:00",
+      "date_tbd": false,
+      "time_tbd": false,
+      "score": 0.66,
+      "url": "https://seatgeek.com/harbour-sound-weekend-tickets/indio-california-empire-polo-club-2027-04-16-12-pm/music-festival/7000002",
+      "taxonomies": [{"id": 2000000, "name": "concert", "parent_id": null}, {"id": 2010000, "name": "music_festival", "parent_id": 2000000}],
+      "performers": [
+        {"name": "Indigo Static", "primary": true, "image": "https://seatgeek.com/images/performers-landscape/indigo-static-sample/huge.jpg", "num_upcoming_events": 12},
+        {"name": "Harbour Kites", "num_upcoming_events": 9},
+        {"name": "Lowland Static", "num_upcoming_events": 4},
+        {"name": "Tidal Hymns", "num_upcoming_events": 6},
+        {"name": "Glass Owls", "num_upcoming_events": 3}
+      ],
+      "venue": {"name": "Empire Polo Club", "city": "Indio", "state": "CA", "country": "US", "location": {"lat": 33.6823, "lon": -116.2376}, "capacity": 0}
+    },
+    {
+      "id": 7000003,
+      "title": "Quiet Fields",
+      "type": "concert",
+      "datetime_utc": "2027-08-01T03:00:00",
+      "datetime_local": "2027-07-31T20:00:00",
+      "date_tbd": true,
+      "time_tbd": true,
+      "url": "https://seatgeek.com/quiet-fields-tickets/concert/7000003",
+      "performers": [{"name": "Quiet Fields", "primary": true}],
+      "venue": {"name": "The Fillmore", "city": "San Francisco", "state": "CA", "country": "US", "location": {"lat": 37.784, "lon": -122.4331}, "capacity": 1150}
+    },
+    {
+      "id": 7000004,
+      "title": "Night Signal",
+      "type": "concert",
+      "datetime_utc": "2027-02-20T03:00:00",
+      "datetime_local": "2027-02-19T19:00:00",
+      "date_tbd": false,
+      "time_tbd": true,
+      "url": "https://seatgeek.com/night-signal-tickets/los-angeles-california-the-echo-2027-02-19/concert/7000004",
+      "performers": [{"name": "Night Signal", "primary": true, "num_upcoming_events": 2}],
+      "venue": {"name": "The Echo", "city": "Los Angeles", "state": "CA", "country": "US", "location": {"lat": 34.0777, "lon": -118.2605}, "capacity": 350}
+    }
+  ],
+  "meta": {"total": 4, "took": 2, "page": 1, "per_page": 100, "geolocation": null}
+}

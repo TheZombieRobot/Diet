@@ -230,7 +230,10 @@ object DiscoverSources {
     /** Bandsintown gives country names ("New Zealand"); ISO codes ("NZ") for everything else here. */
     fun countryCode(name: String): String {
         val t = name.trim()
-        if (t.length == 2 && t.all { it.isLetter() }) return t.uppercase()
+        ALIASES[Fold.text(t)]?.let { return it }
+        if (t.length == 2) return t.uppercase().takeIf { it in ISO }.orEmpty()
         return NAMES[Fold.text(t)].orEmpty()
     }
+
+    private val ISO: Set<String> by lazy { Locale.getISOCountries().toSet() }
 }

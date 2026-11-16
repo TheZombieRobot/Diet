@@ -1,0 +1,133 @@
+{
+  "_embedded": {
+    "events": [
+      {
+        "name": "Ivy Lanes: The Long Way Home Tour",
+        "type": "event",
+        "id": "Z7r9jZ1A7sample01",
+        "url": "https://www.ticketmaster.co.nz/ivy-lanes-the-long-way-home-tour-auckland-13-03-2027/event/sample01",
+        "locale": "en-us",
+        "images": [
+          {"ratio": "3_2", "url": "https://s1.ticketm.net/dam/a/sample/ivy-lanes_RETINA_PORTRAIT_3_2.jpg", "width": 640, "height": 427, "fallback": false},
+          {"ratio": "16_9", "url": "https://s1.ticketm.net/dam/a/sample/ivy-lanes_TABLET_LANDSCAPE_LARGE_16_9.jpg", "width": 2048, "height": 1152, "fallback": false},
+          {"ratio": "16_9", "url": "https://s1.ticketm.net/dam/a/sample/ivy-lanes_RETINA_LANDSCAPE_16_9.jpg", "width": 1136, "height": 639, "fallback": false},
+          {"ratio": "16_9", "url": "https://s1.ticketm.net/dam/a/sample/ivy-lanes_RETINA_PORTRAIT_16_9.jpg", "width": 640, "height": 360, "fallback": false},
+          {"ratio": "16_9", "url": "https://s1.ticketm.net/dam/a/sample/ivy-lanes_EVENT_DETAIL_PAGE_16_9.jpg", "width": 205, "height": 115, "fallback": false}
+        ],
+        "dates": {
+          "start": {"localDate": "2027-03-13", "localTime": "19:30:00", "dateTime": "2027-03-13T06:30:00Z", "dateTBD": false, "dateTBA": false, "timeTBA": false, "noSpecificTime": false},
+          "timezone": "Pacific/Auckland",
+          "status": {"code": "onsale"}
+        },
+        "classifications": [{"primary": true, "segment": {"name": "Music"}, "genre": {"name": "Pop"}}],
+        "_embedded": {
+          "venues": [{"name": "Spark Arena", "type": "venue", "city": {"name": "Auckland"}, "country": {"name": "New Zealand", "countryCode": "NZ"}, "location": {"longitude": "174.77783", "latitude": "-36.84794"}}],
+          "attractions": [{"name": "Ivy Lanes", "type": "attraction"}]
+        }
+      },
+      {
+        "name": "Ivy Lanes: The Long Way Home Tour",
+        "type": "event",
+        "id": "Z7r9jZ1A7sample02",
+        "url": "https://www.ticketmaster.co.nz/ivy-lanes-the-long-way-home-tour-christchurch-17-03-2027/event/sample02",
+        "images": [{"ratio": "16_9", "url": "https://s1.ticketm.net/dam/a/sample/ivy-lanes_RETINA_PORTRAIT_16_9.jpg", "width": 640, "height": 360, "fallback": false}],
+        "dates": {
+          "start": {"localDate": "2027-03-17", "localTime": "19:30:00", "dateTime": "2027-03-17T06:30:00Z", "dateTBD": false, "dateTBA": false, "timeTBA": false},
+          "status": {"code": "onsale"}
+        },
+        "_embedded": {
+          "venues": [{"name": "Wolfbrook Arena", "city": {"name": "Christchurch"}, "country": {"name": "New Zealand", "countryCode": "NZ"}, "location": {"longitude": "172.6091", "latitude": "-43.5419"}}],
+          "attractions": [{"name": "Ivy Lanes"}]
+        }
+      },
+      {
+        "name": "Ivy Lanes: VIP Package",
+        "type": "event",
+        "id": "Z7r9jZ1A7sample03",
+        "url": "https://www.ticketmaster.co.nz/ivy-lanes-vip-package-auckland-13-03-2027/event/sample03",
+        "dates": {
+          "start": {"localDate": "2027-03-13", "dateTBD": false, "dateTBA": false, "timeTBA": true},
+          "status": {"code": "onsale"}
+        },
+        "_embedded": {
+          "venues": [{"name": "Spark Arena", "city": {"name": "Auckland"}, "country": {"name": "New Zealand", "countryCode": "NZ"}, "location": {"longitude": "174.77783", "latitude": "-36.84794"}}],
+          "attractions": [{"name": "Ivy Lanes"}]
+        }
+      },
+      {
+        "name": "Southern Sound Festival 2027",
+        "type": "event",
+        "id": "Z7r9jZ1A7sample04",
+        "url": "https://www.ticketmaster.co.nz/southern-sound-festival-2027-auckland-23-01-2027/event/sample04",
+        "images": [{"ratio": "16_9", "url": "https://s1.ticketm.net/dam/a/sample/southern-sound_RETINA_LANDSCAPE_16_9.jpg", "width": 1136, "height": 639, "fallback": false}],
+        "dates": {
+          "start": {"localDate": "2027-01-23", "localTime": "12:00:00", "dateTime": "2027-01-22T23:00:00Z", "dateTBD": false, "dateTBA": false, "timeTBA": false},
+          "status": {"code": "onsale"}
+        },
+        "_embedded": {
+          "venues": [{"name": "Auckland Domain", "city": {"name": "Auckland"}, "country": {"name": "New Zealand", "countryCode": "NZ"}, "location": {"longitude": "174.7756", "latitude": "-36.8606"}}],
+          "attractions": [{"name": "Harbour Kites"}, {"name": "Moth Parade"}, {"name": "Lowland Static"}, {"name": "Tidal Hymns"}, {"name": "Fern Gully Kids"}, {"name": "Neon Kererū"}]
+        }
+      },
+      {
+        "name": "Moth Parade",
+        "type": "event",
+        "id": "Z7r9jZ1A7sample05",
+        "url": "https://www.ticketmaster.co.nz/moth-parade-auckland-01-02-2027/event/sample05",
+        "dates": {
+          "start": {"localDate": "2027-02-01", "localTime": "20:00:00", "dateTime": "2027-02-01T07:00:00Z", "dateTBD": false, "dateTBA": false, "timeTBA": false},
+          "status": {"code": "cancelled"}
+        },
+        "_embedded": {
+          "venues": [{"name": "Powerstation", "city": {"name": "Auckland"}, "country": {"name": "New Zealand", "countryCode": "NZ"}, "location": {"longitude": "174.7660", "latitude": "-36.8655"}}],
+          "attractions": [{"name": "Moth Parade"}]
+        }
+      },
+      {
+        "name": "Kōtuku Sound",
+        "type": "event",
+        "id": "Z7r9jZ1A7sample06",
+        "url": "https://www.ticketmaster.co.nz/kotuku-sound-auckland-05-02-2027/event/sample06",
+        "dates": {
+          "start": {"localDate": "2027-02-05", "localTime": "21:00:00", "dateTime": "2027-02-05T08:00:00Z", "dateTBD": false, "dateTBA": false, "timeTBA": false},
+          "status": {"code": "onsale"}
+        },
+        "_embedded": {
+          "venues": [{"name": "Whammy Bar", "city": {"name": "Auckland"}, "state": {"name": "Auckland"}, "country": {"name": "New Zealand", "countryCode": "NZ"}}],
+          "attractions": [{"name": "Kōtuku Sound"}]
+        }
+      },
+      {
+        "name": "Iron Harbour",
+        "type": "event",
+        "id": "Z7r9jZ1A7sample07",
+        "url": "https://www.ticketmaster.co.nz/iron-harbour-wellington-02-04-2027/event/sample07",
+        "images": [{"ratio": "3_2", "url": "https://s1.ticketm.net/dam/a/sample/iron-harbour_ARTIST_PAGE_3_2.jpg", "width": 305, "height": 203, "fallback": false}],
+        "dates": {
+          "start": {"localDate": "2027-04-02", "localTime": "18:00:00", "dateTime": "2027-04-02T05:00:00Z", "dateTBD": false, "dateTBA": false, "timeTBA": false},
+          "status": {"code": "onsale"}
+        },
+        "_embedded": {
+          "venues": [{"name": "Sky Stadium", "city": {"name": "Wellington"}, "country": {"name": "New Zealand", "countryCode": "NZ"}, "location": {"longitude": "174.7859", "latitude": "-41.2729"}}],
+          "attractions": [{"name": "Iron Harbour"}]
+        }
+      },
+      {
+        "name": "Inkwell",
+        "type": "event",
+        "id": "Z7r9jZ1A7sample08",
+        "url": "https://www.ticketmaster.co.nz/inkwell-nelson-01-05-2027/event/sample08",
+        "dates": {
+          "start": {"localDate": "2027-05-01", "localTime": "20:00:00", "dateTime": "2027-05-01T08:00:00Z", "dateTBD": false, "dateTBA": false, "timeTBA": false},
+          "status": {"code": "onsale"}
+        },
+        "_embedded": {
+          "venues": [{"name": "Theatre Royal", "city": {"name": "Nelson"}, "country": {"name": "New Zealand", "countryCode": "NZ"}, "location": {"longitude": "173.2826", "latitude": "-41.2745"}}],
+          "attractions": [{"name": "Inkwell"}]
+        }
+      }
+    ]
+  },
+  "_links": {"self": {"href": "/discovery/v2/events.json?countryCode=NZ&classificationName=music&size=200&page=0&sort=relevance,desc"}},
+  "page": {"size": 200, "totalElements": 8, "totalPages": 1, "number": 0}
+}
