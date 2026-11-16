@@ -12,7 +12,6 @@ import nz.waveformlabs.moshpoint.core.LocationBox
 import nz.waveformlabs.moshpoint.core.RelayPacket
 import nz.waveformlabs.moshpoint.core.SharedLocation
 import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio
-import nz.waveformlabs.moshpoint.locate.MyLocation
 import nz.waveformlabs.moshpoint.locate.RelayClient
 
 /**
@@ -25,12 +24,12 @@ import nz.waveformlabs.moshpoint.locate.RelayClient
  * - **Last gasp**: when the battery hits 5% we post one final position straight away,
  *   flagged, so mates know where you were when your phone died.
  *
- * Battery: asks for an update every 15 s or 5 m of movement, and skips uploads when
- * nothing has changed (see [RelayClient.uploadGapMs]).
+ * Battery: our position comes at [LiveCadence]'s rate (core GpsCadence): GPS every 15 s while a
+ * mate is looking or we're walking, else Wi-Fi and cell positioning once a minute; uploads are
+ * skipped when nothing has changed (see [RelayClient.uploadGapMs]).
  */
 /** [identity]: who we are right now (crew pass at a gig, see Identity). */
 class LocationUploader(private val context: Context, private val scope: CoroutineScope, private val identity: () -> ByteArray) {
-    private val myLocation = MyLocation(context)
     private var job: Job? = null
     private var lastUploadMs = 0L
     private var lastKey: String? = null
@@ -43,13 +42,14 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
     fun boost() {
         val first = System.currentTimeMillis() > boostUntil
         boostUntil = System.currentTimeMillis() + 5 * 60_000
+        LiveCadence.boost() // and GPS every 15 s while they look
         if (first) lastLoc?.let { loc -> scope.launch { publish(loc, force = false) } }
     }
 
     fun start() {
         if (job != null) return
         job = scope.launch {
-            myLocation.updates(intervalMs = 15_000, minDistanceM = 5f).collect { loc ->
+            LiveCadence.positions(context, minDistanceM = 5f).collect { loc ->
                 // Night recap: count real movement only (not GPS jitter).
                 lastLoc?.let { prev ->
                     val d = prev.distanceTo(loc)

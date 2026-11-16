@@ -176,10 +176,13 @@ object BleHub {
             .setReportDelay(0)
             .apply {
                 // Hear both classic adverts (finding) and Bluetooth 5 extended ones (group
-                // intros, crowd relay) in the same scan.
+                // intros, crowd relay) in the same scan. On the 1M PHY only: every advert we send
+                // uses it (CrowdRelayRadio, the app's intros and bump), and listening on Coded as
+                // well would split the scan's time for nothing (docs/WAVE2C_BATTERY.md). If an
+                // advert ever goes out on Coded, listen on PHY_LE_ALL_SUPPORTED again.
                 if (adapter?.isLeExtendedAdvertisingSupported == true) {
                     setLegacy(false)
-                    setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED)
+                    setPhy(android.bluetooth.BluetoothDevice.PHY_LE_1M)
                 }
             }
             .build()

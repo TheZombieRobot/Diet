@@ -23,7 +23,7 @@ import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.locate.MotionDetector
-import nz.waveformlabs.moshpoint.locate.MyLocation
+import nz.waveformlabs.moshpoint.service.LiveCadence
 import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.venue.Floors
 
@@ -228,7 +228,8 @@ object HerePins {
         motion = md
         watchJobs = listOf(
             scope.launch {
-                MyLocation(c).updates(intervalMs = 10_000, minDistanceM = 0f).collect { loc ->
+                // No request of its own: Live's cadence (GPS while walking, else a fix a minute).
+                LiveCadence.positions(c, minDistanceM = 0f).collect { loc ->
                     w.onLocation(LatLon(loc.latitude, loc.longitude), loc.accuracy.toDouble(), hasMotion)?.let { left(c, it) }
                 }
             },
@@ -237,6 +238,7 @@ object HerePins {
                     delay(1_000)
                     val t = now()
                     w.onMotion(md.moving, t)
+                    if (md.moving) LiveCadence.sawMotion() // walking: GPS, so walking away shows promptly
                     Floors.currentHpa()?.let { p -> w.onPressure(p, t)?.let { left(c, it) } }
                 }
             },

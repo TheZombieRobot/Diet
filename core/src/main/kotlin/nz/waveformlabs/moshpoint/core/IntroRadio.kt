@@ -37,6 +37,16 @@ class IntroRadio(private val follower: Boolean) {
 
         val QUIET = Round(revive = false, listen = false, advertise = false)
 
+        /**
+         * The intro advert goes every 250 ms for the first half hour of the radio running (Live,
+         * or the app open), while the crew meets; then every second (docs/WAVE2C_BATTERY.md).
+         * It only introduces crew mates: finding them uses the finder's own advert.
+         */
+        const val FAST_FOR_MS = 30 * 60_000L
+
+        /** Advertise at the slower interval, [runningMs] after the intro radio started. */
+        fun slow(runningMs: Long): Boolean = runningMs >= FAST_FOR_MS
+
         /** Room for the biggest intro (the second form) in one advert of [maxAdvertisingDataLength] bytes. */
         fun fits(maxAdvertisingDataLength: Int): Boolean = maxAdvertisingDataLength >= GigGroup.MAX_INTRO2_BYTES + ADVERT_HEADER
     }

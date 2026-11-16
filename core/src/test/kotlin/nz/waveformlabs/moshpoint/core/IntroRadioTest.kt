@@ -43,6 +43,13 @@ class IntroRadioTest {
         assertEquals(IntroRadio.QUIET, IntroRadio(follower = false).round(true, false, 31))
     }
 
+    @Test fun fastForTheFirstHalfHourThenEverySecond() {
+        assertFalse(IntroRadio.slow(0))
+        assertFalse(IntroRadio.slow(29 * 60_000L))
+        assertTrue(IntroRadio.slow(30 * 60_000L))
+        assertTrue(IntroRadio.slow(5 * 3600_000L))
+    }
+
     @Test fun followersNeverUseBluetooth() {
         val radio = IntroRadio(follower = true)
         assertEquals(IntroRadio.QUIET, radio.round(off))

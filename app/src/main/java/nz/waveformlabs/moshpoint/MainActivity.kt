@@ -99,6 +99,12 @@ class MainActivity : ComponentActivity() {
 
     internal fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
 
+    /** Every touch and key press: the finder keeps the screen on for a while after one (core FinderAwake). */
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        finder.touched()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         finder.handleLightRequest(intent)

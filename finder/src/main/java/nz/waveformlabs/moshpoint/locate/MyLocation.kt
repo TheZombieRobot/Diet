@@ -20,8 +20,12 @@ import nz.waveformlabs.moshpoint.core.LocationPick
 class MyLocation(context: Context) {
     private val lm = context.getSystemService(LocationManager::class.java)
 
+    /**
+     * [highAccuracy] false: Wi-Fi and cell positioning only, no GPS ("balanced power"; a phone
+     * without a network provider uses GPS at the same interval).
+     */
     @SuppressLint("MissingPermission")
-    fun updates(intervalMs: Long, minDistanceM: Float): Flow<Location> = callbackFlow {
+    fun updates(intervalMs: Long, minDistanceM: Float, highAccuracy: Boolean = true): Flow<Location> = callbackFlow {
         var best: Location? = null
         val listener = LocationListener { loc ->
             val b = best
@@ -32,8 +36,10 @@ class MyLocation(context: Context) {
         }
         // Register even if location is switched off right now: updates start as soon as
         // the user turns it on. (Only skip providers this phone doesn't have at all.)
-        val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-            .filter { it in lm.allProviders }
+        val all = lm.allProviders
+        val balanced = !highAccuracy && LocationManager.NETWORK_PROVIDER in all
+        val providers = (if (balanced) listOf(LocationManager.NETWORK_PROVIDER) else listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER))
+            .filter { it in all }
         try {
             providers.forEach { lm.requestLocationUpdates(it, intervalMs, minDistanceM, listener, Looper.getMainLooper()) }
         } catch (e: SecurityException) {

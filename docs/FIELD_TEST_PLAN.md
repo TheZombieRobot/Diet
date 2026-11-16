@@ -740,6 +740,63 @@ Phone models and Android versions; A3 on Android 10/11 (crash or not); C2 (which
 appeared); D2's order of screens, and D6–D8; F3 (does the arrow point right in landscape?);
 anything lost in F2; I, for each receiving phone (model, chip) and each advert.
 
+## 4h. Battery (wave 2c, two phones; one 4-hour run before and after)
+
+What changed and why: docs/WAVE2C_BATTERY.md. **Build 312** is "before"; this branch's build is
+"after". Use the same phone for both runs (ideally two of the same model side by side, one on
+each build).
+
+### A. The finder in a pocket and on the table (15 min)
+
+- [ ] Open the finder on a crew mate who is **far away** (over 30 m, or not live). Don't touch the
+  screen. It should stay on for about 90 s, then the phone's own timeout, then go off.
+- [ ] Turn it back on and unlock: the finder is still open and the arrow (or "searching") comes
+  back straight away, with no trip through the home screen.
+- [ ] Open the finder again, touch it, and put the phone **in a pocket** (or cover the top of the
+  screen with your hand for a few seconds): the screen should go off within the phone's own
+  timeout, not stay on. With adb, after 20 s: `adb shell dumpsys bluetooth_manager | grep -i scan`
+  shows the finder's fast scan gone.
+- [ ] A thumb passing over the top of the screen while you use it must not turn it off.
+- [ ] **On the table**, finder open, a mate walking towards you from 50 m: once they're within
+  about 30 m the screen stays on without touching, until they reach you; with nobody close, it
+  goes off after about 90 s.
+- [ ] Following a mate who is 10–30 m away for a couple of minutes without touching the screen:
+  it must not lock. Note if it ever does.
+- [ ] Light me up: switch it on and leave it. It goes off by itself after 10 minutes (the screen
+  stops flashing, the torch stops, brightness goes back). Switch it on again and touch the screen
+  every few minutes: it keeps going.
+
+### B. 4 hours in a pocket with Live on, before and after (against build 312)
+
+- [ ] Both phones charged to 100%, same brightness, Bluetooth, Wi-Fi and location on, battery
+  optimisation off for Moshpoint, the same SIM/network if possible.
+- [ ] In a crew with at least two other live phones nearby (ideally at a gig, or a café).
+- [ ] Go live, close the app, phone in a pocket for **4 hours**. Walk around for a few minutes
+  every hour (to the bar and back), otherwise stand or sit.
+- [ ] Every hour: note the battery %. At the end: Settings > Battery > Moshpoint (the app's share
+  and its "background" time), and if you can, `adb bugreport` for Battery Historian.
+- [ ] Expected: "after" uses noticeably less than build 312 (docs/WAVE2C_BATTERY.md, "Expected
+  battery effect": mostly GPS and the radios here; the finder's screen in part A).
+- [ ] During the run, a mate opens the finder on you a few times: their arrow and distance must
+  come as quickly as with build 312 (Bluetooth straight away; Wi-Fi distance within a few
+  seconds; your GPS position within about 15 s once your phone has heard their finder).
+- [ ] Your dot on a far mate's map: updates about once a minute while you stand still, every
+  15 s or so while you walk (debug builds: Technology status, "Own location").
+- [ ] Your "I'm here" pin still clears itself when you walk away from it (about 40 m), and not
+  while you stand at the bar.
+
+### C. Networks (10 min)
+
+- [ ] Join a Wi-Fi with a sign-in page and don't sign in (or a hotspot with no data): the app
+  treats it as no signal (crew messages say "Sent nearby"/"Waiting for signal" as without any
+  network) and nothing hangs; once you sign in, or turn Wi-Fi off, waiting messages go at once.
+
+### What to send back for this part
+
+The hourly battery % for both runs, the Battery screens at the end, any time the finder's screen
+went off while you were following someone, and anything that found a mate more slowly than
+build 312.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).

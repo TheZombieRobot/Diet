@@ -302,8 +302,12 @@ way.
 
 - **Battery:** a visible phone advertises slowly (~1 s, low power) and listens with a
   low-power scan. When it hears a friend's "looking" advert it speeds up to fast (~100 ms)
-  for 90 s. The finder only scans fast while its screen is open (stops 20 s after leaving).
-  GPS shares every 15 s / 5 m. Still to try: duty-cycling the listen scan with the screen off.
+  for 90 s. The finder only scans fast while its screen is open (stops 20 s after leaving), and
+  holds the screen on only for 90 s after a touch or with a mate within 30 m, never in a pocket
+  (core `FinderAwake`). Our own position: GPS every 15 s while a mate is looking or we're
+  walking, else Wi-Fi and cell positioning once a minute (core `GpsCadence`). Details:
+  [WAVE2C_BATTERY.md](WAVE2C_BATTERY.md). Still to try: duty-cycling the listen scan with the
+  screen off.
 - **Crowds:** bodies absorb 2.4 GHz. Retune `RssiRanging` and `SpinScan` thresholds with real gig data.
 - **Background limits:** foreground service + `START_STICKY`. Test on Samsung/Xiaomi/Oppo,
   which kill background apps hard, and prompt users to exempt the app from battery optimisation.

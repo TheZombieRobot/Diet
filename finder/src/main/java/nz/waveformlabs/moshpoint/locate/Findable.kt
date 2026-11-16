@@ -7,6 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.Advert
+import nz.waveformlabs.moshpoint.core.AwarePublish
 import nz.waveformlabs.moshpoint.core.EphemeralId
 
 /**
@@ -19,7 +20,8 @@ import nz.waveformlabs.moshpoint.core.EphemeralId
  *   Medium speed (~4 a second), fast for 90 s after a mate's finder says it is looking.
  * - On UWB phones: our UWB controlee address in the advert, and joining a looking mate's
  *   session ([UwbResponder]).
- * - Wi-Fi Aware: our rotating code published, ranging allowed ([WifiAwarePublisher]).
+ * - Wi-Fi Aware: our rotating code published, ranging allowed ([WifiAwarePublisher]), only once a
+ *   mate's finder is looking for us, until none has for 5 minutes (core AwarePublish).
  * - A low-power listen for mates who are looking (it speeds the advert up, and on UWB phones
  *   joins their UWB session).
  * - Bluetooth or Wi-Fi Aware coming back on after being switched off: restarted.
@@ -60,6 +62,7 @@ class Findable(
     private var wifi: WifiAwarePublisher? = null
     private var radios: RadioWatcher? = null
     private var lastLookedAt = 0L
+    private var awareSupported = false
 
     /** Both steps at once, for a host with nothing to do in between. */
     fun start() {
@@ -92,9 +95,8 @@ class Findable(
 
     /** Wi-Fi Aware, the radio watcher, UWB, and the low-power listen for mates who are looking. */
     fun startListening() {
-        if (wifiRttSupported(context)) {
-            wifi = WifiAwarePublisher(context) { ephemeral.currentId(System.currentTimeMillis()) }.also { it.start() }
-        }
+        // Wi-Fi Aware isn't published yet: only once a mate's finder is looking (onFriendLooking).
+        awareSupported = wifiRttSupported(context)
         radios = RadioWatcher(
             context,
             onBluetooth = { on ->
@@ -141,6 +143,11 @@ class Findable(
                     broadcaster.mode = AdvertiseSettings.ADVERTISE_MODE_BALANCED
                     FinderLog.log("No one looking: advert back to medium")
                 }
+                if (wifi != null && !AwarePublish.wanted(System.currentTimeMillis(), lastLookedAt)) {
+                    wifi?.stop()
+                    wifi = null
+                    FinderLog.set("Wi-Fi Aware (visible)", "off (no one looking)")
+                }
             }
         }
     }
@@ -148,6 +155,10 @@ class Findable(
     private fun onFriendLooking(friend: FinderMate) {
         lastLookedAt = System.currentTimeMillis()
         onMateLooking(friend)
+        // Their finder can range to us over Wi-Fi Aware from now on (core AwarePublish).
+        if (wifi == null && awareSupported) {
+            wifi = WifiAwarePublisher(context) { ephemeral.currentId(System.currentTimeMillis()) }.also { it.start() }
+        }
         if (broadcaster.mode != AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY) {
             broadcaster.mode = AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
             // Test builds only, checked here so release builds don't build the text (see BleRanger).

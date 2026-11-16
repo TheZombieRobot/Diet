@@ -62,6 +62,14 @@ class RelayBudget(
     private val throttleMaxMs: Long = 15 * 60_000L,
     /** 0.0 ..< 1.0, for jitter (so a crowd regaining signal doesn't retry in step). */
     private val random: () -> Double = Math::random,
+    /**
+     * Look-ups (reading mailboxes: chat, pings, mates' positions) that got no answer this many
+     * times in a row hold off: [lookUpQuietBaseMs], doubling each time, at most
+     * [lookUpQuietMaxMs], each stretched by up to a quarter (docs/WAVE2C_BATTERY.md).
+     */
+    private val lookUpFreeFails: Int = 2,
+    private val lookUpQuietBaseMs: Long = 5_000L,
+    private val lookUpQuietMaxMs: Long = 30_000L,
 ) {
     internal class Request(val atMs: Long, val background: Boolean, val message: Boolean)
 
@@ -88,6 +96,8 @@ class RelayBudget(
     private var safetyInPauseAtMs = Long.MIN_VALUE / 2
     private var quietUntilMs = 0L
     private var quietStep = 0
+    private var lookUpFails = 0
+    private var lookUpQuietUntilMs = 0L
 
     /** Messages still available to [use] today. */
     @Synchronized
@@ -110,7 +120,7 @@ class RelayBudget(
     @Synchronized
     fun roomInMs(use: RelayUse, message: Boolean, nowMs: Long): Long {
         rollDay(nowMs)
-        if (paused(use, nowMs) || (use == RelayUse.BACKGROUND && nowMs < quietUntilMs)) return -1
+        if (paused(use, nowMs) || (use == RelayUse.BACKGROUND && nowMs < quietUntilMs) || lookUpQuiet(use, message, nowMs)) return -1
         if (message && messages >= messageCap(use)) return -1
         prune(nowMs)
         var wait = 0L
@@ -154,6 +164,8 @@ class RelayBudget(
         // After no answer at all, background requests hold off for a moment (so retry loops
         // don't spin on a dead connection). Messages and look-ups still try: each has its own pace.
         if (use == RelayUse.BACKGROUND && nowMs < quietUntilMs) return PutResult.NO_NETWORK
+        // Look-ups that keep getting no answer hold off too (uploads keep their own pace).
+        if (lookUpQuiet(use, message, nowMs)) return PutResult.NO_NETWORK
         prune(nowMs)
         if (requests.size >= requestsPerMinute) return PutResult.THROTTLED
         if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) return PutResult.THROTTLED
@@ -161,6 +173,11 @@ class RelayBudget(
         if (message && messages >= messageCap(use)) return PutResult.THROTTLED
         return null
     }
+
+    /** A look-up: reading mailboxes (a [RelayUse.MESSAGE] request that publishes nothing). */
+    private fun isLookUp(use: RelayUse, message: Boolean) = use == RelayUse.MESSAGE && !message
+
+    private fun lookUpQuiet(use: RelayUse, message: Boolean, nowMs: Long) = isLookUp(use, message) && nowMs < lookUpQuietUntilMs
 
     /** Have uploads taken their share of this minute (the rest is kept for look-ups)? Call after [prune]. */
     private fun uploadsFull(use: RelayUse, message: Boolean): Boolean =
@@ -177,6 +194,15 @@ class RelayBudget(
     /** The request ended. Only an answer from the relay costs anything. */
     @Synchronized
     fun settle(ticket: Ticket, outcome: Outcome, nowMs: Long) {
+        if (outcome != Outcome.NO_ANSWER) {
+            // The relay answered: look-ups may go at their own pace again.
+            lookUpFails = 0
+            lookUpQuietUntilMs = 0L
+        } else if (isLookUp(ticket.use, ticket.message) && ++lookUpFails >= lookUpFreeFails) {
+            // With the defaults: after the second in a row 5 s, then 10, 20, and 30 at most.
+            val base = minOf(lookUpQuietBaseMs shl (lookUpFails - lookUpFreeFails).coerceAtMost(4), lookUpQuietMaxMs)
+            lookUpQuietUntilMs = nowMs + base + (base * 0.25 * random()).toLong()
+        }
         when (outcome) {
             Outcome.OK -> {
                 throttleStep = 0
@@ -219,6 +245,8 @@ class RelayBudget(
     fun networkBack() {
         quietUntilMs = 0L
         quietStep = 0
+        lookUpFails = 0
+        lookUpQuietUntilMs = 0L
     }
 
     private fun messageCap(use: RelayUse) = when (use) {

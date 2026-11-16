@@ -205,12 +205,9 @@ fun FinderScreen(
     val lastFound = remember { arrayOfNulls<String>(1) }
     if (found != null) lastFound[0] = found
 
-    // Keep the screen awake while finding: it mustn't lock in the middle of the crowd.
-    val view = androidx.compose.ui.platform.LocalView.current
-    androidx.compose.runtime.DisposableEffect(Unit) {
-        view.keepScreenOn = true
-        onDispose { view.keepScreenOn = false }
-    }
+    // The screen is held on by the app around this screen (main/FinderScreenOn, core FinderAwake):
+    // after a touch and while a mate is close, so it doesn't lock in the middle of the crowd, but
+    // not in a pocket.
 
     // A light buzz each time you cross 20 / 10 / 5 m towards someone: nothing further out, so the
     // phone only vibrates once you're within 20 m (with the ticks as you close in, FindHaptics).
