@@ -50,9 +50,9 @@ _Keep this section current: whoever picks this up next starts here._
 | 5 | Moments: `Content-Length`, reseal on 400 | `Reseal` (`MomentRulesTest`) | green with 3, 4, 6, run 341 (not re-run alone: merged) |
 | 6 | Clips on Wi-Fi | `MomentFetch` (`MomentFetchTest`) | green, run 341 |
 
-## Rules kept (from the brief)
+## Rules kept (from the coordinating session's brief, not the owner's)
 
-- **Safety is never batched, delayed or limited.** Need help, Check in, Home safe and overdue
+- **Need help, Check in and Home safe go alone** (a design choice, not an owner's rule). Need help, Check in, Home safe and overdue
   alerts go at once, on their own, exactly as before: `BatchPlan.route` sends `RelayUse.SAFETY`
   alone; `RelayHolds` never holds safety; the lowered budget never counts it
   (`safetyAlwaysHasRoom`). `BatchPlanTest.needHelpDoesNotWaitForTheBatch` drives the real

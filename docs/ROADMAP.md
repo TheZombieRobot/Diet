@@ -215,9 +215,11 @@ Moshpoint opens weeks before the gig, not only on the night.
   members. The free relay holds no API keys, and no key is ever built into any app. Free users
   type their gig in by hand. The production relay checks membership before it answers a keyed
   endpoint, comes with billing.
-- One purchase covers phone and watch. Never paywall safety: "Need help" (phone or wrist) is free,
-  and so are check-ins and their overdue alerts. On the free tier, safety messages never count
-  against the allowance and always get through by the best path available.
+- One purchase covers phone and watch.
+- **No "safety" rules from the owner (owner, 16 November 2026).** The owner never asked for
+  special rules for Need help, check-ins or their alerts (such as "never paywalled" or "never
+  limited"). Earlier notes stated such rules as the owner's by mistake. Don't add or enforce any
+  in the owner's name: how those features are priced or limited is the owner's call, with billing.
 
 ### Later
 - **Before launch:** move the finder engine out of the gig code (the watch and any spin-off

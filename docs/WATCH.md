@@ -369,11 +369,10 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   state, so it wakes only when that changes, for up to 30 minutes.
 - **Never twice.** "Try again" reuses the same request number. If the phone already has that
   ping in its outbox it does not send another: it asks the outbox to try now and reports again.
-- After a send, "I'm OK now" tells the crew you're all good. That is part of the safety
-  feature, so it is free too.
-- **Never paywalled:** the phone handles Need help (and its all-clear) before, and without,
+- After a send, "I'm OK now" tells the crew you're all good.
+- **As built today:** the phone handles Need help (and its all-clear) before, and without,
   the Moshpoint+ check; the watch shows the button in every state, including the locked one
-  and the tile.
+  and the tile. (Not an owner's rule: what's paid is the owner's call, with billing. ROADMAP.md.)
 - **A limit to know about:** while the phone has no signal and you aren't live, Android may
   put the phone app to sleep once the watch has been answered. The ping stays in the outbox
   and goes when the app next runs: when you open it or go live, or at its hourly chat check.

@@ -55,7 +55,7 @@ Two findings were checked again by hand:
 - MapLibre 11.8 or later for 16 KB pages (Play deadline 1 Feb 2027).
 - ~~Fail release builds that have no server set~~ **Dropped (owner's decision, 15 November):** free users run on a
   different, limited relay and the production relay is a Moshpoint+ feature (ROADMAP.md, Moshpoint+). The
-  free/premium routing comes with billing. Safety messages must never be limited on the free tier.
+  free/premium routing comes with billing.
 - Gig search is broken in release builds (GigSearch.viaServer).
 - The Facebook SDK contacts Meta at every launch: start it only when someone logs in.
 - Add a prominent disclosure and a privacy policy link before the location prompt.
@@ -96,7 +96,7 @@ See the P2 sections of the three reports: Keystore encryption at rest, the old i
 - **2c Battery and performance:** items 4 and 5 and the performance list (uses wave 1's batch and cursor endpoints).
 - **2d Report and Block (item 9):** app and server.
 - **2e Moshpoint+ and billing:** Play Billing into `Entitlements`; free users on a separate limited relay,
-  members on the production relay; safety messages never limited (ROADMAP.md, Moshpoint+).
+  members on the production relay (ROADMAP.md, Moshpoint+).
 
 Then a test build, the field tests in FIELD_TEST_PLAN.md, and the bug-fixing phase.
 

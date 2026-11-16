@@ -305,8 +305,6 @@ will need to touch:
   Ticketmaster directly (if a key is built in) and Nominatim directly.
 - The disclosure says "sent through a relay server, which can't read it" (true for every relay);
   PRIVACY.md says which relays there are; both need the free relay named when it exists.
-- Safety messages must never count against the free allowance (ROADMAP.md, Moshpoint+): nothing
-  in this wave meters them.
 
 ## Owner to-do (found or confirmed here)
 - **Bluetooth SIG:** join as an Adopter (free), buy one 16-bit UUID (US$3,750), and replace
