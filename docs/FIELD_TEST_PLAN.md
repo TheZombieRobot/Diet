@@ -559,7 +559,7 @@ Message routes** open on the phones you're watching.
   Message routes on all three phones during the no-signal tests.
 - For each test: worked or not, how long each message took, and anything confusing in the words.
 
-## 4g. Play Store readiness and Android 16 (wave 2b, two phones, 40 min)
+## 4g. Play Store readiness and Android 16 (wave 2b, two phones, 60 min)
 
 What only a phone can prove about docs/WAVE2_PLAY.md. Both phones on the same new test build
 (the Bluetooth UUIDs changed: an older build can't hear crew intros, bumps, the crowd relay or
@@ -606,8 +606,16 @@ Android version.
    "allow" banner) → **Continue** → Android's prompts.
 3. Deny Nearby devices, then tap **Go live**: ✅ the disclosure again, then Android's prompt.
 4. Large text (Settings → Display → Font size, largest) on a small phone: ✅ the disclosure
-   scrolls and its buttons stay visible.
+   scrolls and its buttons stay visible (stacked, if a translation is too long for one row).
 5. Settings (the sheet) → scroll to the bottom: ✅ **Privacy policy** next to the licences.
+6. Clear the app's storage again. In the welcome: **Allow** → **Continue** → deny in Android's
+   prompt once, then finish. Close the app (swipe it away) and open it → ✅ the disclosure shows
+   at the start (Android would still ask). **Not now** → close and open again → ✅ it doesn't
+   show at the start any more (the home's "allow" banner and Go live still offer it).
+7. Deny location twice in Android's prompt (Android then stops asking). Tap **Go live** →
+   disclosure → **Continue** → ✅ the app's page in Android's Settings opens (it used to do
+   nothing). Close and open the app → ✅ no disclosure at the start.
+8. On a tablet: open the disclosure (the "allow" banner) and rotate → ✅ it's still there.
 
 ### E. Predictive back (an Android 16 phone)
 In the finder, map, crew chat, private chat, the Story, the camera and every dialog: swipe back
@@ -620,8 +628,9 @@ Android 16 ignores the app's portrait lock on screens 600 dp and wider (docs/AND
    (compare `tabletHomeMain` and `tabletFinderGroup` in docs/screenshots).
 2. Rotate while the finder is open: the activity restarts (no `configChanges` yet, wave 2a).
    Note what's lost.
-3. **Known issue to confirm:** with the device flat in landscape, the finder's GPS/compass
-   arrow points 90° off (the compass isn't remapped to the screen's rotation). Note the error.
+3. With the device flat in landscape, and then held upright in landscape: ✅ the finder's
+   GPS/compass arrow points the right way (it used to be 90° off flat, 45° upright; the compass
+   now follows the screen's rotation). Turn it the other way round into landscape too.
 
 ### G. Facebook (only if the build has a Meta app configured)
 1. First launch after install, before tapping anything Facebook: ✅ no traffic to
@@ -634,9 +643,30 @@ Android 16 ignores the app's portrait lock on screens 600 dp and wider (docs/AND
 Install the watch release build next to the phone release build: ✅ the crew list and the arrow
 work, and nothing says "Unlock" (Moshpoint+ is on for everyone until billing exists).
 
+### I. Bluetooth 5 adverts with the screen off (at least two chipsets, 20 min)
+Crew intros, messages without signal (and the crowd relay, which uses the same advert) and bump
+now carry Moshpoint's own 128-bit UUIDs (docs/BLUETOOTH_UUIDS.md). With the screen off, Android
+leaves picking out our adverts to the Bluetooth chip, and chips may differ on 128-bit ones. So
+receive with at least two chipsets, for example a Samsung (Snapdragon) and a Pixel (Tensor);
+note each phone's model and chip. Every phone: airplane mode **on**, then Bluetooth back **on**
+(no internet, so only Bluetooth can carry anything).
+1. **Crew intro.** A: in a crew, **Live on**, screen **off**. B (never in this crew before):
+   join from A's QR, then wait 2 minutes with B's app open. A: screen on, open the app → ✅ B is
+   in A's crew, and the debug log's "Gig group: B joined" line is from before A's screen came on.
+2. **A message without signal.** A: Live on, screen **off**. B: send a crew chat line → ✅ A's
+   notification arrives with A's screen still off (within a couple of minutes); B's **Message
+   routes** show it went by Bluetooth. This advert is the crowd relay's too: with a third
+   phone, A's Technology status → **Crowd relay** should count packets heard with the screen off.
+3. **Bump** (screens on, as it's done): ✅ it works in airplane mode.
+4. Swap A and B and repeat 1–2, so each chipset receives with its screen off.
+
+If one fails on a chip, note which advert and the phone: docs/BLUETOOTH_UUIDS.md has the fix
+ready ("With the screen off").
+
 ### What to send back for this part
 Phone models and Android versions; A3 on Android 10/11 (crash or not); C2 (which picker
-appeared); D2's order of screens; F3's error in degrees; anything lost in F2.
+appeared); D2's order of screens, and D6–D8; F3 (does the arrow point right in landscape?);
+anything lost in F2; I, for each receiving phone (model, chip) and each advert.
 
 ## 5. What to send back
 

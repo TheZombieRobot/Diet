@@ -45,14 +45,16 @@ therefore no longer holds there: the app fills the whole window, in landscape to
   tablet, in every language (`tabletHomeMain`, `tabletFinderGroup`), and the location disclosure
   (`tabletDisclosure`). What they show is in "Results" in docs/WAVE2_PLAY.md.
 - **Found (for the bug-fixing phase):**
-  1. **The phone's compass arrow is 90° out in landscape on a large screen.**
-     `finder/…/Compass.kt` turns the rotation vector into a heading in the device's own frame and
-     never remaps it to the screen's (`SensorManager.remapCoordinateSystem` with the display's
-     rotation). That was harmless with the portrait lock on phones (rotation always 0); on an
-     unfolded foldable or a tablet held in landscape the flat-phone arrow now points 90° off. (A
-     tablet whose natural orientation is landscape was already off under the old lock.) Fix:
-     remap by the activity's display rotation while the finder is on screen; leave the pocket and
-     watch paths in the device frame. Field test 4g-F.
+  1. **The phone's compass arrow was 90° out in landscape on a large screen. Fixed.**
+     `finder/…/Compass.kt` turned the rotation vector into a heading in the device's own frame and
+     never remapped it to the screen's. That was harmless with the portrait lock on phones
+     (rotation always 0); on an unfolded foldable or a tablet held in landscape the flat-phone
+     arrow pointed 90° off, and 45° when held upright. (A tablet whose natural orientation is
+     landscape was already off under the old lock.) Now the compass reads the display's rotation
+     with every reading, and core `CompassHeading` uses whichever edge of the phone is at the top
+     of the screen, as `SensorManager.remapCoordinateSystem` maps it for a compass (tests in
+     `FinderRulesTest`, flat and upright, every quarter turn). Only the finder and the map run
+     the compass, both on screen; the watch points with its own. Field test 4g-F.
   2. **Rotation now recreates MainActivity on large screens** (no `configChanges`), which closes
      the finder and drops dialogs. Wave 2a owns `configChanges` (PRODUCTION_AUDIT, reliability);
      until then, a confirmation waiting for an invite and the gig a photo pick is for are saved

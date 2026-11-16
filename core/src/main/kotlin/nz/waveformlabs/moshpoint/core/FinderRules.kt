@@ -102,10 +102,25 @@ class WalkingTest {
  * of the phone (right when it's upright) and takes the horizontal part.
  */
 object CompassHeading {
-    /** Degrees clockwise from magnetic north, [0, 360); null when the phone points straight up or down. */
-    fun fromRotation(rot: FloatArray): Double? {
-        val east = rot[1] - rot[2]
-        val north = rot[4] - rot[5]
+    /**
+     * Degrees clockwise from magnetic north, [0, 360); null when the phone points straight up or
+     * down. [displayRotation] is the screen's rotation from the phone's natural orientation, in
+     * quarter turns (`Display.getRotation()`, `Surface.ROTATION_0` to `ROTATION_270`): Android 16
+     * ignores the app's portrait lock on screens 600 dp and wider, so a tablet can be in landscape.
+     */
+    fun fromRotation(rot: FloatArray, displayRotation: Int = 0): Double? {
+        // The top of the screen, in the phone's own axes, as SensorManager.remapCoordinateSystem
+        // maps them for a compass: the top edge (y) in portrait; the right edge (x) when the
+        // phone is turned a quarter anticlockwise (ROTATION_90); the bottom (-y); the left (-x).
+        // The back of the phone (-z) is the same whichever way the screen is turned.
+        val (topEast, topNorth) = when (displayRotation and 3) {
+            1 -> rot[0] to rot[3]
+            2 -> -rot[1] to -rot[4]
+            3 -> -rot[0] to -rot[3]
+            else -> rot[1] to rot[4]
+        }
+        val east = topEast - rot[2]
+        val north = topNorth - rot[5]
         if (east * east + north * north < 1e-4f) return null
         val deg = Math.toDegrees(atan2(east.toDouble(), north.toDouble()))
         return (deg + 360) % 360

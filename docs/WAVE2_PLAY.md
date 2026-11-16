@@ -7,19 +7,24 @@ and Live) runs in parallel; wave 2c (battery) and 2d (Report and Block) come lat
 
 ## Status and next steps (handover)
 
-_Keep this section current: whoever picks this up next starts here. Last updated 15 November
-2026, 23:45 UTC._
+_Keep this section current: whoever picks this up next starts here. Last updated 16 November
+2026, 00:50 UTC._
 
 - **Done.** Code: items 1–4 and 6–12 below; item 5 was dropped by the owner (the refusal was
   built, then removed again). Docs: ANDROID_16.md, BLUETOOTH_UUIDS.md, PLAY_STORE.md (Data
   safety corrected, Play Console answers), PRIVACY.md, FIELD_TEST_PLAN.md section 4g,
   SERVER_PRODUCTION.md's app follow-ups, this note.
-- **Final CI: run 306 (d58062f), green**
+- **Review round (16 November):** an independent review of 2ceb820 found one regression that
+  blocked the merge and six smaller items; all seven are dealt with (next section). **Next:**
+  the CI run for the review round: green; the comparison in "Checking" still only 252 `A`
+  lines (no screen changed this round: the disclosure's look didn't, only when it shows); then
+  report to the coordinating session (session_01Sw3Y2WCFVzhNwUVdFGVbRq). Don't merge.
+- **Before the review round, final CI was run 306 (d58062f), green**
   (https://github.com/TheZombieRobot/Diet/actions/runs/43772437390): translations, core and
   server tests, debug and release builds, the 16 KB check (phone and watch), screenshots, the
   watch. Against `origin/ui-screenshots`: 252 added (the 12 new screens × 21 languages), none
   modified or deleted. Manifest: exactly the six intended removals (below). Licences: only
-  MapLibre 11.5.2 → 11.8.1. `origin/ccr-5839ed7c-1q0ztj` is merged in (e3d1b49; nothing newer).
+  MapLibre 11.5.2 → 11.8.1.
 - **Course change (15 November, from the coordinating session):** item 5 dropped; item 4's relay
   rule is "release builds follow an invite only to one of their own relays"
   (`RelayClient.ownRelays`); Settings' relay example is `https://<app>.fly.dev`; PRIVACY.md has
@@ -38,9 +43,42 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   number changed between runs 303 and 304); its five images were copied by hand from its own
   `ui-screenshots-claude-play-store-security` set. The all-language branch is force-pushed, so
   it's always right.
-- **Next:** merge into `ccr-5839ed7c-1q0ztj` (the coordinating session decides when; see
-  "Merging with wave 2a"), then the field tests in FIELD_TEST_PLAN.md section 4g and the owner
-  to-dos at the end of this note.
+
+## Review round (16 November): what the independent review found, and what was done
+
+1. **Must fix: crew intros could stay off Bluetooth all night.** The intro loop decided once, at
+   its start, whether adverts had room; with Bluetooth off Android reports a maximum of 0, and
+   nothing restarted the loop when Bluetooth came on unless the finder, the map or Live passed
+   the event on. Fixed: core `IntroRadio` works it out every round (2.5 s), as `advertise()` did
+   before this branch; when Bluetooth comes (back) on it drops the dead advert set and restarts
+   the shared scan; and it starts listening if it couldn't at the start (`startListening` gave
+   up for good when Bluetooth was off: older than this branch, same scenario). Tests:
+   `IntroRadioTest` (started with Bluetooth off, then on; off and on again; room; followers).
+2. **The disclosure showed at every start for people who said no**, and after a permanent
+   denial its Continue did nothing. Now (core `PermissionAsks`, tested; `PermissionsState`):
+   the launch ask runs only at a fresh start (`savedInstanceState == null`), never after "Not
+   now" (remembered), and not when Android won't show its prompt any more (asked before, and
+   Android's rationale flag off for everything missing); Continue opens Android's prompt, or
+   the app's page in Settings once Android won't ask. The first start after updating counts as
+   "asked before" when the welcome was done (older versions asked at every start). A disclosure
+   on screen survives the activity being re-created (a tablet rotating). Field tests 4g-D6–D8.
+3. **The compass was 90° off in landscape on large screens.** Fixed: `Compass` reads the
+   display's rotation with every reading and core `CompassHeading` uses whichever edge of the
+   phone is at the top of the screen (the mapping `SensorManager.remapCoordinateSystem` uses for
+   a compass); tests flat and upright, every quarter turn. Only the finder and the map run it.
+4. **The 128-bit UUIDs weren't field-tested** with the screen off, where the Bluetooth chip does
+   the filtering. Field test 4g-I (airplane mode, Bluetooth on, screen off, two chipsets). No
+   fallback in the code, explained in BLUETOOTH_UUIDS.md ("With the screen off"): an unfiltered
+   scan can't run with the screen off, and Android can't be made to match in software; the fix
+   for a failing chip (the UUID also as a 128-bit service UUID list, with a filter on it) is
+   written down, not done, because it spends three more of the chip's few filter slots.
+5. **Test builds could still pass on a stranger's relay** saved by an older version (no
+   "fromInvite" flag): such an address now counts as from an invite (`RelayClient.init`).
+6. **Test builds switched relay even for a bad invite**: the switch now comes after
+   `GroupSync.join` succeeds (still before the crew's first request, which starts on the main
+   thread after this returns).
+7. **The privacy policy link would break with the branch:** it's a commit permalink now
+   (gradle.properties, docs/FACEBOOK.md); hosting it is an owner to-do below.
 
 ## What changed, item by item
 
@@ -52,8 +90,9 @@ language): `tabletHomeMain`, `tabletFinderGroup`, `tabletDisclosure`.
 - Paparazzi 1.3.5 can't start on API 36 (its layoutlib's `Build` lacks `VERSION_CODES_FULL`):
   `app/src/test/java/android/os/Build.java` is a test-only copy without it. Upgrading Paparazzi
   instead would have changed every screenshot (ANDROID_16.md).
-- Found, for the bug-fixing phase: the compass arrow is 90° off on a large screen in landscape
-  (Compass.kt doesn't remap to the display's rotation); rotation recreates MainActivity on large
+- Found and fixed in the review round: the compass arrow was 90° off on a large screen in
+  landscape (now it follows the display's rotation: core `CompassHeading`). Found, for the
+  bug-fixing phase: rotation recreates MainActivity on large
   screens (wave 2a's `configChanges`).
 
 ### 2. Photos: the system picker, no READ_MEDIA permissions
@@ -140,8 +179,8 @@ the server is built in), so search works in release builds. `VenueLookup` decide
   and Bluetooth are allowed.
 - **Privacy policy link** in the welcome's permissions step, in the disclosure, and at the
   bottom of Settings (`AboutSection`). The address is `BuildConfig.PRIVACY_POLICY_URL`, from
-  `moshpoint.privacyUrl` in gradle.properties: a placeholder (the GitHub copy of PRIVACY.md)
-  until the owner hosts the policy.
+  `moshpoint.privacyUrl` in gradle.properties: a placeholder until the owner hosts the policy,
+  a commit permalink to PRIVACY.md (a branch link would break when the branch goes).
 
 ### 9. MapLibre 11.8.1 (16 KB pages)
 11.5.2's `libmaplibre.so` is 4 KB aligned; 11.8.1 is the first 11.x that's 16 KB aligned and
@@ -228,12 +267,13 @@ Small, local edits only:
 - `AndroidManifest.xml`: the photo permissions block replaced by a comment; an `AD_ID` remove
   line after the features; a `FacebookInitProvider` remove element before the Facebook
   meta-data. Nothing else.
-- `crew/GroupSync.kt`: the `INTRO_UUID` line; inside the intro loop (`introFor` callers, room
-  check, `advertise` condition); `syncOnce`'s `sealIntro` call.
+- `crew/GroupSync.kt`: one import (`IntroRadio`); the `INTRO_UUID` line; inside the intro loop
+  (`introFor` callers, the `IntroRadio` round before `advertise`); the start of
+  `startListening` (Bluetooth off); `syncOnce`'s `sealIntro` call.
 - `MainActivity.kt`: `onNewIntent`'s last line; the invite line moved from before
   `GroupSync.load` to the end of the `savedInstanceState == null` block, with an `else` that
-  restores two holders; `askPermissions.launch` → `permissions.askWithDisclosure()`; two lines
-  in `onSaveInstanceState`.
+  restores three holders; `askPermissions.launch` → `permissions.atLaunch(fresh = …)`; three
+  lines in `onSaveInstanceState`.
 - `main/`: InviteState (relay rule, shared-invite offer), PermissionsState (guards, the
   disclosure), HomeState (one line), MainScreen (the disclosure dialog, onboarding's two
   arguments, the roll dialog's arguments), NightDialogs (the confirmation), StoryState (the
@@ -270,11 +310,14 @@ will need to touch:
   `0xFFA7` in `Ble.kt` before launch (testers update together).
 - **`MOSHPOINT_SERVER`:** set it to the production relay (`https://<app>.fly.dev`); builds work
   without it (the public relay), as the owner decided.
-- **Privacy policy:** host it, then set `moshpoint.privacyUrl`; fill in the email and legal
-  entity; confirm the server region line (Sydney, Fly.io).
+- **Privacy policy:** host it at a stable address of its own, then set `moshpoint.privacyUrl`
+  (and the Meta app's privacy URL, docs/FACEBOOK.md); fill in the email and legal entity;
+  confirm the server region line (Sydney, Fly.io). Until then the app links to a commit
+  permalink of PRIVACY.md as of wave 2b (8b81317): it survives branches being renamed or
+  deleted, but doesn't follow later edits, so re-point it if PRIVACY.md changes first.
 - **Play Console:** use the drafted answers in PLAY_STORE.md (Data safety, content rating,
   foreground services with two short videos, audience 18+, category Events, Advertising ID No).
 - **Meta:** if Facebook login is used, test it once on a phone (it never worked before the fix
   in item 7), then switch the Meta app to Live mode.
 - **Later:** upgrade Paparazzi (then delete the test-only `Build.java` and review every
-  screenshot); fix the compass in landscape on large screens.
+  screenshot).

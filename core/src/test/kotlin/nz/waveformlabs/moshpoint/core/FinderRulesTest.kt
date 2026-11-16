@@ -140,6 +140,34 @@ class FinderRulesTest {
     }
 
     @Test
+    fun flatPhoneOnATurnedScreenFacesWhereTheScreensTopPoints() {
+        // A tablet in landscape (Android 16 ignores the portrait lock on large screens): the top
+        // of the screen is the phone's right edge (ROTATION_90), bottom (180) or left edge (270).
+        val up = Triple(0f, 0f, 1f)
+        for (a in 0 until 360 step 30) {
+            val r = Math.toRadians(a.toDouble())
+            val top = Triple(kotlin.math.sin(r).toFloat(), kotlin.math.cos(r).toFloat(), 0f)
+            for (quarter in 0..3) {
+                val want = ((a + 90 * quarter) % 360).toDouble()
+                val got = CompassHeading.fromRotation(matrix(top, up), displayRotation = quarter)!!
+                val off = ((got - want + 540) % 360) - 180
+                assertEquals(0.0, off, 1e-3, "top edge at $a°, screen turned $quarter quarter(s)")
+            }
+        }
+    }
+
+    @Test
+    fun uprightPhoneInLandscapeStillFacesWhereItsBackPoints() {
+        // Facing north, screen towards you (it faces south), turned a quarter anticlockwise
+        // (ROTATION_90: the top edge points west) or clockwise (ROTATION_270: east).
+        val south = Triple(0f, -1f, 0f)
+        assertEquals(0.0, CompassHeading.fromRotation(matrix(Triple(-1f, 0f, 0f), south), displayRotation = 1)!!, 1e-9)
+        assertEquals(0.0, CompassHeading.fromRotation(matrix(Triple(1f, 0f, 0f), south), displayRotation = 3)!!, 1e-9)
+        // Ignoring how the screen is turned put it 45 degrees off.
+        assertEquals(315.0, CompassHeading.fromRotation(matrix(Triple(-1f, 0f, 0f), south))!!, 1e-9)
+    }
+
+    @Test
     fun noHeadingWhenNothingIsHorizontal() {
         assertNull(CompassHeading.fromRotation(FloatArray(9)))
         val tiny = FloatArray(9).also {

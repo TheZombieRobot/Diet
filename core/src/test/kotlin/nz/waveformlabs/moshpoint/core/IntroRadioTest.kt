@@ -35,7 +35,7 @@ class IntroRadioTest {
         assertTrue(radio.round(true, true, need).advertise)
         assertFalse(radio.round(true, true, need - 1).advertise)
         assertTrue(radio.round(true, true, need - 1).listen) // still hears others
-        assertTrue(IntroRadio.fits(251)) // every Bluetooth 5 phone's minimum for extended adverts
+        assertTrue(IntroRadio.fits(251)) // a typical Bluetooth 5 phone's limit
         assertFalse(IntroRadio.fits(31)) // a legacy advert
     }
 

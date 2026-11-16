@@ -49,6 +49,34 @@ with a 128-bit one (length, type, UUID).
   spare. A phone below a limit falls back as before (bump only receives; messages and intros go
   by the relay).
 
+## With the screen off (a risk the field test checks)
+
+Moshpoint's one shared scan (`BleHub`) asks Android for each advert's UUID as a service-data
+filter whenever the finder isn't on screen (the finder scans unfiltered for every repeat). With
+the screen off that filter is what keeps the scan going: Android pauses unfiltered scans then
+(the `BluetoothLeScanner.startScan` documentation). On most phones Android hands the filter to
+the Bluetooth chip ("offloaded filtering"), and the chip picks out matching adverts by itself.
+Android's own matching reads 16-bit, 32-bit and 128-bit service data alike (AD types 0x16, 0x20
+and 0x21), but a chip that only matched the 16-bit kind, which the old placeholders used, would
+drop the three Bluetooth 5 adverts with the screen off (and with it on, outside the finder).
+Nobody has seen a chip do that, but nobody has tried: field test 4g-I covers it on at least two
+chipsets (for example Samsung with Snapdragon, and Pixel with Tensor).
+
+**Why no fallback in the code:** the obvious one, an unfiltered scan when the filtered one has
+heard nothing for a while, can't work with the screen off: that's exactly when Android pauses
+unfiltered scans. And Android offers no way to make the phone match in software instead of on
+the chip. What the code can do is give the chip a second, more common thing to match:
+
+**The fix, ready if a chip fails:** put the same UUID into each Bluetooth 5 advert a second time,
+as a "complete list of 128-bit service UUIDs" (AD type 0x07, 18 bytes), and add a scan filter on
+it (`ScanFilter.Builder().setServiceUuid(…)`) next to the service-data one. Matching on service
+UUIDs is what every chip supports, because that's how most Bluetooth accessories are found.
+There's room: intro 186 + 22 + 18 = 226 bytes and message 200 + 22 + 18 = 240, inside the 251
+of a typical Bluetooth 5 phone (many allow 1650); the bump invite gives up 18 bytes of its limit. Not done before
+it's needed: it spends three more of the chip's few filter slots, and on a phone with only a
+handful that could stop the shared scan starting at all, the finder's included. The other way
+out is the SIG: 16-bit UUIDs for all four adverts (4 × US$3,750).
+
 ## The options considered
 
 1. **128-bit UUIDs everywhere.** Free and collision-proof, but impossible for the finder's legacy
