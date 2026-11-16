@@ -247,6 +247,32 @@ class RelayBudgetTest {
         assertEquals(-1L, b.roomInMs(RelayUse.MESSAGE, true, now + 61_000))
     }
 
+    /**
+     * Review finding F6 (docs/WAVE2C_REVIEW.md), the owner's rule: safety is never limited on the
+     * free tier. However busy the minute on the public relay, a safety ping (Need help, Check in or
+     * Home safe: its ping and its durable copy in the chat mailbox, two requests) never waits for
+     * it. Everything else gets that much less, and the minute stays within what we take of
+     * ntfy.sh's own limit (8 of its 12).
+     */
+    @Test fun aSafetyPingNeverWaitsForTheMinuteOnThePublicRelay() {
+        val lookUp = RelayUse.MESSAGE to false
+        val upload = RelayUse.MESSAGE to true
+        val share = RelayUse.BACKGROUND to true
+        for (order in listOf(listOf(lookUp, upload, share), listOf(share, upload, lookUp), listOf(upload, share, lookUp))) {
+            val b = budget()
+            val now = 7_000_000L
+            // Every other kind of traffic takes all it may this minute, in this order.
+            var others = 0
+            var t = now
+            while (order.any { (use, message) -> b.go(use, t, RelayBudget.Outcome.OK, message).also { if (it) others++ } }) t += 100
+            t += 100
+            assertEquals(0L, b.roomInMs(RelayUse.SAFETY, true, t), "Need help doesn't wait for room ($order)")
+            repeat(2) { assertTrue(b.go(RelayUse.SAFETY, t + it, RelayBudget.Outcome.OK), "its request ${it + 1} goes at once ($order)") }
+            assertEquals(6, others, "everything else gets two less than the minute's 8 ($order)")
+            assertNull(b.take(RelayUse.SAFETY, true, t + 2), "and the minute holds no more than 8 ($order)")
+        }
+    }
+
     @Test fun aRefusalCountsTheRequestButNotTheMessage() {
         val b = budget()
         assertTrue(b.go(RelayUse.MESSAGE, 0, RelayBudget.Outcome.REFUSED))
