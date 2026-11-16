@@ -24,6 +24,7 @@ import nz.waveformlabs.moshpoint.core.RelayBudget
 import nz.waveformlabs.moshpoint.core.RelayEndpoints
 import nz.waveformlabs.moshpoint.core.RelayHolds
 import nz.waveformlabs.moshpoint.core.RelayWire
+import nz.waveformlabs.moshpoint.core.Reseal
 import nz.waveformlabs.moshpoint.core.RelayUse
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -181,10 +182,13 @@ object RelayClient {
         }.first
     }
 
-    /** Upload an encrypted profile photo (see core AvatarBox). Own server only. */
-    suspend fun putAvatar(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
+    /**
+     * Upload an encrypted profile photo (see core AvatarBox). Own server only. [reseal] seals it
+     * again: a `400` means its bytes happened to look like an ordinary file (core [Reseal]).
+     */
+    suspend fun putAvatar(id: ByteArray, sealed: ByteArray, reseal: (suspend () -> ByteArray)? = null): Boolean = withContext(Dispatchers.IO) {
         if (!avatarsEnabled) return@withContext false
-        ownPut("$base/v1/avatar/${id.hex()}", sealed, 8_000, RelayUse.BACKGROUND, RelayHolds.Traffic.UPLOADS, id.hex()).ok
+        sealedPut("$base/v1/avatar/${id.hex()}", sealed, reseal, 8_000, id.hex())
     }
 
     /** Fetch an encrypted profile photo, or null if there isn't one (or no network). */
@@ -322,9 +326,12 @@ object RelayClient {
     /** Photos (crew moments) go as encrypted file attachments: public relay only for now. */
     val filesEnabled get() = true
 
-    /** Upload an encrypted file (e.g. a crew moment) under [id]. ntfy.sh keeps it a few hours. */
-    suspend fun putFile(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
-        if (ownServer) return@withContext ownPut("$base/v1/file/${id.hex()}", sealed, 20_000, RelayUse.BACKGROUND, RelayHolds.Traffic.UPLOADS, id.hex()).ok
+    /**
+     * Upload an encrypted file (e.g. a crew moment) under [id]. ntfy.sh keeps it a few hours. On
+     * our own relay [reseal] seals it again after a `400` (its bytes looked like an ordinary file).
+     */
+    suspend fun putFile(id: ByteArray, sealed: ByteArray, reseal: (suspend () -> ByteArray)? = null): Boolean = withContext(Dispatchers.IO) {
+        if (ownServer) return@withContext sealedPut("$base/v1/file/${id.hex()}", sealed, reseal, 20_000, id.hex())
         if (!filesEnabled) return@withContext false
         exchange(RelayUse.BACKGROUND, message = true, RelayHolds.Traffic.UPLOADS) {
             val c = URL("$NTFY/${topic(id)}").openConnection() as HttpURLConnection
@@ -498,16 +505,40 @@ object RelayClient {
         }.getOrDefault(0)
     }
 
-    private fun ownPut(url: String, body: ByteArray, timeout: Int, use: RelayUse, traffic: RelayHolds.Traffic, mailbox: String): PutResult =
+    /**
+     * A moment or a profile photo to our own relay (docs/RELAY_API.md section 11.5): a `400` means
+     * the sealed bytes looked like an ordinary file by chance, so it's sealed again ([reseal], a new
+     * nonce) and sent once more (core [Reseal]).
+     */
+    private suspend fun sealedPut(url: String, sealed: ByteArray, reseal: (suspend () -> ByteArray)?, timeout: Int, mailbox: String): Boolean {
+        var body = sealed
+        var attempt = 1
+        while (true) {
+            var code = 0
+            val result = ownPut(url, body, timeout, RelayUse.BACKGROUND, RelayHolds.Traffic.UPLOADS, mailbox) { code = it }
+            if (reseal == null || !Reseal.again(code, attempt)) return result.ok
+            body = reseal()
+            attempt++
+        }
+    }
+
+    /**
+     * One PUT to our own relay. The length goes first (`Content-Length`, streamed as it's written,
+     * never copied whole in memory): the relay can refuse an upload that's too big, or over its
+     * budget, before it's sent, and tell a cut-off body from a whole one. [seen] gets the status.
+     */
+    private fun ownPut(url: String, body: ByteArray, timeout: Int, use: RelayUse, traffic: RelayHolds.Traffic, mailbox: String, seen: (Int) -> Unit = {}): PutResult =
         exchange(use, message = true, traffic, mailbox) {
             val c = open(url)
             c.requestMethod = "PUT"
             c.doOutput = true
             c.connectTimeout = timeout
             c.readTimeout = timeout
+            c.setFixedLengthStreamingMode(body.size)
             c.setRequestProperty("Content-Type", "application/octet-stream")
             c.outputStream.use { it.write(body) }
             val code = c.status()
+            seen(code)
             c.disconnect()
             code to Unit
         }.first

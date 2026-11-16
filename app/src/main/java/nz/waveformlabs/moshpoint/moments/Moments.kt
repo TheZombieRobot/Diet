@@ -83,7 +83,8 @@ object Moments {
             }
         val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), jpeg)
         val sealed = withContext(Dispatchers.Default) { g.sealMoment(m) }
-        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)
+        // Sealed again (a new nonce) if our relay says the bytes look like an ordinary file (core Reseal).
+        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed) { withContext(Dispatchers.Default) { g.sealMoment(m) } }
         if (ok) {
             add(app, m, "mine-${m.timeSec}", mine = true, original = original)
             NightStats.moment(app)
@@ -197,7 +198,7 @@ object Moments {
         }
         val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), packed)
         val sealed = withContext(Dispatchers.Default) { g.sealMoment(m) } // up to 12 MB: off the main thread
-        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)
+        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed) { withContext(Dispatchers.Default) { g.sealMoment(m) } }
         if (ok) {
             add(app, m, "mine-${m.timeSec}", mine = true)
             NightStats.moment(app)
