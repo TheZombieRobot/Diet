@@ -14,21 +14,25 @@ _Handover, kept current at every push. A new session can resume from this sectio
 | 2. Plan a gig, free view | **done, CI green (run 329, `647c84f`).** `ui/home/PlanGig.kt`: the form state is hoisted (`PlanForm`), hand entry in the order who's playing, date and time, venue (optional, hint "Venue and town"); the quiet Moshpoint+ card for non-members (`Entitlements.plus` false); "What's in Moshpoint+" swaps the sheet to `PlusInfoContent` and back with what was typed kept ("coming soon", no billing). Screenshots `planGigFree`, `smallPhonePlanGigFree`, `largeFontPlanGigFree`, `plusInfo`, `smallPhoneLargeFontPlusInfo`, looked at (English, German, small phone) |
 | 3. Smart search, members | **done, CI green (run 330, `0273934`).** `core/DiscoverRules.kt` (`DiscoverPlace` NZ island and nearest region, `ShowStart`, `TypedMatch`, the answer models; `DiscoverRulesTest`, 600 core tests pass), `discover/DiscoverClient.kt` (`suggest`, `coming`, 403/503 = closed; `DiscoverWhere`: country, region, kept regions), the search in `PlanGig.kt`, `GigSearch.kt` removed. Screenshots `smartSearch`, `smallPhoneLargeFontSmartSearch`, `smartSearchPicked` |
 | 4. Coming up near you, members | **done, CI green (run 331, `105a8fd`)**: `discover/ComingUp.kt` (asking, chips, a relay's no remembered for a day, Planned ✓ via `DiscoverPlanned`), `ui/home/ComingUpCard.kt`, `NoCrewHero(comingUp = …)` (the free path's code is untouched), Plan it → `startPlannedCrew`. Screenshots `homeComingUpNearYou`, `homeComingUpTravel`, `smallPhoneHomeComingUpNearYou`, `largeFontHomeComingUpNearYou`, looked at |
-| Polish after looking | run 332 (`387e69e`, green): the first search row's name was cut ("Ivory Ti…"; now the row's full width with ordinary line breaking: fixed); a travel show's distance was cut (now its own line: fixed). Then the search rows' second line used the home's measured `DotLineText`, so "3 shows in New Zealand" never breaks inside a word at 130%: in the run started with this commit |
+| Polish after looking | **done, CI green (run 333, `55acd53`)**: the first search row's name was cut ("Ivory Ti…"; now the row's full width with ordinary line breaking); a travel show's distance was cut (now its own line); the search rows' second line uses the home's measured `DotLineText`, so it never breaks inside a word at 130% ("13 Mar" stays together). All looked at again |
 
-**Last green CI run:** 332 (`387e69e`, all four stages and the first polish). The last polish
-run is the one started by the commit that added this line.
+**Last green CI run:** 333 (`55acd53`): every step of the phone and watch jobs succeeded.
 
 **Every other screenshot unchanged:** checked after each run by comparing file hashes of this
 branch's `ui-screenshots-claude-discover-app-h7v2rk` with `ui-screenshots` (`git fetch
 --depth=1 --filter=blob:none` both, then `git ls-tree -r` and compare): run 328, 1,963 shared
 files identical, 105 new; run 329, 1,963 identical, 210 new; run 330, 273 new; run 331, 357 new
-(17 new tests in 21 languages); run 332 the same: none of the 1,963 existing ones changed.
+(17 new tests in 21 languages); runs 332 and 333 the same: none of the 1,963 existing ones changed.
 
-**Exact next step:** check the polish run (builds green, `smartSearch` first row, the travel
-tiles); nothing else is open in the four stages. After that: the field test (section 4k of
-FIELD_TEST_PLAN.md), the server's `app_id` strip (below), and the owner's call on showing Coming
-up under a sleeping crew.
+**Exact next step:** nothing is open in the four stages. Next, in this order:
+1. The two-phone field test, section 4k of FIELD_TEST_PLAN.md (the courier carrying ticks, the
+   nudge, the signed link through a forwarded invite).
+2. The server: strip key-like query parameters (`app_id`, …) from `tickets` (below).
+3. With a test relay that has keys and `MOSHPOINT_DISCOVER_OPEN=1`: search and Coming up for
+   real (sections C and D of 4k), then tune the 250 ms pause and the 30 s retry if needed.
+4. The owner's call: keep Coming up only on "No crew tonight", or also under a sleeping crew's
+   hype group (see "For the owner" under stage 4).
+5. Billing plugs into `Entitlements` (app) and `EntitlementCheck` (relay); nothing else changes.
 
 **How to work on it:**
 
