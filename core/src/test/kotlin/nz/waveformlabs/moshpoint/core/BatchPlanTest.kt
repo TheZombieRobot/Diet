@@ -173,10 +173,12 @@ class BatchPlanTest {
         assertNull(b.take(RelayUse.BACKGROUND, true, now))
         assertEquals(0L, b.roomInMs(RelayUse.SAFETY, true, now), "Need help doesn't wait for room")
         assertNotNull(b.take(RelayUse.SAFETY, true, now), "and goes")
-        // The public relay's budget is unchanged: its limits are the relay's own.
+        // The public relay's limits are ntfy.sh's own: its minute stays 8 requests, and two of them
+        // are kept for safety, whatever else wants them (review finding F6).
         val public = RelayBudget(random = { 0.0 })
         repeat(8) { public.take(RelayUse.MESSAGE, false, it * 1_000L) }
-        assertNull(public.take(RelayUse.SAFETY, true, 9_000L))
+        repeat(RelayBudget.SAFETY_PING_REQUESTS) { assertNotNull(public.take(RelayUse.SAFETY, true, 9_000L + it), "Need help has its two") }
+        assertNull(public.take(RelayUse.SAFETY, true, 9_100L), "and the minute holds no more than 8")
     }
 
     /**
@@ -290,6 +292,44 @@ class BatchPlanTest {
         }
         assertTrue(third.id in went, "the line just written went within 10 s (the batch is due in ${(plan.dueAtMs() - now) / 1000} s)")
         assertTrue(went.getValue(third.id) - written <= 5_000L, "within a couple of seconds and a tick or two")
+    }
+
+    /**
+     * Review finding F6 (docs/WAVE2C_REVIEW.md): the public relay keeps room in each minute for
+     * one safety ping, sized to what the courier really sends for each kind: its ping and its
+     * durable copy, both as safety.
+     */
+    @Test fun eachSafetyPingSendsWhatThePublicRelayKeepsRoomFor() {
+        val group = GigGroup(ByteArray(32) { (it + 1).toByte() }, "Laneway", 0L)
+        val crewId = "crew"
+        val signer = CrewKeys.generate()
+        val now = 1_800_000_000_000L
+        val uploads = ArrayList<Courier.Upload>()
+        lateinit var courier: Courier
+        val uplink = object : Courier.Uplink {
+            override fun upload(job: Courier.Upload) {
+                uploads += job
+                courier.onUploaded(job, PutResult.SENT, now)
+            }
+        }
+        val host = object : Courier.Host {
+            override fun deliver(crew: Courier.Crew, message: Courier.Message, route: Courier.Route) {}
+            override fun stateChanged(crewId: String, id: Long, state: Courier.State) {}
+            override fun fetchWanted(crewId: String) {}
+            override fun paused(crewId: String, on: Boolean) {}
+            override fun trace(id: Long, kind: Int, what: String) {}
+        }
+        courier = Courier(host, uplink, object : Courier.Air { override fun ready() = false })
+        courier.setCrews(listOf(Courier.Crew(crewId, group, signer, main = true)), now)
+        courier.setOnline(true, now)
+        for (kind in listOf(GigGroup.Ping.NEED_HELP, GigGroup.Ping.CHECK_IN, GigGroup.Ping.HOME_SAFE)) {
+            val ping = GigGroup.Ping(kind, "Jo", now / 1000, minutes = if (kind == GigGroup.Ping.CHECK_IN) 45 else 0)
+            val m = assertNotNull(courier.post(crewId, group.sealPing(ping, signer), now))
+            courier.tick(now)
+            val mine = uploads.filter { it.id == m.id }
+            assertEquals(RelayBudget.SAFETY_PING_REQUESTS, mine.size, "what ping kind $kind sends")
+            assertTrue(mine.all { it.use == RelayUse.SAFETY })
+        }
     }
 
     /**
