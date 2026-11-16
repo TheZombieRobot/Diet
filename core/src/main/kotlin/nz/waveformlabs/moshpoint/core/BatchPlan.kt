@@ -125,6 +125,16 @@ class BatchPlan(
         return Taken(puts, gets, dropped)
     }
 
+    /**
+     * Someone is waiting: a message of ours was just written. Everything waiting goes within a
+     * couple of seconds, as with [Timing.SOON]. The courier's messages waiting here hold its
+     * upload slots, so the one just written may not have reached the queue yet: it can only start
+     * once these have gone (docs/WAVE2C_REVIEW.md, F5).
+     */
+    fun hurry(nowMs: Long) {
+        if (queue.isNotEmpty()) soonAtMs = minOf(soonAtMs, nowMs + soonMs)
+    }
+
     /** Take the put with [key] out of the queue (its sender stopped waiting). True if it was still waiting. */
     fun cancel(key: Long): Boolean = key != 0L && queue.removeAll { it.key == key }
 

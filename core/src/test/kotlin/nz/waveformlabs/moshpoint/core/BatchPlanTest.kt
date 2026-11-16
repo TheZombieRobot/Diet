@@ -251,11 +251,13 @@ class BatchPlanTest {
         }
         courier = Courier(host, uplink, object : Courier.Air { override fun ready() = false })
         courier.setCrews(listOf(Courier.Crew(crewId, group, signer, main = true)), now)
-        // The app's post (OfflineMessages.post): queue it with the courier, start what can go.
+        // The app's post (OfflineMessages.post): queue it with the courier, start what can go, and
+        // hurry what's waiting for the batch (RelayClient.hurry).
         fun write(text: String): Courier.Message {
             lastPost = now
             val m = assertNotNull(courier.post(crewId, group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Jo", now / 1000, text = text), signer), now))
             courier.tick(now)
+            plan.hurry(now)
             return m
         }
         // A batch going when it's due: each put answered SENT, then the courier ticks (RelayClient.sendBatch, OfflineMessages.upload).

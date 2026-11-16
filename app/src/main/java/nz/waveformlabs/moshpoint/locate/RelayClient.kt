@@ -695,6 +695,19 @@ object RelayClient {
     }
 
     /**
+     * A message of ours was just written: what's waiting for the batch goes within a couple of
+     * seconds, so the courier's upload slots it holds are free for the new one (core [BatchPlan.hurry]).
+     */
+    fun hurry() {
+        val wake = synchronized(batchLock) {
+            val before = plan.dueAtMs()
+            plan.hurry(SystemClock.elapsedRealtime())
+            BatchPlan.wakes(before, plan.dueAtMs())
+        }
+        if (wake) nudges.trySend(Unit)
+    }
+
+    /**
      * Sends what's waiting when it's due and no crew sync has taken it first: a minute after the
      * oldest put, or a couple of seconds after one someone is waiting for. Asleep while nothing waits.
      */
