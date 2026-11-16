@@ -226,8 +226,9 @@ class DiscoverTest {
         assertEquals(5, w.d.callsToday("ticketmaster")) // 5 pages of 200: as deep as Ticketmaster goes
         w.d.refresh("AU")
         assertEquals(7, w.d.callsToday("ticketmaster"))
-        w.d.refresh("GB")
+        assertFalse(w.d.refresh("GB")) // no budget left: no call, and no empty list passed off as ready
         assertEquals(7, w.urls.size)
+        assertFalse(w.d.coming("GB", null, null).getBoolean("ready"))
         // A restart doesn't hand out a fresh day...
         assertEquals(7, w.discover().callsToday("ticketmaster"))
         // ...the next day (UTC) does.

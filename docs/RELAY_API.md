@@ -19,11 +19,12 @@ All numbers on the wire are big-endian. An **id** is 16 bytes: in a URL, 32 hex 
 |---|---|---|
 | 200 / 204 | Done. | |
 | 400 | This request can never work (bad id, bad size, a file that isn't sealed, a malformed batch), or its body was cut off (fewer bytes than its `Content-Length`). | Don't retry the same bytes (a cut-off body never reaches the phone anyway). |
+| 403 | A Moshpoint+ feature (Discover, section 12) and this install isn't a member: body `members only`. | Show the Moshpoint+ card; don't retry. |
 | 404 | Nothing there. | |
 | 408 | An upload stalled for 30 s, or averaged under 4 KB/s after its first minute. | Retry later (the app counts 408 as "no answer"). |
 | 413 | Batch body over 512 KB. | Split it. |
 | 429 | A limit. `X-Moshpoint-Limit` says which, `Retry-After` when to come back (seconds). | See below. |
-| 503 | Try later: the relay is full, low on disk, shutting down, busy (too many uploads or big answers at once), or an outside service is unavailable. | Retry later; it's "no answer", not "refused". |
+| 503 | Try later: the relay is full, low on disk, shutting down, busy (too many uploads or big answers at once), or an outside service is unavailable. Body `not configured` (Discover only): this relay has no keys for it. | Retry later; it's "no answer", not "refused". For `not configured`, hide Discover until the app next starts. |
 
 `X-Moshpoint-Limit` values:
 
@@ -113,6 +114,8 @@ there's no such place, `503` if it can't ask right now (one Nominatim request a 
 everyone; a queue over 4 seconds is told to come back).
 
 `GET /healthz` → `200 ok`.
+
+Discover's suggestions and Coming up (Moshpoint+ only) are in section 12.
 
 ## 7. Install token (new)
 
@@ -268,3 +271,93 @@ In `RelayClient` and the courier, in this order (each step works on its own):
 
 Older relays (none in use once the hardened relay is deployed) answer the new endpoints `404`;
 fall back to the old ones on `404`.
+
+## 12. Discover (new, Moshpoint+ only)
+
+Smart search and "Coming up near you" (ROADMAP.md, "Discover and hype"). Both answer only from
+the relay's cached country lists, never with a call to a listing service, so they're fast enough
+to call on every keystroke. How the lists are built: [DISCOVER_SERVER.md](DISCOVER_SERVER.md).
+The phone sends its country and at most its region, never where it is.
+
+Each request is checked in this order:
+
+1. `429`: the usual limits; each request counts as one read.
+2. `403 members only`: not a Moshpoint+ member. Today everyone gets this unless the relay runs
+   with `MOSHPOINT_DISCOVER_OPEN=1` (internal testing only).
+3. `503 not configured`: this relay has no listing-service keys. The free relay never has them.
+4. `400 bad country` / `400 bad q`.
+
+**A show** is a JSON object:
+
+```json
+{"id": "3f9c0a1b2c3d4e5f", "artist": "Ivy Lanes", "name": "Ivy Lanes: The Long Way Home Tour",
+ "date": "2027-03-13", "time": "19:30", "startsAtSec": 1804919400, "venue": "Spark Arena",
+ "city": "Auckland", "region": "north", "country": "NZ", "lat": -36.84794, "lon": 174.77783,
+ "tickets": "https://www.ticketmaster.co.nz/…", "image": "https://…", "kind": "arena", "score": 0.867}
+```
+
+- `date` and `time` are local to the venue. `time` is missing when it hasn't been announced.
+  `startsAtSec` is approximate, for sorting only.
+- `id` is the same for the same show from any source and from one refresh to the next.
+- `kind` is one of `stadium`, `festival`, `outdoor`, `arena`, `theatre`, `club` or `unknown`.
+- `score` runs from 0 to 1: bigger shows score higher.
+- `lat` and `lon` are the venue's. They're missing when no source gives them.
+- `tickets` is the official ticket page: the seller's own, or Bandsintown's link to it.
+
+### `GET /v1/discover/suggest?country=NZ&q=i&region=north&limit=10`
+
+| Parameter | |
+|---|---|
+| `country` | Required. ISO 3166-1 alpha-2, in either case. |
+| `q` | Required. What's been typed: one letter or more. Case and accents don't matter. Matches the start of an act's name or of any word in it ("beat" finds The Beatles). |
+| `region` | Optional. In New Zealand: `north`, `south`, `North Island`, `South Island`, or the phone's region name (`Auckland` is north). Elsewhere, an `id` or `name` from a `coming` answer's `regions` (US `CA` or `California`). |
+| `limit` | Per group, 1–30. Default 10. |
+
+`200`:
+
+```json
+{"country": "NZ", "q": "i", "region": "north", "ready": true, "updatedAtSec": 1794819600,
+ "near": [{"artist": "Ivy Lanes", "score": 0.867, "image": "https://…", "shows": 1, "countryShows": 2, "next": {show}}],
+ "elsewhere": [{"artist": "Inkwell", "score": 0.536, "image": "", "shows": 1, "countryShows": 1, "next": {show}}],
+ "worldwide": [{"artist": "Indigo Static", "score": 0.839, "image": "https://…", "shows": 1, "next": {show}}]}
+```
+
+- `near` is acts with a show in the region. For a small country (Belgium, the Netherlands,
+  Switzerland and so on) it's everything in the country and just over the border.
+- `elsewhere` is the rest of the country. With no `region` (or one the relay doesn't know),
+  everything in the country is here.
+- `worldwide` is acts with no show in the country.
+- Each group is biggest first, and an act is listed once, in the nearest group it has a show in.
+- `shows` counts the act's shows in that group. `countryShows` counts all of them in the country.
+  `next` is the soonest show in that group.
+- `region` is the region understood (`null` if none).
+- `ready: false` means this country's list is still being built (the first ask for it starts
+  that). The groups are empty: say "Getting the list…" and ask again in about 30 seconds.
+  `updatedAtSec` is when the list was built.
+
+### `GET /v1/discover/coming?country=NZ&region=north&scope=near&limit=50`
+
+The next 12 months, biggest first.
+
+| Parameter | |
+|---|---|
+| `country` | Required, as above. |
+| `region` | Optional, as above. |
+| `scope` | `near` (default): the region; for a small country, the country and just over the border; with no known region, the whole country. `country`: the whole country. `travel`: worth travelling for, meaning big shows (stadiums, festivals, venues for 15,000 or more, or score 0.7 or more) in other countries within 3,000 km (3–4 hours' flight) of the region's middle or the country's. |
+| `limit` | 1–200. Default 50. |
+
+`200`:
+
+```json
+{"country": "NZ", "scope": "near", "region": "north", "ready": true, "updatedAtSec": 1794819600, "total": 4,
+ "shows": [{show}, …],
+ "regions": [{"id": "north", "name": "North Island", "shows": 4, "lat": -38.33, "lon": 174.78},
+             {"id": "south", "name": "South Island", "shows": 2, "lat": -42.41, "lon": 172.95}]}
+```
+
+- With `scope=travel`, each show also has `km`: its distance from the region's (or country's)
+  middle.
+- `regions` lists the country's regions, so the phone can pick its own (the nearest middle; in
+  New Zealand, the island). It then sends only the `id`, never its location.
+- `total` counts every show in the scope. `shows` holds the first `limit`.
+

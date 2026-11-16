@@ -229,7 +229,9 @@ fly apps create moshpoint-relay
 
 # 2. Secrets. The token secret signs install tokens; the contact is for Nominatim's usage policy.
 fly secrets set --stage MOSHPOINT_TOKEN_SECRET=$(openssl rand -hex 32) MOSHPOINT_CONTACT="you@example.org"
-#    Optional gig search keys (each one switches its source on):
+#    Optional gig search keys (each one switches its source on). Production (Moshpoint+) relay
+#    only: they also switch on Discover (docs/DISCOVER_SERVER.md). The free relay gets none.
+#    Never set MOSHPOINT_DISCOVER_OPEN here: it opens Discover to everyone (internal testing only).
 fly secrets set --stage TICKETMASTER_KEY=... BANDSINTOWN_APP_ID=... SEATGEEK_CLIENT_ID=...
 
 # 3. Deploy ONE Machine. This also creates the 20 GB volume from fly.toml's [mounts].

@@ -196,9 +196,13 @@ class Discover(
         val here = found.filter { it.country == country }
         if (full) lookUpActs(if (here.isNotEmpty()) biggestActs(here) else biggestActsAnywhere(), now)
         found += acts.showsIn(country)
+        // A source failed or ran out of budget part way: never swap a list for one much smaller
+        // (or for nothing). The refresher tries again in [DiscoverConfig.retryMs].
         val old = lists[country] ?: store.loadList(country)?.also { lists.putIfAbsent(country, it) }
-        if (short && old != null && found.size < old.shows.size / 2) {
+        val count = found.count { it.country == country }
+        if (short && (count == 0 || (old != null && count < old.shows.size / 2))) {
             log.info("Discover: {} kept its last list (the sources answered too little)", country)
+            saveState() // the calls made still count against today's budget, after a restart too
             return false
         }
         val list = build(country, found, full, now)
