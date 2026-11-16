@@ -187,6 +187,8 @@ Moshpoint opens weeks before the gig, not only on the night.
 - Twitter/X and Ticketmaster's site forbid scraping, and it breaks.
 - The official APIs give the same announcements, structured.
 
+**Paid or free:** search, suggestions and Coming up use API keys, so they're Moshpoint+ (see Moshpoint+). Free users can still type a gig in and plan it with a hype group.
+
 **Needs (owner)**
 - A Ticketmaster key (free), a SeatGeek client ID (free) and a Bandsintown app ID (apply; check the commercial terms).
 - The relay deployed.
@@ -207,6 +209,12 @@ Moshpoint opens weeks before the gig, not only on the night.
   - whether the free relay is the public ntfy.sh, or a second small relay we run (recommended:
     per-person limits instead of per-venue-IP, no third-party terms, one privacy policy);
   - what the free allowance is.
+- **Keyed services are Moshpoint+ only (owner's rule, 16 November 2026).** Anything that runs on a
+  paid API key (gig search, smart search and Coming up near you from Ticketmaster, SeatGeek and
+  Bandsintown; Mapbox satellite) is a Moshpoint+ feature, served only by the production relay to
+  members. The free relay holds no API keys, and no key is ever built into any app. Free users
+  type their gig in by hand. The production relay checks membership before it answers a keyed
+  endpoint, comes with billing.
 - One purchase covers phone and watch. Never paywall safety: "Need help" (phone or wrist) is free,
   and so are check-ins and their overdue alerts. On the free tier, safety messages never count
   against the allowance and always get through by the best path available.

@@ -17,6 +17,8 @@ Two values that look like keys but are meant to be public:
 - **The Facebook App ID and client token** (`moshpoint.fb.*` in gradle.properties). Meta designs these to be built into apps. They're empty today.
 - **app/debug.keystore.** It's the standard Android debug key, used only to sign test builds, so a tester's phone accepts each new test build as an update. Play builds are signed with the upload key above, then by Google.
 
+**Paid versus free:** API keys go only on the production relay, which serves Moshpoint+ members. The free relay has no keys at all (ROADMAP.md, Moshpoint+).
+
 ## What stops a leak
 
 1. **No slot for one.** The app has no build setting for an API key: gig search goes through the relay. `gradle.properties` holds no key fields.
