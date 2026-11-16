@@ -44,6 +44,15 @@ _Keep this section current: whoever picks this up next starts here._
 | Clips | Left for later on mobile data: skipped in the background until Wi-Fi or the Story; `Content-Length` over the limit stops before the body; without one, the read stops at the limit | `Moments.refresh` and `RelayClient.fetch`; a clip fetched once is in `seenUrls` |
 | Interop with build 312 | Same mailboxes, same records: batch puts land as single puts do, batch gets read what `/v1/lookup` answers | Server `AppRequestsTest` |
 
+### Pre-existing, not changed here (for the owner)
+
+- **On ntfy.sh, a full minute can still delay Need help.** The public relay's budget (8 requests a
+  minute, ntfy.sh's own limit) makes a safety ping wait for room (`RelayClient.waitForRoom`, up to
+  about 40 s) and then refuses it until the minute has room; the courier retries it every 15 s.
+  This predates wave 2c (`BatchPlanTest.aBusyMinuteNeverHoldsUpSafety` pins it for the public
+  budget), and the fallback must behave as before, so it is left as it is. On our own relay,
+  with or without batches, safety is never held by the budget or by `RelayHolds`.
+
 ## How this was checked
 
 - core and server tests: a scratch Gradle build of only `:core` and `:server`, Maven Central only
