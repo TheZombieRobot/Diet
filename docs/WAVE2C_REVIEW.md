@@ -10,21 +10,21 @@ kind, chat cursors, one batch a minute, moments with `Content-Length`, clips on 
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Stage:** F1 to F5 fixed, each with its failing core test committed first (all 642 core
-  tests pass locally; `RelayClient.kt` type-checks locally against core with small Android
-  stubs; the one-line change in `OfflineMessages.post` (F5) is checked only by CI). A sixth
-  change (a share of the free relay's minute kept for safety pings) was asked for, then
-  withdrawn as not wanted (owner): it was reverted in full (`fb56dec`), no CI ran on it, and the
-  public relay's budget is as merged.
-- **CI:** run 343 (head `82a3105`, F1 to F4) green: core and server tests, debug and release
-  builds of the phone and the watch, screenshots, lint. Its screenshots are identical to
-  `ui-screenshots` and `ui-screenshots-watch` (for `17caa74`): 2,320 phone and 798 watch images,
-  every path and git blob hash the same. Run 346 (head `fb56dec`, F1 to F5) is the final check.
-- **Exact next step:** when run 346 ends: both jobs green, then compare the screenshots again:
-  `git fetch origin ui-screenshots ui-screenshots-claude-wave2c-review ui-screenshots-watch
-  ui-screenshots-watch-claude-wave2c-review` and `git ls-tree -r` of each pair (every blob hash
-  the same). Then send the report to the session that started this review.
-- **Last green CI run:** 343 (F1 to F4; head `82a3105`).
+- **Stage: done.** F1 to F5 found and fixed, each with its failing core test committed first
+  (642 core and 103 server tests pass; `RelayClient.kt` also type-checked locally against core
+  with small Android stubs). A sixth change (a share of the free relay's minute kept for safety
+  pings) was asked for, then withdrawn as not wanted (owner): it was reverted in full
+  (`fb56dec`), no CI ran on it, and the public relay's budget is as merged.
+- **Last green CI run:** 346 (head `fb56dec`, F1 to F5; every commit after it changes only this
+  file): core and server tests, debug and release builds of the phone and the watch, both
+  screenshot steps, lint. Run 343 (`82a3105`, F1 to F4) was green too.
+- **Screenshots:** runs 343 and 346 both identical to `ui-screenshots` and `ui-screenshots-watch`
+  (for `17caa74`): 2,320 phone and 798 watch images, every path and git blob hash the same.
+- **Exact next step:** none for this review. Merging `claude/wave2c-review` into
+  `ccr-5839ed7c-1q0ztj` is the owner's call; then the field tests in FIELD_TEST_PLAN.md
+  section 4l (this build against build 312, on our relay and on the free fallback). F3 changes
+  a documented design decision (the batch budget: 120 a minute, background at most 90, not 30):
+  worth a look by whoever owns that decision.
 
 ## Findings
 
