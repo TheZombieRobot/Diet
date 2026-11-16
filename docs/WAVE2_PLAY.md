@@ -16,9 +16,9 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   SERVER_PRODUCTION.md's app follow-ups, this note.
 - **Review round (16 November):** an independent review of 2ceb820 found one regression that
   blocked the merge and six smaller items; all seven are dealt with (next section). **CI: run
-  308 (f86b6e1)** (https://github.com/TheZombieRobot/Diet/actions/runs/43778320868): every
-  step that can fail has passed (the new core tests, debug and release builds, the 16 KB
-  check, screenshots, the watch); its report-only steps were still running at 00:20.
+  308 (f86b6e1), green** (https://github.com/TheZombieRobot/Diet/actions/runs/43778320868):
+  the new core tests, debug and release builds, the 16 KB check, screenshots, the watch;
+  manifest and licence list as in run 306 (the six intended removals; MapLibre only).
   Screenshots: still 252 added and nothing else against `origin/ui-screenshots`, and every
   image identical to run 306's (no screen changed this round: the disclosure's look didn't,
   only when it shows). Reported to the coordinating session; it decides on merging.
