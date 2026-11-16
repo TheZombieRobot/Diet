@@ -90,14 +90,5 @@
     <string name="setup_done">Gotowe</string>
 
     <string name="setup_roll_title">Twoje zdjęcia z tamtej nocy</string>
-    <string name="setup_roll_looking">Przeglądam twoje zdjęcia…</string>
-    <string name="setup_roll_nothing">Na tym telefonie nie ma nic z tych godzin. Zdjęcia z innego telefonu albo już dodane nie pojawią się tutaj.</string>
-    <string name="setup_roll_tap_to_leave_out">Kliknij, żeby pominąć zdjęcie. Kopiujemy je do koncertu, więc zostaną, nawet jeśli usuniesz je z galerii.</string>
     <string name="setup_roll_adding">Dodaję…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="one">Dodaj %d do tego koncertu</item>
-        <item quantity="few">Dodaj %d do tego koncertu</item>
-        <item quantity="many">Dodaj %d do tego koncertu</item>
-        <item quantity="other">Dodaj %d do tego koncertu</item>
-    </plurals>
 </resources>

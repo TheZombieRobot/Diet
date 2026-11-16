@@ -19,7 +19,6 @@
 
     <string name="main_my_spot">จุดของฉัน</string>
 
-    <string name="main_photos_permission_needed">Moshpoint ต้องเข้าถึงรูปของคุณ เพื่อหารูปจากคืนนั้น</string>
     <string name="main_you">คุณ</string>
     <plurals name="main_added_to_gig">
         <item quantity="other">เพิ่ม %d รายการลงคอนแล้ว</item>

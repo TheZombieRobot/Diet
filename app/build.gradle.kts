@@ -10,12 +10,13 @@ plugins {
 
 android {
     namespace = "nz.waveformlabs.moshpoint"
-    compileSdk = 35
+    // Android 16 (API 36): what Google Play requires since 31 August 2026 (docs/ANDROID_16.md).
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "nz.waveformlabs.moshpoint"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         // CI build number, so each test build installs over the last one.
         val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
         versionCode = build
@@ -42,6 +43,8 @@ android {
         resValue("string", "facebook_client_token", fbToken)
         resValue("string", "fb_login_protocol_scheme", "fb$fbAppId")
         buildConfigField("boolean", "FACEBOOK_ENABLED", (fbAppId.isNotBlank() && fbToken.isNotBlank()).toString())
+        // The privacy policy the app links to (moshpoint.privacyUrl in gradle.properties).
+        buildConfigField("String", "PRIVACY_POLICY_URL", "\"${prop("moshpoint.privacyPolicyUrl", "moshpoint.privacyUrl")}\"")
         // Gig search (Ticketmaster Discovery API, free key from developer.ticketmaster.com).
         // Empty = search off; you can still type the gig in by hand.
         buildConfigField("String", "TICKETMASTER_KEY", "\"${prop("moshpoint.ticketmasterKey", "moshpoint.tm.key")}\"")
@@ -92,8 +95,20 @@ android {
             buildConfigField("boolean", "TEST_BUILD", "false")
             if (keystorePath != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            // Unused resources (from the libraries, mostly) left out of the Play build.
+            isShrinkResources = true
+            // proguard-release.pro: no verbose, debug or info logs in release (one names a friend).
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-release.pro")
         }
+    }
+    androidResources {
+        // The app's own 20 languages (res/values*, xml/locales_config.xml): the libraries' other
+        // translations are left out. The two pseudo-locales keep test builds' layout checks
+        // (debug { isPseudoLocalesEnabled }).
+        localeFilters += listOf(
+            "en", "ar", "de", "es", "es-rES", "fr", "hi", "in", "it", "ja", "ko", "nl", "pl", "pt", "sv", "th", "tr", "vi",
+            "zh-rCN", "zh-rTW", "en-rXA", "ar-rXB",
+        )
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

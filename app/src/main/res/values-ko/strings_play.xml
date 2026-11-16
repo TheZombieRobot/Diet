@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">이 초대는 다른 앱에서 왔어요. 누가 보냈는지 알 때만 참여하세요. 위치 공유 중에는 크루 모두가 내 위치를 볼 수 있어요.</string>
+    <string name="play_invite_follow_text">이 팔로우 링크는 다른 앱에서 왔어요. 크루의 사진과 무사한지 볼 수 있고, 내가 팔로우 중인 것도 상대에게 보여요.</string>
+    <string name="play_invite_friend_title">%1$s 님을 추가할까요?</string>
+    <string name="play_invite_friend_text">이 친구 코드는 다른 앱에서 왔어요. 누가 보냈는지 알 때만 추가하세요. 상대가 위치 공유 중일 때 찾을 수 있게 돼요.</string>
+    <string name="play_invite_add">추가</string>
+    <string name="play_disclosure_title">Moshpoint가 위치를 사용하는 방법</string>
+    <string name="play_disclosure_live">위치 공유 중에는 내 위치가 크루와 친구들에게 공유돼서 나를 찾을 수 있어요.</string>
+    <string name="play_disclosure_relay">위치는 내 폰에서 암호화된 뒤 중계 서버를 거쳐 전송되고, 서버는 내용을 읽을 수 없어요.</string>
+    <string name="play_disclosure_background">앱을 닫아도 직접 끌 때까지 알림과 함께 위치 공유가 계속돼요.</string>
+    <string name="play_disclosure_bluetooth">위치 공유 중에는 내 폰이 다른 Moshpoint 사용자의 암호화된 메시지도 블루투스로 전달해요. 내 폰은 그 내용을 읽을 수 없어요.</string>
+    <string name="play_disclosure_continue">계속</string>
+    <string name="play_privacy_policy">개인정보처리방침</string>
+    <string name="play_roll_pick_text">그날 밤 찍은 사진과 동영상을 고르세요. 공연에 복사되니까 갤러리에서 지워도 남아 있어요.</string>
+    <string name="play_roll_choose">사진 선택</string>
+</resources>

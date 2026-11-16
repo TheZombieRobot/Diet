@@ -19,7 +19,6 @@
 
     <string name="main_my_spot">我的位置</string>
 
-    <string name="main_photos_permission_needed">Moshpoint 需要访问你的照片，才能找出那晚拍的</string>
     <string name="main_you">你</string>
     <plurals name="main_added_to_gig">
         <item quantity="other">已添加 %d 项到这场演出</item>

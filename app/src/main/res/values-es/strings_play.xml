@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spanish (neutral Latin American): Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">Esta invitación viene de otra app. Únete solo si sabes quién la envió: mientras estés en vivo, todos en el grupo pueden ver dónde estás.</string>
+    <string name="play_invite_follow_text">Este enlace para seguir viene de otra app. Verás las fotos del grupo y que están bien; ellos verán que los sigues.</string>
+    <string name="play_invite_friend_title">¿Agregar a %1$s?</string>
+    <string name="play_invite_friend_text">Este código de amigo viene de otra app. Agrégalo solo si sabes quién lo envió: podrás encontrar a esa persona cuando esté en vivo.</string>
+    <string name="play_invite_add">Agregar</string>
+    <string name="play_disclosure_title">Cómo usa Moshpoint tu ubicación</string>
+    <string name="play_disclosure_live">Mientras estés en vivo, tu ubicación se comparte con tu grupo y tus amigos para que puedan encontrarte.</string>
+    <string name="play_disclosure_relay">Se cifra en tu celular y se envía a través de un servidor de retransmisión, que no puede leerla.</string>
+    <string name="play_disclosure_background">En vivo sigue funcionando con la app cerrada, con una notificación, hasta que lo apagues.</string>
+    <string name="play_disclosure_bluetooth">Mientras estés en vivo, tu celular también reenvía por Bluetooth mensajes cifrados de otros usuarios de Moshpoint. No puede leerlos.</string>
+    <string name="play_disclosure_continue">Continuar</string>
+    <string name="play_privacy_policy">Política de privacidad</string>
+    <string name="play_roll_pick_text">Elige las fotos y videos que tomaste esa noche. Se copian al concierto, así que se quedan aunque los borres de tu galería.</string>
+    <string name="play_roll_choose">Elegir fotos</string>
+</resources>

@@ -86,49 +86,55 @@ object GigArchive {
     data class Found(val uri: android.net.Uri, val video: Boolean, val takenSec: Long, val thumb: android.graphics.Bitmap?)
 
     /**
-     * Photos and videos on this phone taken during gig [id] (from 2 h before it started to
-     * 8 h after), newest first, not already added. Needs photo access (asked first).
+     * What Android's photo picker handed back for gig [id], ready for [addFromPhone]: photo or
+     * video, and when it was taken (from the picker; else when the file last changed; else the
+     * gig's own time). Only the picked items are readable: the app has no photo permission.
      */
-    suspend fun findOnPhone(c: Context, id: String): List<Found> = withContext(Dispatchers.IO) {
-        val meta = runCatching { JSONObject(File(File(root(c), id), "meta.json").readText()) }.getOrNull() ?: return@withContext emptyList()
-        val start = (meta.optLong("when") - 2 * 3600) * 1000
-        val end = (meta.optLong("when") + 8 * 3600) * 1000
-        val have = File(File(root(c), id), "items.jsonl").takeIf { it.exists() }?.readText().orEmpty()
-        val out = mutableListOf<Found>()
-        for ((collection, video) in listOf(MediaStore.Images.Media.EXTERNAL_CONTENT_URI to false, MediaStore.Video.Media.EXTERNAL_CONTENT_URI to true)) {
-            runCatching {
-                c.contentResolver.query(
-                    collection, arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DATE_TAKEN),
-                    "${MediaStore.MediaColumns.DATE_TAKEN} BETWEEN ? AND ?", arrayOf(start.toString(), end.toString()),
-                    "${MediaStore.MediaColumns.DATE_TAKEN} DESC",
-                )?.use { cur ->
-                    while (cur.moveToNext() && out.size < 200) {
-                        val mid = cur.getLong(0)
-                        if (have.contains("roll-${if (video) "v" else "p"}$mid")) continue
-                        val uri = android.content.ContentUris.withAppendedId(collection, mid)
-                        val thumb = runCatching { c.contentResolver.loadThumbnail(uri, android.util.Size(300, 300), null) }.getOrNull()
-                        out += Found(uri, video, cur.getLong(1) / 1000, thumb)
-                    }
-                }
+    suspend fun describePicked(c: Context, id: String, uris: List<android.net.Uri>): List<Found> = withContext(Dispatchers.IO) {
+        val gigTime = runCatching { JSONObject(File(File(root(c), id), "meta.json").readText()).optLong("when") }.getOrNull()
+            ?.takeIf { it > 0 } ?: (System.currentTimeMillis() / 1000)
+        fun column(uri: android.net.Uri, name: String): Long? = runCatching {
+            c.contentResolver.query(uri, arrayOf(name), null, null, null)?.use { cur ->
+                if (cur.moveToFirst() && cur.columnCount > 0 && !cur.isNull(0)) cur.getLong(0) else null
             }
+        }.getOrNull()?.takeIf { it > 0 }
+        uris.distinct().map { uri ->
+            val video = runCatching { c.contentResolver.getType(uri) }.getOrNull()?.startsWith("video/") == true
+            val takenMs = column(uri, MediaStore.MediaColumns.DATE_TAKEN)
+                ?: column(uri, android.provider.DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+            Found(uri, video, takenMs?.div(1000) ?: gigTime, null)
         }
-        out.sortedByDescending { it.takenSec }
     }
 
-    /** Copy picked camera-roll photos/videos into gig [id] (yours; they stay even if you delete them from the gallery). */
+    /**
+     * The gig's key for a camera-roll item, so the same photo is never added twice. The picker's
+     * and the documents app's addresses both end in the photo's MediaStore number (the one the
+     * old way of adding used); anything else is keyed by its whole address.
+     */
+    private fun rollKey(f: Found): String {
+        val last = f.uri.lastPathSegment.orEmpty().substringAfterLast(':')
+        val n = last.takeIf { it.isNotEmpty() && it.all(Char::isDigit) } ?: safeName(f.uri.toString())
+        return "roll-${if (f.video) "v" else "p"}$n"
+    }
+
+    /**
+     * Copy picked camera-roll photos/videos into gig [id] (yours; they stay even if you delete them
+     * from the gallery). Photos keep their untouched original too, for "Save to phone".
+     */
     suspend fun addFromPhone(c: Context, id: String, picked: List<Found>, myName: String): Int = withContext(Dispatchers.IO) {
         val d = File(root(c), id)
         var n = 0
         for (f in picked) {
             runCatching {
-                val key = "roll-${if (f.video) "v" else "p"}${android.content.ContentUris.parseId(f.uri)}"
+                val key = rollKey(f)
                 val name = safeName(key)
                 val photo = File(d, "$name.jpg")
                 if (photo.exists()) return@runCatching
                 if (f.video) {
                     val clip = File(d, "$name.mp4")
                     c.contentResolver.openInputStream(f.uri)?.use { input -> clip.outputStream().use { input.copyTo(it) } }
-                    val frame = (f.thumb ?: runCatching { c.contentResolver.loadThumbnail(f.uri, android.util.Size(1280, 1280), null) }.getOrNull())
+                    val frame = f.thumb ?: runCatching { c.contentResolver.loadThumbnail(f.uri, android.util.Size(1280, 1280), null) }.getOrNull()
+                        ?: firstFrame(clip)
                     photo.writeBytes(java.io.ByteArrayOutputStream().also { frame?.compress(Bitmap.CompressFormat.JPEG, 85, it) }.toByteArray())
                     appendItem(d, key, myName, f.takenSec, "", true, photo.name, clip.name)
                 } else {
@@ -150,6 +156,17 @@ object GigArchive {
         refreshList(c)
         n
     }
+
+    /** A clip's first frame, when the picker gives no thumbnail. */
+    private fun firstFrame(clip: File): Bitmap? = runCatching {
+        val r = android.media.MediaMetadataRetriever()
+        try {
+            r.setDataSource(clip.absolutePath)
+            r.getFrameAtTime(0)
+        } finally {
+            r.release()
+        }
+    }.getOrNull()
 
     private fun appendItem(d: File, key: String, from: String, t: Long, cap: String, mine: Boolean, photo: String, clip: String) {
         val o = JSONObject().put("key", key).put("from", from).put("t", t).put("cap", cap).put("mine", mine).put("photo", photo).put("clip", clip)

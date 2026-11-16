@@ -333,11 +333,14 @@ Server support is in place for all of these; the app changes are for later sessi
 - Send `Content-Length` on uploads (`setFixedLengthStreamingMode`), and reseal a photo refused
   with 400.
 - The courier should re-upload our own safety pings found missing (reliability P0-3).
-- Release builds must fail when `MOSHPOINT_SERVER` is empty (release P1-8, android.yml).
-- `GigSearch.viaServer` should use `RelayClient.shareableServer` (release P1-9).
-- In release, ignore an invite's `r=` unless it is our own relay (release P0-5).
-- Settings' relay field still shows `https://moshpoint-relay.onrender.com` as its example
-  (`SettingsScreen`); Render is gone, so use the fly.dev address.
+- ~~Release builds must fail when `MOSHPOINT_SERVER` is empty (release P1-8, android.yml).~~
+  Dropped by the owner (15 November): free users run on another, limited relay (ROADMAP.md).
+- ~~`GigSearch.viaServer` should use `RelayClient.shareableServer` (release P1-9).~~ Done in
+  wave 2b (docs/WAVE2_PLAY.md, item 6).
+- ~~In release, ignore an invite's `r=` unless it is our own relay (release P0-5).~~ Done in
+  wave 2b: release builds follow `r=` only to one of `RelayClient.ownRelays` (item 4).
+- ~~Settings' relay field still shows `https://moshpoint-relay.onrender.com` as its example
+  (`SettingsScreen`); Render is gone, so use the fly.dev address.~~ Done in wave 2b.
 - Treat `408` from an upload as "try later" (it already does: `RelayClient` counts 408 as no answer).
 
 Outside this scope, noted for later (CI, android.yml): signing secrets reach every branch;

@@ -141,7 +141,7 @@
     <string name="find_share_with_crew">Compartilhar com a galera</string>
     <string name="find_pinned_where_you_are">Fixado onde você está agora</string>
     <string name="find_caption_hint">Diga onde (opcional): à esquerda da mesa de som</string>
-    <string name="find_moment_privacy">Só sua galera vê. Some do servidor depois de algumas horas.</string>
+    <string name="find_moment_privacy">Só sua galera vê. Some do servidor em até 24 horas.</string>
     <string name="find_sending">Enviando…</string>
     <string name="find_send">Enviar</string>
 

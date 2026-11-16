@@ -138,7 +138,7 @@
     <string name="find_share_with_crew">Mit der Crew teilen</string>
     <string name="find_pinned_where_you_are">Dort gepinnt, wo du gerade bist</string>
     <string name="find_caption_hint">Sag wo (optional): links vom Mischpult</string>
-    <string name="find_moment_privacy">Nur deine Crew sieht es. Nach ein paar Stunden verschwindet es vom Relay.</string>
+    <string name="find_moment_privacy">Nur deine Crew sieht es. Spätestens nach 24 Stunden verschwindet es vom Relay.</string>
     <string name="find_sending">Wird gesendet…</string>
     <string name="find_send">Senden</string>
 

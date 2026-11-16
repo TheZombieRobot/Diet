@@ -88,12 +88,5 @@
     <string name="setup_done">Klaar</string>
 
     <string name="setup_roll_title">Je foto\'s van die avond</string>
-    <string name="setup_roll_looking">Je foto\'s doorzoeken…</string>
-    <string name="setup_roll_nothing">Niks op deze telefoon uit die uren. Foto\'s van een andere telefoon, of die al zijn toegevoegd, staan hier niet.</string>
-    <string name="setup_roll_tap_to_leave_out">Tik om er een weg te laten. Ze worden naar het concert gekopieerd, dus ze blijven ook als je ze uit je galerij verwijdert.</string>
     <string name="setup_roll_adding">Toevoegen…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="one">%d toevoegen aan dit concert</item>
-        <item quantity="other">%d toevoegen aan dit concert</item>
-    </plurals>
 </resources>

@@ -135,7 +135,7 @@
     <string name="find_share_with_crew">크루와 공유</string>
     <string name="find_pinned_where_you_are">지금 있는 곳에 고정됨</string>
     <string name="find_caption_hint">위치 설명(선택): 음향 부스 왼쪽</string>
-    <string name="find_moment_privacy">크루만 볼 수 있어요. 몇 시간 뒤 릴레이에서 사라져요.</string>
+    <string name="find_moment_privacy">크루만 볼 수 있어요. 24시간 안에 릴레이에서 사라져요.</string>
     <string name="find_sending">보내는 중…</string>
     <string name="find_send">보내기</string>
 

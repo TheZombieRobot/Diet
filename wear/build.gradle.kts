@@ -17,7 +17,8 @@ android {
         // only connects a watch app and a phone app that share both.
         applicationId = "nz.waveformlabs.moshpoint"
         minSdk = 30 // Wear OS 3: Galaxy Watch4 and newer, Pixel Watch
-        targetSdk = 34
+        // Wear OS apps must target Android 15 (API 35) for Play since 31 August 2026.
+        targetSdk = 35
         // Same CI build number as the phone app, offset so the two can share one Play listing
         // (every APK under a package needs its own version code).
         val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1

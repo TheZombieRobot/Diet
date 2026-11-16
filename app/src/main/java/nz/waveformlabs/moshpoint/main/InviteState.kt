@@ -2,15 +2,17 @@ package nz.waveformlabs.moshpoint.main
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.os.Bundle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import java.net.URLDecoder
+import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.Invite
+import nz.waveformlabs.moshpoint.core.InviteRelay
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
@@ -34,21 +36,23 @@ internal class InviteState(private val a: MainActivity) {
     var showGroupQr by mutableStateOf(false)
 
     /**
-     * Invites without a camera: a group or friend invite pasted, shared to Moshpoint from
-     * Messenger/SMS, or scanned. Groups join straight away; a friend fills in "Add someone".
+     * Invites the person chose to act on: scanned, pasted with Paste invite, bumped, or confirmed
+     * in a dialog (the clipboard's, or [sharedInvite]'s for one from another app). Groups join
+     * straight away; a friend fills in "Add someone". Never called straight from an intent.
      */
     fun handleInvite(text: String?, quietIfNone: Boolean = false): Boolean {
         when (val inv = text?.let { Invite.find(it) }) {
             is Invite.Group -> {
-                // Use the crew's relay server if the invite names one.
-                inv.qrText.substringBefore("&name=").split('&').firstOrNull { it.startsWith("r=") }?.removePrefix("r=")
-                    ?.let { runCatching { URLDecoder.decode(it, "UTF-8") }.getOrNull() }
-                    ?.takeIf { it != RelayClient.shareableServer }
-                    ?.let { if (RelayClient.setServer(a, it)) DebugStatus.log("Using the crew's relay server") }
                 if (!GroupSync.join(a, inv.qrText)) {
                     a.toast(Txt.s(R.string.main_invite_expired))
                     return false
                 }
+                // A relay the invite names, once it has proved a good invite (an expired or made-up
+                // one moves nothing): release builds follow it only to one of their own relays,
+                // test builds to any (core InviteRelay, docs/WAVE2_PLAY.md item 4). Still before
+                // the crew's first request: its sync starts on the main thread after this returns.
+                InviteRelay.switchTo(InviteRelay.named(inv.qrText), BuildConfig.TEST_BUILD, RelayClient.serverInUse, RelayClient.ownRelays)
+                    ?.let { if (RelayClient.setServer(a, it, fromInvite = true)) DebugStatus.log("Using the crew's relay server") }
                 val joined = GroupSync.newest.value
                 if (joined != null && GroupSync.group.value?.key?.contentEquals(joined.key) != true) {
                     a.toast(Txt.s(R.string.main_joined_up_next, joined.name))
@@ -87,6 +91,40 @@ internal class InviteState(private val a: MainActivity) {
 
     /** An invite found on the clipboard when the app opens: (invite text, "Bevan's crew"). */
     var clipInvite by mutableStateOf<Pair<String, String>?>(null)
+
+    /**
+     * An invite that came from another app (Share → Moshpoint invite, or any app starting the app
+     * with one), waiting for the person to confirm it (NightDialogs). Until they tap Join or Add,
+     * nothing is joined or added and nobody goes live. docs/WAVE2_PLAY.md, item 4.
+     */
+    var sharedInvite by mutableStateOf<String?>(null)
+
+    /** Offer [text], shared from another app: always through the confirmation, never straight in. */
+    fun offerSharedInvite(text: String) {
+        val t = text.take(MAX_SHARED_CHARS)
+        when (val inv = Invite.find(t)) {
+            null -> a.toast(Txt.s(R.string.main_no_invite_found))
+            is Invite.Group ->
+                if (GigGroup.parseQr(inv.qrText, System.currentTimeMillis()) == null) a.toast(Txt.s(R.string.main_invite_expired))
+                else sharedInvite = t
+            is Invite.Friend ->
+                if (inv.name.isNotBlank()) sharedInvite = t
+                else {
+                    // A bare code: it only fills in "Add someone", which asks for a name and an Add tap.
+                    scanned = inv.code to ""
+                    a.toast(Txt.s(R.string.main_got_code))
+                }
+        }
+    }
+
+    /** Keeps a waiting confirmation if Android closes the app meanwhile. */
+    fun save(out: Bundle) {
+        sharedInvite?.let { out.putString(SAVED_SHARED, it) }
+    }
+
+    fun restore(saved: Bundle?) {
+        saved?.getString(SAVED_SHARED)?.let { sharedInvite = it }
+    }
 
     /**
      * Opened the app with a crew invite copied (from WhatsApp, Messenger...)? Offer to join
@@ -140,13 +178,20 @@ internal class InviteState(private val a: MainActivity) {
         // Our pass in this crew (never our permanent identity) and signing key ride in the invite.
         withRelay(GigGroup.qr(g, Identity.intro(a, g, a.home.myName.ifBlank { "Mate" })))
 
-    /** The crew's relay server travels in the invite, so everyone who joins uses the same one. */
-    fun withRelay(qr: String): String {
-        val r = RelayClient.shareableServer.takeIf { it.isNotBlank() } ?: return qr
-        return qr.replaceFirst("&name=", "&r=${java.net.URLEncoder.encode(r, "UTF-8")}&name=")
-    }
+    /**
+     * The crew's relay server travels in the invite, so everyone who joins uses the same one. Only
+     * the build's own (or, in a test build, one typed into Settings): never a relay that came in
+     * someone else's invite (RelayClient.shareableServer).
+     */
+    fun withRelay(qr: String): String = InviteRelay.attach(qr, RelayClient.shareableServer)
 
     fun shareGroup(g: GigGroup) {
         Sharing.send(a, a.getString(R.string.main_group_invite_text, g.name, getTheApp + crewQr(g)), a.getString(R.string.main_group_invite_title))
+    }
+
+    private companion object {
+        /** A shared text longer than this is cut: an invite is a few hundred characters. */
+        const val MAX_SHARED_CHARS = 8_000
+        const val SAVED_SHARED = "sharedInvite"
     }
 }

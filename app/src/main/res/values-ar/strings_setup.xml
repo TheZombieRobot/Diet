@@ -92,16 +92,5 @@
     <string name="setup_done">تم</string>
 
     <string name="setup_roll_title">صورك من تلك الليلة</string>
-    <string name="setup_roll_looking">نبحث في صورك…</string>
-    <string name="setup_roll_nothing">لا شيء على هذا الهاتف من تلك الساعات. الصور الملتقطة بهاتف آخر، أو المضافة مسبقًا، لن تظهر هنا.</string>
-    <string name="setup_roll_tap_to_leave_out">اضغط على أي صورة لاستبعادها. تُنسخ إلى الحفلة، فتبقى حتى لو حذفتها من معرض صورك.</string>
     <string name="setup_roll_adding">جارٍ الإضافة…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="zero">أضف إلى هذه الحفلة (%d)</item>
-        <item quantity="one">أضف إلى هذه الحفلة (%d)</item>
-        <item quantity="two">أضف إلى هذه الحفلة (%d)</item>
-        <item quantity="few">أضف إلى هذه الحفلة (%d)</item>
-        <item quantity="many">أضف إلى هذه الحفلة (%d)</item>
-        <item quantity="other">أضف إلى هذه الحفلة (%d)</item>
-    </plurals>
 </resources>

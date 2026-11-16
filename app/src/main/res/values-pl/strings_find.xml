@@ -144,7 +144,7 @@
     <string name="find_share_with_crew">Udostępnij ekipie</string>
     <string name="find_pinned_where_you_are">Przypięte tam, gdzie teraz jesteś</string>
     <string name="find_caption_hint">Napisz gdzie (opcjonalnie): na lewo od realizatorki</string>
-    <string name="find_moment_privacy">Widzi to tylko twoja ekipa. Po kilku godzinach znika z serwera.</string>
+    <string name="find_moment_privacy">Widzi to tylko twoja ekipa. Znika z serwera w ciągu 24 godzin.</string>
     <string name="find_sending">Wysyłam…</string>
     <string name="find_send">Wyślij</string>
 

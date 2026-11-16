@@ -88,12 +88,5 @@
     <string name="setup_done">हो गया</string>
 
     <string name="setup_roll_title">उस रात की आपकी फ़ोटो</string>
-    <string name="setup_roll_looking">आपकी फ़ोटो देख रहे हैं…</string>
-    <string name="setup_roll_nothing">उन घंटों का इस फ़ोन पर कुछ नहीं है। दूसरे फ़ोन से ली गई या पहले से जोड़ी गई फ़ोटो यहाँ नहीं दिखेंगी।</string>
-    <string name="setup_roll_tap_to_leave_out">किसी को छोड़ने के लिए उस पर टैप करें। ये शो में कॉपी हो जाती हैं, इसलिए गैलरी से डिलीट करने पर भी बनी रहती हैं।</string>
     <string name="setup_roll_adding">जोड़ रहे हैं…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="one">इस शो में %d जोड़ें</item>
-        <item quantity="other">इस शो में %d जोड़ें</item>
-    </plurals>
 </resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">Bu davet başka bir uygulamadan geldi. Sadece kimin gönderdiğini biliyorsan katıl: konumunu paylaştığın sürece ekipteki herkes nerede olduğunu görebilir.</string>
+    <string name="play_invite_follow_text">Bu takip linki başka bir uygulamadan geldi. Ekibin fotoğraflarını ve iyi olduklarını göreceksin; onlar da takip ettiğini görecek.</string>
+    <string name="play_invite_friend_title">%1$s eklensin mi?</string>
+    <string name="play_invite_friend_text">Bu arkadaş kodu başka bir uygulamadan geldi. Sadece kimin gönderdiğini biliyorsan ekle: o kişi konumunu paylaşırken onu bulabileceksin.</string>
+    <string name="play_invite_add">Ekle</string>
+    <string name="play_disclosure_title">Moshpoint konumunu nasıl kullanır</string>
+    <string name="play_disclosure_live">Konumunu paylaştığın sürece konumun ekibinle ve arkadaşlarınla paylaşılır, böylece seni bulabilirler.</string>
+    <string name="play_disclosure_relay">Konumun telefonunda şifrelenir ve bir aktarma sunucusu üzerinden gönderilir; sunucu onu okuyamaz.</string>
+    <string name="play_disclosure_background">Paylaşım, sen kapatana kadar uygulama kapalıyken de bir bildirimle çalışmaya devam eder.</string>
+    <string name="play_disclosure_bluetooth">Konumunu paylaştığın sürece telefonun, diğer Moshpoint kullanıcılarının şifreli mesajlarını da Bluetooth ile iletir. Onları okuyamaz.</string>
+    <string name="play_disclosure_continue">Devam</string>
+    <string name="play_privacy_policy">Gizlilik politikası</string>
+    <string name="play_roll_pick_text">O gece çektiğin fotoğrafları ve videoları seç. Konsere kopyalanırlar, galeriden silsen bile kalırlar.</string>
+    <string name="play_roll_choose">Fotoğraf seç</string>
+</resources>

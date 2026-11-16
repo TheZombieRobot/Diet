@@ -138,7 +138,7 @@
     <string name="find_share_with_crew">ग्रुप के साथ शेयर करें</string>
     <string name="find_pinned_where_you_are">आप अभी जहाँ हैं, वहाँ पिन किया</string>
     <string name="find_caption_hint">कहाँ, बताएँ (वैकल्पिक): साउंड डेस्क के बाईं ओर</string>
-    <string name="find_moment_privacy">सिर्फ़ आपका ग्रुप इसे देख सकता है। कुछ घंटों बाद यह रिले से गायब हो जाता है।</string>
+    <string name="find_moment_privacy">सिर्फ़ आपका ग्रुप इसे देख सकता है। 24 घंटों के अंदर यह रिले से हट जाता है।</string>
     <string name="find_sending">भेज रहे हैं…</string>
     <string name="find_send">भेजें</string>
 

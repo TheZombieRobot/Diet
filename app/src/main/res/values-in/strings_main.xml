@@ -19,7 +19,6 @@
 
     <string name="main_my_spot">Tempatku</string>
 
-    <string name="main_photos_permission_needed">Moshpoint perlu akses ke fotomu untuk menemukan foto-foto dari malam itu</string>
     <string name="main_you">Kamu</string>
     <plurals name="main_added_to_gig">
         <item quantity="other">%d ditambahkan ke konser</item>

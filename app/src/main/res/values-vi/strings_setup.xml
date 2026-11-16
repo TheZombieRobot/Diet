@@ -87,11 +87,5 @@
     <string name="setup_done">Xong</string>
 
     <string name="setup_roll_title">Ảnh của bạn từ đêm đó</string>
-    <string name="setup_roll_looking">Đang lục ảnh của bạn…</string>
-    <string name="setup_roll_nothing">Máy này không có gì từ khoảng thời gian đó. Ảnh chụp bằng máy khác, hoặc đã thêm rồi, sẽ không hiện ở đây.</string>
-    <string name="setup_roll_tap_to_leave_out">Chạm để bỏ bớt. Ảnh được sao chép vào show, nên vẫn còn dù bạn xóa khỏi thư viện.</string>
     <string name="setup_roll_adding">Đang thêm…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="other">Thêm %d vào show này</item>
-    </plurals>
 </resources>
