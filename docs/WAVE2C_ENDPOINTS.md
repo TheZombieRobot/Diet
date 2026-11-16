@@ -18,9 +18,9 @@ _Keep this section current: whoever picks this up next starts here._
   main build" (126 libraries), no finder debug text in the release APK.
 - **Each step on its own:** steps 3, 4 and 5 were pushed as their own heads, but GitHub keeps
   only one run waiting per branch (the workflow's concurrency group) and cancelled their runs
-  (338, 339, 340) when the next was pushed; run 341 checked them together. They are being
-  re-run one at a time (338 first): see the table. A second waiting run cancels the first, so
-  re-run them one at a time; they are push runs on this branch, so nothing is published. Why
+  (338, 339, 340) when the next was pushed; run 341 checked them together. Step 3 was then
+  re-run on its own (338, attempt 2: green, screenshots identical). Steps 4 and 5 weren't: the
+  branch was merged into ccr (17caa74) and ccr's own CI covers the merge. Why
   they were pushed before step 2 was green: this session may stop at any moment, and work that
   isn't pushed is lost with the container.
 - **Exact next step:** none for this wave beyond the per-step re-runs above. Then the field
@@ -45,9 +45,9 @@ _Keep this section current: whoever picks this up next starts here._
 |---|---|---|---|
 | 1 | Install token | `InstallToken` (`InstallTokenTest`) | green, run 336 |
 | 2 | 429 by kind | `RelayHolds`, `RelayBudget` pause (`RelayHoldsTest`) | green, run 337 |
-| 3 | Chat cursors (`/v1/heldsince`) | `HeldMirror`, `RelayWire`, `RelayEndpoints` (`HeldMirrorTest`) | green with 4 to 6, run 341; own run 338 re-running |
-| 4 | One batch a minute; budget lowered | `BatchPlan`, `RelayWire` (`BatchPlanTest`, `AppRequestFixtureTest`; server `AppRequestsTest`) | green with 3, 5, 6, run 341; own run 339 to re-run |
-| 5 | Moments: `Content-Length`, reseal on 400 | `Reseal` (`MomentRulesTest`) | green with 3, 4, 6, run 341; own run 340 to re-run |
+| 3 | Chat cursors (`/v1/heldsince`) | `HeldMirror`, `RelayWire`, `RelayEndpoints` (`HeldMirrorTest`) | green with 4 to 6, run 341; own run 338 (attempt 2) green |
+| 4 | One batch a minute; budget lowered | `BatchPlan`, `RelayWire` (`BatchPlanTest`, `AppRequestFixtureTest`; server `AppRequestsTest`) | green with 3, 5, 6, run 341 (not re-run alone: merged) |
+| 5 | Moments: `Content-Length`, reseal on 400 | `Reseal` (`MomentRulesTest`) | green with 3, 4, 6, run 341 (not re-run alone: merged) |
 | 6 | Clips on Wi-Fi | `MomentFetch` (`MomentFetchTest`) | green, run 341 |
 
 ## Rules kept (from the brief)
