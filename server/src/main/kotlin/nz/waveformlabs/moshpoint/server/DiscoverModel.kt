@@ -88,7 +88,7 @@ data class Show(
         .apply { if (time.isNotEmpty()) put("time", time) }
         .put("startsAtSec", startsAtSec).put("venue", venue).put("city", city).put("region", region).put("country", country)
         .apply { if (lat != null && lon != null) put("lat", lat).put("lon", lon) }
-        .put("tickets", tickets).put("image", image).put("kind", kind.name.lowercase(Locale.ROOT)).put("score", score)
+        .put("tickets", PublicLink.clean(tickets)).put("image", PublicLink.clean(image)).put("kind", kind.name.lowercase(Locale.ROOT)).put("score", score)
 
     /** Everything, for the list on the volume. */
     fun toStored(): JSONObject = JSONObject().put("a", artist).put("n", name).put("d", date).put("t", time).put("s", startsAtSec)

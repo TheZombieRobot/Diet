@@ -73,6 +73,7 @@ too.
 |---|---|
 | `Discover.kt` | The service: demand, the refresher, the answers |
 | `DiscoverSources.kt` | URLs and the readers for each source |
+| `PublicLink.kt` | Ticket and picture links made safe for phones: https only, no keys in them |
 | `DiscoverModel.kt` | `Show`, `Fold` (matching) and `ShowMerge` |
 | `Popularity.kt` | The score |
 | `Regions.kt` | Regions, centres and distances |

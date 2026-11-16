@@ -83,8 +83,8 @@ object DiscoverSources {
             Show(
                 artist = artist, name = e.optString("name"), date = date, time = time, startsAtSec = epoch, venue = venue,
                 city = v?.optJSONObject("city")?.optString("name").orEmpty(), region = region.id, regionName = region.name,
-                country = country, lat = lat, lon = lon, tickets = e.optString("url"),
-                image = tmImage(e.optJSONArray("images")) ?: tmImage(acts?.optJSONObject(0)?.optJSONArray("images")).orEmpty(),
+                country = country, lat = lat, lon = lon, tickets = PublicLink.clean(e.optString("url")),
+                image = PublicLink.clean(tmImage(e.optJSONArray("images")) ?: tmImage(acts?.optJSONObject(0)?.optJSONArray("images")).orEmpty()),
                 kind = VenueKind.of(venue, festival), relevance = Popularity.rank(first + i, TM_DEEPEST), sources = listOf(TICKETMASTER),
             )
         }
@@ -138,8 +138,8 @@ object DiscoverSources {
             Show(
                 artist = artist, name = e.optString("title").ifBlank { artist }, date = date, time = time, startsAtSec = epoch,
                 venue = venue, city = v?.optString("city").orEmpty(), region = region.id, regionName = region.name, country = country,
-                lat = lat, lon = lon, tickets = e.optString("url"),
-                image = act?.optString("image")?.ifBlank { null } ?: act?.optJSONObject("images")?.optString("huge").orEmpty(),
+                lat = lat, lon = lon, tickets = PublicLink.clean(e.optString("url")),
+                image = PublicLink.clean(act?.optString("image")?.ifBlank { null } ?: act?.optJSONObject("images")?.optString("huge").orEmpty()),
                 kind = VenueKind.of(venue, festival), capacity = v?.optInt("capacity", 0) ?: 0,
                 tourDates = act?.optInt("num_upcoming_events", 0) ?: 0, relevance = Popularity.rank(first + i), sources = listOf(SEATGEEK),
             )
@@ -165,7 +165,7 @@ object DiscoverSources {
         val o = JSONObject(t)
         val name = o.optString("name")
         if (o.has("error") || name.isBlank()) return null
-        return Act(name, o.optInt("tracker_count", -1), o.optInt("upcoming_event_count", 0), o.optString("thumb_url").ifBlank { o.optString("image_url") })
+        return Act(name, o.optInt("tracker_count", -1), o.optInt("upcoming_event_count", 0), PublicLink.clean(o.optString("thumb_url").ifBlank { o.optString("image_url") }))
     }
 
     /** The act's upcoming shows, anywhere in the world. */
@@ -187,9 +187,11 @@ object DiscoverSources {
             val regionField = v?.optString("region").orEmpty()
             val region = Regions.of(country, lat, lon, regionField.takeIf { it.length <= 3 }, regionField.takeIf { it.length > 3 })
             val offers = e.optJSONArray("offers")
-            val tickets = (0 until (offers?.length() ?: 0)).mapNotNull { offers?.optJSONObject(it) }
+            val ticketPage = (0 until (offers?.length() ?: 0)).mapNotNull { offers?.optJSONObject(it) }
                 .firstOrNull { it.optString("type").equals("tickets", ignoreCase = true) && it.optString("url").startsWith("https://") }
                 ?.optString("url") ?: e.optString("url")
+            // Bandsintown's links carry the caller's app_id: it never reaches a phone (PublicLink).
+            val tickets = PublicLink.clean(ticketPage)
             val lineup = e.optJSONArray("lineup")?.length() ?: 0
             val title = e.optString("title")
             val festival = e.optString("festival_start_date").isNotBlank() || lineup >= VenueKind.FESTIVAL_ACTS || VenueKind.festivalName(title)

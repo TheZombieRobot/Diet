@@ -27,7 +27,8 @@ files identical, 105 new; run 329, 1,963 identical, 210 new; run 330, 273 new; r
 **Exact next step:** nothing is open in the four stages. Next, in this order:
 1. The two-phone field test, section 4k of FIELD_TEST_PLAN.md (the courier carrying ticks, the
    nudge, the signed link through a forwarded invite).
-2. The server: strip key-like query parameters (`app_id`, …) from `tickets` (below).
+2. ~~The server: strip key-like query parameters (`app_id`, …) from `tickets`.~~ Done on ccr
+   (`PublicLink`, below).
 3. With a test relay that has keys and `MOSHPOINT_DISCOVER_OPEN=1`: search and Coming up for
    real (sections C and D of 4k), then tune the 250 ms pause and the 30 s retry if needed.
 4. The owner's call: keep Coming up only on "No crew tonight", or also under a sleeping crew's
@@ -213,3 +214,7 @@ words, for a native speaker's read:
   links include `app_id=<the relay's app ID>`, so every member's phone receives the relay's
   app ID. The app strips it before a link goes anywhere, but the relay should strip it too
   (the same parameter list as `TicketLink.clean`).
+  **Done (16 November, on ccr):** `PublicLink.clean` in the relay takes key-like parameters,
+  and any part holding one of the relay's own keys, out of every ticket and picture link, both
+  when a source is read (so the lists on the volume hold none) and when a show is served (so a
+  list saved before the fix goes out clean). Tests: `PublicLinkTest`.

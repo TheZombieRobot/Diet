@@ -66,6 +66,7 @@ Every key the project will need, with a one-word placeholder.
    - On 16 November 2026 this branch's whole history scanned clean.
 3. **`.gitignore`** keeps keystores, `.env` files and the like out of commits by accident.
 4. **The relay's logs** hide any key in a URL or Authorization header (`apikey=[secret]`, `LogPrivacy`), on top of ids, tokens and addresses.
+   **Links the relay hands to phones** (a show's ticket page and picture) have key-like parameters, and the relay's own keys, taken out (`PublicLink`): Bandsintown's links carry the caller's `app_id`. The app cleans ticket links again before they go into an invite.
 5. **GitHub masks Actions secrets** in CI logs, and CI never prints them.
 6. **GitHub's own secret scanning** also checks public repos for known key formats. Keep **Push protection** on (repo → Settings → Advanced Security or Code security → Push protection), so GitHub refuses a push containing a known key before it lands.
 

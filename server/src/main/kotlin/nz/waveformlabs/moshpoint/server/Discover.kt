@@ -44,6 +44,11 @@ class Discover(
     private val budget = DailyBudget(mapOf(TM to config.tmPerDay, SG to config.sgPerDay, BIT to config.bitPerDay), clock)
     private val pacers = mapOf(TM to Pacer(250, clock, sleep), SG to Pacer(500, clock, sleep), BIT to Pacer(500, clock, sleep))
 
+    init {
+        // Links handed to phones never carry these, whatever a source names the parameter (PublicLink).
+        PublicLink.addSecrets(listOf(config.ticketmasterKey, config.seatgeekClientId, config.bandsintownAppId))
+    }
+
     /** Country → when someone last asked about it; neighbour → when a country near it was asked about. */
     private val asked = ConcurrentHashMap<String, Long>()
     private val nearby = ConcurrentHashMap<String, Long>()
@@ -338,7 +343,7 @@ class Discover(
     }
 
     private fun hitJson(h: Hit, shows: List<Show>, inCountry: Int?): JSONObject = JSONObject().put("artist", h.artist).put("score", h.score)
-        .put("image", h.image).put("shows", shows.size).apply { if (inCountry != null) put("countryShows", inCountry) }
+        .put("image", PublicLink.clean(h.image)).put("shows", shows.size).apply { if (inCountry != null) put("countryShows", inCountry) }
         .put("next", shows.first().toApi())
 
     /**
