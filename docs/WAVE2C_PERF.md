@@ -15,11 +15,12 @@ _Keep this section current: whoever picks this up next starts here._
 
 - **Item 1 (photos): pushed for CI (run 317, 0efbb3e).** The watch's screenshots came back
   byte-identical (798 of 798); the phone build was still running when item 2 was saved.
-- **Item 2 (the venue map): code done, saved with [skip ci]** on top of item 1. Once item 1 is
-  green, run CI for it (Actions, "Android build", Run workflow on this branch) and compare.
-- **Items 3 and 4: drafted in the working tree, not committed** (if this session ended, they're
-  gone: redo them from the notes below). Field tests: FIELD_TEST_PLAN.md section 4i (written).
-- **Left:** CI and screenshots for items 1-4, items 3 and 4, and the report to the parent
+- **Items 2, 3 and 4: code done, saved with [skip ci]** (c998ad0, fdb84f3, 2fa9472), so nothing
+  is lost if the session ends. They get one CI run together once item 1 is green (a CI run takes
+  about 25 minutes; dispatching only runs the branch's head): Actions, "Android build", Run
+  workflow on this branch, then compare the screenshots. If it fails, the item is in the commit
+  message of the file that broke. Field tests: FIELD_TEST_PLAN.md section 4i (written).
+- **Left:** CI and the screenshot comparison for items 1-4, and the report to the parent
   session (session_01Sw3Y2WCFVzhNwUVdFGVbRq).
 - **How to check locally:** only core tests run here (Google Maven is blocked; CI builds the app).
 
