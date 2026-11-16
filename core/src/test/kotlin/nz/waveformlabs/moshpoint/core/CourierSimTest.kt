@@ -692,8 +692,8 @@ class CourierSimTest {
         a.online = true
         // A long day: location shares used their 150, messages most of the rest.
         var t = a.now - 3600_000L
-        repeat(150) { budget.settle(budget.take(RelayUse.BACKGROUND, true, t)!!, RelayBudget.Outcome.OK, t); t += 15_000 }
-        repeat(38) { budget.settle(budget.take(RelayUse.MESSAGE, true, t)!!, RelayBudget.Outcome.OK, t); t += 15_000 }
+        repeat(150) { budget.settle(budget.take(RelayUse.BACKGROUND, true, t)!!, RelayBudget.Outcome.OK, t); t += 10_000 }
+        repeat(38) { budget.settle(budget.take(RelayUse.MESSAGE, true, t)!!, RelayBudget.Outcome.OK, t); t += 10_000 }
         // 188 of the day's 200 are gone. Ordinary messages may use two more; safety pings the lot.
         val chats = (1..4).map { a.chat("late one $it") }
         w.run(60)

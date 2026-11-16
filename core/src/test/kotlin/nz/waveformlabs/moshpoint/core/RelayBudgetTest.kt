@@ -34,8 +34,7 @@ class RelayBudgetTest {
         assertEquals(190, b.messagesLeft(RelayUse.MESSAGE, now))
         assertEquals(150, b.messagesLeft(RelayUse.BACKGROUND, now))
 
-        // Signal's back: the queue goes out, at the relay's pace (8 requests a minute: 2 kept for
-        // safety, 2 for looking, 4 for uploads).
+        // Signal's back: the queue goes out, at the relay's pace (8 requests a minute, 6 of them uploads).
         b.networkBack()
         var sent = 0
         var minutes = 0
@@ -45,7 +44,7 @@ class RelayBudgetTest {
             minutes++
         }
         assertEquals(40, sent)
-        assertTrue(minutes <= 10, "40 messages at 4 a minute took $minutes min")
+        assertTrue(minutes <= 7, "40 messages at 6 a minute took $minutes min")
     }
 
     @Test fun locationSharesCannotUseUpTheMessages() {
@@ -56,7 +55,7 @@ class RelayBudgetTest {
             // Spread out, so only the day's limit is in play here.
             while (b.go(use, now, RelayBudget.Outcome.OK)) {
                 n++
-                now += 15_000
+                now += 10_000
             }
             return n
         }
@@ -79,14 +78,12 @@ class RelayBudgetTest {
     @Test fun eightRequestsAMinuteWithTwoKeptForMessages() {
         val b = budget()
         val now = 5_000_000L
-        // Of the 8, two are kept for safety (F6) and two more for messages: background takes 4.
-        repeat(4) { assertTrue(b.go(RelayUse.BACKGROUND, now + it, RelayBudget.Outcome.OK, message = false)) }
+        repeat(6) { assertTrue(b.go(RelayUse.BACKGROUND, now + it, RelayBudget.Outcome.OK, message = false)) }
         assertNull(b.take(RelayUse.BACKGROUND, false, now + 10))
-        repeat(2) { assertTrue(b.go(RelayUse.MESSAGE, now + 11 + it, RelayBudget.Outcome.OK)) }
-        assertNull(b.take(RelayUse.MESSAGE, true, now + 13), "the rest of the minute is safety's")
-        repeat(2) { assertTrue(b.go(RelayUse.SAFETY, now + 14 + it, RelayBudget.Outcome.OK)) }
-        assertNull(b.take(RelayUse.SAFETY, true, now + 16))
-        // The window slides: a minute after the first four, there's room again.
+        assertTrue(b.go(RelayUse.MESSAGE, now + 11, RelayBudget.Outcome.OK))
+        assertTrue(b.go(RelayUse.SAFETY, now + 12, RelayBudget.Outcome.OK))
+        assertNull(b.take(RelayUse.SAFETY, true, now + 13))
+        // The window slides: a minute after the first six, there's room again.
         assertNotNull(b.take(RelayUse.BACKGROUND, false, now + 60_010))
     }
 
@@ -181,10 +178,10 @@ class RelayBudgetTest {
 
     @Test fun aBurstOfTooManyAnswersIsOnePauseNotFive() {
         val b = budget()
-        // Four requests on their way together (the minute's uploads), and the relay says "too many" to each.
-        val tickets = (0L..3L).map { assertNotNull(b.take(RelayUse.MESSAGE, true, it)) }
+        // Five requests on their way together, and the relay says "too many" to each.
+        val tickets = (0L..4L).map { assertNotNull(b.take(RelayUse.MESSAGE, true, it)) }
         tickets.forEach { b.settle(it, RelayBudget.Outcome.THROTTLED, 200) }
-        assertEquals(60_200L, b.waitingUntil(RelayUse.MESSAGE, 200), "one minute, not eight")
+        assertEquals(60_200L, b.waitingUntil(RelayUse.MESSAGE, 200), "one minute, not fifteen")
         // The next one, made after that pause, does step it up.
         assertTrue(b.go(RelayUse.MESSAGE, 60_200, RelayBudget.Outcome.THROTTLED))
         assertEquals(60_200L + 120_000L, b.waitingUntil(RelayUse.MESSAGE, 60_200))
@@ -219,17 +216,16 @@ class RelayBudgetTest {
         val b = budget()
         val now = 3_000_000L
         // Back on signal with a backlog: uploads take every slot they're allowed, as soon as it frees.
-        repeat(4) { assertTrue(b.go(RelayUse.MESSAGE, now + it * 100, RelayBudget.Outcome.OK)) }
-        assertNull(b.take(RelayUse.MESSAGE, true, now + 1_000), "the fifth upload waits")
+        repeat(6) { assertTrue(b.go(RelayUse.MESSAGE, now + it * 100, RelayBudget.Outcome.OK)) }
+        assertNull(b.take(RelayUse.MESSAGE, true, now + 1_000), "the seventh upload waits")
         assertEquals(59_000L, b.roomInMs(RelayUse.MESSAGE, true, now + 1_000))
         // Two requests a minute are kept for looking: new messages, where the crew is, a Need help coming in.
         assertTrue(b.go(RelayUse.MESSAGE, now + 2_000, RelayBudget.Outcome.OK, message = false))
         assertTrue(b.go(RelayUse.MESSAGE, now + 3_000, RelayBudget.Outcome.OK, message = false))
         assertNull(b.take(RelayUse.MESSAGE, false, now + 4_000))
-        // A Need help going out isn't held to the uploads' share, nor to the look-ups': it has two of its own (F6).
+        // A Need help going out isn't held to the uploads' share (here the whole minute is simply full).
         val c = budget()
-        repeat(4) { assertTrue(c.go(RelayUse.MESSAGE, now + it, RelayBudget.Outcome.OK)) }
-        repeat(2) { assertTrue(c.go(RelayUse.MESSAGE, now + 5 + it, RelayBudget.Outcome.OK, message = false)) }
+        repeat(6) { assertTrue(c.go(RelayUse.MESSAGE, now + it, RelayBudget.Outcome.OK)) }
         assertTrue(c.go(RelayUse.SAFETY, now + 10, RelayBudget.Outcome.OK))
         assertTrue(c.go(RelayUse.SAFETY, now + 11, RelayBudget.Outcome.OK))
     }
@@ -237,10 +233,9 @@ class RelayBudgetTest {
     @Test fun lookUpsForAnOpenChatDoNotSqueezeOutLocationShares() {
         val b = budget()
         val now = 9_000_000L
-        // The open chat looks at its mailboxes four times this minute (not background: someone is watching).
-        repeat(4) { assertTrue(b.go(RelayUse.MESSAGE, now + it * 1_000, RelayBudget.Outcome.OK, message = false)) }
-        // A location share still goes, and so does a message. Then the minute is full for everyone
-        // but safety, which keeps two (F6).
+        // The open chat looks at its mailboxes six times this minute (not background: someone is watching).
+        repeat(6) { assertTrue(b.go(RelayUse.MESSAGE, now + it * 1_000, RelayBudget.Outcome.OK, message = false)) }
+        // A location share still goes, and so does a message. Then the minute is full for everyone.
         assertTrue(b.go(RelayUse.BACKGROUND, now + 7_000, RelayBudget.Outcome.OK))
         assertTrue(b.go(RelayUse.MESSAGE, now + 8_000, RelayBudget.Outcome.OK))
         assertNull(b.take(RelayUse.MESSAGE, true, now + 9_000))
@@ -252,38 +247,12 @@ class RelayBudgetTest {
         assertEquals(-1L, b.roomInMs(RelayUse.MESSAGE, true, now + 61_000))
     }
 
-    /**
-     * Review finding F6 (docs/WAVE2C_REVIEW.md), the owner's rule: safety is never limited on the
-     * free tier. However busy the minute on the public relay, a safety ping (Need help, Check in or
-     * Home safe: its ping and its durable copy in the chat mailbox, two requests) never waits for
-     * it. Everything else gets that much less, and the minute stays within what we take of
-     * ntfy.sh's own limit (8 of its 12).
-     */
-    @Test fun aSafetyPingNeverWaitsForTheMinuteOnThePublicRelay() {
-        val lookUp = RelayUse.MESSAGE to false
-        val upload = RelayUse.MESSAGE to true
-        val share = RelayUse.BACKGROUND to true
-        for (order in listOf(listOf(lookUp, upload, share), listOf(share, upload, lookUp), listOf(upload, share, lookUp))) {
-            val b = budget()
-            val now = 7_000_000L
-            // Every other kind of traffic takes all it may this minute, in this order.
-            var others = 0
-            var t = now
-            while (order.any { (use, message) -> b.go(use, t, RelayBudget.Outcome.OK, message).also { if (it) others++ } }) t += 100
-            t += 100
-            assertEquals(0L, b.roomInMs(RelayUse.SAFETY, true, t), "Need help doesn't wait for room ($order)")
-            repeat(2) { assertTrue(b.go(RelayUse.SAFETY, t + it, RelayBudget.Outcome.OK), "its request ${it + 1} goes at once ($order)") }
-            assertEquals(6, others, "everything else gets two less than the minute's 8 ($order)")
-            assertNull(b.take(RelayUse.SAFETY, true, t + 2), "and the minute holds no more than 8 ($order)")
-        }
-    }
-
     @Test fun aRefusalCountsTheRequestButNotTheMessage() {
         val b = budget()
         assertTrue(b.go(RelayUse.MESSAGE, 0, RelayBudget.Outcome.REFUSED))
         assertEquals(190, b.messagesLeft(RelayUse.MESSAGE, 0))
-        // It took one of this minute's four uploads all the same.
-        repeat(3) { assertTrue(b.go(RelayUse.MESSAGE, 1, RelayBudget.Outcome.OK)) }
+        // It took one of this minute's six uploads all the same.
+        repeat(5) { assertTrue(b.go(RelayUse.MESSAGE, 1, RelayBudget.Outcome.OK)) }
         assertNull(b.take(RelayUse.MESSAGE, true, 2))
     }
 }

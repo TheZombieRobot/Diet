@@ -310,12 +310,10 @@ location uploader, the outbox, intros and pings all retry with no signal.
   two 6-second timeouts before trying Bluetooth.
 - A reserve: background traffic (location, intros, History) stops at 150 a day; the last 50
   are for messages, and the last 10 of those only for safety pings.
-- Per minute: 8 requests, 2 of them kept for safety pings (what one Need help, Check in or
-  Home safe sends), so a safety ping never waits for the minute (docs/WAVE2C_REVIEW.md, F6).
-  Of the other 6, background ones take at most 4 by themselves, and uploads of every kind but
-  safety pings take at most 4, so 2 are always left for looking at the mailboxes: a queue
-  being flushed can't stop the phone seeing what's new. A message that finds its share of the
-  minute full waits up to 20 seconds for room rather than failing.
+- Per minute: 8 requests. Background ones take at most 6 by themselves, and uploads of every
+  kind but safety pings take at most 6, so 2 are always left for looking at the mailboxes: a
+  queue being flushed can't stop the phone seeing what's new. A message that finds its share
+  of the minute full waits up to 20 seconds for room rather than failing.
 - After a 429 the phone pauses, with jitter: a minute and up on the public relay, 5 to 30
   seconds on our own server (whose limiter refills every second, and which the old code never
   paused for at all). Answers to requests that were already on their way don't lengthen the
@@ -398,7 +396,7 @@ were found. Three smaller things were, and are fixed too:
 |---|---|
 | After a restart, a message that had said "Not sent" could go back to "Waiting for signal" and stay there when it gave up again. | "Gave up" is saved with the queue; such a message waits for a tap, and every later change is reported. |
 | The "this crew is getting a new key… when you have signal" note showed with full signal while the notices were going out. | It only shows with no signal, which is when it's true. |
-| On the public relay a queue being flushed took every request of the minute, so nothing new was fetched until it finished. | Uploads take at most 4 of the 8; 2 are kept for looking, 2 for safety pings. |
+| On the public relay a queue being flushed took every request of the minute, so nothing new was fetched until it finished. | Uploads take at most 6 of the 8; 2 are kept for looking. |
 
 One narrow case is left as it is: if the app is killed in the instant between raising an alert
 for a late Need help that the chat is too full to show and writing down that it did, the

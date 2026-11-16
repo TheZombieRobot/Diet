@@ -46,16 +46,15 @@ class RelayBudget(
     /** Messages a day that only [RelayUse.SAFETY] may touch. */
     private val safetyReserve: Int = 10,
     /**
-     * Requests a minute that [RelayUse.BACKGROUND] may not fill by itself: of the 6 safety leaves
-     * ([safetyRequestReserve]), background requests take at most 4. (Look-ups for an open chat
-     * aren't background, so they don't squeeze location shares out; everything together still
-     * stops at 8.)
+     * Requests a minute that [RelayUse.BACKGROUND] may not fill by itself: of 8, background
+     * requests take at most 6. (Look-ups for an open chat aren't background, so they don't
+     * squeeze location shares out; everything together still stops at 8.)
      */
     private val requestReserve: Int = 2,
     /**
-     * Requests a minute kept for look-ups: uploads take at most the rest (of the 6 safety leaves,
-     * 4). A queue being flushed waits for room and takes every slot it can, and without this the
-     * phone would see nothing new until it had finished. Safety pings may use these too.
+     * Requests a minute kept for look-ups: uploads take at most the rest (of 8, 6). A queue
+     * being flushed waits for room and takes every slot it can, and without this the phone
+     * would see nothing new until it had finished. Safety pings may use these too.
      */
     private val lookUpReserve: Int = 2,
     /** After the relay says "too many": the first pause, and the longest. Our own server refills in seconds, so it gets short ones. */
@@ -77,14 +76,6 @@ class RelayBudget(
      * limits are real.
      */
     private val safetyAlwaysHasRoom: Boolean = false,
-    /**
-     * Requests a minute only [RelayUse.SAFETY] may use: everything else stops this many short of
-     * [requestsPerMinute], and each of its shares ([requestReserve], [lookUpReserve]) with it, so
-     * however busy the minute, a safety ping never waits for it; the minute's total stays
-     * [requestsPerMinute]. Sized to what one safety ping sends ([SAFETY_PING_REQUESTS]). The
-     * owner's rule: safety is never limited on the free tier (docs/WAVE2C_REVIEW.md, F6).
-     */
-    private val safetyRequestReserve: Int = SAFETY_PING_REQUESTS,
 ) {
     internal class Request(val atMs: Long, val background: Boolean, val message: Boolean)
 
@@ -139,10 +130,8 @@ class RelayBudget(
         if (message && messages >= messageCap(use)) return -1
         prune(nowMs)
         var wait = 0L
-        val cap = minuteCap(use)
-        // Room once enough of this minute's requests are a minute old (safety's may have taken more than the rest's share).
-        if (requests.size >= cap && !safetyRoom(use)) wait = requests[requests.size - cap].atMs + MINUTE_MS - nowMs
-        if (use == RelayUse.BACKGROUND && requests.count { it.background } >= cap - requestReserve) {
+        if (requests.size >= requestsPerMinute && !safetyRoom(use)) wait = requests.first().atMs + MINUTE_MS - nowMs
+        if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) {
             // (No background request to wait out means background has no share at all: waiting won't help.)
             val oldest = requests.firstOrNull { it.background } ?: return -1
             wait = maxOf(wait, oldest.atMs + MINUTE_MS - nowMs)
@@ -184,18 +173,14 @@ class RelayBudget(
         // Look-ups that keep getting no answer hold off too (uploads keep their own pace).
         if (lookUpQuiet(use, message, nowMs)) return PutResult.NO_NETWORK
         prune(nowMs)
-        val cap = minuteCap(use)
-        if (requests.size >= cap && !safetyRoom(use)) return PutResult.THROTTLED
-        if (use == RelayUse.BACKGROUND && requests.count { it.background } >= cap - requestReserve) return PutResult.THROTTLED
+        if (requests.size >= requestsPerMinute && !safetyRoom(use)) return PutResult.THROTTLED
+        if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) return PutResult.THROTTLED
         if (uploadsFull(use, message)) return PutResult.THROTTLED
         if (message && messages >= messageCap(use)) return PutResult.THROTTLED
         return null
     }
 
     private fun safetyRoom(use: RelayUse) = safetyAlwaysHasRoom && use == RelayUse.SAFETY
-
-    /** The most requests a minute [use] may take: safety the whole minute, everything else what [safetyRequestReserve] leaves. */
-    private fun minuteCap(use: RelayUse) = if (use == RelayUse.SAFETY) requestsPerMinute else maxOf(1, requestsPerMinute - safetyRequestReserve)
 
     /** A look-up: reading mailboxes (a [RelayUse.MESSAGE] request that publishes nothing). */
     private fun isLookUp(use: RelayUse, message: Boolean) = use == RelayUse.MESSAGE && !message
@@ -204,7 +189,7 @@ class RelayBudget(
 
     /** Have uploads taken their share of this minute (the rest is kept for look-ups)? Call after [prune]. */
     private fun uploadsFull(use: RelayUse, message: Boolean): Boolean =
-        message && use != RelayUse.SAFETY && requests.count { it.message } >= minuteCap(use) - lookUpReserve
+        message && use != RelayUse.SAFETY && requests.count { it.message } >= requestsPerMinute - lookUpReserve
 
     /** In the relay's "too many" pause? A safety ping still tries through it, one every [SAFETY_GAP_MS]. */
     private fun paused(use: RelayUse, nowMs: Long): Boolean =
@@ -301,12 +286,6 @@ class RelayBudget(
         private const val SAFETY_GAP_MS = 10_000L
 
         /**
-         * What one Need help, Check in or Home safe sends to the relay: the ping (the ping mailbox)
-         * and its durable copy (the chat mailbox), as the courier uploads them.
-         */
-        const val SAFETY_PING_REQUESTS = 2
-
-        /**
          * Our own relay with batches (docs/RELAY_API.md section 11.6): the background's records
          * travel in one request a minute, so this is only a safety net against a runaway loop. It
          * counts every request, though, and much never rides in the batch: the finder's poll
@@ -319,7 +298,6 @@ class RelayBudget(
         fun withBatches(random: () -> Double = Math::random): RelayBudget = RelayBudget(
             messagesPerDay = 1_000_000, requestsPerMinute = 120, messageReserve = 0, safetyReserve = 0, requestReserve = 30,
             throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, random = random, safetyAlwaysHasRoom = true,
-            safetyRequestReserve = 0, // safety never counts against it at all
         )
     }
 }

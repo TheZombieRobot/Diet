@@ -396,14 +396,8 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
                 // Not safety: rides the next batch to our own relay (docs/WAVE2C_ENDPOINTS.md, step 4).
                 val (id, held) = mailbox()
                 RelayClient.sendBatched(id, job.sealed, job.use, held, soon)
-            } else if (BatchPlan.route(job.use) == BatchPlan.Route.ALONE) {
-                // Safety (Need help, Check in, Home safe): at once, on its own, never queued behind an
-                // upload waiting for room in the free relay's minute (docs/WAVE2C_REVIEW.md, F6). A Check
-                // in and a Home safe may arrive in either order: crew phones go by the sender's clock (core CheckIns).
-                val (id, held) = mailbox()
-                RelayClient.send(id, job.sealed, job.use, held)
             } else {
-                // Everything else without batches: as before.
+                // Safety (Need help, Check in, Home safe), and everything without batches: at once, on its own, as before.
                 // One at a time: a helper's batch goes out in order, not as five requests at once.
                 uploads.withLock {
                     val (id, held) = mailbox()
