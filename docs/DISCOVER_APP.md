@@ -14,16 +14,16 @@ _Handover, kept current at every push. A new session can resume from this sectio
 | 2. Plan a gig, free view | **done, CI green (run 329, `647c84f`).** `ui/home/PlanGig.kt`: the form state is hoisted (`PlanForm`), hand entry in the order who's playing, date and time, venue (optional, hint "Venue and town"); the quiet Moshpoint+ card for non-members (`Entitlements.plus` false); "What's in Moshpoint+" swaps the sheet to `PlusInfoContent` and back with what was typed kept ("coming soon", no billing). Screenshots `planGigFree`, `smallPhonePlanGigFree`, `largeFontPlanGigFree`, `plusInfo`, `smallPhoneLargeFontPlusInfo`, looked at (English, German, small phone) |
 | 3. Smart search, members | **done, CI green (run 330, `0273934`).** `core/DiscoverRules.kt` (`DiscoverPlace` NZ island and nearest region, `ShowStart`, `TypedMatch`, the answer models; `DiscoverRulesTest`, 600 core tests pass), `discover/DiscoverClient.kt` (`suggest`, `coming`, 403/503 = closed; `DiscoverWhere`: country, region, kept regions), the search in `PlanGig.kt`, `GigSearch.kt` removed. Screenshots `smartSearch`, `smallPhoneLargeFontSmartSearch`, `smartSearchPicked` |
 | 4. Coming up near you, members | **done, CI green (run 331, `105a8fd`)**: `discover/ComingUp.kt` (asking, chips, a relay's no remembered for a day, Planned ✓ via `DiscoverPlanned`), `ui/home/ComingUpCard.kt`, `NoCrewHero(comingUp = …)` (the free path's code is untouched), Plan it → `startPlannedCrew`. Screenshots `homeComingUpNearYou`, `homeComingUpTravel`, `smallPhoneHomeComingUpNearYou`, `largeFontHomeComingUpNearYou`, looked at |
-| Polish after looking | the first search row's name was cut ("Ivory Ti…") in the screenshot while identical rows below weren't (it looks like the renderer; the title now takes the row's full width with ordinary line breaking); the next show wrapped inside "Auckland" at 130% (parts over 24 characters now wrap between words); a travel show's distance was cut (now its own line). In the run started with this commit |
+| Polish after looking | run 332 (`387e69e`, green): the first search row's name was cut ("Ivory Ti…"; now the row's full width with ordinary line breaking: fixed); a travel show's distance was cut (now its own line: fixed). Then the search rows' second line used the home's measured `DotLineText`, so "3 shows in New Zealand" never breaks inside a word at 130%: in the run started with this commit |
 
-**Last green CI run:** 331 (`105a8fd`, all four stages). The polish run is the one started by
-the commit that added this line.
+**Last green CI run:** 332 (`387e69e`, all four stages and the first polish). The last polish
+run is the one started by the commit that added this line.
 
 **Every other screenshot unchanged:** checked after each run by comparing file hashes of this
 branch's `ui-screenshots-claude-discover-app-h7v2rk` with `ui-screenshots` (`git fetch
 --depth=1 --filter=blob:none` both, then `git ls-tree -r` and compare): run 328, 1,963 shared
 files identical, 105 new; run 329, 1,963 identical, 210 new; run 330, 273 new; run 331, 357 new
-(17 new tests in 21 languages), still none changed.
+(17 new tests in 21 languages); run 332 the same: none of the 1,963 existing ones changed.
 
 **Exact next step:** check the polish run (builds green, `smartSearch` first row, the travel
 tiles); nothing else is open in the four stages. After that: the field test (section 4k of

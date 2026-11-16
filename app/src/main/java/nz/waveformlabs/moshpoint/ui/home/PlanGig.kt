@@ -348,9 +348,9 @@ private fun SuggestRow(s: Suggestion, next: DiscoverShow, typed: String, country
     val count = if (worldwide) pluralStringResource(R.plurals.search_shows_worldwide, s.shows, s.shows)
     else pluralStringResource(R.plurals.search_shows_in, s.countryShows, s.countryShows, country)
     val many = if (worldwide) s.shows > 1 else s.countryShows > 1
-    // Parts up to 24 characters stay whole ("3 shows in New Zealand"); a longer one wraps between
-    // its words, never inside one ("Auckl / and" at a large font).
-    val sub = dotLine(listOf(count, if (many) stringResource(R.string.search_next, at) else at))
+    // Each part stays whole while it fits on a line ("3 shows in New Zealand · / next Sat, 13 Mar,
+    // Auckland"), and wraps between its words when it doesn't (a large font): never inside a word.
+    val parts = listOf(count, keepNumbers(if (many) stringResource(R.string.search_next, at) else at))
     val name = buildAnnotatedString {
         append(s.artist)
         TypedMatch.range(s.artist, typed)?.let { r -> addStyle(SpanStyle(color = Mosh.Cyan), r.first, r.last + 1) }
@@ -364,7 +364,7 @@ private fun SuggestRow(s: Suggestion, next: DiscoverShow, typed: String, country
         Column(Modifier.weight(1f)) {
             // The whole column's width, with ordinary line breaking: a short name never ends in "…".
             Text(name, style = Mosh.RowTitle.copy(fontSize = 17.sp), maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth())
-            Text(sub, style = HomeType.Body.copy(fontSize = 14.5.sp, lineHeight = 19.sp, color = Mosh.TextDim))
+            DotLineText(parts, HomeType.Body.copy(fontSize = 14.5.sp, lineHeight = 19.sp, color = Mosh.TextDim), keep = 40)
         }
         Spacer(Modifier.width(8.dp))
         HomeIcon(HomeIcons.Chevron, Mosh.TextFaint, 18.dp)
