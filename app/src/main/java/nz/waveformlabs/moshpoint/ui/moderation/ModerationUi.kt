@@ -214,7 +214,14 @@ internal fun ColumnScope.ReportContent(
     Spacer(Modifier.height(12.dp))
     // Scrolls when the font is large or the phone small; the buttons stay put.
     Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(stringResource(R.string.mod_report_why), style = Mosh.Label)
+        // What is sent comes first: on a small phone the reasons are below it, and Send waits for
+        // a reason, so nobody sends without having had it in front of them.
+        Text(stringResource(R.string.mod_report_e2e), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 19.sp, color = Mosh.TextDim))
+        if (sends != null) SendsPoint(sends)
+        SendsPoint(stringResource(R.string.mod_report_sends_who, name))
+        SendsPoint(stringResource(R.string.mod_report_sends_note))
+        Text(stringResource(R.string.mod_report_kept, name), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
+        Text(stringResource(R.string.mod_report_why), style = Mosh.Label, modifier = Modifier.padding(top = 4.dp))
         Column {
             reasons.forEachIndexed { i, r ->
                 Row(
@@ -235,11 +242,6 @@ internal fun ColumnScope.ReportContent(
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth(),
         )
-        Text(stringResource(R.string.mod_report_e2e), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 19.sp, color = Mosh.TextDim))
-        if (sends != null) SendsPoint(sends)
-        SendsPoint(stringResource(R.string.mod_report_sends_who, name))
-        SendsPoint(stringResource(R.string.mod_report_sends_note))
-        Text(stringResource(R.string.mod_report_kept, name), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
         if (blockToo != null) {
             Row(
                 Modifier.fillMaxWidth().toggleable(value = blockToo, onValueChange = onBlockToo, role = Role.Checkbox),

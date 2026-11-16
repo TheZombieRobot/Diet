@@ -17,11 +17,11 @@ _Kept current at every push. Branch `claude/ugc-moderation-b5k8q2`, started from
 | Stage | State |
 |---|---|
 | 1. Block (app only) | **done, green**: run 320 at `5c4ceec`: secrets, translations, core and server tests, phone debug and release builds passed. Screenshots: all 1,711 existing phone and 798 watch images byte-identical to `ui-screenshots` / `ui-screenshots-watch`; 126 new (6 tests × 21 languages), looked at (small phone, large font): nothing cut off |
-| 2. Community rules before the first post | **pushed** at `af17acb`, run 321 (its own run) |
-| 3. Report (sheet, relay endpoints, server tests) | **pushed**; 10 relay tests (`ReportTest`) pass locally; CI: the run for the commit "Report and block: CI for stages 3 and 4" (run 322 or the next) |
+| 2. Community rules before the first post | **done, green**: run 321 at `af17acb`; old screenshots byte-identical; `communityRules` looked at in every language (small phone, large font: the text scrolls, the buttons stay) |
+| 3. Report (sheet, relay endpoints, server tests) | **pushed**; 10 relay tests (`ReportTest`) pass locally and in CI. Run 322 at `acb203a`: built, tests and screenshots passed (old ones byte-identical). After looking at its screenshots, the sheet now shows what is sent before the reasons (seen before Send on a small phone): run 323 checks that |
 | 4. Docs (MODERATION.md, PRIVACY.md, PLAY_STORE.md, SECRETS.md, FIELD_TEST_PLAN.md 4j) | **pushed**; CI in the same run as stage 3 |
 
-**Exact next step:** check run 321 (stage 2) and the run for the head (stages 3 and 4): green,
+**Exact next step:** check runs 322 and 323 (the head) are green,
 every old screenshot byte-identical (`bash` the comparison in "How to work on it"), and the new
 ones looked at: stage 2 `communityRules`, `smallPhoneLargeFontCommunityRules`; stage 3
 `moderationMenuWithReport`, `reportSheet`, `smallPhoneLargeFontReportSheet`, `reportSheetClip`.
@@ -137,10 +137,11 @@ blocked: the hold and tap handlers draw nothing, and the lists are passed throug
 - **Where:** the same places as Block. Holding a message (crew chat or private) or tapping a
   private thread's name opens a menu with **Report this message** (or **Report Jo**) and Block;
   a photo or clip has **Report or block**; a crew mate's options have **Report Sam**.
-- **The sheet:** six reasons (harassment or bullying, hate, sexual content, violence or threats,
-  spam, something else), an optional note (300 characters), then plainly what is sent and that
-  it's kept 90 days, and **Also block Jo** (off by default: you may want a mate warned, not
-  hidden). Send waits for a reason.
+- **The sheet:** first, plainly, what is sent and that it's kept 90 days; then six reasons
+  (harassment or bullying, hate, sexual content, violence or threats, spam, something else), an
+  optional note (300 characters) and **Also block Jo** (off by default: you may want a mate
+  warned, not hidden). Send waits for a reason, so on a small phone, where the reasons are below
+  the fold, nobody sends without having scrolled past what is sent.
 - **What is sent** (`Reporting`): the message text, or the photo at most 800 px, or four frames of
   a clip (start, a third, two thirds, near the end) at most 480 px, with the caption; the
   sender's name and crew signing key (hex); `SHA-256("moshpoint-report-crew:" + crew id)`;
