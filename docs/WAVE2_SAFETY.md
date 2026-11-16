@@ -192,4 +192,14 @@ Bluetooth off; Doze (adb force-idle, followers' check); Live switching itself of
 12 h by moving the clock); nothing closes the finder (dark mode, font, split screen, the clip).
 
 ## CI runs
-- Run 301 (19c4289): the first compile check, before the translations.
+- Run 301 (19c4289): the first compile check, before the translations: the app compiled; the
+  run stopped at the (expected) translation check.
+- Run 307 (bf47dd2): green, phone and watch (translations, core and server tests, debug and
+  release builds, the R8 debug-text check, licences, every screenshot). Screenshots: the 1,165
+  phone and 798 watch images that existed are byte-identical to origin/ui-screenshots and
+  ui-screenshots-watch; 252 new (the 12 tests above × 21 language folders). Checked by eye on
+  contact sheets (tools/contact_sheet.py) in every language: nothing clipped or crowded on a
+  normal phone; on a small phone with a large font the Need help contents ran past the bottom,
+  so they scroll now (a dialog clips its text instead of scrolling it), and the test frame lays
+  out like the dialog.
+- Final run: see the report (same checks; only the help screenshots should differ from 307's).

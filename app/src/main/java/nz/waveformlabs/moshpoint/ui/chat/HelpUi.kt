@@ -3,6 +3,8 @@ package nz.waveformlabs.moshpoint.ui.chat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -130,7 +132,9 @@ internal fun HelpBody(
     var adding by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
     var number by remember { mutableStateOf("") }
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    // Scrolls: a dialog clips its text rather than scrolling it, and on a small phone with a large
+    // font the last of these (the emergency number, the satellite hint) would otherwise be cut off.
+    Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (crewAlert != null) {
             CrewAlertRow(crewAlert, onAlertCrew, onGoLive)
             if (crewAlert.outcome != null && HelpRules.pointToTextOrCall(crewAlert.outcome)) {

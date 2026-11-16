@@ -575,7 +575,7 @@ open class ScreensSnapshotTest {
         notice(nz.waveformlabs.moshpoint.safety.Notices.Kind.LIVE_CANT_START)
     }
 
-    /** A dialog's frame (as the dialog draws it): title, contents, and its Close button. */
+    /** A dialog's frame (as the dialog draws it): title, contents (scrolling when they're too tall), and its Close button. */
     @androidx.compose.runtime.Composable
     private fun DialogFrame(title: String, close: String, content: @androidx.compose.runtime.Composable () -> Unit) {
         androidx.compose.foundation.layout.Box(
@@ -588,7 +588,8 @@ open class ScreensSnapshotTest {
             ) {
                 androidx.compose.material3.Text(title, style = Mosh.Heading)
                 androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.height(16.dp))
-                content()
+                // As the dialog lays out its text: no more than the room left, so the button stays on screen.
+                androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.weight(1f, fill = false)) { content() }
                 androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.height(12.dp))
                 androidx.compose.foundation.layout.Row(
                     androidx.compose.ui.Modifier.fillMaxWidth(),
