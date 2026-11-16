@@ -83,6 +83,46 @@ Trade-offs (the audit's fixes, as asked):
   data only when it differs from what that map look already has; photo pin icons are added once.
   A new map look (Bright / Night / Dark, a saved venue map) starts empty and gets everything.
 
+## 3. The finder's drawing (performance P1-5)
+
+- **Animations are read while drawing, not composing** (`ui/finder/FinderArrows.kt`,
+  `ui/finder/CrewRadar.kt`): each arrow's swivel, the radar's spring in and out, and the colour
+  warming are kept as state and read in the draw phase (`animatedAngleState`), so an animation
+  frame redraws the canvas without recomposing the screen. Recomposition still follows the
+  arrows themselves (20 times a second while the heading is in them; see "Left" below).
+- **Paths, glows and gradients are cached**: the single-mate view's drawing is a remembered
+  `drawWithCache` (the arrow's path and its glow strokes made once per screen size, its gradient
+  once per colour, the photo ring's gradient while the mate stays put, the photo's clip path
+  reused); the radar keeps each mate's path and gradient while their length and colour stay the
+  same, and the glow strokes per width (`RadarCache`). `softGlow` takes pre-made strokes
+  (`softGlowStrokes`); the drawing is the same.
+- **Each animated canvas has its own layer** (`graphicsLayer()`): the arrows, the radar, the
+  radar pulse and the radar sweep (whose gradient is also made once). A frame redraws that
+  canvas, not the screen around it.
+- **GlowBackground is static** (`ui/Neon.kt`): its three light blobs sit where their slow 14 s
+  drift used to start, which is exactly where calm motion (battery saver) always showed them,
+  and are drawn again only when the size or a colour changes (`drawWithCache`). This is the one
+  visible change on this list, asked for by the audit: the blobs no longer drift. Screenshots
+  are taken at the drift's start, so they're unchanged.
+- **The crew pass is remembered** (`profile/Identity.crewPass`): the finder's block asks for your
+  "Light me up" colour on every recomposition, which was an HMAC each time; the last pass is kept
+  (same secret and crew, same pass; a copy is returned).
+
+Left: **the compass heading is still in `ArrowState`**. Moving it out (arrows that change only
+when a fix changes, the heading read in the draw phase) touches the finder engine, its tests and
+every screen that reads arrows (the finder, the map's `near`, the watch, the screen-on rule);
+not safe without a phone to test on, so not done here. The map no longer recomposes on it
+(item 2), and animation frames no longer recompose the finder.
+
+## 4. Home redraws (PRODUCTION_AUDIT.md, "Home redraw efficiency")
+
+- `ui/home/FriendsScreen.kt`: the lambdas that used the action holders (`crewActions`,
+  `gigActions`), which are new objects on every home redraw, now read the latest holder through
+  `rememberUpdatedState`, so they stay the same objects between redraws (strong skipping
+  remembers them by what they capture). The face tiles (`CrewTiles`), the friends strip, the
+  friends and past-gigs sheets, the Up next rows and the memory card can skip recomposing.
+  Lambdas inside the dialogs and menus (shown rarely) are unchanged.
+
 ## Proof
 
 - CI green on this branch (the app compiles only there).

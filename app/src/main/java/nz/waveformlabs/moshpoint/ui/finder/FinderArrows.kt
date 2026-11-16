@@ -13,6 +13,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -24,6 +25,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -35,6 +37,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -62,6 +65,7 @@ import nz.waveformlabs.moshpoint.ui.finderDistance
 import nz.waveformlabs.moshpoint.ui.finderDistanceLabel
 import nz.waveformlabs.moshpoint.ui.haloGlow
 import nz.waveformlabs.moshpoint.ui.softGlow
+import nz.waveformlabs.moshpoint.ui.softGlowStrokes
 
 // The finder's arrows: swivel animation, neon arrow drawing, photo tips and labels.
 
@@ -70,18 +74,30 @@ import nz.waveformlabs.moshpoint.ui.softGlow
  * spring swivels the short way round instead of spinning backwards through 180°.
  */
 @Composable
-internal fun animatedAngle(targetDeg: Double): Float {
+internal fun animatedAngle(targetDeg: Double): Float = animatedAngleState(targetDeg).value
+
+/** [animatedAngle] as state, for reading while drawing: a frame of the swivel then redraws without recomposing. */
+@Composable
+internal fun animatedAngleState(targetDeg: Double): androidx.compose.runtime.State<Float> {
     // Plain holder (not Compose state): updating it mid-composition mustn't trigger recomposition.
     val last = remember { FloatArray(1) { targetDeg.toFloat() } }
     val delta = (((targetDeg - last[0]) % 360 + 540) % 360 - 180).toFloat()
     last[0] += delta
-    val anim by animateFloatAsState(
+    return animateFloatAsState(
         last[0],
         animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium), // quick, no wobble
         label = "arrow",
     )
-    return anim
 }
+
+/** What the arrows are drawn from; replaced on each recomposition, read while drawing. */
+private class ArrowsInput(
+    val arrows: List<ArrowState.Pointing>,
+    val angles: Map<String, androidx.compose.runtime.State<Float>>,
+    val colours: Map<String, androidx.compose.runtime.State<Color>>,
+    val friendOf: (String) -> Friend?,
+    val floors: Map<String, String>,
+)
 
 @Composable
 internal fun Arrows(
@@ -96,17 +112,18 @@ internal fun Arrows(
 ) {
     // Where each mate's bubble was drawn, so a tap can pick them (not state: drawing only).
     val tips = remember { HashMap<String, Offset>() }
-    // Per-friend animated angle and colour (hot pink sliding into their colour).
-    val angles = arrows.associate { a -> a.friendId to key(a.friendId) { animatedAngle(a.relativeDeg) } }
+    // Per-friend animated angle and colour (hot pink sliding into their colour). Kept as state and
+    // read while drawing: an animation frame redraws without recomposing (performance P1-5).
+    val angles = arrows.associate { a -> a.friendId to key(a.friendId) { animatedAngleState(a.relativeDeg) } }
     val colours = arrows.associate { a ->
         a.friendId to key(a.friendId, "c") {
             val target = Color(ArrowStyle.arrowColor(friendOf(a.friendId)?.color ?: ArrowStyle.RED, a.distanceM))
-            animateColorAsState(target, tween(800), label = "colour").value
+            animateColorAsState(target, tween(800), label = "colour")
         }
     }
     val t = rememberInfiniteTransition(label = "breathe")
-    val breathe by t.ambient(0.55f, 1f, infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
-    val spin by t.ambient(0f, 360f, infiniteRepeatable(tween(5000, easing = LinearEasing)), label = "spin")
+    val breatheState = t.ambient(0.55f, 1f, infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
+    val spinState = t.ambient(0f, 360f, infiniteRepeatable(tween(5000, easing = LinearEasing)), label = "spin")
 
     val context = LocalContext.current
     val display = remember { runCatching { ResourcesCompat.getFont(context, R.font.unbounded_extrabold) }.getOrNull() }
@@ -137,89 +154,109 @@ internal fun Arrows(
             }
         }
     } else Modifier
-    Canvas(Modifier.fillMaxSize().then(tapModifier).semantics { contentDescription = spoken }) {
-        val centre = Offset(size.width / 2, size.height / 2)
-        val avatarR = if (group) 26.dp.toPx() else 32.dp.toPx()
-        val chipW = 84.dp.toPx()
-        val chipH = 44.dp.toPx()
-        // Fit arrow + photo inside the screen at any angle (360dp phones included); in a
-        // group the name chip sits beyond the photo, so leave room for half its width too.
-        val margin = if (group) 6.dp.toPx() + chipW / 2 else 4.dp.toPx()
-        val length = (size.minDimension / 2 - 2 * avatarR - 8.dp.toPx() - margin).coerceAtLeast(40.dp.toPx())
-        if (group) {
-            haloGlow(centre, 7.dp.toPx(), 10.dp.toPx(), Color.White, 0.8f)
-            drawCircle(Mosh.Text, radius = 7.dp.toPx(), center = centre)
-        }
-        arrows.forEach { a ->
-            val friend = friendOf(a.friendId)
-            val colour = (colours[a.friendId] ?: Mosh.Pink).copy(alpha = if (a.unsure) 0.6f else 1f)
-            // Their bubble is always their own colour (the same as their name in chat); the
-            // arrow and distance warm from hot pink into it as you close in.
-            val own = friend?.color?.let { Color(it) } ?: colour
-            val angle = angles[a.friendId] ?: a.relativeDeg.toFloat()
+    val input = androidx.compose.runtime.rememberUpdatedState(ArrowsInput(arrows, angles, colours, friendOf, floors))
+    // The drawing stays put across recompositions; what depends only on the screen's size (the
+    // arrow's path, the glow's strokes) is made once, and brushes once per colour, not per frame
+    // (performance P1-5). Its own layer: a frame redraws the arrows and nothing around them.
+    val drawing = remember(group, breatheState, spinState) { // calm motion swaps the animations for still values
+        Modifier.graphicsLayer().drawWithCache {
+            val centre = Offset(size.width / 2, size.height / 2)
+            val avatarR = if (group) 26.dp.toPx() else 32.dp.toPx()
+            val chipW = 84.dp.toPx()
+            val chipH = 44.dp.toPx()
+            // Fit arrow + photo inside the screen at any angle (360dp phones included); in a
+            // group the name chip sits beyond the photo, so leave room for half its width too.
+            val margin = if (group) 6.dp.toPx() + chipW / 2 else 4.dp.toPx()
+            val length = (size.minDimension / 2 - 2 * avatarR - 8.dp.toPx() - margin).coerceAtLeast(40.dp.toPx())
             val path = arrowPath(centre, length, if (group) 0.24f else 0.34f)
-
-            rotate(angle, pivot = centre) {
-                // Breathing neon glow, then a white-hot tip fading into their colour and ultraviolet.
-                softGlow(path, colour, 30.dp.toPx(), breathe)
-                drawPath(
-                    path,
-                    Brush.verticalGradient(
-                        0f to Color.White, 0.16f to colour, 1f to lerp(colour, Mosh.Violet, 0.6f),
-                        startY = centre.y - length, endY = centre.y,
-                    ),
-                )
-            }
-
-            // Their photo (or initial) at the tip, in a spinning neon ring.
-            val rad = Math.toRadians(angle.toDouble())
-            val reach = length + avatarR + 8.dp.toPx()
-            val tip = Offset(centre.x + reach * sin(rad).toFloat(), centre.y - reach * cos(rad).toFloat())
-            tips[a.friendId] = tip
-            haloGlow(tip, avatarR, 16.dp.toPx(), own, 0.75f * breathe)
-            drawCircle(Mosh.Avatar, radius = avatarR, center = tip)
-            val photo = Faces.of(a.friendId, friend?.name)
-            if (photo != null) {
-                clipPath(Path().apply { addOval(Rect(tip, avatarR - 3.dp.toPx())) }) {
-                    drawImage(
-                        photo,
-                        dstOffset = IntOffset((tip.x - avatarR).toInt(), (tip.y - avatarR).toInt()),
-                        dstSize = IntSize((avatarR * 2).toInt(), (avatarR * 2).toInt()),
-                    )
+            val glow = softGlowStrokes(30.dp.toPx())
+            val bodies = HashMap<Color, Brush>()
+            val rings = HashMap<String, Pair<Pair<Color, Offset>, Brush>>()
+            val face = Path()
+            onDrawBehind {
+                val f = input.value
+                val breathe = breatheState.value
+                val spin = spinState.value
+                if (bodies.size > 64) bodies.clear() // colours sliding: never more than a few dozen
+                if (group) {
+                    haloGlow(centre, 7.dp.toPx(), 10.dp.toPx(), Color.White, 0.8f)
+                    drawCircle(Mosh.Text, radius = 7.dp.toPx(), center = centre)
                 }
-            } else {
-                drawCentred(friend?.name?.take(1)?.uppercase() ?: "?", tip, avatarR * 0.72f, Mosh.Text, displayPaint)
-            }
-            rotate(spin, pivot = tip) {
-                drawCircle(
-                    Brush.sweepGradient(listOf(own, Mosh.Violet, own), center = tip),
-                    radius = avatarR, center = tip, style = Stroke(3.5f.dp.toPx()),
-                )
-            }
-            // On another floor: say so on their face.
-            floors[a.friendId]?.let { drawFloorPill(it, Offset(tip.x, tip.y + avatarR), regularPaint, 11.dp.toPx()) }
+                f.arrows.forEach { a ->
+                    val friend = f.friendOf(a.friendId)
+                    val colour = (f.colours[a.friendId]?.value ?: Mosh.Pink).copy(alpha = if (a.unsure) 0.6f else 1f)
+                    // Their bubble is always their own colour (the same as their name in chat); the
+                    // arrow and distance warm from hot pink into it as you close in.
+                    val own = friend?.color?.let { Color(it) } ?: colour
+                    val angle = f.angles[a.friendId]?.value ?: a.relativeDeg.toFloat()
 
-            if (group) {
-                // Glass chip with distance + name, placed further out along the arrow's
-                // direction, so it never covers another arrow.
-                val ux = sin(rad).toFloat()
-                val uy = -cos(rad).toFloat()
-                val extent = kotlin.math.abs(ux) * chipW / 2 + kotlin.math.abs(uy) * chipH / 2
-                val cc = Offset(tip.x + ux * (avatarR + 6.dp.toPx() + extent), tip.y + uy * (avatarR + 6.dp.toPx() + extent))
-                val top = Offset(cc.x - chipW / 2, cc.y - chipH / 2)
-                drawRoundRect(colour.copy(alpha = 0.12f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()))
-                drawRoundRect(colour.copy(alpha = 0.40f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()), style = Stroke(1.dp.toPx()))
-                val inner = chipW - 10.dp.toPx()
-                val who = (friend?.name ?: "?") + if ((BuildConfig.TEST_BUILD && DebugStatus.showUi)) " · " + methodLabel(a.method) + (if (a.unsure) "?" else "") else ""
-                drawCentred(finderDistanceLabel(a.distanceM), Offset(cc.x, top.y + 15.dp.toPx()), 14.dp.toPx(), colour, displayPaint, inner)
-                drawCentred(who, Offset(cc.x, top.y + 31.dp.toPx()), 11.5f.dp.toPx(), Mosh.TextDim, regularPaint, inner)
-            }
-            if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && !group) {
-                // Test builds only: which method is driving this arrow (in a group it's in the chip).
-                drawCentred(methodLabel(a.method) + if (a.unsure) "?" else "", Offset(tip.x, tip.y - avatarR - 10.dp.toPx()), 10.dp.toPx(), Mosh.TextFaint, regularPaint)
+                    rotate(angle, pivot = centre) {
+                        // Breathing neon glow, then a white-hot tip fading into their colour and ultraviolet.
+                        softGlow(path, colour, glow, breathe)
+                        drawPath(
+                            path,
+                            bodies.getOrPut(colour) {
+                                Brush.verticalGradient(
+                                    0f to Color.White, 0.16f to colour, 1f to lerp(colour, Mosh.Violet, 0.6f),
+                                    startY = centre.y - length, endY = centre.y,
+                                )
+                            },
+                        )
+                    }
+
+                    // Their photo (or initial) at the tip, in a spinning neon ring.
+                    val rad = Math.toRadians(angle.toDouble())
+                    val reach = length + avatarR + 8.dp.toPx()
+                    val tip = Offset(centre.x + reach * sin(rad).toFloat(), centre.y - reach * cos(rad).toFloat())
+                    tips[a.friendId] = tip
+                    haloGlow(tip, avatarR, 16.dp.toPx(), own, 0.75f * breathe)
+                    drawCircle(Mosh.Avatar, radius = avatarR, center = tip)
+                    val photo = Faces.of(a.friendId, friend?.name)
+                    if (photo != null) {
+                        face.reset()
+                        face.addOval(Rect(tip, avatarR - 3.dp.toPx()))
+                        clipPath(face) {
+                            drawImage(
+                                photo,
+                                dstOffset = IntOffset((tip.x - avatarR).toInt(), (tip.y - avatarR).toInt()),
+                                dstSize = IntSize((avatarR * 2).toInt(), (avatarR * 2).toInt()),
+                            )
+                        }
+                    } else {
+                        drawCentred(friend?.name?.take(1)?.uppercase() ?: "?", tip, avatarR * 0.72f, Mosh.Text, displayPaint)
+                    }
+                    val ring = rings[a.friendId]?.takeIf { it.first == (own to tip) }?.second
+                        ?: Brush.sweepGradient(listOf(own, Mosh.Violet, own), center = tip).also { rings[a.friendId] = (own to tip) to it }
+                    rotate(spin, pivot = tip) {
+                        drawCircle(ring, radius = avatarR, center = tip, style = Stroke(3.5f.dp.toPx()))
+                    }
+                    // On another floor: say so on their face.
+                    f.floors[a.friendId]?.let { drawFloorPill(it, Offset(tip.x, tip.y + avatarR), regularPaint, 11.dp.toPx()) }
+
+                    if (group) {
+                        // Glass chip with distance + name, placed further out along the arrow's
+                        // direction, so it never covers another arrow.
+                        val ux = sin(rad).toFloat()
+                        val uy = -cos(rad).toFloat()
+                        val extent = kotlin.math.abs(ux) * chipW / 2 + kotlin.math.abs(uy) * chipH / 2
+                        val cc = Offset(tip.x + ux * (avatarR + 6.dp.toPx() + extent), tip.y + uy * (avatarR + 6.dp.toPx() + extent))
+                        val top = Offset(cc.x - chipW / 2, cc.y - chipH / 2)
+                        drawRoundRect(colour.copy(alpha = 0.12f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()))
+                        drawRoundRect(colour.copy(alpha = 0.40f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()), style = Stroke(1.dp.toPx()))
+                        val inner = chipW - 10.dp.toPx()
+                        val who = (friend?.name ?: "?") + if ((BuildConfig.TEST_BUILD && DebugStatus.showUi)) " · " + methodLabel(a.method) + (if (a.unsure) "?" else "") else ""
+                        drawCentred(finderDistanceLabel(a.distanceM), Offset(cc.x, top.y + 15.dp.toPx()), 14.dp.toPx(), colour, displayPaint, inner)
+                        drawCentred(who, Offset(cc.x, top.y + 31.dp.toPx()), 11.5f.dp.toPx(), Mosh.TextDim, regularPaint, inner)
+                    }
+                    if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && !group) {
+                        // Test builds only: which method is driving this arrow (in a group it's in the chip).
+                        drawCentred(methodLabel(a.method) + if (a.unsure) "?" else "", Offset(tip.x, tip.y - avatarR - 10.dp.toPx()), 10.dp.toPx(), Mosh.TextFaint, regularPaint)
+                    }
+                }
             }
         }
     }
+    Spacer(Modifier.fillMaxSize().then(tapModifier).semantics { contentDescription = spoken }.then(drawing))
 }
 
 internal fun lerp(a: Color, b: Color, t: Float) = Color(
