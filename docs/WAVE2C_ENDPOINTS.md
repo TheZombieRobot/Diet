@@ -13,14 +13,16 @@ _Keep this section current: whoever picks this up next starts here._
 
 - **Done and green:** step 1, the install token (CI run 336 on 23c8ef5: phone and watch builds,
   core and server tests, every screenshot byte-identical).
-- **In CI:** step 2, 429 by kind (0d79328, pushed alone so it gets its own run).
-- **Written, tested in core, type-checked, not yet pushed:** steps 3 to 6, one commit each, on
-  top of step 2. They are pushed one at a time, each after the one before is green, so the
-  branch head is always a step that has passed or is being checked. If this session has
-  stopped and they aren't on the branch, rebuild them from the designs below (every decision
-  and its reason is here).
-- **Exact next step:** when the run for the branch head is green, compare its screenshots
-  (below), then push the next step's commit alone; repeat to step 6. Then the final report.
+- **In CI:** step 2, 429 by kind (run 337, 0d79328).
+- **Pushed, each with its own CI run, queued in order after 337:** steps 3, 4, 5 and 6, one
+  commit each, each pushed on its own so each gets its own run. Why not one at a time after the
+  previous was green: this session may stop at any moment, and work that isn't pushed is lost
+  with the container; pushing each step as its own head still checks every step in its own
+  run, in order. The branch head is green once all the runs are.
+- **Exact next step:** follow the runs in order (337, then the one for each step). For each
+  green one, compare its screenshots (below) and note it in the table. If one is red: the
+  later runs contain that step too, so fix it on the branch head (one commit, pushed without
+  `[skip ci]`) and check that run. Then the final report.
 - **Last green CI run:** 336 (23c8ef5, step 1).
 - **Screenshots:** run 336: all 2,320 phone and 798 watch images identical to `ui-screenshots`
   and `ui-screenshots-watch` (git blob hashes). Expected the same for every step: no screen or
@@ -29,19 +31,21 @@ _Keep this section current: whoever picks this up next starts here._
   then compare `git ls-tree -r` of each pair.
 - **Checked locally before every push:** core and server tests (scratch Gradle build with only
   `:core` and `:server`, Maven Central only, as docs/WATCH.md describes), `tools/check_secrets.py`,
-  and a type-check of the app with plain `kotlinc` against core (Android names don't resolve,
-  so only new errors about our own declarations count; none).
+  and a type-check of the app with plain `kotlinc` against core, with small stubs for
+  `SystemClock`, `BuildConfig`, `Base64`, `SharedPreferences` and `Context`: `RelayClient.kt`
+  has no errors at all, and every other file touched has exactly ccr's set of errors (all
+  Android names that don't resolve here), apart from `NetState`'s use of `NetworkCapabilities`.
 
 ## The steps (RELAY_API.md section 11's order; each one works on its own)
 
 | Step | What | Core rule (tests) | Status |
 |---|---|---|---|
 | 1 | Install token | `InstallToken` (`InstallTokenTest`) | green, run 336 |
-| 2 | 429 by kind | `RelayHolds`, `RelayBudget` pause (`RelayHoldsTest`) | in CI |
-| 3 | Chat cursors (`/v1/heldsince`) | `HeldMirror`, `RelayWire`, `RelayEndpoints` (`HeldMirrorTest`) | written |
-| 4 | One batch a minute; budget lowered | `BatchPlan`, `RelayWire` (`BatchPlanTest`, `AppRequestFixtureTest`; server `AppRequestsTest`) | written |
-| 5 | Moments: `Content-Length`, reseal on 400 | `Reseal` (`MomentRulesTest`) | written |
-| 6 | Clips on Wi-Fi | `MomentFetch` (`MomentFetchTest`) | written |
+| 2 | 429 by kind | `RelayHolds`, `RelayBudget` pause (`RelayHoldsTest`) | in CI, run 337 |
+| 3 | Chat cursors (`/v1/heldsince`) | `HeldMirror`, `RelayWire`, `RelayEndpoints` (`HeldMirrorTest`) | pushed, CI queued |
+| 4 | One batch a minute; budget lowered | `BatchPlan`, `RelayWire` (`BatchPlanTest`, `AppRequestFixtureTest`; server `AppRequestsTest`) | pushed, CI queued |
+| 5 | Moments: `Content-Length`, reseal on 400 | `Reseal` (`MomentRulesTest`) | pushed, CI queued |
+| 6 | Clips on Wi-Fi | `MomentFetch` (`MomentFetchTest`) | pushed, CI queued |
 
 ## Rules kept (from the brief)
 

@@ -6,14 +6,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.setup.NetState
+import nz.waveformlabs.moshpoint.core.HeldMirror
 import nz.waveformlabs.moshpoint.core.InstallToken
 import nz.waveformlabs.moshpoint.core.InviteRelay
 import nz.waveformlabs.moshpoint.core.PutResult
 import nz.waveformlabs.moshpoint.core.RelayBudget
+import nz.waveformlabs.moshpoint.core.RelayEndpoints
 import nz.waveformlabs.moshpoint.core.RelayHolds
+import nz.waveformlabs.moshpoint.core.RelayWire
 import nz.waveformlabs.moshpoint.core.RelayUse
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -38,6 +43,9 @@ import java.net.URLEncoder
  */
 object RelayClient {
     private const val LOOKUP_CHUNK = 60
+
+    /** Asks in one chat poll at most (each answer carries up to 512 KB): the rest waits for the next poll. */
+    private const val MAX_HELD_ROUNDS = 20
 
     /** Always on: our server if configured, else the public relay. */
     val enabled get() = true
@@ -183,8 +191,71 @@ object RelayClient {
             val parts = ids.chunked(LOOKUP_CHUNK).map { lookupHeld(it) ?: return@withContext null }
             return@withContext parts.flatten()
         }
-        if (ownServer) return@withContext ownLookup(ids, "$base/v1/heldlookup", wide = true)
+        if (ownServer) {
+            val b = base
+            // Only what's new since the last look; an older relay (404) gets the old lookup.
+            if (endpoints.usable(RelayEndpoints.Endpoint.HELD_SINCE, b, SystemClock.elapsedRealtime())) {
+                heldSince(ids, b)?.let { return@withContext it.lists }
+            }
+            return@withContext ownLookup(ids, "$b/v1/heldlookup", wide = true)
+        }
         lookup(ids, "12h")
+    }
+
+    /** What a cursor poll came to: [lists] null = no answer (as a failed lookup). */
+    private class Held(val lists: List<List<ByteArray>>?)
+
+    /** Chat mailboxes as last seen, kept up to date with cursors (core [HeldMirror]). */
+    private val mirror = HeldMirror()
+    private val endpoints = RelayEndpoints()
+
+    /** One chat poll at a time, so cursor answers never cross. */
+    private val heldPolls = Mutex()
+
+    /**
+     * Crew chat with cursors (docs/RELAY_API.md sections 8 and 11.3): each mailbox is asked only
+     * for what arrived since the last look (a poll with nothing new costs 14 bytes a mailbox), and
+     * the answer is still every record in it, newest first, from core [HeldMirror], exactly as
+     * `/v1/heldlookup` gave it. Null if [b] has no `/v1/heldsince` (an older relay): use the old lookup.
+     */
+    private suspend fun heldSince(ids: List<ByteArray>, b: String): Held? = heldPolls.withLock {
+        val keys = ids.map { it.hex() }
+        var asks = ids.indices.toList()
+        var rounds = 0
+        // On MORE (an answer filled up at 512 KB) the rest is asked for straight away.
+        while (asks.isNotEmpty() && rounds++ < MAX_HELD_ROUNDS) {
+            val cursors = asks.map { mirror.cursor(keys[it]) }
+            val body = RelayWire.heldSince(asks.map { ids[it] }.zip(cursors))
+            var code = 0
+            var unreadable = false
+            val blocks = exchange(RelayUse.MESSAGE, message = false) {
+                val c = open("$b/v1/heldsince")
+                c.requestMethod = "POST"
+                c.doOutput = true
+                c.connectTimeout = 5_000
+                c.readTimeout = 5_000
+                c.setFixedLengthStreamingMode(body.size)
+                c.setRequestProperty("Content-Type", "application/octet-stream")
+                c.outputStream.use { it.write(body) }
+                code = c.status()
+                if (code != 200) {
+                    c.disconnect()
+                    return@exchange code to null
+                }
+                val answer = c.inputStream.use { it.readBytes() }
+                c.disconnect()
+                val parsed = RelayWire.parseHeldSince(answer, asks.size)
+                unreadable = parsed == null
+                code to parsed
+            }.second
+            val now = SystemClock.elapsedRealtime()
+            if (endpoints.answered(RelayEndpoints.Endpoint.HELD_SINCE, b, code, now, unreadable)) return@withLock null
+            if (blocks == null) return@withLock Held(null)
+            asks = asks.filterIndexed { j, i -> mirror.apply(keys[i], cursors[j], blocks[j], now) }
+        }
+        val now = SystemClock.elapsedRealtime()
+        mirror.trim(keys, now)
+        Held(keys.map { mirror.newestFirst(it, now) })
     }
 
     /** For each id, the sealed records posted under it (newest first). Null on network failure. */
