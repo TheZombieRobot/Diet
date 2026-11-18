@@ -9,7 +9,6 @@
     <string name="crew_someone">Iemand</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">Annuleren</string>
-    <string name="crew_close">Sluiten</string>
 
     <string name="crew_chat_subtitle">Crewchat · alleen je crew kan het lezen</string>
     <string name="crew_chat_invite">＋ Uitnodigen</string>
@@ -93,26 +92,8 @@
     <string name="crew_flare_own_hint">Of je eigen…</string>
     <string name="crew_flare_send">Versturen</string>
 
-    <string name="crew_help_title">Hulp halen</string>
-    <string name="crew_help_alert">Waarschuw mijn crew</string>
-    <string name="crew_help_alert_sub">Dringende melding met waar je bent</string>
-    <string name="crew_help_text_contact">Sms %1$s</string>
-    <string name="crew_help_text_contact_sub">Je berichtenapp opent met je locatie. Werkt zonder data.</string>
-    <string name="crew_help_add_contact">Noodcontact toevoegen</string>
-    <string name="crew_help_add_contact_sub">Iemand buiten de crew om te sms\'en als het erop aankomt</string>
-    <string name="crew_help_contact_name">Naam (bijv. Mam)</string>
-    <string name="crew_help_contact_number">Mobiel nummer</string>
-    <string name="crew_help_save_contact">Contact opslaan</string>
-    <string name="crew_help_call">%1$s bellen</string>
-    <string name="crew_help_call_sub">Politie, brandweer, ambulance</string>
-    <string name="crew_help_call_police">Politie</string>
-    <string name="crew_help_call_ambulance">Ambulance en brandweer</string>
-    <string name="crew_help_no_signal">Helemaal geen bereik? Veel nieuwere telefoons kunnen de hulpdiensten via satelliet bereiken: bel %1$s en volg de stappen. Op een festival kunnen security en de EHBO-post snel helpen.</string>
-    <string name="crew_help_sms">Ik heb hulp nodig. (verstuurd via Moshpoint)</string>
-    <string name="crew_help_sms_where">Ik heb hulp nodig. Ik ben hier: %1$s (verstuurd via Moshpoint)</string>
 
     <string name="crew_channel_messages">Crewberichten</string>
-    <string name="crew_channel_help">Hulpvragen van de crew</string>
     <string name="crew_channel_requests">Vrienden die je zoeken</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -128,10 +109,6 @@
     <string name="crew_notif_done_title">%1$s is voorbij</string>
     <string name="crew_notif_done_saved">Je foto\'s en clips staan opgeslagen bij Eerdere concerten.</string>
     <string name="crew_notif_done_text">Hopelijk was het een goeie. Start wanneer je wilt een nieuwe crew.</string>
-    <string name="crew_notif_overdue_title">%1$s heeft niet ingecheckt</string>
-    <string name="crew_notif_overdue_text">Was op weg naar huis en zou er nu moeten zijn. Bel even. Tik voor de laatste plek.</string>
-    <string name="crew_notif_help_where">Tikte op Hulp nodig. Tik om te zien waar. Check even hoe het gaat.</string>
-    <string name="crew_notif_help">Tikte op Hulp nodig. Check even hoe het gaat.</string>
     <string name="crew_notif_tap_where">Tik om te zien waar.</string>
     <string name="crew_notif_from_crew">Van je crew</string>
 

@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">Diese Crew bekommt einen neuen Schlüssel. Nachrichten werden gesendet, sobald du Empfang hast.</string>
     <string name="offline_note_rekey_offline">Die Crew bekommt ihren neuen Schlüssel, sobald die Handys wieder Empfang haben. Bis dahin pausieren Bluetooth-Nachrichten.</string>
     <string name="offline_notif_late">Gesendet %1$s. Kam erst jetzt durch.</string>
-    <string name="offline_notif_help_late">Hat %1$s auf Brauche Hilfe getippt. Kam erst jetzt durch. Frag nach, ob alles okay ist.</string>
     <string name="offline_meet_pin_named">Treffen am Pin 📍 %1$s</string>
     <string name="offline_need_nearby_why">um Freunde per Bluetooth, WLAN und UWB zu finden und Nachrichten ohne Empfang weiterzugeben</string>
 

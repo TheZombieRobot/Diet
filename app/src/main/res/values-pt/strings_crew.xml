@@ -9,7 +9,6 @@
     <string name="crew_someone">Alguém</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">Cancelar</string>
-    <string name="crew_close">Fechar</string>
 
     <string name="crew_chat_subtitle">Chat da galera · só sua galera lê</string>
     <string name="crew_chat_invite">＋ Convidar</string>
@@ -98,26 +97,8 @@
     <string name="crew_flare_own_hint">Ou escreva a sua…</string>
     <string name="crew_flare_send">Enviar</string>
 
-    <string name="crew_help_title">Pedir ajuda</string>
-    <string name="crew_help_alert">Alertar minha galera</string>
-    <string name="crew_help_alert_sub">Alerta urgente com onde você está</string>
-    <string name="crew_help_text_contact">Mandar SMS pra %1$s</string>
-    <string name="crew_help_text_contact_sub">Seu app de mensagens abre com sua localização. Funciona sem dados.</string>
-    <string name="crew_help_add_contact">Adicionar contato de emergência</string>
-    <string name="crew_help_add_contact_sub">Alguém fora da galera pra avisar quando importar</string>
-    <string name="crew_help_contact_name">Nome (ex.: Mãe)</string>
-    <string name="crew_help_contact_number">Número de celular</string>
-    <string name="crew_help_save_contact">Salvar contato</string>
-    <string name="crew_help_call">Ligar para %1$s</string>
-    <string name="crew_help_call_sub">Polícia, bombeiros, ambulância</string>
-    <string name="crew_help_call_police">Polícia</string>
-    <string name="crew_help_call_ambulance">Ambulância e bombeiros</string>
-    <string name="crew_help_no_signal">Sem nenhum sinal? Muitos celulares novos conseguem chamar a emergência por satélite: ligue para %1$s e siga as instruções. Num festival, a segurança e as tendas de primeiros socorros ajudam rápido.</string>
-    <string name="crew_help_sms">Preciso de ajuda. (enviado pelo Moshpoint)</string>
-    <string name="crew_help_sms_where">Preciso de ajuda. Estou aqui: %1$s (enviado pelo Moshpoint)</string>
 
     <string name="crew_channel_messages">Mensagens da galera</string>
-    <string name="crew_channel_help">Pedidos de ajuda da galera</string>
     <string name="crew_channel_requests">Amigos te procurando</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -135,10 +116,6 @@
     <string name="crew_notif_done_title">%1$s acabou</string>
     <string name="crew_notif_done_saved">Suas fotos e clipes estão salvos em Shows passados.</string>
     <string name="crew_notif_done_text">Tomara que tenha sido demais. Monte uma galera nova quando quiser.</string>
-    <string name="crew_notif_overdue_title">%1$s não deu check-in</string>
-    <string name="crew_notif_overdue_text">Estava indo pra casa e já devia ter chegado. Liga pra ver. Toque pra ver o último local.</string>
-    <string name="crew_notif_help_where">Tocou em Preciso de ajuda. Toque pra ver onde. Veja se está tudo bem.</string>
-    <string name="crew_notif_help">Tocou em Preciso de ajuda. Veja se está tudo bem.</string>
     <string name="crew_notif_tap_where">Toque pra ver onde.</string>
     <string name="crew_notif_from_crew">Da sua galera</string>
 

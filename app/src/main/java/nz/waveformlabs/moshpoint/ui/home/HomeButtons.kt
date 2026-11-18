@@ -79,8 +79,8 @@ import nz.waveformlabs.moshpoint.ui.rememberPress
 import nz.waveformlabs.moshpoint.ui.rememberShimmer
 import nz.waveformlabs.moshpoint.ui.shimmer
 
-// The home's buttons (docs/design/home-redesign): the wordmark and Need help, the big gradient
-// button, glass buttons and the pair they sit in, counts, the Live switch and section titles.
+// The home's buttons (docs/design/home-redesign): the wordmark, the big gradient button, glass
+// buttons and the pair they sit in, counts, the Live switch and section titles.
 
 /** "moshpoint": a logo, so the same size whatever the font size setting, and always left to right. */
 @Composable
@@ -101,54 +101,6 @@ internal fun Wordmark(modifier: Modifier = Modifier) {
             softWrap = false,
             modifier = modifier.semantics { heading() },
         )
-    }
-}
-
-/** Need help's padding, icon and gap: what the pill needs besides its words. */
-internal val HelpPillChrome = 14.dp * 2 + 18.dp + 6.dp + 6.dp
-
-/**
- * "Need help" in the header: opens the help dialog (nothing is sent on this tap). It gets a
- * little smaller to stay on one line, and wraps before it would ever push the wordmark (the
- * header moves it to its own row when even its longest word wouldn't fit beside it).
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun HelpPill(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val label = stringResource(R.string.home_ping_need_help)
-    val (source, scale) = rememberPress()
-    BoxWithConstraints(modifier) {
-        val measurer = rememberTextMeasurer()
-        val density = LocalDensity.current
-        val room = with(density) { (maxWidth - HelpPillChrome).roundToPx() }
-        val base = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Danger)
-        val fits = remember(label, room, density) {
-            listOf(14f, 13f, 12f).firstOrNull { s ->
-                measurer.measure(label, base.copy(fontSize = s.sp), maxLines = 1, softWrap = false).size.width <= room
-            }
-        }
-        val shape = RoundedCornerShape(22.dp)
-        Row(
-            Modifier.minimumInteractiveComponentSize()
-                .pressScale(scale)
-                .heightIn(min = 44.dp)
-                .clip(shape)
-                .background(Mosh.Pink.copy(alpha = 0.08f))
-                .border(1.dp, Mosh.Danger.copy(alpha = 0.45f), shape)
-                .clickable(interactionSource = source, indication = LocalIndication.current, role = Role.Button, onClick = onClick)
-                .padding(horizontal = 14.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            HomeIcon(HomeIcons.Help, Mosh.Danger, 18.dp)
-            Spacer(Modifier.width(6.dp))
-            Text(
-                label,
-                style = base.copy(fontSize = (fits ?: 12f).sp),
-                maxLines = if (fits != null) 1 else 3,
-                softWrap = fits == null,
-                textAlign = TextAlign.Center,
-            )
-        }
     }
 }
 

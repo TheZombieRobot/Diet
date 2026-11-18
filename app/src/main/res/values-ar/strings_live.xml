@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). -->
+<resources>
+
+    <string name="live_channel_notices">إشعارات الظهور والتخزين</string>
+    <string name="live_off_title">لم تعد ظاهرًا</string>
+    <string name="live_off_text">أوقف Android تطبيق Moshpoint في الخلفية، فلا يستطيع أصحابك إيجادك. اضغط لتظهر من جديد.</string>
+    <string name="live_cant_start_text">لم يسمح Android لـ Moshpoint بأن يبقيك ظاهرًا، فلا يستطيع أصحابك إيجادك. تأكد من أن أذوناته مفعّلة، ثم اظهر من جديد.</string>
+    <string name="live_crew_not_on_text">شلتك الرئيسية غير نشطة الآن، لذا توقف «ظاهر» لتوفير بطاريتك.</string>
+    <string name="live_long_title">ما زلت في الحفلة؟</string>
+    <string name="live_long_text">كنت ظاهرًا لمدة 12 ساعة، لذا توقف «ظاهر» لتوفير بطاريتك.</string>
+    <string name="live_long_notif">كنت ظاهرًا لمدة 12 ساعة، لذا توقف «ظاهر» لتوفير بطاريتك. اضغط إذا كنت ما زلت هناك.</string>
+    <string name="live_go_live">اظهر</string>
+    <string name="live_bluetooth_off">‏Bluetooth مغلق: أصحابك لا يمكنهم إيجادك عن قرب</string>
+    <string name="storage_full_title">مساحة التخزين في هاتفك ممتلئة</string>
+    <string name="storage_full_text">لا يستطيع Moshpoint حفظ رسائل أو صور جديدة حتى تُخلي بعض المساحة.</string>
+
+</resources>

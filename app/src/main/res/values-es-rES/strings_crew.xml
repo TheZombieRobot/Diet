@@ -9,7 +9,6 @@
     <string name="crew_someone">Alguien</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">Cancelar</string>
-    <string name="crew_close">Cerrar</string>
 
     <string name="crew_chat_subtitle">Chat del grupo · solo lo lee tu grupo</string>
     <string name="crew_chat_invite">＋ Invitar</string>
@@ -98,26 +97,8 @@
     <string name="crew_flare_own_hint">O escribe el tuyo…</string>
     <string name="crew_flare_send">Lanzar</string>
 
-    <string name="crew_help_title">Pedir ayuda</string>
-    <string name="crew_help_alert">Avisar a mi grupo</string>
-    <string name="crew_help_alert_sub">Alerta urgente con tu ubicación</string>
-    <string name="crew_help_text_contact">Escribir a %1$s</string>
-    <string name="crew_help_text_contact_sub">Se abre tu app de mensajes con tu ubicación. Funciona sin datos.</string>
-    <string name="crew_help_add_contact">Añadir contacto de emergencia</string>
-    <string name="crew_help_add_contact_sub">Alguien fuera del grupo a quien escribir si hace falta</string>
-    <string name="crew_help_contact_name">Nombre (p. ej. Mamá)</string>
-    <string name="crew_help_contact_number">Número de móvil</string>
-    <string name="crew_help_save_contact">Guardar contacto</string>
-    <string name="crew_help_call">Llamar al %1$s</string>
-    <string name="crew_help_call_sub">Policía, bomberos, ambulancia</string>
-    <string name="crew_help_call_police">Policía</string>
-    <string name="crew_help_call_ambulance">Ambulancia y bomberos</string>
-    <string name="crew_help_no_signal">¿Sin nada de cobertura? Muchos móviles nuevos pueden contactar con emergencias por satélite: llama al %1$s y sigue las instrucciones. En un festival, seguridad y las carpas de primeros auxilios ayudan rápido.</string>
-    <string name="crew_help_sms">Necesito ayuda. (enviado desde Moshpoint)</string>
-    <string name="crew_help_sms_where">Necesito ayuda. Estoy aquí: %1$s (enviado desde Moshpoint)</string>
 
     <string name="crew_channel_messages">Mensajes del grupo</string>
-    <string name="crew_channel_help">Peticiones de ayuda del grupo</string>
     <string name="crew_channel_requests">Amigos que te buscan</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -135,10 +116,6 @@
     <string name="crew_notif_done_title">%1$s ha terminado</string>
     <string name="crew_notif_done_saved">Tus fotos y clips están guardados en Tus conciertos.</string>
     <string name="crew_notif_done_text">Esperamos que haya sido una gran noche. Crea un grupo nuevo cuando quieras.</string>
-    <string name="crew_notif_overdue_title">%1$s no ha avisado</string>
-    <string name="crew_notif_overdue_text">Volvía a casa y ya debería haber llegado. Llama para ver cómo está. Toca para ver su última ubicación.</string>
-    <string name="crew_notif_help_where">Ha pulsado Necesito ayuda. Toca para ver dónde. Comprueba que esté bien.</string>
-    <string name="crew_notif_help">Ha pulsado Necesito ayuda. Comprueba que esté bien.</string>
     <string name="crew_notif_tap_where">Toca para ver dónde.</string>
     <string name="crew_notif_from_crew">De tu grupo</string>
 

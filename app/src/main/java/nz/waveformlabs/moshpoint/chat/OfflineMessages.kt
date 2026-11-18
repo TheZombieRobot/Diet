@@ -24,11 +24,9 @@ import nz.waveformlabs.moshpoint.setup.NetState
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
-import nz.waveformlabs.moshpoint.core.BatchPlan
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup
-import nz.waveformlabs.moshpoint.core.HelpRules
 import nz.waveformlabs.moshpoint.core.MessageClock
 import nz.waveformlabs.moshpoint.core.MessagePacket
 import nz.waveformlabs.moshpoint.core.OutboxState
@@ -192,12 +190,6 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
     /** When a message of ours was last handed to [post]: its upload shouldn't wait for the minute's batch. */
     private var lastPostMs = Long.MIN_VALUE / 2
 
-    /**
-     * Keep the courier's record of what this phone has had right now, not in a moment. Called
-     * when an alert was just raised on that record alone, so a restart can't raise it again.
-     */
-    fun rememberNow() = save(atOnce = true)
-
     // ---- Sending ----
 
     /**
@@ -244,48 +236,6 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
     /** Is the courier still looking after the message with this id? */
     fun holds(id: Long): Boolean = id != 0L && courier.stateOf(id) != null
 
-    // ---- Need help: the dialog follows its alert here ----
-
-    /**
-     * Our own alerts that Need help is showing, by message id: their outbox state
-     * ([OutboxState], Compose state). Kept here rather than read off the chat's lines, because
-     * only the chat on screen is held in memory, and that may be another crew's.
-     */
-    private val followed = mutableStateMapOf<Long, Int>()
-    private val followOrder = ArrayDeque<Long>()
-
-    /** Start following our message [id], about to be handed to [post], from [first] ([firstState]). */
-    fun follow(id: Long, first: Int) {
-        if (id == 0L) return
-        if (id !in followed) followOrder.addLast(id)
-        followed[id] = first
-        // Only the last few are ever looked at: the oldest go first.
-        while (followOrder.size > 16) followed.remove(followOrder.removeFirst())
-    }
-
-    /** Where our followed message [id] has got to (OutboxState), or null if it isn't one. Compose state. */
-    fun followedState(id: Long): Int? = followed[id]
-
-    /** Where our message [id] stands by the courier's own (saved) record, or null if it no longer holds it. */
-    fun stateOf(id: Long): Int? = when (if (id == 0L) null else courier.stateOf(id)) {
-        Courier.State.WAITING -> OutboxState.WAITING
-        Courier.State.NEARBY -> OutboxState.NEARBY
-        Courier.State.SENT -> OutboxState.SENT
-        Courier.State.GAVE_UP -> OutboxState.FAILED
-        null -> null
-    }
-
-    /**
-     * Why our messages are waiting rather than going, for Need help's "Not sent yet" (core
-     * [HelpRules.waitReason]). Read while drawing, so it only looks at Compose state.
-     */
-    fun waitReason(): HelpRules.Wait = HelpRules.waitReason(
-        online = NetState.online.value && !RelayClient.offline,
-        live = liveState.value,
-        bluetoothOn = bluetoothOn.value,
-        canCarry = canCarry.value,
-    )
-
     /** The user tapped "tap to retry": try everything waiting again now. */
     fun retryNow(c: Context) {
         init(c)
@@ -313,21 +263,16 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
      * on by Bluetooth. The caller still shows them as it always did.
      * [inUploadBox]: how many of them are in the mailbox an upload would go to now (today's
      * chat mailbox, not yesterday's).
-     *
-     * Returns the ids of the messages this phone had never met before, by any route. That
-     * record outlives the chat's last 150 lines and a restart, so it's what decides whether a
-     * late Need help still raises its alert.
      */
-    fun fetched(c: Context, g: GigGroup, box: Courier.Box, blobs: List<ByteArray>, inUploadBox: Int = blobs.size): Set<Long> {
+    fun fetched(c: Context, g: GigGroup, box: Courier.Box, blobs: List<ByteArray>, inUploadBox: Int = blobs.size) {
         init(c)
         val a = c.applicationContext
         syncCrews(a)
         val t = now()
         courier.setOnline(!RelayClient.offline, t)
-        val fresh = courier.fetched(GigArchive.idFor(g), box, blobs, t, inUploadBox).filter { it.fresh }.map { it.id }.toSet()
+        courier.fetched(GigArchive.idFor(g), box, blobs, t, inUploadBox)
         courier.tick(t)
         save()
-        return fresh
     }
 
     /**
@@ -392,12 +337,12 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
                     Courier.Box.PRIVATE -> g.privateIdForDay(day) to true
                 }
             }
-            val result = if (BatchPlan.route(job.use) == BatchPlan.Route.BATCH && RelayClient.batching) {
-                // Not safety: rides the next batch to our own relay (docs/WAVE2C_ENDPOINTS.md, step 4).
+            val result = if (RelayClient.batching) {
+                // Rides the next batch to our own relay (docs/WAVE2C_ENDPOINTS.md, step 4).
                 val (id, held) = mailbox()
                 RelayClient.sendBatched(id, job.sealed, job.use, held, soon)
             } else {
-                // Safety (Need help, Check in, Home safe), and everything without batches: at once, on its own, as before.
+                // Without batches: at once, on its own, as before.
                 // One at a time: a helper's batch goes out in order, not as five requests at once.
                 uploads.withLock {
                     val (id, held) = mailbox()
@@ -496,7 +441,7 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
             pm != null -> PrivateMessages.arrived(c, g, pm)
             ping == null -> Unit
             PingPolicy.group(ping.kind) == PingPolicy.Group.CHAT -> ChatSync.arrived(c, g, ping)
-            else -> if (isMain(g)) GroupSync.arrived(c, ping, message.sealed, fresh = true)
+            else -> if (isMain(g)) GroupSync.arrived(c, ping, message.sealed)
         }
     }
 
@@ -512,8 +457,6 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         CrewChat.setStateById(c, g, GigGroup.idText(id), s)
         // Or one of our private messages (whichever holds that id).
         PrivateMessages.stateChanged(c, crewId, id, s)
-        // And Need help, if it's following this one: forward only, as the outbox itself moves.
-        followed[id]?.let { before -> followed[id] = HelpRules.next(before, s) }
     }
 
     override fun paused(crewId: String, on: Boolean) {
@@ -578,7 +521,6 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
             kind == Courier.KIND_HERE -> "I'm here"
             kind == Courier.KIND_PRIVATE -> "private"
             kind == GigGroup.Ping.CHAT -> "chat"
-            kind == GigGroup.Ping.NEED_HELP -> "NEED HELP"
             kind == GigGroup.Ping.PLAN -> "plan"
             kind == GigGroup.Ping.JOIN -> "joined"
             kind == GigGroup.Ping.FLARE -> "flare"

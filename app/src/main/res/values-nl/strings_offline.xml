@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">Deze crew krijgt een nieuwe sleutel. Berichten worden verstuurd zodra je bereik hebt.</string>
     <string name="offline_note_rekey_offline">De crew krijgt de nieuwe sleutel zodra de telefoons weer bereik hebben. Tot dan staan Bluetooth-berichten in de wacht.</string>
     <string name="offline_notif_late">Verstuurd %1$s. Kwam nu pas door.</string>
-    <string name="offline_notif_help_late">Tikte %1$s op Hulp nodig. Kwam nu pas door. Check even hoe het gaat.</string>
     <string name="offline_meet_pin_named">Zie je bij de pin 📍 %1$s</string>
     <string name="offline_need_nearby_why">om vrienden te vinden via Bluetooth, Wi-Fi en UWB, en berichten door te geven zonder bereik</string>
 

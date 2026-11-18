@@ -8,7 +8,6 @@
     <string name="crew_someone">Ktoś</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">Anuluj</string>
-    <string name="crew_close">Zamknij</string>
 
     <string name="crew_chat_subtitle">Czat ekipy · czyta go tylko twoja ekipa</string>
     <string name="crew_chat_invite">＋ Zaproś</string>
@@ -102,26 +101,8 @@
     <string name="crew_flare_own_hint">Albo coś swojego…</string>
     <string name="crew_flare_send">Wyślij</string>
 
-    <string name="crew_help_title">Wezwij pomoc</string>
-    <string name="crew_help_alert">Zaalarmuj ekipę</string>
-    <string name="crew_help_alert_sub">Pilny alert z twoją lokalizacją</string>
-    <string name="crew_help_text_contact">SMS do: %1$s</string>
-    <string name="crew_help_text_contact_sub">Otworzy się aplikacja SMS z twoją lokalizacją. Działa bez danych.</string>
-    <string name="crew_help_add_contact">Dodaj kontakt alarmowy</string>
-    <string name="crew_help_add_contact_sub">Ktoś spoza ekipy, do kogo napiszesz, gdy będzie trzeba</string>
-    <string name="crew_help_contact_name">Imię (np. Mama)</string>
-    <string name="crew_help_contact_number">Numer komórki</string>
-    <string name="crew_help_save_contact">Zapisz kontakt</string>
-    <string name="crew_help_call">Zadzwoń pod %1$s</string>
-    <string name="crew_help_call_sub">Policja, straż pożarna, pogotowie</string>
-    <string name="crew_help_call_police">Policja</string>
-    <string name="crew_help_call_ambulance">Pogotowie i straż pożarna</string>
-    <string name="crew_help_no_signal">Zero zasięgu? Wiele nowszych telefonów może połączyć się z numerem alarmowym przez satelitę: zadzwoń pod %1$s i postępuj według instrukcji. Na festiwalu ochrona i punkty medyczne pomogą szybko.</string>
-    <string name="crew_help_sms">Potrzebuję pomocy. (wysłane z Moshpoint)</string>
-    <string name="crew_help_sms_where">Potrzebuję pomocy. Jestem tutaj: %1$s (wysłane z Moshpoint)</string>
 
     <string name="crew_channel_messages">Wiadomości od ekipy</string>
-    <string name="crew_channel_help">Prośby ekipy o pomoc</string>
     <string name="crew_channel_requests">Znajomi, którzy cię szukają</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -141,10 +122,6 @@
     <string name="crew_notif_done_title">Koniec: %1$s</string>
     <string name="crew_notif_done_saved">Twoje zdjęcia i klipy są zapisane w sekcji Minione koncerty.</string>
     <string name="crew_notif_done_text">Mamy nadzieję, że było ekstra. Nową ekipę możesz założyć kiedy chcesz.</string>
-    <string name="crew_notif_overdue_title">%1$s wciąż nie daje znać</string>
-    <string name="crew_notif_overdue_text">Ta osoba wracała do domu i powinna już być na miejscu. Zadzwoń do niej. Kliknij, żeby zobaczyć ostatnie miejsce.</string>
-    <string name="crew_notif_help_where">Wysłano „Potrzebuję pomocy”. Kliknij, żeby zobaczyć gdzie. Sprawdź, co się dzieje.</string>
-    <string name="crew_notif_help">Wysłano „Potrzebuję pomocy”. Sprawdź, co się dzieje.</string>
     <string name="crew_notif_tap_where">Kliknij, żeby zobaczyć gdzie.</string>
     <string name="crew_notif_from_crew">Od twojej ekipy</string>
 

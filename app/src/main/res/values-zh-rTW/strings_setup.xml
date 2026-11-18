@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">幽靈 1 小時</string>
     <string name="setup_data_saver">節省數據</string>
     <string name="setup_data_saver_desc">分享較小的相片和影片（訊號差時比較快）。關閉：高畫質，大家存下來的都很清楚。你自己的原始檔一律保留原畫質。</string>
-    <string name="setup_emergency_contact">緊急聯絡人</string>
-    <string name="setup_emergency_contact_desc">「需要幫忙」可以用一般簡訊把你的位置傳給對方（不用網路）。只存在這支手機上。</string>
-    <string name="setup_contact_name">名字</string>
-    <string name="setup_contact_mobile">手機號碼</string>
-    <string name="setup_contact_saved">已儲存</string>
-    <string name="setup_contact_need_number">請輸入手機號碼</string>
-    <string name="setup_contact_removed">已移除</string>
-    <string name="setup_save">儲存</string>
-    <string name="setup_remove">移除</string>
     <string name="setup_about">關於</string>
     <string name="setup_about_text">Moshpoint %1$s。不用帳號，代碼定期更換，位置端對端加密。只有上線時才找得到你。</string>
     <string name="setup_open_source_licences">第三方授權</string>

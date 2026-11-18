@@ -8,7 +8,6 @@
     <string name="crew_someone">कोई</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">रद्द करें</string>
-    <string name="crew_close">बंद करें</string>
 
     <string name="crew_chat_subtitle">ग्रुप चैट · सिर्फ़ आपका ग्रुप पढ़ सकता है</string>
     <string name="crew_chat_invite">＋ बुलाएँ</string>
@@ -92,26 +91,8 @@
     <string name="crew_flare_own_hint">या अपनी वाइब लिखें…</string>
     <string name="crew_flare_send">भेजें</string>
 
-    <string name="crew_help_title">मदद लें</string>
-    <string name="crew_help_alert">मेरे ग्रुप को अलर्ट करें</string>
-    <string name="crew_help_alert_sub">आपकी जगह के साथ ज़रूरी अलर्ट</string>
-    <string name="crew_help_text_contact">%1$s को मैसेज करें</string>
-    <string name="crew_help_text_contact_sub">आपका मैसेज ऐप आपकी लोकेशन के साथ खुलेगा। बिना डेटा के भी चलता है।</string>
-    <string name="crew_help_add_contact">इमरजेंसी कॉन्टैक्ट जोड़ें</string>
-    <string name="crew_help_add_contact_sub">ग्रुप से बाहर कोई, जिसे ज़रूरत पड़ने पर मैसेज कर सकें</string>
-    <string name="crew_help_contact_name">नाम (जैसे मम्मी)</string>
-    <string name="crew_help_contact_number">मोबाइल नंबर</string>
-    <string name="crew_help_save_contact">कॉन्टैक्ट सेव करें</string>
-    <string name="crew_help_call">%1$s पर कॉल करें</string>
-    <string name="crew_help_call_sub">पुलिस, फ़ायर, एम्बुलेंस</string>
-    <string name="crew_help_call_police">पुलिस</string>
-    <string name="crew_help_call_ambulance">एम्बुलेंस और फ़ायर</string>
-    <string name="crew_help_no_signal">बिल्कुल सिग्नल नहीं? कई नए फ़ोन सैटेलाइट से इमरजेंसी सेवाओं तक पहुँच सकते हैं: %1$s पर कॉल करें और निर्देश मानें। फ़ेस्टिवल में सिक्योरिटी और फ़र्स्ट एड टेंट जल्दी मदद कर सकते हैं।</string>
-    <string name="crew_help_sms">मुझे मदद चाहिए। (Moshpoint से भेजा गया)</string>
-    <string name="crew_help_sms_where">मुझे मदद चाहिए। मैं यहाँ हूँ: %1$s (Moshpoint से भेजा गया)</string>
 
     <string name="crew_channel_messages">ग्रुप के मैसेज</string>
-    <string name="crew_channel_help">ग्रुप की मदद की रिक्वेस्ट</string>
     <string name="crew_channel_requests">आपको ढूँढ रहे दोस्त</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -127,10 +108,6 @@
     <string name="crew_notif_done_title">%1$s खत्म हुआ</string>
     <string name="crew_notif_done_saved">आपकी फ़ोटो और क्लिप \"पिछले शो\" में सेव हैं।</string>
     <string name="crew_notif_done_text">उम्मीद है मज़ा आया। जब चाहें नया ग्रुप शुरू करें।</string>
-    <string name="crew_notif_overdue_title">%1$s ने चेक-इन नहीं किया</string>
-    <string name="crew_notif_overdue_text">वे घर जा रहे थे और अब तक पहुँच जाने चाहिए थे। उन्हें कॉल करें। उनकी आखिरी जगह देखने के लिए टैप करें।</string>
-    <string name="crew_notif_help_where">उन्होंने मदद चाहिए दबाया। कहाँ हैं, देखने के लिए टैप करें। उनका हाल पूछें।</string>
-    <string name="crew_notif_help">उन्होंने मदद चाहिए दबाया। उनका हाल पूछें।</string>
     <string name="crew_notif_tap_where">कहाँ हैं, देखने के लिए टैप करें।</string>
     <string name="crew_notif_from_crew">आपके ग्रुप से</string>
 

@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">Bu ekibin anahtarı yenileniyor. Mesajlar sinyal gelince gönderilecek.</string>
     <string name="offline_note_rekey_offline">Telefonlar yeniden sinyal bulunca ekip yeni anahtarını alacak. O zamana kadar Bluetooth mesajları beklemede.</string>
     <string name="offline_notif_late">%1$s gönderildi. Ancak şimdi ulaştı.</string>
-    <string name="offline_notif_help_late">%1$s Yardım lazım\'a bastı. Ancak şimdi ulaştı. Bir yokla.</string>
     <string name="offline_meet_pin_named">Pinde buluşalım 📍 %1$s</string>
     <string name="offline_need_nearby_why">Bluetooth, Wi-Fi ve UWB ile arkadaşlarını bulmak ve sinyal yokken mesajları aktarmak için</string>
 

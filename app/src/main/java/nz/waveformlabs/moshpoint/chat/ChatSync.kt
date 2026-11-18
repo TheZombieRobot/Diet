@@ -77,7 +77,7 @@ object ChatSync {
             // First the courier notes everything that's on the relay, our own messages included
             // (that's how one of ours becomes "Sent" when a crew mate uploaded it for us).
             // (Uploads go to today's mailbox, so only today's count says how much room it has.)
-            val freshIds = OfflineMessages.fetched(app, g, Courier.Box.CHAT, blobs, inUploadBox = found.getOrNull(2 * i).orEmpty().size)
+            OfflineMessages.fetched(app, g, Courier.Box.CHAT, blobs, inUploadBox = found.getOrNull(2 * i).orEmpty().size)
             val rekeys = mutableListOf<GigGroup.Direct>()
             blobs.forEach { blob ->
                 if (!seen.add(blob.contentHashCode())) return@forEach
@@ -87,8 +87,9 @@ object ChatSync {
                     if (PingPolicy.group(p.kind) == PingPolicy.Group.CHAT) {
                         CrewChat.ingest(app, g, p)?.let { note -> fresh += Txt.s(R.string.crew_notif_line, CrewChat.displayName(app, g, p.sender, p.from), note) }
                     } else if (GroupSync.group.value?.key?.contentEquals(g.key) == true) {
-                        // A safety ping, also kept here because this mailbox outlives the ping mailbox's 15 minutes.
-                        GroupSync.arrived(app, p, blob, fresh = p.id in freshIds)
+                        // An older build's Need help, Check in or Home safe: it also kept a copy here,
+                        // where it lasts longer than in the ping mailbox. Shown once, as an ordinary ping.
+                        GroupSync.arrived(app, p, blob)
                     }
                     return@forEach
                 }
@@ -268,8 +269,6 @@ object ChatSync {
                     if (GroupSync.group.value == null) GroupSync.load(app)
                     if (allCrews(app).isEmpty()) cancel(app) else pollAll(app)
                 }
-                // A mate overdue home is flagged now, not only when a phone has the app open (reliability P0-4).
-                GroupSync.checkOverdue(app)
             } finally {
                 done()
             }

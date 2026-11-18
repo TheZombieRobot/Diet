@@ -114,13 +114,13 @@ object Notices {
     private fun notify(app: Context, kind: Kind) {
         val nm = app.getSystemService(NotificationManager::class.java) ?: return
         runCatching {
-            nm.createNotificationChannel(NotificationChannel(CHANNEL, Txt.s(R.string.safety_channel_notices), NotificationManager.IMPORTANCE_DEFAULT))
+            nm.createNotificationChannel(NotificationChannel(CHANNEL, Txt.s(R.string.live_channel_notices), NotificationManager.IMPORTANCE_DEFAULT))
         }
         val (title, text) = when (kind) {
-            Kind.LIVE_STOPPED, Kind.LIVE_CANT_START -> R.string.safety_live_off_title to R.string.safety_live_off_text
-            Kind.LIVE_TOO_LONG -> R.string.safety_live_long_title to R.string.safety_live_long_notif
-            Kind.STORAGE_FULL -> R.string.safety_storage_full_title to R.string.safety_storage_full_text
-            Kind.LIVE_CREW_NOT_ON -> R.string.safety_live_off_title to R.string.safety_live_crew_not_on_text
+            Kind.LIVE_STOPPED, Kind.LIVE_CANT_START -> R.string.live_off_title to R.string.live_off_text
+            Kind.LIVE_TOO_LONG -> R.string.live_long_title to R.string.live_long_notif
+            Kind.STORAGE_FULL -> R.string.storage_full_title to R.string.storage_full_text
+            Kind.LIVE_CREW_NOT_ON -> R.string.live_off_title to R.string.live_crew_not_on_text
         }
         // Opens the app, nothing more: going live is always your tap in the app, never an intent.
         val open = PendingIntent.getActivity(

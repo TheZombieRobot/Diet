@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">1시간 동안 고스트</string>
     <string name="setup_data_saver">데이터 절약</string>
     <string name="setup_data_saver_desc">사진과 영상을 가볍게 공유해요(신호가 약해도 빨라요). 끄면: 고화질이라 모두가 저장한 사본도 선명해요. 내 원본은 항상 원래 화질로 보관돼요.</string>
-    <string name="setup_emergency_contact">비상 연락처</string>
-    <string name="setup_emergency_contact_desc">‘도움 요청’을 누르면 일반 문자로 이 사람에게 내 위치를 보낼 수 있어요(데이터 없이도 돼요). 이 폰에만 저장돼요.</string>
-    <string name="setup_contact_name">이름</string>
-    <string name="setup_contact_mobile">휴대폰 번호</string>
-    <string name="setup_contact_saved">저장됨</string>
-    <string name="setup_contact_need_number">휴대폰 번호를 입력하세요</string>
-    <string name="setup_contact_removed">삭제됨</string>
-    <string name="setup_save">저장</string>
-    <string name="setup_remove">삭제</string>
     <string name="setup_about">앱 정보</string>
     <string name="setup_about_text">Moshpoint %1$s. 계정 없음, 계속 바뀌는 코드, 종단간 암호화된 위치. 위치 공유 중일 때만 나를 찾을 수 있어요.</string>
     <string name="setup_open_source_licences">서드파티 라이선스</string>

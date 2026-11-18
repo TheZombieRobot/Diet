@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). -->
+<resources>
+
+    <string name="live_channel_notices">位置シェアとストレージのお知らせ</string>
+    <string name="live_off_title">位置シェアが止まりました</string>
+    <string name="live_off_text">AndroidがバックグラウンドのMoshpointを止めたため、仲間があなたを見つけられません。タップしてシェアを再開してね。</string>
+    <string name="live_cant_start_text">AndroidがMoshpointの位置シェアを続けさせなかったため、仲間があなたを見つけられません。権限が許可されているか確認して、もう一度シェアを始めてね。</string>
+    <string name="live_crew_not_on_text">メインのクルーは今は開催中ではないので、バッテリー節約のため「位置シェア」がオフになりました。</string>
+    <string name="live_long_title">まだライブ会場にいる？</string>
+    <string name="live_long_text">12時間シェアしていたので、バッテリー節約のため「位置シェア」がオフになりました。</string>
+    <string name="live_long_notif">12時間シェアしていたので、バッテリー節約のため「位置シェア」がオフになりました。まだ会場にいるならタップしてね。</string>
+    <string name="live_go_live">シェア開始</string>
+    <string name="live_bluetooth_off">Bluetoothがオフ：近くでは仲間があなたを見つけられません</string>
+    <string name="storage_full_title">スマホのストレージがいっぱいです</string>
+    <string name="storage_full_text">空き容量を増やすまで、Moshpointは新しいメッセージや写真を保存できません。</string>
+
+</resources>

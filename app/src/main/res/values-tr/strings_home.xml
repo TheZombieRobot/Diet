@@ -11,15 +11,6 @@
     <string name="home_ping_meet_at_pin">Pinde buluşalım</string>
     <string name="home_ping_all_good">Her şey yolunda</string>
     <string name="home_ping_sent">Gönderildi ✓</string>
-    <string name="home_ping_heading_home">Eve dönüyorum</string>
-    <string name="home_ping_need_help">Yardım lazım</string>
-    <string name="home_heading_home_title">Eve mi dönüyorsun?</string>
-    <string name="home_heading_home_text">Varınca haber ver. Vermezsen ekibine son konumunla bir uyarı gider (telefonun kapansa bile).</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="one">%d dk</item>
-        <item quantity="other">%d dk</item>
-    </plurals>
-    <string name="home_just_tell_them">Sadece haber ver</string>
     <string name="home_cancel">İptal</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">ekibe ping attı</string>
@@ -43,8 +34,6 @@
     <string name="home_my_friend_qr">Arkadaşlık QR\'ım</string>
     <string name="home_enter_code">Kod gir</string>
 
-    <string name="home_check_in_by">Haber verme saati: %1$s</string>
-    <string name="home_home_safe">Evdeyim, her şey yolunda</string>
 
     <string name="home_message_crew">Ekibe yaz</string>
     <string name="home_message_crew_text">Tek dokunuş: ekipteki herkese, nerede olduğunla birlikte gider.</string>

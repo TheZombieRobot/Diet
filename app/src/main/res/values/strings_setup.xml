@@ -18,18 +18,6 @@
     <string name="setup_ghost_one_hour">Ghost for 1 hour</string>
     <string name="setup_data_saver">Data saver</string>
     <string name="setup_data_saver_desc">Share lighter photos and clips (quicker on weak signal). Off: high quality, so everyone\'s saved copies are crisp. Your own originals are always kept full quality.</string>
-    <string name="setup_emergency_contact">Emergency contact</string>
-    <!-- "Need help" is the name of a button elsewhere in the app; keep it matching that button's translation -->
-    <string name="setup_emergency_contact_desc">\"Need help\" can text them your location as a normal SMS (works without data). Stays on this phone.</string>
-    <!-- Placeholder: the emergency contact's name -->
-    <string name="setup_contact_name">Name</string>
-    <!-- Placeholder: the emergency contact's mobile phone number -->
-    <string name="setup_contact_mobile">Mobile</string>
-    <string name="setup_contact_saved">Saved</string>
-    <string name="setup_contact_need_number">Add a mobile number</string>
-    <string name="setup_contact_removed">Removed</string>
-    <string name="setup_save">Save</string>
-    <string name="setup_remove">Remove</string>
     <!-- Section heading, shown in capitals -->
     <string name="setup_about">ABOUT</string>
     <!-- %1$s = app version, e.g. "1.4.2" -->

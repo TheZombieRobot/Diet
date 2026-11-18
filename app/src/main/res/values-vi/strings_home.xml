@@ -11,14 +11,6 @@
     <string name="home_ping_meet_at_pin">Gặp ở chỗ ghim</string>
     <string name="home_ping_all_good">Ổn cả</string>
     <string name="home_ping_sent">Đã gửi ✓</string>
-    <string name="home_ping_heading_home">Đang về nhà</string>
-    <string name="home_ping_need_help">Cần giúp đỡ</string>
-    <string name="home_heading_home_title">Về nhà à?</string>
-    <string name="home_heading_home_text">Về tới nơi thì check-in nhé. Nếu không, nhóm sẽ nhận cảnh báo kèm vị trí cuối cùng của bạn (kể cả khi máy hết pin).</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="other">%d phút</item>
-    </plurals>
-    <string name="home_just_tell_them">Chỉ báo thôi</string>
     <string name="home_cancel">Hủy</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">đã ping cả nhóm</string>
@@ -42,8 +34,6 @@
     <string name="home_my_friend_qr">QR kết bạn của mình</string>
     <string name="home_enter_code">Nhập mã</string>
 
-    <string name="home_check_in_by">Check-in trước %1$s</string>
-    <string name="home_home_safe">Mình về tới nhà an toàn</string>
 
     <string name="home_message_crew">Nhắn cả nhóm</string>
     <string name="home_message_crew_text">Chạm một cái: cả nhóm nhận được, kèm vị trí của bạn.</string>

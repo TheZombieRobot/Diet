@@ -170,7 +170,7 @@ class MainActivity : ComponentActivity() {
             Moments.loadCurrent(this@MainActivity) // tonight's Story survives restarts
             GigArchive.refreshList(this@MainActivity)
             Memories.schedule(this@MainActivity, GigArchive.gigs)
-            Housekeeping.run(this@MainActivity) // old cached clips and half-written files, once a day
+            Housekeeping.run(this@MainActivity) // what removed features left; old cached clips and half-written files, once a day
         }
         home.mySecret = VisibilityPrefs.mySecret(this)
         // The finder (finder module, docs/FINDER_MODULE.md), with the gig app's parts plugged in.

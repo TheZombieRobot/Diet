@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian (in): Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). -->
+<resources>
+
+    <string name="live_channel_notices">Notifikasi live dan memori</string>
+    <string name="live_off_title">Kamu nggak live lagi</string>
+    <string name="live_off_text">Android menghentikan Moshpoint di latar belakang, jadi teman nggak bisa menemukanmu. Ketuk untuk live lagi.</string>
+    <string name="live_cant_start_text">Android nggak mengizinkan Moshpoint tetap live, jadi teman nggak bisa menemukanmu. Pastikan izinnya sudah aktif, lalu mulai live lagi.</string>
+    <string name="live_crew_not_on_text">Geng utamamu lagi nggak aktif, jadi Live otomatis dimatikan untuk hemat baterai.</string>
+    <string name="live_long_title">Masih di konser?</string>
+    <string name="live_long_text">Kamu sudah live selama 12 jam, jadi Live otomatis dimatikan untuk hemat baterai.</string>
+    <string name="live_long_notif">Kamu sudah live selama 12 jam, jadi Live otomatis dimatikan untuk hemat baterai. Ketuk kalau kamu masih di sana.</string>
+    <string name="live_go_live">Mulai live</string>
+    <string name="live_bluetooth_off">Bluetooth mati: teman nggak bisa menemukanmu dari dekat</string>
+    <string name="storage_full_title">Memori HP-mu penuh</string>
+    <string name="storage_full_text">Moshpoint nggak bisa menyimpan pesan atau foto baru sampai kamu mengosongkan sebagian memori.</string>
+
+</resources>

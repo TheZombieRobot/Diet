@@ -6,8 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanOptions
-import java.text.DateFormat
-import java.util.Date
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
@@ -88,9 +86,6 @@ internal fun HomeContent(a: MainActivity) {
             nowSec = a.home.homeNow / 1000,
             pings = GroupSync.pings,
             moments = Blocks.visibleMoments(Moments.items),
-            checkInBy = GroupSync.myCheckInBy.value.takeIf { it > 0 }?.let {
-                DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it * 1000))
-            },
             distances = CrewStatus.distances,
             crewQrPayload = GroupSync.group.value?.let { a.invites.crewQr(it) },
             chatUnread = CrewChat.unreadFor(a, GroupSync.group.value),
@@ -192,11 +187,6 @@ internal fun HomeContent(a: MainActivity) {
             },
             describePing = GroupSync::pingText,
             onShareMoment = a.momentFlow::start,
-            onCheckIn = { minutes ->
-                val loc = a.lastKnownLocation()
-                GroupSync.startCheckIn(a, minutes, loc?.latitude, loc?.longitude)
-            },
-            onHomeSafe = { GroupSync.homeSafe(a) },
             onOpenStory = { a.story.showStory = true },
             onOpenChat = { a.chat.openChat(null) },
             onLetFamilyFollow = {

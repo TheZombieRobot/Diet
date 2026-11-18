@@ -44,7 +44,6 @@ import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
-import nz.waveformlabs.moshpoint.ui.chat.HelpDialog
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.settings.SettingsSheet
 import nz.waveformlabs.moshpoint.ui.chat.UnreadBadge
@@ -53,7 +52,7 @@ import nz.waveformlabs.moshpoint.ui.chat.UnreadBadge
  * The home screen (docs/design/home-redesign, docs/HOME_REDESIGN.md). Who's here and how far
  * away, and Find everyone, come first; tonight's two everyday actions (crew chat, photos) are
  * quieter; once-a-night crew actions live in the crew menu (⋯). Below: Up next, memories, past
- * gigs and friends. A brand-new user sees one thing to do. Need help is always in the header.
+ * gigs and friends. A brand-new user sees one thing to do.
  *
  * Tap a face to find that mate; long-press for their options (message, photo, keep, remove).
  */
@@ -95,7 +94,6 @@ fun FriendsScreen(
     var addOpen by remember { mutableStateOf(false) }
     var messageOpen by remember { mutableStateOf(false) }
     var menuOpen by remember { mutableStateOf(false) }
-    var helpOpen by remember { mutableStateOf(false) }
     var friendsOpen by remember { mutableStateOf(false) }
     var gigsOpen by remember { mutableStateOf(false) }
 
@@ -105,9 +103,6 @@ fun FriendsScreen(
     val inCrew = crew.groupName != null || gig.isNotEmpty()
     // A brand-new user: nothing to show but the one thing to do.
     val firstTime = !inCrew && permanent.isEmpty() && past.isEmpty() && gigs.upNext.isEmpty()
-    // Need help offers the crew alert only when there's a crew on tonight with someone in it
-    // to alert: a safety feature must never say "alerted" to nobody.
-    val canAlertCrew = crew.groupName != null && !crew.following && !crew.crewSleeping && (gig.isNotEmpty() || crew.followers.isNotEmpty())
     val startCrew: () -> Unit = inviteActions.onQuickCrew ?: { naming = true }
     val crewName = crew.groupName ?: stringResource(R.string.home_your_crew)
     val crewCount = pluralStringResource(R.plurals.home_crew_count, gig.size, gig.size)
@@ -211,7 +206,7 @@ fun FriendsScreen(
         }
     }
 
-    if (messageOpen) MessageSheet(onPing = { crewActions.onPing(it) }, onCheckIn = { crewActions.onCheckIn(it) }, onClose = { messageOpen = false }, onGoLive = { meActions.onVisible(true) })
+    if (messageOpen) MessageSheet(onPing = { crewActions.onPing(it) }, onClose = { messageOpen = false })
     if (addOpen) {
         AddSheet(
             inCrew = crew.groupName != null,
@@ -241,10 +236,6 @@ fun FriendsScreen(
             confirmButton = { TextButton(onClick = { add(false); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_add_friend), style = HomeType.Label.copy(color = Mosh.Cyan)) } },
             dismissButton = { TextButton(onClick = { add(true); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_tonight_only), style = HomeType.Label) } },
         )
-    }
-    if (helpOpen) {
-        // Nothing is sent from the home: the dialog asks first, as it always has.
-        HelpDialog(onAlertCrew = if (canAlertCrew) ({ crewActions.onPing(GigGroup.Ping.NEED_HELP) }) else null, onGoLive = { meActions.onVisible(true) }, onClose = { helpOpen = false })
     }
     if (menuOpen && inCrew) {
         MoshSheet(onClose = { menuOpen = false }) {
@@ -306,7 +297,7 @@ fun FriendsScreen(
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             val scroll = rememberScrollState()
             Column(Modifier.weight(1f).fillMaxWidth().fadeTopWhenScrolled(scroll, 16.dp).verticalScroll(scroll).padding(top = 16.dp, bottom = 28.dp)) {
-                HomeHeader(onHelp = { helpOpen = true })
+                HomeHeader()
                 // Followers at home never broadcast, so there's nothing to switch.
                 if (!crew.following) LiveRow(me.visible, me.ghost, onChange = meActions.onVisible, modifier = Modifier.padding(horizontal = HomeSide))
                 if (todo != null) SetupCard(todoEyebrow, todo.first, todo.second, todo.third, Modifier.padding(top = 14.dp))
@@ -354,7 +345,6 @@ fun FriendsScreen(
                                 Spacer(Modifier.height(10.dp))
                                 Text(stringResource(R.string.home_follower_text), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp), modifier = Modifier.padding(horizontal = HomeSide))
                                 if (gig.isNotEmpty()) CrewTiles(gig, crew.seen, crew.nowSec, onFind = null, onOptions = null, notes = crew.tileNotes)
-                                if (crew.checkInBy != null) CheckInBanner(crew.checkInBy, crewActions.onHomeSafe, Modifier.padding(start = HomeSide, end = HomeSide, top = 14.dp))
                                 ActivityBlock(crew.meetUp, crew.pings.take(3), crew.nowSec, crewActions.describePing, crew.pinnedPlan, crewActions.onOpenMap, crewActions.onOpenChat, Modifier.padding(top = 16.dp))
                                 Spacer(Modifier.height(18.dp))
                                 HeroButton(stringResource(R.string.home_see_story), HomeIcons.Story, Modifier.padding(horizontal = HomeSide), onClick = crewActions.onOpenStory)
@@ -412,7 +402,6 @@ fun FriendsScreen(
                                     if (gig.size == 1) stringResource(R.string.home_find_name, gig[0].name) else stringResource(R.string.home_find_everyone),
                                     HomeIcons.Navigate, Modifier.padding(horizontal = HomeSide),
                                 ) { crewActions.onFind(gig.map { it.id }.toSet()) }
-                                if (crew.checkInBy != null) CheckInBanner(crew.checkInBy, crewActions.onHomeSafe, Modifier.padding(start = HomeSide, end = HomeSide, top = 14.dp))
                                 Spacer(Modifier.height(14.dp))
                                 ButtonPair(
                                     Modifier.padding(horizontal = HomeSide),
@@ -486,7 +475,7 @@ fun FriendsScreen(
 
 /**
  * Scrolled content fades out over the top [height] of the page instead of being cut along a
- * hard line under the clock (seen on a phone: scrolled a little, Need help lost its top edge).
+ * hard line under the clock (seen on a phone: scrolled a little, the header lost its top edge).
  * The fade grows with the first [height] of scrolling, so the page at rest looks exactly as
  * designed. Applied before verticalScroll, so it stays at the top of the visible area.
  */

@@ -11,14 +11,6 @@
     <string name="home_ping_meet_at_pin">集合點見</string>
     <string name="home_ping_all_good">一切OK</string>
     <string name="home_ping_sent">已傳送 ✓</string>
-    <string name="home_ping_heading_home">要回家了</string>
-    <string name="home_ping_need_help">需要幫忙</string>
-    <string name="home_heading_home_title">要回家了嗎？</string>
-    <string name="home_heading_home_text">到家後報個平安。如果沒報，小隊會收到通知和你最後的位置（就算手機沒電也一樣）。</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="other">%d分鐘</item>
-    </plurals>
-    <string name="home_just_tell_them">直接跟他們說</string>
     <string name="home_cancel">取消</string>
     <string name="home_ping_line">%1$s%2$s</string>
     <string name="home_ping_default">提醒了小隊</string>
@@ -42,8 +34,6 @@
     <string name="home_my_friend_qr">我的好友 QR 碼</string>
     <string name="home_enter_code">輸入代碼</string>
 
-    <string name="home_check_in_by">請在 %1$s 前報平安</string>
-    <string name="home_home_safe">我平安到家了</string>
 
     <string name="home_message_crew">傳訊息給小隊</string>
     <string name="home_message_crew_text">點一下就送出：小隊每個人都會收到，還附上你的位置。</string>

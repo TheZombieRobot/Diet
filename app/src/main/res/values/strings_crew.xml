@@ -16,7 +16,6 @@
     <!-- Two people in the crew share a name: %1$s = the name, %2$d = 2, 3, … (e.g. "Jo (2)") -->
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">Cancel</string>
-    <string name="crew_close">Close</string>
 
     <!-- ===== Crew chat screen ===== -->
     <string name="crew_chat_subtitle">Crew chat · only your crew can read it</string>
@@ -61,6 +60,8 @@
     <string name="crew_quick_stay_put">Stay put ✋</string>
     <string name="crew_quick_meet_pin">Meet at the pin 📍</string>
     <string name="crew_quick_all_good">All good 👍</string>
+    <!-- Heading home, Need help, the check-in and Home safe: older builds still send them (the features were
+         removed on 16 November 2026), and they're shown as ordinary pings, in the sender's words. -->
     <string name="crew_quick_going_home">Heading home 🏠</string>
     <string name="crew_quick_need_help">🚨 I need help</string>
     <!-- %d = minutes until they'll check in -->
@@ -127,34 +128,8 @@
     <string name="crew_flare_own_hint">Or your own…</string>
     <string name="crew_flare_send">Send</string>
 
-    <!-- ===== Get help ===== -->
-    <string name="crew_help_title">Get help</string>
-    <string name="crew_help_alert">Alert my crew</string>
-    <string name="crew_help_alert_sub">Urgent alert with where you are</string>
-    <!-- %1$s = emergency contact's name -->
-    <string name="crew_help_text_contact">Text %1$s</string>
-    <string name="crew_help_text_contact_sub">Your messages app opens with your location. Works without data.</string>
-    <string name="crew_help_add_contact">Add an emergency contact</string>
-    <string name="crew_help_add_contact_sub">Someone outside the crew to text when it matters</string>
-    <string name="crew_help_contact_name">Name (e.g. Mum)</string>
-    <string name="crew_help_contact_number">Mobile number</string>
-    <string name="crew_help_save_contact">Save contact</string>
-    <!-- %1$s = emergency phone number (e.g. 111) -->
-    <string name="crew_help_call">Call %1$s</string>
-    <string name="crew_help_call_sub">Police, fire, ambulance</string>
-    <!-- Where a country has separate numbers (e.g. Japan 110 / 119) -->
-    <string name="crew_help_call_police">Police</string>
-    <string name="crew_help_call_ambulance">Ambulance and fire</string>
-    <!-- %1$s = emergency phone number (e.g. 111) -->
-    <string name="crew_help_no_signal">No signal at all? Many newer phones can reach emergency services by satellite: call %1$s and follow the prompts. At a festival, security and first aid tents can help fast.</string>
-    <!-- Text message to your emergency contact when there's no location fix -->
-    <string name="crew_help_sms">I need help. (sent from Moshpoint)</string>
-    <!-- Text message to your emergency contact: %1$s = a maps link to where you are (keep it as is) -->
-    <string name="crew_help_sms_where">I need help. I\'m here: %1$s (sent from Moshpoint)</string>
-
     <!-- ===== Notifications ===== -->
     <string name="crew_channel_messages">Crew messages</string>
-    <string name="crew_channel_help">Crew help requests</string>
     <string name="crew_channel_requests">Mates looking for you</string>
     <!-- One chat message in a notification: %1$s = sender's name, %2$s = the message -->
     <string name="crew_notif_line">%1$s: %2$s</string>
@@ -177,10 +152,6 @@
     <string name="crew_notif_done_saved">Your photos and clips are saved in Past gigs.</string>
     <string name="crew_notif_done_text">Hope it was a good one. Start a new crew any time.</string>
     <!-- %1$s = person's name -->
-    <string name="crew_notif_overdue_title">%1$s hasn\'t checked in</string>
-    <string name="crew_notif_overdue_text">They were heading home and should be there by now. Give them a call. Tap for their last spot.</string>
-    <string name="crew_notif_help_where">They hit Need help. Tap to see where. Check on them.</string>
-    <string name="crew_notif_help">They hit Need help. Check on them.</string>
     <string name="crew_notif_tap_where">Tap to see where.</string>
     <string name="crew_notif_from_crew">From your crew</string>
 

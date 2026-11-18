@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">Nhóm này đang đổi khóa mới. Tin nhắn sẽ gửi khi bạn có sóng.</string>
     <string name="offline_note_rekey_offline">Nhóm sẽ nhận khóa mới khi các máy có sóng trở lại. Trong lúc đó, tin nhắn qua Bluetooth tạm dừng.</string>
     <string name="offline_notif_late">Gửi từ %1$s. Giờ mới tới nơi.</string>
-    <string name="offline_notif_help_late">Họ đã bấm Cần giúp đỡ từ %1$s. Giờ mới tới nơi. Hỏi han họ ngay.</string>
     <string name="offline_meet_pin_named">Gặp ở chỗ ghim 📍 %1$s</string>
     <string name="offline_need_nearby_why">để tìm bạn bè qua Bluetooth, Wi-Fi và UWB, và chuyển tin nhắn khi mất sóng</string>
 

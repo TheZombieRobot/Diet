@@ -11,76 +11,42 @@ import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
 
-/** Notifications for things the crew sends: pings, help requests, meet-up pins, photos. */
+/** Notifications for things the crew sends: pings, meet-up pins, photos. */
 object CrewNotifications {
     private const val CHANNEL = "crew"
-    private const val HELP_CHANNEL = "crew_help"
+    /**
+     * The urgent channel older builds used for Need help and overdue check-ins (removed 16
+     * November 2026). Deleted, so it no longer sits empty in the phone's notification settings.
+     */
+    private const val RETIRED_HELP_CHANNEL = "crew_help"
     /**
      * Ids for alerts that each get a notification of their own. They start from the clock (16 a
      * second), in a range of their own, so an app that Android restarted in the background never
      * reuses the id of an alert still showing. Before, every start counted from 7000 again, so the
-     * first new alert replaced the first old one, even a Need help nobody had seen yet.
+     * first new alert replaced the first old one, even one nobody had seen yet.
      */
     private var nextId = 0x20000000 + ((System.currentTimeMillis() / 1000 * 16) % 0x10000000).toInt()
 
-    /** [sentAgo]: set when the ping only just arrived long after it was sent ("40 min ago"), so the alert says so. */
+    /**
+     * [sentAgo]: set when the ping only just arrived long after it was sent ("40 min ago"), so
+     * the alert says so. Every kind alike, an older build's Need help included: an ordinary ping.
+     */
     fun ping(c: Context, p: GigGroup.Ping, sentAgo: String? = null) {
-        val help = p.kind == GigGroup.Ping.NEED_HELP
-        val located = p.lat != null
         post(
-            c, if (help) HELP_CHANNEL else CHANNEL,
+            c,
             title = GroupSync.pingTitle(p.kind, p.from),
             text = when {
-                sentAgo != null && help -> Txt.s(R.string.offline_notif_help_late, sentAgo)
                 sentAgo != null -> Txt.s(R.string.offline_notif_late, sentAgo)
-                help && located -> Txt.s(R.string.crew_notif_help_where)
-                help -> Txt.s(R.string.crew_notif_help)
-                located -> Txt.s(R.string.crew_notif_tap_where)
+                p.lat != null -> Txt.s(R.string.crew_notif_tap_where)
                 else -> Txt.s(R.string.crew_notif_from_crew)
             },
-            urgent = help,
         )
     }
 
-    /**
-     * A crew mate is overdue home (reliability P0-4). On the help channel: urgent, and set apart
-     * from chat, so muting the chat never mutes this. Tap for their last spot on the map.
-     */
-    fun overdue(c: Context, name: String) = post(
-        c, HELP_CHANNEL,
-        title = Txt.s(R.string.crew_notif_overdue_title, name),
-        text = Txt.s(R.string.crew_notif_overdue_text),
-        urgent = true,
-    )
-
-    /**
-     * Our own check-in is nearly due: "Home yet?", with "I'm home safe" right on it. It says the
-     * crew will be told only when they have the check-in ([crewHasIt]); otherwise that they don't.
-     */
-    fun checkInReminder(c: Context, crewHasIt: Boolean) = post(
-        c, HELP_CHANNEL,
-        title = Txt.s(R.string.safety_checkin_reminder_title),
-        text = Txt.s(if (crewHasIt) R.string.safety_checkin_reminder_text else R.string.safety_checkin_reminder_not_sent),
-        urgent = true, openMap = false,
-        notificationId = CheckInAlarm.REMINDER_NOTIFICATION,
-        action = NotificationCompat.Action(0, Txt.s(R.string.home_home_safe), CheckInAlarm.homeSafeIntent(c)),
-    )
-
-    /** "I'm home safe" was tapped on the reminder but hasn't gone yet: the reminder says so, quietly. */
-    fun homeSafeWaiting(c: Context) = post(
-        c, HELP_CHANNEL,
-        title = Txt.s(R.string.home_home_safe),
-        text = Txt.s(R.string.safety_home_safe_waiting),
-        openMap = false, silent = true,
-        notificationId = CheckInAlarm.REMINDER_NOTIFICATION,
-    )
-
     fun post(
         c: Context,
-        channel: String = CHANNEL,
         title: String,
         text: String,
-        urgent: Boolean = false,
         openMap: Boolean = true,
         /** Open the crew chat instead. */
         openChat: Boolean = false,
@@ -98,13 +64,11 @@ object CrewNotifications {
         privateWith: Long? = null,
         /** On a locked phone that hides sensitive content, show only this (no name, no words). */
         lockScreenText: String? = null,
-        /** A button on the notification itself. */
-        action: NotificationCompat.Action? = null,
     ) {
         val app = c.applicationContext
         val nm = app.getSystemService(NotificationManager::class.java) ?: return
         nm.createNotificationChannel(NotificationChannel(CHANNEL, Txt.s(R.string.crew_channel_messages), NotificationManager.IMPORTANCE_DEFAULT))
-        nm.createNotificationChannel(NotificationChannel(HELP_CHANNEL, Txt.s(R.string.crew_channel_help), NotificationManager.IMPORTANCE_HIGH))
+        runCatching { nm.deleteNotificationChannel(RETIRED_HELP_CHANNEL) }
         val thread = privateWith?.let { "$crewId:$it" }
         val open = PendingIntent.getActivity(
             app,
@@ -121,12 +85,12 @@ object CrewNotifications {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val n = NotificationCompat.Builder(app, channel)
+        val n = NotificationCompat.Builder(app, CHANNEL)
             .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_launcher_monochrome)
-            .setPriority(if (urgent) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_DEFAULT)
-            .setCategory(if (urgent) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_MESSAGE)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setAutoCancel(true)
             .setOnlyAlertOnce(silent)
             .apply {
@@ -140,7 +104,7 @@ object CrewNotifications {
                     // A private message: a locked phone that hides sensitive content shows only this.
                     setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                     setPublicVersion(
-                        NotificationCompat.Builder(app, channel)
+                        NotificationCompat.Builder(app, CHANNEL)
                             .setContentTitle(Txt.s(R.string.app_name))
                             .setContentText(lockScreenText)
                             .setSmallIcon(R.drawable.ic_launcher_monochrome)
@@ -150,8 +114,7 @@ object CrewNotifications {
                 }
             }
             .setContentIntent(open)
-            .apply { if (action != null) addAction(action) }
-            .setColor(if (urgent) 0xFFFF3B5C.toInt() else 0xFFB6FF3B.toInt())
+            .setColor(0xFFB6FF3B.toInt())
             .build()
         runCatching { nm.notify(notificationId ?: nextId++, n) }
     }

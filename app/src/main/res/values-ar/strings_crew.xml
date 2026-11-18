@@ -8,7 +8,6 @@
     <string name="crew_someone">شخص ما</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">إلغاء</string>
-    <string name="crew_close">إغلاق</string>
 
     <string name="crew_chat_subtitle">دردشة الشلة · لا يقرؤها إلا شلتك</string>
     <string name="crew_chat_invite">＋ دعوة</string>
@@ -112,26 +111,8 @@
     <string name="crew_flare_own_hint">أو اكتب حالتك…</string>
     <string name="crew_flare_send">أطلق</string>
 
-    <string name="crew_help_title">اطلب المساعدة</string>
-    <string name="crew_help_alert">نبّه شلتي</string>
-    <string name="crew_help_alert_sub">تنبيه عاجل مع مكانك</string>
-    <string name="crew_help_text_contact">راسل %1$s</string>
-    <string name="crew_help_text_contact_sub">يُفتح تطبيق الرسائل مع موقعك. يعمل بدون بيانات.</string>
-    <string name="crew_help_add_contact">أضف جهة اتصال للطوارئ</string>
-    <string name="crew_help_add_contact_sub">شخص من خارج الشلة تراسله وقت الحاجة</string>
-    <string name="crew_help_contact_name">الاسم (مثلًا: أمي)</string>
-    <string name="crew_help_contact_number">رقم الجوال</string>
-    <string name="crew_help_save_contact">احفظ جهة الاتصال</string>
-    <string name="crew_help_call">اتصل بـ %1$s</string>
-    <string name="crew_help_call_sub">الشرطة، الإطفاء، الإسعاف</string>
-    <string name="crew_help_call_police">الشرطة</string>
-    <string name="crew_help_call_ambulance">الإسعاف والإطفاء</string>
-    <string name="crew_help_no_signal">لا إشارة إطلاقًا؟ كثير من الهواتف الحديثة تستطيع الوصول إلى خدمات الطوارئ عبر الأقمار الصناعية: اتصل بـ %1$s واتبع التعليمات. في المهرجانات، يمكن لفريق الأمن وخيام الإسعافات الأولية المساعدة بسرعة.</string>
-    <string name="crew_help_sms">أحتاج مساعدة. (أُرسلت من Moshpoint)</string>
-    <string name="crew_help_sms_where">أحتاج مساعدة. أنا هنا: %1$s (أُرسلت من Moshpoint)</string>
 
     <string name="crew_channel_messages">رسائل الشلة</string>
-    <string name="crew_channel_help">طلبات المساعدة من الشلة</string>
     <string name="crew_channel_requests">أصحاب يبحثون عنك</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -155,10 +136,6 @@
     <string name="crew_notif_done_title">انتهت %1$s</string>
     <string name="crew_notif_done_saved">صورك ومقاطعك محفوظة في «الحفلات السابقة».</string>
     <string name="crew_notif_done_text">نتمنى أنها كانت ليلة رائعة. ابدأ شلة جديدة متى شئت.</string>
-    <string name="crew_notif_overdue_title">%1$s: لم يُسجَّل الوصول بعد</string>
-    <string name="crew_notif_overdue_text">كانت الوجهة البيت، ويُفترض أن الوصول قد تم الآن. اتصل للاطمئنان. اضغط لترى آخر مكان معروف.</string>
-    <string name="crew_notif_help_where">تم الضغط على «أحتاج مساعدة». اضغط لترى المكان، واتصل للاطمئنان.</string>
-    <string name="crew_notif_help">تم الضغط على «أحتاج مساعدة». اتصل للاطمئنان.</string>
     <string name="crew_notif_tap_where">اضغط لترى المكان.</string>
     <string name="crew_notif_from_crew">من شلتك</string>
 

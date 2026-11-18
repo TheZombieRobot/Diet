@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Polish: Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). -->
+<resources>
+
+    <string name="live_channel_notices">Komunikaty o Widoczności i pamięci</string>
+    <string name="live_off_title">Już nie udostępniasz lokalizacji</string>
+    <string name="live_off_text">Android zatrzymał Moshpoint w tle, więc znajomi nie mogą cię znaleźć. Kliknij, żeby znowu udostępnić lokalizację.</string>
+    <string name="live_cant_start_text">Android nie pozwolił Moshpoint dalej udostępniać twojej lokalizacji, więc znajomi nie mogą cię znaleźć. Sprawdź, czy Moshpoint ma włączone uprawnienia, i znowu włącz Widoczność.</string>
+    <string name="live_crew_not_on_text">Twoja główna ekipa nie jest teraz aktywna, więc Widoczność wyłączyła się, żeby oszczędzać baterię.</string>
+    <string name="live_long_title">Wciąż na koncercie?</string>
+    <string name="live_long_text">Po 12 godzinach udostępniania lokalizacji Widoczność wyłączyła się, żeby oszczędzać baterię.</string>
+    <string name="live_long_notif">Po 12 godzinach udostępniania lokalizacji Widoczność wyłączyła się, żeby oszczędzać baterię. Kliknij, jeśli nadal tam jesteś.</string>
+    <string name="live_go_live">Włącz Widoczność</string>
+    <string name="live_bluetooth_off">Bluetooth wyłączony: znajomi nie mogą cię znaleźć z bliska</string>
+    <string name="storage_full_title">Pamięć telefonu jest pełna</string>
+    <string name="storage_full_text">Moshpoint nie może zapisać nowych wiadomości ani zdjęć, dopóki nie zwolnisz trochę miejsca.</string>
+
+</resources>

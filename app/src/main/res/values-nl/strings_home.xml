@@ -11,15 +11,6 @@
     <string name="home_ping_meet_at_pin">Zie je bij de pin</string>
     <string name="home_ping_all_good">Alles goed</string>
     <string name="home_ping_sent">Verstuurd ✓</string>
-    <string name="home_ping_heading_home">Ik ga naar huis</string>
-    <string name="home_ping_need_help">Hulp nodig</string>
-    <string name="home_heading_home_title">Naar huis?</string>
-    <string name="home_heading_home_text">Check in als je er bent. Doe je dat niet, dan krijgt je crew een melding met je laatste plek (ook als je telefoon leeg is).</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="one">%d min</item>
-        <item quantity="other">%d min</item>
-    </plurals>
-    <string name="home_just_tell_them">Laat het alleen weten</string>
     <string name="home_cancel">Annuleren</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">pingde de crew</string>
@@ -43,8 +34,6 @@
     <string name="home_my_friend_qr">Mijn vrienden-QR</string>
     <string name="home_enter_code">Code invoeren</string>
 
-    <string name="home_check_in_by">Check in voor %1$s</string>
-    <string name="home_home_safe">Veilig thuis</string>
 
     <string name="home_message_crew">Bericht aan de crew</string>
     <string name="home_message_crew_text">Eén tik: iedereen in de crew krijgt het, met waar je bent.</string>

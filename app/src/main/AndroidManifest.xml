@@ -110,11 +110,6 @@
             android:name=".FollowCheckReceiver"
             android:exported="false" />
 
-        <!-- Overdue check-ins on time with the app closed (docs/WAVE2_SAFETY.md) -->
-        <receiver
-            android:name=".CheckInAlarmReceiver"
-            android:exported="false" />
-
         <receiver
             android:name=".MemoryReceiver"
             android:exported="false" />

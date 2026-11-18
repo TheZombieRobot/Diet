@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">Tàng hình 1 giờ</string>
     <string name="setup_data_saver">Tiết kiệm dữ liệu</string>
     <string name="setup_data_saver_desc">Chia sẻ ảnh và clip nhẹ hơn (nhanh hơn khi sóng yếu). Tắt: chất lượng cao, ai lưu về cũng nét. Bản gốc của bạn luôn được giữ nguyên chất lượng.</string>
-    <string name="setup_emergency_contact">Liên hệ khẩn cấp</string>
-    <string name="setup_emergency_contact_desc">Nút \"Cần giúp đỡ\" có thể nhắn vị trí của bạn cho họ bằng SMS thường (không cần dữ liệu). Chỉ lưu trên máy này.</string>
-    <string name="setup_contact_name">Tên</string>
-    <string name="setup_contact_mobile">Số điện thoại</string>
-    <string name="setup_contact_saved">Đã lưu</string>
-    <string name="setup_contact_need_number">Thêm số điện thoại</string>
-    <string name="setup_contact_removed">Đã xóa</string>
-    <string name="setup_save">Lưu</string>
-    <string name="setup_remove">Xóa</string>
     <string name="setup_about">GIỚI THIỆU</string>
     <string name="setup_about_text">Moshpoint %1$s. Không cần tài khoản, mã luôn thay đổi, vị trí mã hóa đầu cuối. Chỉ tìm được bạn khi bạn đang chia sẻ.</string>
     <string name="setup_open_source_licences">Giấy phép bên thứ ba</string>

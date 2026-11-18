@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">Mode hantu 1 jam</string>
     <string name="setup_data_saver">Hemat data</string>
     <string name="setup_data_saver_desc">Bagikan foto dan video yang lebih ringan (lebih cepat saat sinyal lemah). Mati: kualitas tinggi, jadi salinan yang disimpan semua orang tetap tajam. Foto aslimu selalu disimpan dalam kualitas penuh.</string>
-    <string name="setup_emergency_contact">Kontak darurat</string>
-    <string name="setup_emergency_contact_desc">\"Perlu bantuan\" bisa mengirim lokasimu lewat SMS biasa (tanpa data). Hanya tersimpan di HP ini.</string>
-    <string name="setup_contact_name">Nama</string>
-    <string name="setup_contact_mobile">Nomor HP</string>
-    <string name="setup_contact_saved">Tersimpan</string>
-    <string name="setup_contact_need_number">Masukkan nomor HP</string>
-    <string name="setup_contact_removed">Dihapus</string>
-    <string name="setup_save">Simpan</string>
-    <string name="setup_remove">Hapus</string>
     <string name="setup_about">TENTANG</string>
     <string name="setup_about_text">Moshpoint %1$s. Tanpa akun, kode berganti terus, lokasi terenkripsi end-to-end. Kamu cuma bisa ditemukan saat live.</string>
     <string name="setup_open_source_licences">Lisensi pihak ketiga</string>

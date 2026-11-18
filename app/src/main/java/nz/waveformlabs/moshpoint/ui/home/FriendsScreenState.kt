@@ -41,8 +41,6 @@ class HomeCrew(
     val nowSec: Long = 0L,
     val pings: List<GigGroup.Ping> = emptyList(),
     val moments: List<Moments.Item> = emptyList(),
-    /** "2:15 am" while we're checking in, else null. */
-    val checkInBy: String? = null,
     /** Metres to each crew member, worked out in the background. */
     val distances: Map<String, Double> = emptyMap(),
     /** The crew QR's contents, shown right on the home while no one has joined. */
@@ -113,8 +111,6 @@ class HomeCrewActions(
     val describePing: (Int) -> String = { Txt.s(R.string.home_ping_default) },
     val onShareMoment: () -> Unit = {},
     val onOpenMoment: (Moments.Item) -> Unit = {},
-    val onCheckIn: (Int) -> Unit = {},
-    val onHomeSafe: () -> Unit = {},
     /** The night's photos and clips as Polaroids. */
     val onOpenStory: () -> Unit = {},
     /** Share the follow-along invite with family. */

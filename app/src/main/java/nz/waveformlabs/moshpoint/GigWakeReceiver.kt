@@ -23,7 +23,6 @@ class GigWakeReceiver : BroadcastReceiver() {
             context,
             title = Txt.s(R.string.crew_wake_title, g.name),
             text = if (g.venue.isNotBlank()) Txt.s(R.string.crew_wake_text_venue, time, g.venue) else Txt.s(R.string.crew_wake_text, time),
-            urgent = false,
             openMap = false,
             // Gone by itself once the gig's well under way, so it's never stale the next morning.
             timeoutMs = ((g.startsAtSec + 4 * 3600) * 1000 - System.currentTimeMillis()).coerceAtLeast(60_000),

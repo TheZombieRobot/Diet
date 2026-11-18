@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">ล่องหน 1 ชั่วโมง</string>
     <string name="setup_data_saver">ประหยัดเน็ต</string>
     <string name="setup_data_saver_desc">แชร์รูปและคลิปขนาดเล็กลง (เร็วขึ้นตอนสัญญาณอ่อน) ถ้าปิด: คุณภาพสูง ทุกคนเซฟไปได้ชัดๆ ส่วนไฟล์ต้นฉบับของคุณเก็บแบบคุณภาพเต็มเสมอ</string>
-    <string name="setup_emergency_contact">ผู้ติดต่อฉุกเฉิน</string>
-    <string name="setup_emergency_contact_desc">ปุ่ม \"ขอความช่วยเหลือ\" ส่งตำแหน่งของคุณให้เขาเป็น SMS ธรรมดาได้ (ใช้ได้แม้ไม่มีเน็ต) ข้อมูลเก็บไว้ในมือถือนี้เท่านั้น</string>
-    <string name="setup_contact_name">ชื่อ</string>
-    <string name="setup_contact_mobile">เบอร์มือถือ</string>
-    <string name="setup_contact_saved">บันทึกแล้ว</string>
-    <string name="setup_contact_need_number">ใส่เบอร์มือถือด้วย</string>
-    <string name="setup_contact_removed">ลบแล้ว</string>
-    <string name="setup_save">บันทึก</string>
-    <string name="setup_remove">ลบ</string>
     <string name="setup_about">เกี่ยวกับ</string>
     <string name="setup_about_text">Moshpoint %1$s ไม่ต้องมีบัญชี โค้ดเปลี่ยนตลอด ตำแหน่งเข้ารหัสแบบ end-to-end คนอื่นจะหาคุณเจอได้เฉพาะตอนที่คุณแชร์อยู่</string>
     <string name="setup_open_source_licences">สัญญาอนุญาตของบุคคลที่สาม</string>

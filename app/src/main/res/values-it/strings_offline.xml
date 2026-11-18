@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">Questo gruppo sta cambiando chiave. I messaggi partiranno quando avrai segnale.</string>
     <string name="offline_note_rekey_offline">Il gruppo riceverà la nuova chiave quando i telefoni avranno di nuovo segnale. Fino ad allora, i messaggi via Bluetooth sono in pausa.</string>
     <string name="offline_notif_late">Inviato %1$s. È arrivato solo adesso.</string>
-    <string name="offline_notif_help_late">Ha premuto Mi serve aiuto %1$s. È arrivato solo adesso. Controlla come sta.</string>
     <string name="offline_meet_pin_named">Ci vediamo al pin 📍 %1$s</string>
     <string name="offline_need_nearby_why">per trovare gli amici via Bluetooth, Wi-Fi e UWB, e far passare i messaggi senza segnale</string>
 

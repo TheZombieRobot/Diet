@@ -616,14 +616,13 @@ object RelayClient {
     private const val BATCH_WAIT_MS = 90_000L
 
     /**
-     * One of the courier's crew messages (never safety: that goes at once, on its own, with
-     * [send]) in the next batch. Waits for the batch carrying it and says how it went, as [send]
-     * does. [soon]: a message just written: it goes within a couple of seconds, taking whatever
-     * else is waiting with it. Without batches, [send] as before.
+     * One of the courier's crew messages in the next batch. Waits for the batch carrying it and
+     * says how it went, as [send] does. [soon]: a message just written: it goes within a couple
+     * of seconds, taking whatever else is waiting with it. Without batches, [send] as before.
      */
     suspend fun sendBatched(id: ByteArray, sealed: ByteArray, use: RelayUse, held: Boolean, soon: Boolean): PutResult {
         val max = if (held) RelayWire.MAX_HELD_RECORD else RelayWire.MAX_BOX_RECORD
-        if (BatchPlan.route(use) == BatchPlan.Route.ALONE || offline || !batching || sealed.size !in RelayWire.MIN_RECORD..max) {
+        if (offline || !batching || sealed.size !in RelayWire.MIN_RECORD..max) {
             return send(id, sealed, use, held)
         }
         val waiter = CompletableDeferred<PutResult>()
@@ -747,7 +746,7 @@ object RelayClient {
         val start = SystemClock.elapsedRealtime()
         val taken = synchronized(batchLock) {
             plan.take(gets, start) { p ->
-                holds.heldUntil(RelayHolds.Traffic.RECORDS, p.id.hex(), if (p.replaceable) RelayUse.BACKGROUND else RelayUse.MESSAGE, start) <= start
+                holds.heldUntil(RelayHolds.Traffic.RECORDS, p.id.hex(), start) <= start
             }
         }
         if (taken.isEmpty) return@withLock BatchOut.Done(emptyList())
@@ -943,7 +942,7 @@ object RelayClient {
      * Our own relay with batches (docs/RELAY_API.md section 11.6): the background's records are one
      * request a minute, so this is a safety net against a runaway loop, with room the background
      * can never take for the batch, the finder's poll every 4 s and the open chat's polls (core
-     * [RelayBudget.withBatches]). Safety pings are never held by it.
+     * [RelayBudget.withBatches]).
      */
     private val batchBudget = RelayBudget.withBatches()
     private val budget get() = if (!ownServer) publicBudget else if (batching) batchBudget else ownBudget
@@ -991,8 +990,8 @@ object RelayClient {
         askToken()
         val b = budget
         val start = SystemClock.elapsedRealtime()
-        // That mailbox, or that kind of traffic, is waiting out the relay's "too many" (a safety ping never waits here).
-        if (holds.heldUntil(traffic, mailbox, use, start) > start) return PutResult.THROTTLED to null
+        // That mailbox, or that kind of traffic, is waiting out the relay's "too many".
+        if (holds.heldUntil(traffic, mailbox, start) > start) return PutResult.THROTTLED to null
         val ticket = b.take(use, message, start) ?: return (b.refusal(use, message, start) ?: PutResult.THROTTLED) to null
         return try {
             limitSeen.set(null)

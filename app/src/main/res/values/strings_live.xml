@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). Keep them plain, short and
+     exactly as true as the English. "Signal" always means phone reception (mobile data or Wi-Fi). "Live" is the
+     name of the switch on the home screen (home_live_switch). -->
+<resources>
+
+    <!-- ===== Live going off by itself ===== -->
+    <!-- Name of the notification channel for these notices and "storage full", in the phone's settings -->
+    <string name="live_channel_notices">Live and storage notices</string>
+    <!-- Android stopped the app while it was in the background, so you're not live any more -->
+    <string name="live_off_title">You\'re no longer live</string>
+    <!-- Notification. Tapping it opens the app, which goes live again -->
+    <string name="live_off_text">Android stopped Moshpoint in the background, so mates can\'t find you. Tap to go live again.</string>
+    <!-- In the app, under "You're no longer live", with "Go live" and "Not now" buttons -->
+    <string name="live_cant_start_text">Android didn\'t let Moshpoint stay live, so mates can\'t find you. Check that its permissions are on, then go live again.</string>
+    <!-- Under "You're no longer live" when Live turned off because the main crew isn't on now (it's for a later date, or followed from home) -->
+    <string name="live_crew_not_on_text">Your main crew isn\'t on right now, so Live turned off to save your battery.</string>
+    <!-- After 12 hours Live turns itself off to save battery, and asks -->
+    <string name="live_long_title">Still at the gig?</string>
+    <!-- In the app, with "Go live" and "Not now" buttons -->
+    <string name="live_long_text">You were live for 12 hours, so Live turned off to save your battery.</string>
+    <!-- Notification. Tapping it opens the app, which asks "Go live?" -->
+    <string name="live_long_notif">You were live for 12 hours, so Live turned off to save your battery. Tap if you\'re still there.</string>
+    <!-- Button: turn the Live switch on. Short -->
+    <string name="live_go_live">Go live</string>
+    <!-- Title of the ongoing Live notification while Bluetooth is off (instead of visibility_notification). "Up close" = in the same room or crowd -->
+    <string name="live_bluetooth_off">Bluetooth is off: mates can\'t find you up close</string>
+
+    <!-- ===== Phone storage full ===== -->
+    <string name="storage_full_title">Your phone\'s storage is full</string>
+    <string name="storage_full_text">Moshpoint can\'t save new messages or photos until you free up some space.</string>
+
+</resources>

@@ -8,7 +8,6 @@
     <string name="crew_someone">有人</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">取消</string>
-    <string name="crew_close">关闭</string>
 
     <string name="crew_chat_subtitle">小队聊天 · 只有小队成员能看</string>
     <string name="crew_chat_invite">＋ 邀请</string>
@@ -87,26 +86,8 @@
     <string name="crew_flare_own_hint">或者自己写…</string>
     <string name="crew_flare_send">发送</string>
 
-    <string name="crew_help_title">求助</string>
-    <string name="crew_help_alert">通知我的小队</string>
-    <string name="crew_help_alert_sub">紧急提醒，附上你的位置</string>
-    <string name="crew_help_text_contact">给 %1$s 发短信</string>
-    <string name="crew_help_text_contact_sub">短信应用会打开并带上你的位置。不用流量。</string>
-    <string name="crew_help_add_contact">添加紧急联系人</string>
-    <string name="crew_help_add_contact_sub">关键时刻能发短信的小队外的人</string>
-    <string name="crew_help_contact_name">名字（比如：妈妈）</string>
-    <string name="crew_help_contact_number">手机号</string>
-    <string name="crew_help_save_contact">保存联系人</string>
-    <string name="crew_help_call">拨打 %1$s</string>
-    <string name="crew_help_call_sub">报警、火警、急救</string>
-    <string name="crew_help_call_police">报警</string>
-    <string name="crew_help_call_ambulance">急救和火警</string>
-    <string name="crew_help_no_signal">完全没信号？很多新手机可以通过卫星联系紧急服务：拨打 %1$s 并按提示操作。在音乐节上，安保和医疗帐篷也能很快帮到你。</string>
-    <string name="crew_help_sms">我需要帮助。（来自 Moshpoint）</string>
-    <string name="crew_help_sms_where">我需要帮助。我在这里：%1$s（来自 Moshpoint）</string>
 
     <string name="crew_channel_messages">小队消息</string>
-    <string name="crew_channel_help">小队求助</string>
     <string name="crew_channel_requests">朋友在找你</string>
     <string name="crew_notif_line">%1$s：%2$s</string>
     <plurals name="crew_new_messages">
@@ -120,10 +101,6 @@
     <string name="crew_notif_done_title">%1$s 结束了</string>
     <string name="crew_notif_done_saved">你的照片和视频都保存在“看过的演出”里。</string>
     <string name="crew_notif_done_text">希望玩得开心。随时可以建新小队。</string>
-    <string name="crew_notif_overdue_title">%1$s 还没报平安</string>
-    <string name="crew_notif_overdue_text">对方说要回家，现在应该已经到了。打个电话问问吧。点击查看最后位置。</string>
-    <string name="crew_notif_help_where">对方按了“需要帮助”。点击查看位置，去看看情况。</string>
-    <string name="crew_notif_help">对方按了“需要帮助”。去看看情况。</string>
     <string name="crew_notif_tap_where">点击查看位置。</string>
     <string name="crew_notif_from_crew">来自你的小队</string>
 

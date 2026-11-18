@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">Gruppen får en ny nyckel. Meddelanden skickas när du har täckning.</string>
     <string name="offline_note_rekey_offline">Gruppen får sin nya nyckel när telefonerna har täckning igen. Tills dess är Bluetooth-meddelanden pausade.</string>
     <string name="offline_notif_late">Skickat %1$s. Kom fram först nu.</string>
-    <string name="offline_notif_help_late">De tryckte på Behöver hjälp %1$s. Kom fram först nu. Kolla läget med dem.</string>
     <string name="offline_meet_pin_named">Ses vid nålen 📍 %1$s</string>
     <string name="offline_need_nearby_why">för att hitta kompisar via Bluetooth, Wi-Fi och UWB, och skicka meddelanden vidare utan täckning</string>
 

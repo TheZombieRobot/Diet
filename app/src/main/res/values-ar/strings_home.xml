@@ -11,19 +11,6 @@
     <string name="home_ping_meet_at_pin">نلتقي عند الدبوس</string>
     <string name="home_ping_all_good">كل شيء تمام</string>
     <string name="home_ping_sent">أُرسل ✓</string>
-    <string name="home_ping_heading_home">في طريقي إلى البيت</string>
-    <string name="home_ping_need_help">أحتاج مساعدة</string>
-    <string name="home_heading_home_title">في طريقك إلى البيت؟</string>
-    <string name="home_heading_home_text">سجّل وصولك عندما تصل. إن لم تفعل، تتلقى شلتك تنبيهًا بآخر مكان لك (حتى لو نفد شحن هاتفك).</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="zero">%d دقيقة</item>
-        <item quantity="one">دقيقة واحدة</item>
-        <item quantity="two">دقيقتان</item>
-        <item quantity="few">%d دقائق</item>
-        <item quantity="many">%d دقيقة</item>
-        <item quantity="other">%d دقيقة</item>
-    </plurals>
-    <string name="home_just_tell_them">أخبرهم فقط</string>
     <string name="home_cancel">إلغاء</string>
     <string name="home_ping_line">%1$s: %2$s</string>
     <string name="home_ping_default">تنبيه للشلة</string>
@@ -47,8 +34,6 @@
     <string name="home_my_friend_qr">QR الصداقة الخاص بي</string>
     <string name="home_enter_code">أدخل رمزًا</string>
 
-    <string name="home_check_in_by">سجّل وصولك قبل %1$s</string>
-    <string name="home_home_safe">وصلت البيت بأمان</string>
 
     <string name="home_message_crew">راسل الشلة</string>
     <string name="home_message_crew_text">نقرة واحدة: تصل الرسالة لكل الشلة، مع مكانك.</string>

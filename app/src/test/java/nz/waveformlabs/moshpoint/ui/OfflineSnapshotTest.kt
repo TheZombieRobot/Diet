@@ -63,7 +63,7 @@ open class OfflineSnapshotTest {
                 nowSec = now,
                 meetUp = "Sound desk",
                 readOnly = false,
-                onSend = {}, onSetPlan = {}, onFlare = {}, onEndFlare = {}, onPing = {}, onCheckIn = {},
+                onSend = {}, onSetPlan = {}, onFlare = {}, onEndFlare = {}, onPing = {},
                 onSharePlan = {}, onOpenMap = {}, onBack = {},
                 colourOf = { mapOf("Jo" to 0xFFFFB020.toInt(), "Alex" to 0xFFFF2E93.toInt())[it] },
                 offlineHint = hint,

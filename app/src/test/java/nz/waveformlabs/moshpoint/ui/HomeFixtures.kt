@@ -147,7 +147,6 @@ internal fun HomeUnderTest(
     followers: List<String> = emptyList(),
     crewQrPayload: String? = null,
     moments: List<Moments.Item> = emptyList(),
-    checkInBy: String? = null,
     missingPermissions: List<String> = emptyList(),
     setupIssues: List<SetupIssue> = emptyList(),
     flareNotes: Map<String, String> = emptyMap(),
@@ -164,7 +163,7 @@ internal fun HomeUnderTest(
     crew = HomeCrew(
         friends = friends, groupName = groupName, crewKeys = crewKeys, privateUnread = privateUnread,
         meetUp = meetUp, seen = seen, nowSec = HomeFixtures.NOW, pings = pings,
-        moments = moments, checkInBy = checkInBy, distances = distances, crewQrPayload = crewQrPayload,
+        moments = moments, distances = distances, crewQrPayload = crewQrPayload,
         following = following, tileNotes = tileNotes, followers = followers,
         crewWhen = crewWhen, crewSleeping = crewSleeping,
         chatUnread = chatUnread, pinnedPlan = pinnedPlan, flareNotes = flareNotes, venueMap = venueMap, hype = hype,

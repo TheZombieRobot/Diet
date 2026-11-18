@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">Duch na 1 godzinę</string>
     <string name="setup_data_saver">Oszczędzanie danych</string>
     <string name="setup_data_saver_desc">Udostępniaj lżejsze zdjęcia i klipy (szybciej przy słabym zasięgu). Wyłączone: wysoka jakość, więc kopie u wszystkich są ostre. Twoje oryginały zawsze zostają w pełnej jakości.</string>
-    <string name="setup_emergency_contact">Kontakt alarmowy</string>
-    <string name="setup_emergency_contact_desc">„Potrzebuję pomocy” może wysłać tej osobie twoją lokalizację zwykłym SMS-em (działa bez danych). Zostaje tylko na tym telefonie.</string>
-    <string name="setup_contact_name">Imię</string>
-    <string name="setup_contact_mobile">Numer komórki</string>
-    <string name="setup_contact_saved">Zapisano</string>
-    <string name="setup_contact_need_number">Dodaj numer komórki</string>
-    <string name="setup_contact_removed">Usunięto</string>
-    <string name="setup_save">Zapisz</string>
-    <string name="setup_remove">Usuń</string>
     <string name="setup_about">INFORMACJE</string>
     <string name="setup_about_text">Moshpoint %1$s. Bez konta, zmienne kody, szyfrowane end-to-end lokalizacje. Da się cię znaleźć tylko wtedy, gdy udostępniasz lokalizację.</string>
     <string name="setup_open_source_licences">Licencje innych firm</string>

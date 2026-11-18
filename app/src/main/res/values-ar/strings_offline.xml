@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">الشلة تحصل على مفتاح جديد. ستُرسَل الرسائل عند توفر الإشارة.</string>
     <string name="offline_note_rekey_offline">ستحصل الشلة على مفتاحها الجديد عند عودة الإشارة إلى الهواتف. حتى ذلك الحين، رسائل Bluetooth متوقفة مؤقتًا.</string>
     <string name="offline_notif_late">أُرسلت %1$s. وصلت الآن فقط.</string>
-    <string name="offline_notif_help_late">تم الضغط على «أحتاج مساعدة» %1$s. وصلت الآن فقط. اتصل للاطمئنان.</string>
     <string name="offline_meet_pin_named">نلتقي عند الدبوس 📍 %1$s</string>
     <string name="offline_need_nearby_why">لإيجاد أصحابك عبر Bluetooth وWi-Fi وUWB، ونقل الرسائل بدون إشارة</string>
 

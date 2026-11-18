@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">1 saat hayalet ol</string>
     <string name="setup_data_saver">Veri tasarrufu</string>
     <string name="setup_data_saver_desc">Daha hafif fotoğraf ve video paylaş (zayıf çekimde daha hızlı). Kapalı: yüksek kalite, herkesin kaydettiği kopyalar net olur. Kendi orijinallerin her zaman tam kalitede kalır.</string>
-    <string name="setup_emergency_contact">Acil durum kişisi</string>
-    <string name="setup_emergency_contact_desc">\"Yardım lazım\" konumunu bu kişiye normal SMS ile gönderebilir (veri olmadan çalışır). Sadece bu telefonda kalır.</string>
-    <string name="setup_contact_name">Ad</string>
-    <string name="setup_contact_mobile">Cep telefonu</string>
-    <string name="setup_contact_saved">Kaydedildi</string>
-    <string name="setup_contact_need_number">Cep numarası ekle</string>
-    <string name="setup_contact_removed">Kaldırıldı</string>
-    <string name="setup_save">Kaydet</string>
-    <string name="setup_remove">Kaldır</string>
     <string name="setup_about">HAKKINDA</string>
     <string name="setup_about_text">Moshpoint %1$s. Hesap yok, değişen kodlar, uçtan uca şifreli konumlar. Sadece konumunu paylaşırken bulunabilirsin.</string>
     <string name="setup_open_source_licences">Üçüncü taraf lisansları</string>

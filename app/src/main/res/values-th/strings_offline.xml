@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">แก๊งนี้กำลังเปลี่ยนคีย์ใหม่ ข้อความจะส่งเมื่อคุณมีสัญญาณ</string>
     <string name="offline_note_rekey_offline">แก๊งจะได้คีย์ใหม่เมื่อมือถือมีสัญญาณอีกครั้ง ระหว่างนี้ข้อความผ่าน Bluetooth จะพักไว้ก่อน</string>
     <string name="offline_notif_late">ส่งเมื่อ %1$s เพิ่งมาถึงตอนนี้</string>
-    <string name="offline_notif_help_late">เขากด ขอความช่วยเหลือ เมื่อ %1$s เพิ่งมาถึงตอนนี้ เช็กว่าเขาโอเคไหม</string>
     <string name="offline_meet_pin_named">เจอกันที่หมุด 📍 %1$s</string>
     <string name="offline_need_nearby_why">เพื่อหาเพื่อนผ่าน Bluetooth, Wi-Fi และ UWB และส่งต่อข้อความตอนไม่มีสัญญาณ</string>
 

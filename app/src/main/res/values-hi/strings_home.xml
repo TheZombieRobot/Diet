@@ -11,15 +11,6 @@
     <string name="home_ping_meet_at_pin">पिन पर मिलो</string>
     <string name="home_ping_all_good">सब ठीक है</string>
     <string name="home_ping_sent">भेज दिया ✓</string>
-    <string name="home_ping_heading_home">घर की ओर</string>
-    <string name="home_ping_need_help">मदद चाहिए</string>
-    <string name="home_heading_home_title">घर जा रहे हैं?</string>
-    <string name="home_heading_home_text">पहुँचकर चेक-इन करें। अगर नहीं किया, तो आपके ग्रुप को आपकी आखिरी जगह के साथ अलर्ट मिलेगा (फ़ोन बंद हो जाए तब भी)।</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="one">%d मिनट</item>
-        <item quantity="other">%d मिनट</item>
-    </plurals>
-    <string name="home_just_tell_them">बस उन्हें बता दें</string>
     <string name="home_cancel">रद्द करें</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">ने ग्रुप को पिंग किया</string>
@@ -43,8 +34,6 @@
     <string name="home_my_friend_qr">मेरा फ़्रेंड QR</string>
     <string name="home_enter_code">कोड डालें</string>
 
-    <string name="home_check_in_by">%1$s तक चेक-इन करें</string>
-    <string name="home_home_safe">घर पहुँचकर सुरक्षित हूँ</string>
 
     <string name="home_message_crew">ग्रुप को मैसेज करें</string>
     <string name="home_message_crew_text">एक टैप: ग्रुप में सबको मिलेगा, आपकी जगह के साथ।</string>
