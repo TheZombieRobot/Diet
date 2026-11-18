@@ -115,10 +115,40 @@ _Keep this section current: whoever picks this up next starts here. Last updated
     FEATURES, PRIVACY, FIELD_TEST_PLAN 4n, ARCHITECTURE, CODE_STRUCTURE.
   - Checked before pushing: translations (both checks), secrets, the type-check against stage 3
     (nothing new about our own code).
+- **Stage 5, part 1 (written, not yet pushed for CI; waits for stage 4 to be green):**
+  - Core: `SpotLink`: builds `https://<relay host>/spot#<lat>,<lon>[,<first name>]` (null with
+    no relay of our own: the text keeps the Google Maps link) and parses a texted one: our host
+    exactly, `https`, the path `/spot`, no query, plain decimals in range and not 0,0, and a name
+    of letters, digits, spaces, `'` and `-` only, at most 24 (no control or direction-changing
+    characters). `SpotLinkTest`: 8 tests, green locally.
+  - Relay: `GET /.well-known/assetlinks.json` (app id and certificate fingerprints from
+    `MOSHPOINT_APP_CERTS`, default the public debug key's), `GET /spot` and `/spot.js` (the page's
+    own script reads the spot in the browser and opens Google Maps, with "Get Moshpoint"; a strict
+    content security policy, no referrer, nothing sent back). `SpotPageTest`: 5 tests, green
+    locally; the script was also run in Node against good and bad links.
+  - Docs: RELAY_API.md section 13, SERVER_PRODUCTION.md (adding Play's signing key to
+    `MOSHPOINT_APP_CERTS` in fly.toml's `[env]`), PRODUCTION_AUDIT owner to-do.
+- **Stage 5, part 2 (the app; not started).** The plan, from what's there now:
+  1. **The link in the text:** `TextMySpot` uses `SpotLink.build(BuildConfig.MOSHPOINT_SERVER,
+     ...)` with the sender's first name, keeping the coordinates line; Google Maps link without
+     a server. Switch only once the production relay with `/spot` is deployed (an older relay
+     answers 404 there).
+  2. **The App Link:** an intent filter (`android:autoVerify="true"`, `https`, the server's host,
+     path `/spot`). No server, no filter: put it on an `<activity-alias>` whose `enabled` and host
+     come from manifest placeholders set in `app/build.gradle.kts` from `MOSHPOINT_SERVER` (check
+     that a disabled alias triggers no failed verification).
+  3. **Opening one:** `SpotLink.parse(intent.dataString, server)`; if valid, a saved place
+     labelled with the name or "Texted spot" (new strings, 20 languages), and the map opened on
+     it. Nothing else happens: no crew joined, no Live, no setting changed. The map's places
+     (`Spots`, `MapPlace`) already show a place with its distance from the phone's own GPS, which
+     needs no data.
+  4. **The finder's arrow to it:** the finder only targets mates today (`engine.track(ids)`).
+     A place target (GPS and compass only) is the one real piece of new work.
+  5. Screenshot tests (the map with a texted spot), FEATURES, PRIVACY, FIELD_TEST_PLAN.
 - **Exact next step:** when the stage 4 run is green: check screenshots (expected: phone all
   identical to run 350's except the two Moshpoint+ Settings tests, which gain the satellite
   switch, × 21; watch identical) and the merged manifest (the meta-data isn't in the report's
-  list, so the same one line as before), then stage 5 (the receiving end of Text my spot).
+  list, so the same one line as before); then push stage 5 part 1 for CI, then part 2.
 - **Last green run:** 350 (7d2f3aa).
 
 ### Stages (each must be green in CI before the next)
@@ -126,7 +156,7 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 1. Phone removal and interop. **Done, green: run 348.**
 2. Watch removal. **Done, green: run 349.**
 3. Text my spot. **Done, green: run 350.**
-4. Satellite switch. (pushed, CI running)
+4. Satellite switch. (pushed, CI running: run 351)
 5. **Added 18 November 2026 (relayed by the session that started this one, as the owner's):**
    the receiving end of Text my spot.
    - **The link,** built in core with tests: `https://<relay host>/spot#<lat>,<lon>[,<name>]`.

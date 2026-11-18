@@ -129,3 +129,6 @@ Then a test build, the field tests in FIELD_TEST_PLAN.md, and the bug-fixing pha
   Moshpoint (`nz.waveformlabs.moshpoint`); the app already says it's built for satellite (its
   manifest), and sends nothing that way unless a Moshpoint+ member switches "Use satellite when
   there's no signal" on ([REMOVE_SAFETY.md](REMOVE_SAFETY.md), stage 4).
+- **Text my spot's links (with Play App Signing):** set `MOSHPOINT_APP_CERTS` on the production
+  relay to Play's app signing key's SHA-256 fingerprint (plus the debug one for test builds), so
+  the links open in store builds of the app (SERVER_PRODUCTION.md, Deploy; RELAY_API.md section 13).

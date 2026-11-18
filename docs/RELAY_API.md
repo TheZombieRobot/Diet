@@ -364,3 +364,35 @@ The next 12 months, biggest first.
   New Zealand, the island). It then sends only the `id`, never its location.
 - `total` counts every show in the scope. `shows` holds the first `limit`.
 
+## 13. Text my spot's links (new; docs/REMOVE_SAFETY.md, stage 5)
+
+Text my spot (Moshpoint+) puts a link to the sender's spot in a text the person sends from their
+own texting app: `https://<relay>/spot#<lat>,<lon>[,<first name>]` (core `SpotLink`: 5 decimals,
+the name percent-encoded UTF-8). Everything after `#` stays on the phone: browsers never send it,
+so the relay only ever sees `GET /spot` and never learns where anyone is. With no relay built in
+(`MOSHPOINT_SERVER` blank) the text has a Google Maps link instead.
+
+### `GET /.well-known/assetlinks.json`
+
+The Digital Asset Links statement that lets Android open these links straight in the app (an App
+Link, verified when the app is installed):
+
+```json
+[{"relation":["delegate_permission/common.handle_all_urls"],
+  "target":{"namespace":"android_app","package_name":"nz.waveformlabs.moshpoint",
+            "sha256_cert_fingerprints":["89:B4:37:..."]}}]
+```
+
+The fingerprints come from `MOSHPOINT_APP_CERTS` (comma-separated SHA-256 fingerprints of the
+signing certificates; not secret). Unset: only the public debug key's (`app/debug.keystore`),
+which signs test builds. `MOSHPOINT_APP_ID` changes the app id (default
+`nz.waveformlabs.moshpoint`). Cached an hour.
+
+### `GET /spot` and `GET /spot.js`
+
+For a phone without the app: a small page whose own script (`/spot.js`) reads the spot after `#`
+in the browser, checks it as the app does (plain decimals in range, not 0,0; the name letters
+only, at most 24, set as text), and opens it in Google Maps, with a "Get Moshpoint" line. Its
+`Content-Security-Policy` allows only its own script and nothing from anywhere else; it sends no
+referrer and nothing back to us. Any query is ignored.
+
