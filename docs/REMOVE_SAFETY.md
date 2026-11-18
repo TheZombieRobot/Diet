@@ -8,7 +8,7 @@ features (Text my spot, satellite data). Branch: `claude/remove-safety` (from
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 18 November
-2026, 22:55 UTC._
+2026, 23:35 UTC._
 
 - **Done, stage 1 core (52c876a):** core tests green locally (622; server 103), using a scratch
   Gradle build of only `:core` and `:server` (docs/WATCH.md, "Working notes").
@@ -46,7 +46,7 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   - **Screenshots, watch:** all 798 identical.
   - **Merged manifest:** differs from the published main build by one line, the removed
     `CheckInAlarmReceiver`: expected. Licence list the same (126 libraries).
-- **Done, stage 2 (watch), pushed for CI:** `SosActivity` and `SosScreen` removed (and the
+- **Done, stage 2 (watch), 5203058:** `SosActivity` and `SosScreen` removed (and the
   manifest entry); the crew screen's Need help chip, the tile's button, `HoldToSend` and its two
   buzzes, `WatchFeature.NEED_HELP`/`SOS_ALL_CLEAR` and `PingKind` codes 3 and 4 (an older
   watch's Need help now reads as unknown: the phone sends nothing and answers "not sent";
@@ -55,16 +55,26 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   the red is `Wrist.Red` (same colour). Docs: WATCH.md (problem 8 is now quick messages),
   FEATURES section 10, README, FIELD_TEST_PLAN 4c F and G, ROADMAP, ARCHITECTURE,
   CODE_STRUCTURE. Core tests green locally (618); type-check clean for app and watch.
-- **Exact next step:** when the stage 2 run is green: compare the watch screenshots (expected to
-  change: the crew screens, which lose the chip at the bottom; gone: the six SOS screens) and
-  the phone ones (expected: all identical to run 348's), then stage 3 (Text my spot).
-- **Last green run:** 348 (2974cb1).
+- **Stage 2 is green: CI run 349 on 5203058.**
+  - **Screenshots, watch** (`ui-screenshots-watch-claude-remove-safety` against
+    `ui-screenshots-watch`, by blob hash): 462 identical; 252 gone (the six SOS screens, small
+    and large, × 21 language folders); 84 changed, all expected: `crewLocked` and `crewNoPhone`
+    (small and large × 21), which lose the red Need help chip at the bottom. Looked at in en,
+    de, ar and ja: the title and the line under it keep their places (the list centres its
+    second item, as before). `crew` and `pingNotSent` are identical: their chip was below the
+    fold.
+  - **Screenshots, phone:** byte-identical to run 348's set (no file differs).
+  - **Merged manifest:** the same one-line difference as stage 1 (the removed
+    `CheckInAlarmReceiver`); `SosActivity` was the watch's. Licence list the same (126).
+- **In progress, stage 3 (Text my spot):** written, not yet pushed for CI.
+- **Exact next step:** finish stage 3 (core tests, type-check, docs), push it for CI.
+- **Last green run:** 349 (5203058).
 
 ### Stages (each must be green in CI before the next)
 
 1. Phone removal and interop. **Done, green: run 348.**
-2. Watch removal. (pushed, CI running)
-3. Text my spot.
+2. Watch removal. **Done, green: run 349.**
+3. Text my spot. (in progress)
 4. Satellite switch.
 5. **Added 18 November 2026 (relayed by the session that started this one, as the owner's):**
    the receiving end of Text my spot.
