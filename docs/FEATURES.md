@@ -25,8 +25,8 @@ Android app for finding your mates at gigs and festivals. No accounts.
   - On the day, 3 h before the start: "Iron Maiden tonight! Tap to go live".
   - The crew ends itself the morning after.
 - **Follow from home:** a separate invite for family. Followers:
-  - see the photo Story, where everyone is ("at the venue" or "1.2 km from the venue"), pings,
-    check-ins and help alerts;
+  - see the photo Story, where everyone is ("at the venue" or "1.2 km from the venue"), and
+    pings;
   - never broadcast and can't be found;
   - are shown to the crew ("Following from home: Mum").
 - **Several crews at once:** a new crew never replaces the one you're in.
@@ -75,7 +75,7 @@ Android app for finding your mates at gigs and festivals. No accounts.
   - Ask: a "go live" message.
 - **Save this area for no signal:** an offline map of the venue.
 
-## 4. Messaging and safety
+## 4. Messaging
 - **Crew chat, one per crew:** short messages (up to 140 characters), encrypted with the crew
   key. Chat works weeks before the gig, for the hype. Followers at home can read but not
   post. (untested)
@@ -96,13 +96,12 @@ Android app for finding your mates at gigs and festivals. No accounts.
   minutes, and the vibe shows under your tile. (untested)
 - **Plan card:** the gig, the plan, the meet-up and who's coming, as a shareable picture.
 - **Crew pings:** On my way, Where are you?, Stay put, Meet at the pin, All good.
-- **Need help:**
-  - an urgent alert to the crew with your location;
-  - a text to your emergency contact with a map link (plain SMS, so it works without data);
-  - a Call 111 button;
-  - a hint about satellite SOS when there's no signal.
-- **Check In:** "Heading home" with a 30–90 minute timer. If you don't tap "I'm home safe",
-  the crew is alerted. The timer runs on the crew's phones, so it still works if yours dies.
+- **Removed (owner's decision, 16 November 2026):** Need help (the crew alert, the text to an
+  emergency contact, the Call 111 button, the satellite SOS hint) and Check In ("Heading home"
+  with a timer, "I'm home safe", the overdue alert). A gig app doesn't need its own emergency
+  system; people ring emergency services themselves. A mate on an older build can still send
+  them: they show as ordinary crew pings in their own words, with no alarm. The phone also
+  deletes an emergency contact an older build stored. Details: [REMOVE_SAFETY.md](REMOVE_SAFETY.md).
 - **"Bevan is on the move":** fires when a mate moves 200 m or more away from where they
   were, at most once every 20 minutes per person.
 - **Ghost mode:** hidden from the map but findable up close, optionally for 1 hour.

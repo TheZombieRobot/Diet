@@ -8,36 +8,35 @@ features (Text my spot, satellite data). Branch: `claude/remove-safety` (from
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 18 November
-2026, 22:30 UTC._
+2026, 22:45 UTC._
 
-- **Done, stage 1 core (pushed, 52c876a):** core tests green locally (622, scratch Gradle build
-  of `:core` and `:server`, see docs/WATCH.md "Working notes"; server 103 green).
+- **Done, stage 1 core (52c876a):** core tests green locally (622; server 103), using a scratch
+  Gradle build of only `:core` and `:server` (docs/WATCH.md, "Working notes").
   - `PingPolicy`: Need help, Check in and Home safe are `Group.OLDER_BUILDS`, ordinary pings.
-  - `RelayUse.SAFETY` is gone, with every special case: the budget reserve, the pause and
-    slot bypasses (`RelayBudget`), the hold bypass (`RelayHolds`), the batch bypass
+  - `RelayUse.SAFETY` is gone, with every special case: the budget reserve, the pause and slot
+    bypasses (`RelayBudget`), the hold bypass (`RelayHolds`), the batch bypass
     (`BatchPlan.route`), the courier's queue jump, slot bypass, retry-through-a-pause, boost and
     durable chat-mailbox copies (`Courier`), and the moderation exception (`BlockList`).
   - `SafetyRules.kt` split: `LiveRules.kt`, `AlarmPlan.kt`, `StorageNotice.kt`, `ClockCheck.kt`
     stay; `HelpRules`, `CheckInReminder` and `CheckIns.kt` are removed with their tests.
-  - The interop proof (B): `OlderBuildsTest` opens messages sealed by the code at 75fe2fb
-    (Need help with a position, a check-in with its minutes, Home safe, an ordinary ping, a
-    chat line, and a History copy carrying them): every field, signature and id exactly.
-    `CourierSimTest` and `MessageRulesTest` pin how they're carried and shown.
-- **In progress, stage 1 app (not yet pushed):** removed `Safety.kt`, `EmergencyNumbers.kt`,
-  `HelpUi.kt`, `CheckInAlarm.kt`, `CheckInAlarmReceiver.kt` and its manifest entry; check-ins
-  out of `GroupSync` and `ChatSync`; Need help following out of `OfflineMessages`;
-  `CrewNotifications` posts every ping on the ordinary channel and deletes the old `crew_help`
-  channel; the home header (wordmark only), activity lines and `FriendsScreen` done.
-- **Exact next step:** finish stage 1 app: `HomePanels.PingBar`/`MessageSheet` (drop Heading
-  home and Need help), `CrewChatUi` (`onCheckIn`, `onGoLive`), Settings (the emergency contact),
-  `Housekeeping` (delete the stored emergency contact and check-in leftovers), comments in
-  `Theme`, `VisibilityService`, `BackgroundChecks`, `FollowCheck`; the screenshot tests
-  (`ScreensSnapshotTest` help tests, `HomeFixtures`, `HomeTallSnapshotTest`,
-  `OfflineSnapshotTest`); then the strings in all 20 values folders (`strings_safety.xml`
-  removed, its Live and storage strings moved to a file of their own); then docs; then push
-  without [skip ci] for CI.
-- **Then:** stage 2 (watch), stage 3 (Text my spot), stage 4 (satellite switch), and stage 5
-  (below), each green in CI before the next.
+  - The interop proof (B): `OlderBuildsTest` opens messages sealed by the code at 75fe2fb.
+- **Done, stage 1 app (2974cb1, CI run 348 running):** `Safety.kt`, `EmergencyNumbers.kt`,
+  `HelpUi.kt`, `CheckInAlarm.kt`, `CheckInAlarmReceiver.kt` (and its manifest entry) removed;
+  check-ins out of `GroupSync` and `ChatSync`; Need help following out of `OfflineMessages`;
+  every ping on the ordinary channel, the old `crew_help` channel deleted; the home header,
+  ping bar, crew chat, activity lines and Settings; `Housekeeping` deletes the stored emergency
+  contact; screenshot tests for the help dialog removed. Strings: 62 removed from all 20
+  folders; the Live and storage strings are now `strings_live.xml` (`live_*`,
+  `storage_full_*`), and "storage full" no longer mentions check-ins (new wording, 20
+  languages). Checked before pushing: a plain-`kotlinc` type-check of core, finder and app
+  (main and tests) with no Android jars shows no new error about our own code compared with
+  75fe2fb, and every `R.string` reference resolves.
+- **Done, stage 1 docs (this commit):** FEATURES, ROADMAP, PRIVACY, PLAY_STORE,
+  FIELD_TEST_PLAN, PRODUCTION_AUDIT; WAVE2_SAFETY marked as history.
+- **Exact next step:** when run 348 finishes: compare the screenshots
+  (`python3 <scratch>/shots.py origin/ui-screenshots origin/ui-screenshots-claude-remove-safety`,
+  a 30-line blob-hash comparer; recreate it if the scratchpad is gone) and look at the changed
+  ones in en, de, ar, ja, small phone and large font. Then stage 2.
 - **Last green run:** none on this branch yet (ccr's last: run 346).
 
 ### Stages (each must be green in CI before the next)
@@ -100,3 +99,7 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 1. **"Heading home" without a timer** (`GOING_HOME`, "Just tell them" in the Heading home
    dialog) went with that dialog. Older builds' ones still show. Bring it back as a plain crew
    ping chip?
+2. **An older build's check-in shows its own words, "Heading home 🏠 Will check in within
+   30 min"**, but this build never alerts if they don't check in. Reword how it's shown here (for
+   example "Heading home 🏠 (30 min)")? That needs new wording in 20 languages, so it wasn't done
+   without asking.

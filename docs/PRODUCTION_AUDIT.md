@@ -8,9 +8,11 @@ Two findings were checked again by hand:
 
 ## Launch blockers
 
-**Safety: these must never mislead.**
-1. Need help says "Crew alerted ✓" as soon as it's tapped, even when the alert is only queued. Texting the emergency contact and calling fail silently on a phone without an SMS or dialler app. Show the real outbox state. (reliability P0-2)
-2. The overdue check-in alert only fires on phones that are open or live, and it shares chat's notification channel, so muting chat mutes it. It needs a Doze-proof alarm at the deadline and the help channel. (reliability P0-4)
+**These must never mislead.**
+1. **Removed, owner's decision (16 November 2026):** Need help is no longer in the app, so this
+   no longer applies ([REMOVE_SAFETY.md](REMOVE_SAFETY.md)). The finding was: Need help says "Crew alerted ✓" as soon as it's tapped, even when the alert is only queued. Texting the emergency contact and calling fail silently on a phone without an SMS or dialler app. Show the real outbox state. (reliability P0-2)
+2. **Removed, owner's decision (16 November 2026):** check-ins are no longer in the app, so this
+   no longer applies ([REMOVE_SAFETY.md](REMOVE_SAFETY.md)). The finding was: the overdue check-in alert only fires on phones that are open or live, and it shares chat's notification channel, so muting chat mutes it. It needs a Doze-proof alarm at the deadline and the help channel. (reliability P0-4)
 3. The Live state can be wrong in two ways:
    - it shows "live" when nothing is running (after every app update, a force-stop or a Samsung background kill);
    - it never turns off after the gig, costing 13–19% of the battery a day.
@@ -29,7 +31,7 @@ Two findings were checked again by hand:
 10. Remove the AD_ID permission that the Facebook SDK adds. (release P0-6)
 
 **Security**
-11. Any app can send an invite that joins a crew, turns on live sharing without asking, and moves all relay traffic (Need help included) to a stranger's server. Fix: confirm first; never go live from an intent; in release, accept only the app's own relay. (release P0-5)
+11. Any app can send an invite that joins a crew, turns on live sharing without asking, and moves all relay traffic to a stranger's server. Fix: confirm first; never go live from an intent; in release, accept only the app's own relay. (release P0-5)
 
 **Server**
 12. The relay forgets messages it has already accepted. It holds everything in memory, Fly stops the machine when idle (losing it all), the first Fly deploy splits mailboxes across two machines, and 12 MB uploads sit whole in a ~100 MB heap. Fix: one always-on machine, storage on a volume, streamed files. (reliability P0-3, release P1-10, P1-12)
@@ -86,7 +88,7 @@ See the P2 sections of the three reports: Keystore encryption at rest, the old i
 - **Server hardening (server/ and deployment files only):** item 12 and the server parts of "Before launch", plus batch and cursor endpoints for wave 2. Backward compatible, so test builds keep working.
 
 **Wave 2 (after the tidy-up merges, split so no two sessions edit the same files)**
-- **2a Safety and Live:** items 1–3, background checks, configChanges, storage-full guards, the radar crash.
+- **2a Safety and Live:** items 1–3, background checks, configChanges, storage-full guards, the radar crash. (Need help and check-ins, items 1 and 2, were removed on 16 November 2026: [REMOVE_SAFETY.md](REMOVE_SAFETY.md).)
 - **2b Play and security:**
   - items 6, 8, 10 and 11;
   - the disclosure and privacy link, the Facebook SDK starting at login;

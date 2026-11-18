@@ -95,6 +95,7 @@ collected; it still goes in the privacy policy.
 | **Messages → Other in-app messages; Photos and videos → Photos, Videos** | **Collected, only when a user reports one** (docs/REPORT_BLOCK.md): the reporter's phone sends the reported message's text, or the photo (smaller) or four frames of the clip (smaller), with the poster's name and crew key, to our relay, where the owner reads it; kept 90 days. Optional (nothing goes unless someone taps Send report). Purpose: **Fraud prevention, security, and compliance**. Not shared. Everything else in these types is end-to-end encrypted and **not collected** |
 | Audio | **Not collected** (a reported clip sends still frames, never its sound) |
 | Contacts, calendar, app info and performance, device or other IDs, financial, health | **Not collected** (no analytics, crash reporting or advertising ID; the Facebook SDK's analytics and ad ID are off and the AD_ID permission is removed) |
+| Contacts and SMS | **Not collected, no SMS to contacts any more.** Need help used to keep one emergency contact on the phone and open a text to it; it was removed on 16 November 2026, and the app deletes a stored contact on the first start after updating. The app never reads the phone's contacts, sends or reads texts, or asks for SMS or call permissions |
 | Is collection required or optional? | **Optional** for everything above |
 | Purposes | App functionality; reports only: fraud prevention, security, and compliance (moderation). Never advertising, analytics or personalisation |
 
@@ -145,8 +146,7 @@ children and doesn't appeal to them (live music nights, location sharing with fr
 | Unrestricted internet access (web browser, search engine)? | No (links open the phone's own browser) |
 
 **News app:** No. **COVID-19 contact tracing:** No. **Government app:** No. **Financial
-features:** None. **Health:** No health or fitness features (the "Need help" button alerts the
-person's own crew; it isn't a medical feature).
+features:** None. **Health:** No health or fitness features.
 
 **Foreground service permissions.** The form asks, per foreground service type, what the task
 is, why it can't wait, and for a short video of it. The app has two services with types:

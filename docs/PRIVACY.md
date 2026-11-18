@@ -1,6 +1,6 @@
 # Moshpoint privacy policy
 
-_Draft for review before Play Store release. Last updated: 15 November 2026. Contact: [EMAIL].
+_Draft for review before Play Store release. Last updated: 18 November 2026. Contact: [EMAIL].
 Moshpoint is provided by [LEGAL ENTITY]._
 
 Moshpoint helps you find your friends at gigs and other crowded places. It was built so
@@ -27,6 +27,11 @@ Stored only in the app's private storage on your device, never backed up to the 
 - a random secret key that lets your friends recognise your phone.
 
 Deleting the app deletes all of it.
+
+Earlier test versions had a "Need help" button that could text an emergency contact, and kept
+that contact's name and phone number on your phone for it. That feature has been removed: the
+app deletes a contact saved that way the first time it opens after updating, and never sends a
+text itself.
 
 ## What goes to your watch (only if you install the watch app)
 
@@ -61,7 +66,7 @@ only that person's friends can open them. A phone that relays one can't read it 
 tell whose it is.
 
 **Messages without signal:** while you're live and there's no internet, the messages you send
-your crew (chat, "On my way", "Need help", the meet-up pin) are also passed between crew
+your crew (chat, "On my way", the meet-up pin) are also passed between crew
 phones nearby over Bluetooth. The first crew phone that gets signal back sends them on for
 everyone. These are the same encrypted, signed messages that would have gone to the relay:
 only your crew can open them, and a phone can't change one or pretend to be you. Chat only
@@ -110,7 +115,7 @@ any website it sees your phone's internet address when it connects. ntfy.sh keep
 for up to 12 hours (see its own privacy policy).
 
 **Crew pings, meet-up pins and moments (optional):** messages you send your crew ("On my
-way", "Need help"), a meet-up pin you drop, and photos and short clips (with their sound) you
+way", "Where are you?"), a meet-up pin you drop, and photos and short clips (with their sound) you
 choose to share as moments (with where you took them) are encrypted on your phone with your
 crew's key, so only people who scanned your crew's QR can open them. They pass through the same
 relay under codes that change daily or every 5 minutes. Our relay deletes moments within 24

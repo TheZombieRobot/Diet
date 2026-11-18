@@ -1,5 +1,15 @@
 # Wave 2a: safety and the Live state
 
+> **History: the safety half is removed.** On 16 November 2026 the owner decided to take Need
+> help, check-ins and Home safe out of the app (and the watch's SOS); see
+> [REMOVE_SAFETY.md](REMOVE_SAFETY.md). Items 1 and 2 below, the Need help and check-in parts of
+> the review round, their strings and their screenshots no longer exist. The rest of this wave
+> stays as built: the Live state (item 3), background checks (4), full storage (5),
+> recreation (6), the radar (7), the remote crash fixes (8) and the P2 items. The core rules this
+> note names in `SafetyRules` now live in `LiveRules`, `AlarmPlan`, `StorageNotice` and
+> `ClockCheck`; the Live and storage strings moved from `strings_safety.xml` to
+> `strings_live.xml` (as `live_*` and `storage_full_*`).
+
 Launch blockers 1–3 of [PRODUCTION_AUDIT.md](PRODUCTION_AUDIT.md) and the reliability items that go
 with them (reliability P0-1, P0-2, P0-4, P1-5 to P1-8, then P2; performance P0-1).
 Branch: `claude/wave2-safety-k7m3p9` (from `ccr-5839ed7c-1q0ztj`).
