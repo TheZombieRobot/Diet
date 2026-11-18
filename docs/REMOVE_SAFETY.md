@@ -8,7 +8,7 @@ features (Text my spot, satellite data). Branch: `claude/remove-safety` (from
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 18 November
-2026, 22:45 UTC._
+2026, 22:55 UTC._
 
 - **Done, stage 1 core (52c876a):** core tests green locally (622; server 103), using a scratch
   Gradle build of only `:core` and `:server` (docs/WATCH.md, "Working notes").
@@ -20,7 +20,7 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   - `SafetyRules.kt` split: `LiveRules.kt`, `AlarmPlan.kt`, `StorageNotice.kt`, `ClockCheck.kt`
     stay; `HelpRules`, `CheckInReminder` and `CheckIns.kt` are removed with their tests.
   - The interop proof (B): `OlderBuildsTest` opens messages sealed by the code at 75fe2fb.
-- **Done, stage 1 app (2974cb1, CI run 348 running):** `Safety.kt`, `EmergencyNumbers.kt`,
+- **Done, stage 1 app (2974cb1):** `Safety.kt`, `EmergencyNumbers.kt`,
   `HelpUi.kt`, `CheckInAlarm.kt`, `CheckInAlarmReceiver.kt` (and its manifest entry) removed;
   check-ins out of `GroupSync` and `ChatSync`; Need help following out of `OfflineMessages`;
   every ping on the ordinary channel, the old `crew_help` channel deleted; the home header,
@@ -31,17 +31,30 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   languages). Checked before pushing: a plain-`kotlinc` type-check of core, finder and app
   (main and tests) with no Android jars shows no new error about our own code compared with
   75fe2fb, and every `R.string` reference resolves.
-- **Done, stage 1 docs (this commit):** FEATURES, ROADMAP, PRIVACY, PLAY_STORE,
-  FIELD_TEST_PLAN, PRODUCTION_AUDIT; WAVE2_SAFETY marked as history.
-- **Exact next step:** when run 348 finishes: compare the screenshots
-  (`python3 <scratch>/shots.py origin/ui-screenshots origin/ui-screenshots-claude-remove-safety`,
-  a 30-line blob-hash comparer; recreate it if the scratchpad is gone) and look at the changed
-  ones in en, de, ar, ja, small phone and large font. Then stage 2.
-- **Last green run:** none on this branch yet (ccr's last: run 346).
+- **Done, stage 1 docs (1057a06):** FEATURES, ROADMAP, PRIVACY, PLAY_STORE, FIELD_TEST_PLAN,
+  PRODUCTION_AUDIT; WAVE2_SAFETY marked as history.
+- **Stage 1 is green: CI run 348 on 2974cb1** (phone and watch: translations, core and server
+  tests, debug and release builds, 16 KB alignment, screenshots, lint).
+  - **Screenshots, phone** (`ui-screenshots-claude-remove-safety` against `ui-screenshots`, which
+    is for 75fe2fb, by blob hash): 1,245 identical; 189 gone (the 9 Need help dialog tests × 21
+    language folders); 886 changed, all expected: every screen that draws the home's header
+    (the Need help pill is gone: home, sheets and dialogs over the home, the hype group, plan a
+    gig, smart search, Moshpoint+ info, the venue card), `settingsSheet` (no emergency
+    contact), `noticeStorageFull` (no "check-ins") and `homeWhole` (no check-in banner). Looked
+    at in en, de, ar, ja, a small phone with a large font and a large font: the wordmark and the
+    Live row keep their places, nothing below moves, Arabic keeps the wordmark at the start.
+  - **Screenshots, watch:** all 798 identical.
+  - **Merged manifest:** differs from the published main build by one line, the removed
+    `CheckInAlarmReceiver`: expected. Licence list the same (126 libraries).
+- **Exact next step:** stage 2 (watch): remove `SosActivity`, `SosScreen`, the crew screen's Need
+  help chip, the tile's button, "I'm OK now", `WatchFeature.NEED_HELP`/`SOS_ALL_CLEAR` and the
+  phone's handling of them (an old watch's SOS is answered "not sent"), the SOS-only strings;
+  keep the `sos_*` strings and `Wrist.Help` red the quick pings' result screen uses.
+- **Last green run:** 348 (2974cb1).
 
 ### Stages (each must be green in CI before the next)
 
-1. Phone removal and interop. (core done; app in progress)
+1. Phone removal and interop. **Done, green: run 348.**
 2. Watch removal.
 3. Text my spot.
 4. Satellite switch.
