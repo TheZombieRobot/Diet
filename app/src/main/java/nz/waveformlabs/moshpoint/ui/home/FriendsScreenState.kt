@@ -22,7 +22,7 @@ class HomeMe(
     val missingPermissions: List<String>,
     val setupIssues: List<SetupIssue> = emptyList(),
     val ghost: Boolean = false,
-    /** A Moshpoint+ member: Settings offers Text my spot. */
+    /** A Moshpoint+ member: Settings offers Text my spot and satellite data. */
     val plus: Boolean = false,
 )
 

@@ -38,6 +38,12 @@ your location already written in: a map link and the coordinates. You choose who
 press Send yourself. Moshpoint doesn't see the text or who it goes to, keeps no copy, and needs
 no SMS permission.
 
+"Use satellite when there's no signal" (Moshpoint+, off until you switch it on) lets crew
+messages and your shared location go over your phone's satellite connection when there's no
+other network. They are the same end-to-end encrypted messages that otherwise go over mobile
+data, to the same server; your carrier carries them and may charge for it. With the switch off,
+the app sends nothing over a satellite connection.
+
 ## What goes to your watch (only if you install the watch app)
 
 If you put Moshpoint on a Wear OS watch that is paired with your phone, your phone sends the

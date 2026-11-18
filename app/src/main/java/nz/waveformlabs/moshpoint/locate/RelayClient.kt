@@ -16,6 +16,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.setup.NetState
 import nz.waveformlabs.moshpoint.core.BatchPlan
+import nz.waveformlabs.moshpoint.core.SatelliteRule
 import nz.waveformlabs.moshpoint.core.HeldMirror
 import nz.waveformlabs.moshpoint.core.InstallToken
 import nz.waveformlabs.moshpoint.core.InviteRelay
@@ -46,6 +47,10 @@ import java.net.URLEncoder
  *
  * Nothing here spends budget, or waits out a timeout, while the phone has no network at all
  * ([NetState]): it answers [PutResult.NO_NETWORK] straight away so Bluetooth can take over.
+ *
+ * Over a satellite network (docs/REMOVE_SAFETY.md, stage 4; core [SatelliteRule]) only our own
+ * relay's batch goes, at most one every two minutes, and only for a Moshpoint+ member who
+ * switched it on: the one gate is in [exchange]. Everything else answers "no network" there.
  */
 object RelayClient {
     private const val LOOKUP_CHUNK = 60
@@ -508,6 +513,7 @@ object RelayClient {
      */
     suspend fun postReport(json: ByteArray): Int = withContext(Dispatchers.IO) {
         if (!ownServer) return@withContext -1
+        if (NetState.satellite) return@withContext 0 // never over satellite: it's sent from a normal network
         runCatching {
             val c = open("$base/v1/report")
             c.requestMethod = "POST"
@@ -615,6 +621,9 @@ object RelayClient {
     /** The longest a crew message waits for its batch before the courier is told "no answer" (and tries again). */
     private const val BATCH_WAIT_MS = 90_000L
 
+    /** The same over satellite, where a batch goes at most every two minutes (core [SatelliteRule]). */
+    private const val SATELLITE_BATCH_WAIT_MS = SatelliteRule.GAP_MS + 30_000L
+
     /**
      * One of the courier's crew messages in the next batch. Waits for the batch carrying it and
      * says how it went, as [send] does. [soon]: a message just written: it goes within a couple
@@ -634,7 +643,7 @@ object RelayClient {
         }
         startFlusher()
         nudges.trySend(Unit)
-        return withTimeoutOrNull(BATCH_WAIT_MS) { waiter.await() } ?: synchronized(batchLock) {
+        return withTimeoutOrNull(if (NetState.satellite) SATELLITE_BATCH_WAIT_MS else BATCH_WAIT_MS) { waiter.await() } ?: synchronized(batchLock) {
             waiters.remove(key)
             plan.cancel(key)
             PutResult.NO_NETWORK
@@ -648,6 +657,8 @@ object RelayClient {
      */
     suspend fun sync(ids: List<ByteArray>): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
         if (ids.isEmpty()) return@withContext null
+        // Over satellite a batch goes at most every two minutes: until then, nothing (not a lookup).
+        if (NetState.satellite && !satelliteBatchDue()) return@withContext null
         if (batching && !offline && ids.size <= MAX_SYNC_GETS) {
             val gets = ids.map { BatchPlan.Get(it, held = false, since = 0L) }.toMutableList()
             val oldestFirst = List(ids.size) { ArrayList<ByteArray>() }
@@ -719,7 +730,9 @@ object RelayClient {
         background.launch {
             while (true) {
                 try {
-                    val due = synchronized(batchLock) { plan.dueAtMs() }
+                    val planned = synchronized(batchLock) { plan.dueAtMs() }
+                    // Over satellite, not before two minutes after the last batch (core SatelliteRule).
+                    val due = if (planned != Long.MAX_VALUE && NetState.satellite) SatelliteRule.nextBatchAt(planned, satelliteLastBatch()) else planned
                     val wait = if (due == Long.MAX_VALUE) Long.MAX_VALUE else due - SystemClock.elapsedRealtime()
                     when {
                         wait == Long.MAX_VALUE -> nudges.receive()
@@ -742,6 +755,8 @@ object RelayClient {
      * their waiters (the courier), or wait again (locations) when the batch got no answer.
      */
     private suspend fun sendBatch(gets: List<BatchPlan.Get>): BatchOut = batchSend.withLock {
+        // Over satellite, not before two minutes since the last batch: everything stays waiting for the next one.
+        if (NetState.satellite && !satelliteBatchDue()) return@withLock BatchOut.Failed
         val b = base
         val start = SystemClock.elapsedRealtime()
         val taken = synchronized(batchLock) {
@@ -756,7 +771,7 @@ object RelayClient {
         var unreadable = false
         // A lookup when it reads mailboxes, else uploads: the budget treats it as either did before.
         val use = if (gets.isNotEmpty() || taken.puts.any { !it.replaceable }) RelayUse.MESSAGE else RelayUse.BACKGROUND
-        val (result, answers) = exchange(use, message = taken.puts.isNotEmpty()) {
+        val (result, answers) = exchange(use, message = taken.puts.isNotEmpty(), request = SatelliteRule.Request.BATCH) {
             val c = open("$b/v1/batch")
             c.requestMethod = "POST"
             c.doOutput = true
@@ -842,7 +857,7 @@ object RelayClient {
         val b = base
         val t = tokens
         val now = System.currentTimeMillis()
-        if (b.isEmpty() || offline || !t.shouldAsk(b, now)) return
+        if (b.isEmpty() || offline || NetState.satellite || !t.shouldAsk(b, now)) return
         t.asking(now)
         background.launch {
             val answer = runCatching {
@@ -923,8 +938,34 @@ object RelayClient {
             field = BuildConfig.TEST_BUILD && v
         }
 
-    /** No network at all (airplane mode, no service), or the test switch: don't even try. */
-    val offline: Boolean get() = (BuildConfig.TEST_BUILD && debugNoInternet) || !NetState.up
+    /**
+     * No network at all (airplane mode, no service), or the test switch: don't even try. A
+     * satellite network counts only when it's allowed ([NetState.up]) and our own relay takes
+     * batches, the one thing that may go over it.
+     */
+    val offline: Boolean get() = (BuildConfig.TEST_BUILD && debugNoInternet) || !NetState.up || (NetState.satellite && !batching)
+
+    /** When the last batch went over satellite (elapsed time); 0 = none yet. Guarded by [satelliteLock]. */
+    private var satelliteBatchAtMs = 0L
+    private val satelliteLock = Any()
+
+    private fun satelliteLastBatch(): Long? = synchronized(satelliteLock) { satelliteBatchAtMs.takeIf { it != 0L } }
+
+    /** Over satellite: has the gap since the last batch passed? */
+    private fun satelliteBatchDue(): Boolean =
+        SatelliteRule.mayGo(constrained = true, allowed = true, SatelliteRule.Request.BATCH, SystemClock.elapsedRealtime(), satelliteLastBatch())
+
+    /**
+     * The satellite rule for one request (only asked on a satellite network): may it go now? A
+     * batch that may goes marks the time, so the next waits two minutes. Allowed = [NetState.up]
+     * there: a satellite network only counts as up for a member who switched it on.
+     */
+    private fun satelliteMayGo(request: SatelliteRule.Request): Boolean = synchronized(satelliteLock) {
+        val now = SystemClock.elapsedRealtime()
+        val ok = SatelliteRule.mayGo(constrained = true, allowed = NetState.up, request, now, satelliteBatchAtMs.takeIf { it != 0L })
+        if (ok && request == SatelliteRule.Request.BATCH) satelliteBatchAtMs = now
+        ok
+    }
 
     /** The free public relay's limits (see core [RelayBudget]). */
     private val publicBudget = RelayBudget()
@@ -984,9 +1025,12 @@ object RelayClient {
         message: Boolean,
         traffic: RelayHolds.Traffic = RelayHolds.Traffic.READS,
         mailbox: String? = null,
+        request: SatelliteRule.Request = SatelliteRule.Request.OTHER,
         call: () -> Pair<Int, T?>,
     ): Pair<PutResult, T?> {
         if (offline) return PutResult.NO_NETWORK to null
+        // Over satellite: only the batch, at most every two minutes (core SatelliteRule). The one gate.
+        if (NetState.satellite && !satelliteMayGo(request)) return PutResult.NO_NETWORK to null
         askToken()
         val b = budget
         val start = SystemClock.elapsedRealtime()

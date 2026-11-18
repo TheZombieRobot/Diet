@@ -17,6 +17,7 @@ import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.SuggestAnswer
 import nz.waveformlabs.moshpoint.core.Suggestion
 import nz.waveformlabs.moshpoint.locate.RelayClient
+import nz.waveformlabs.moshpoint.setup.NetState
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -66,6 +67,8 @@ object DiscoverClient {
     /** One GET, on the IO threads; cancelling the caller interrupts the wait for it. */
     private suspend fun <T> get(path: String, parse: (String) -> T): Answer<T> = withContext(Dispatchers.IO) {
         if (!available) return@withContext Answer.Closed
+        // Never over satellite (docs/REMOVE_SAFETY.md, stage 4): as with no internet, try again later.
+        if (NetState.satellite) return@withContext Answer.Failed
         runCatching {
             runInterruptible {
                 val url = server.trimEnd('/') + path

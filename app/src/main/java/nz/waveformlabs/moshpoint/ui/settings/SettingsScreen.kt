@@ -96,7 +96,7 @@ internal fun SettingsContent(
     alwaysOn: Boolean,
     onAlwaysOn: (Boolean) -> Unit,
     phoneSummary: String,
-    /** A Moshpoint+ member: the Moshpoint+ switches (Text my spot) show. */
+    /** A Moshpoint+ member: the Moshpoint+ switches (Text my spot, satellite data) show. */
     plus: Boolean = false,
 ) {
     var showLicences by remember { mutableStateOf(false) }
@@ -181,7 +181,7 @@ internal fun SettingsContent(
                     Switch(nz.waveformlabs.moshpoint.moments.ShareQuality.dataSaver.value, { nz.waveformlabs.moshpoint.moments.ShareQuality.setDataSaver(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Cyan, checkedThumbColor = Color(0xFF07050F), uncheckedTrackColor = Color(0xFF1C1630)))
                 }
             }
-            // Moshpoint+ (members only; free users don't see these): Text my spot.
+            // Moshpoint+ (members only; free users don't see these): Text my spot, satellite data.
             if (plus) PlusSettings()
             // Test builds only: everyone else uses the app's own server, built in. Nothing to set up.
             if (BuildConfig.TEST_BUILD) run {

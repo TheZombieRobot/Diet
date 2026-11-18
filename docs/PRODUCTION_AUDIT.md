@@ -124,3 +124,8 @@ Then a test build, the field tests in FIELD_TEST_PLAN.md, and the bug-fixing pha
 - **Meta:** switch the app to Live mode and add the key hashes for both signing keys.
 - **Third-party terms:** check Ticketmaster, Bandsintown, Nominatim and OpenFreeMap at launch scale.
 - **Fly.io:** deploy the hardened relay once wave 1 lands (steps will come with it), and set billing alerts.
+- **Satellite data (owner's decision, 16 November 2026; after launch):** on Android 16, carriers
+  decide which apps may use their satellite data, and keep lists. Ask Spark and One NZ to add
+  Moshpoint (`nz.waveformlabs.moshpoint`); the app already says it's built for satellite (its
+  manifest), and sends nothing that way unless a Moshpoint+ member switches "Use satellite when
+  there's no signal" on ([REMOVE_SAFETY.md](REMOVE_SAFETY.md), stage 4).

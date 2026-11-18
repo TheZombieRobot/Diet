@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Portuguese (Brazil): "Use satellite when there's no signal" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 4). -->
+<resources>
+    <string name="satellite_data">Usar satélite quando não houver sinal</string>
+    <string name="satellite_data_setting">Só em planos com dados por satélite. Sua operadora pode cobrar, e é preciso ter o céu à vista, sem obstáculos.</string>
+</resources>

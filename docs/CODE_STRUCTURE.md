@@ -56,8 +56,8 @@ nz/waveformlabs/moshpoint/
   profile/     Identity, PhotoStore, AvatarSync, FacebookLogin
   friends/     Friend + FriendsRepository (Friends.kt), Friendship
   map/         Spots, LocationBook, HerePins
-  setup/       SetupChecks, FinderSetup, NetState
-  sharing/     Sharing, PlanCardImage
+  setup/       SetupChecks, FinderSetup, NetState, SatelliteSwitch, MapNet
+  sharing/     Sharing, PlanCardImage, TextMySpot
   debug/       DebugStatus, FieldRecorder
   locate/ service/ venue/ watch/   unchanged (already packages; several hold manifest classes)
   ui/          the shared kit: Theme, Neon, Buttons, Avatar, DefaultAvatars, Format, Qr
@@ -68,7 +68,7 @@ nz/waveformlabs/moshpoint/
   ui/map/      MapScreen, FriendMap, VenueUi, HereUi
   ui/chat/     CrewChatUi, PrivateChatUi
   ui/moments/  StoryScreen, MomentsUi, CaptureScreen, CameraRollUi
-  ui/settings/ SettingsScreen, Acknowledgements, OnboardingScreen, OfflineDebug
+  ui/settings/ SettingsScreen, PlusSettings, Acknowledgements, OnboardingScreen, OfflineDebug
 ```
 
 Why feature packages: a change to, say, crew chat used to mean finding `CrewChat.kt`,

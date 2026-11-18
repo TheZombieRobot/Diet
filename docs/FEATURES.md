@@ -167,6 +167,13 @@ Android app for finding your mates at gigs and festivals. No accounts.
   Relay server. The invites you share carry it, so your crew switches too.
 - **Public relay is frugal:** location is only sent after moving 25 m, and intros less often
   late in the night, so it lasts a big night.
+- **Use satellite when there's no signal (Moshpoint+):** a Settings switch, off until a member
+  turns it on. On Android 16, where the carrier offers satellite data and lists Moshpoint, crew
+  messages and locations still go when the only network is a satellite one: the small things
+  (locations, pings, chat text, pins, and reading the crew's pings, pins and locations) in one
+  request to our relay at most every two minutes. Photos, clips, faces, Discover, venue maps and
+  the map's tiles wait for a normal network. With the switch off, or for free users, a satellite
+  network counts as no signal, and Bluetooth passes messages on as usual. (untested)
 - **Test builds:** scrambled (R8), about 27 MB, from a public download link. The repo is
   public; there's a proprietary licence.
 

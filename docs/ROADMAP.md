@@ -225,10 +225,12 @@ Moshpoint opens weeks before the gig, not only on the night.
   [REMOVE_SAFETY.md](REMOVE_SAFETY.md)); not yet tried on a phone (FIELD_TEST_PLAN.md, 4m).
 - **Satellite data (owner's decision, 16 November 2026).** "Use satellite when there's no
   signal": on Android 16, where the carrier allows it, the small things (locations, pings, chat
-  text, pins) go over a satellite network when it's the only one. Members only, behind a Settings
-  switch that's off by default; with it off, nothing goes over satellite at all. **Owner to-do
-  after launch:** carriers decide which apps may use satellite data (Spark and One NZ keep app
-  lists): ask to have Moshpoint added. **Status: not built yet** (stage 4 of REMOVE_SAFETY.md).
+  text, pins) go over a satellite network when it's the only one, in the relay's batch at most
+  every two minutes. Members only, behind a Settings switch that's off by default; with it off,
+  nothing goes over satellite at all. **Owner to-do after launch:** carriers decide which apps may
+  use satellite data (Spark and One NZ keep app lists): ask to have Moshpoint added
+  (PRODUCTION_AUDIT.md, Owner to-do). **Status: built** (stage 4 of REMOVE_SAFETY.md); not yet
+  tried on a satellite network (FIELD_TEST_PLAN.md, 4n).
 - **Need help, check-ins and the watch's SOS are removed (owner's decision, 16 November 2026).**
   A gig app doesn't need its own emergency system; people ring emergency services themselves.
   Mates on older builds can still send them: they show as ordinary crew pings

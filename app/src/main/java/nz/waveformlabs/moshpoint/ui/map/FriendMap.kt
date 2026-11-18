@@ -144,7 +144,7 @@ fun FriendMap(
     val currentStyle = remember { arrayOf(style) }
     val wantedStyle = androidx.compose.runtime.rememberUpdatedState(style)
     val mapView = remember {
-        MapLibre.getInstance(context)
+        nz.waveformlabs.moshpoint.setup.MapNet.init(context) // nothing downloaded over satellite
         MapView(context).apply {
             onCreate(null)
             getMapAsync { map ->

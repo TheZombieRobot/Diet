@@ -18,14 +18,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.setup.SatelliteSwitch
 import nz.waveformlabs.moshpoint.sharing.TextMySpot
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.home.PlusChip
 
 /**
- * Settings' Moshpoint+ switches, for members only (free users never see them): Text my spot
- * (docs/REMOVE_SAFETY.md, stage 3). Off until the member turns it on. The small amber Moshpoint+
- * mark on top is the one Plan a gig shows members: quiet, never louder than the switches.
+ * Settings' Moshpoint+ switches, for members only (free users never see them): Text my spot and
+ * "Use satellite when there's no signal" (docs/REMOVE_SAFETY.md, stages 3 and 4). Each is off
+ * until the member turns it on. The small amber Moshpoint+ mark on top is the one Plan a gig
+ * shows members: quiet, never louder than the switches.
  */
 @Composable
 internal fun PlusSettings() {
@@ -33,6 +35,7 @@ internal fun PlusSettings() {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         PlusChip()
         PlusSwitch(stringResource(R.string.spot_text), stringResource(R.string.spot_text_setting), TextMySpot.on.value) { TextMySpot.set(context, it) }
+        PlusSwitch(stringResource(R.string.satellite_data), stringResource(R.string.satellite_data_setting), SatelliteSwitch.on.value) { SatelliteSwitch.set(context, it) }
     }
 }
 

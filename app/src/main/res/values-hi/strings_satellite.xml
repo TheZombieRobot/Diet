@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: "Use satellite when there's no signal" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 4). -->
+<resources>
+    <string name="satellite_data">सिग्नल न होने पर सैटेलाइट इस्तेमाल करें</string>
+    <string name="satellite_data_setting">सिर्फ़ सैटेलाइट डेटा वाले प्लान पर। आपकी कंपनी इसके पैसे ले सकती है, और ऊपर खुला आसमान दिखना चाहिए।</string>
+</resources>

@@ -8,7 +8,7 @@ features (Text my spot, satellite data). Branch: `claude/remove-safety` (from
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 18 November
-2026, 23:55 UTC._
+2026, 23:45 UTC._
 
 - **Done, stage 1 core (52c876a):** core tests green locally (622; server 103), using a scratch
   Gradle build of only `:core` and `:server` (docs/WATCH.md, "Working notes").
@@ -66,7 +66,7 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   - **Screenshots, phone:** byte-identical to run 348's set (no file differs).
   - **Merged manifest:** the same one-line difference as stage 1 (the removed
     `CheckInAlarmReceiver`); `SosActivity` was the watch's. Licence list the same (126).
-- **Done, stage 3 (Text my spot), pushed for CI:**
+- **Done, stage 3 (Text my spot), 7d2f3aa:**
   - Core: `SpotText` builds the text (the line, a Google Maps link and the plain coordinates,
     5 decimals in `Locale.ROOT`; with no usable fix, the "can't tell where I am" line alone),
     with `SpotTextTest`. Core tests green locally (623).
@@ -83,17 +83,50 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   - Docs: FEATURES, ROADMAP (status), PRIVACY, PLAY_STORE (data safety), FIELD_TEST_PLAN 4m.
   - Checked before pushing: translations (both checks), secrets, every `R.string` resolves, and
     the plain-`kotlinc` type-check shows nothing new about our own code against stage 2.
-- **Exact next step:** when the stage 3 run is green: check screenshots (expected: phone all
-  identical to run 349's, plus 84 new: the four `SpotSnapshotTest` screens × 21; watch all
-  identical), look at the new ones in en, de, ar, ja, then stage 4 (satellite switch).
-- **Last green run:** 349 (5203058).
+- **Stage 3 is green: CI run 350 on 7d2f3aa.**
+  - **Screenshots, phone:** against run 349's set, 84 new files and nothing else changed:
+    `textMySpot`, `smallPhoneLargeFontTextMySpot`, `settingsPlus` and
+    `smallPhoneLargeFontPlusSettings`, × 21. Looked at in en, de, ar and ja: the violet button
+    ends the ping row (Arabic: at the left end, as it should), the Moshpoint+ mark and the switch
+    sit after Data saver, nothing is cut off on a small phone with large text.
+  - **Screenshots, watch:** identical to run 349's.
+  - Noticed, not changed: in Arabic the Moshpoint+ mark reads "+Moshpoint" (the plus moves to
+    the other end in right-to-left text). The main branch's Plan a gig does the same.
+- **Done, stage 4 (satellite data), pushed for CI:**
+  - Core: `SatelliteRule` (with `SatelliteRuleTest`): a satellite network is one without
+    `NET_CAPABILITY_NOT_BANDWIDTH_CONSTRAINED` on Android 16 (every other network has it), or
+    with `TRANSPORT_SATELLITE` from Android 15; older phones never. Allowed = the switch on and
+    a member. Over satellite only `Request.BATCH`, at most every two minutes; any other network:
+    everything, as before. Core tests green locally (632).
+  - Manifest: `<meta-data android:name="android.telephony.PROPERTY_SATELLITE_DATA_OPTIMIZED"
+    android:value="${applicationId}"/>` in the app's `<application>`.
+  - App: `setup/SatelliteSwitch` (stored in `satellite_data`, off by default, members only);
+    `NetState.satellite`, and a satellite network counts as no network (`NetState.up` false)
+    unless allowed. The one gate is `RelayClient.exchange`: over satellite it lets only the batch
+    through, two minutes apart (the batch flusher and the crew sync wait for the gap instead of
+    failing; a crew message waits up to 2½ minutes for its batch). `RelayClient.offline` is also
+    true over satellite without our own relay's batches (the free public relay has none), so
+    nothing goes there. Also kept off satellite: Discover, venue lookups, venue maps (`online`),
+    the map's tiles and venue-map downloads (`setup/MapNet` tells MapLibre there's no network,
+    only while on satellite), Facebook (login and photo), reports, the install token.
+  - Settings: the satellite switch under Text my spot, in the Moshpoint+ section. Strings:
+    `strings_satellite.xml`, 2 strings in all 20 languages.
+  - Docs: PRODUCTION_AUDIT (owner to-do: Spark and One NZ's app lists), ROADMAP (status),
+    FEATURES, PRIVACY, FIELD_TEST_PLAN 4n, ARCHITECTURE, CODE_STRUCTURE.
+  - Checked before pushing: translations (both checks), secrets, the type-check against stage 3
+    (nothing new about our own code).
+- **Exact next step:** when the stage 4 run is green: check screenshots (expected: phone all
+  identical to run 350's except the two Moshpoint+ Settings tests, which gain the satellite
+  switch, × 21; watch identical) and the merged manifest (the meta-data isn't in the report's
+  list, so the same one line as before), then stage 5 (the receiving end of Text my spot).
+- **Last green run:** 350 (7d2f3aa).
 
 ### Stages (each must be green in CI before the next)
 
 1. Phone removal and interop. **Done, green: run 348.**
 2. Watch removal. **Done, green: run 349.**
-3. Text my spot. (pushed, CI running)
-4. Satellite switch.
+3. Text my spot. **Done, green: run 350.**
+4. Satellite switch. (pushed, CI running)
 5. **Added 18 November 2026 (relayed by the session that started this one, as the owner's):**
    the receiving end of Text my spot.
    - **The link,** built in core with tests: `https://<relay host>/spot#<lat>,<lon>[,<name>]`.
@@ -152,6 +185,22 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 - **The Moshpoint+ pattern used:** the small amber Moshpoint+ mark (`PlusChip`, as Plan a gig
   shows members) above the Moshpoint+ switches in Settings. Free users see neither the switch
   nor the button, and nothing invites them to pay (no new paywall screen).
+- **Satellite: off means off.** With the switch off, or for a free user, a satellite network
+  counts as no network at all (`NetState.up` false), so the app behaves exactly as with no
+  signal: messages wait, Bluetooth passes them on, nothing is tried over satellite.
+- **Satellite: one gate, plus the few that don't go through the relay.** Everything to our relay
+  goes through `RelayClient.exchange`, the gate. The few that reach the internet without it
+  (Discover, venue lookups, venue maps, the map's tiles, Facebook) each check
+  `NetState.satellite` and wait for a normal network, also when the switch is on.
+- **Satellite: one batch every two minutes carries both ways.** The crew sync's batch takes
+  everything waiting to go up with it, so one request sends and reads (pings, pins, locations,
+  intros). Chat lines go up in it too, but reading the crew chat is a request of its own, so a
+  member on satellite gets mates' chat lines by Bluetooth or once there's normal signal (open
+  question 5).
+- **Satellite: the free public relay gets nothing over it.** It has no batches, the only thing
+  allowed; members use our own relay, which has them.
+- **Satellite: MapLibre is only told anything while on satellite** (`MapNet`: "no network",
+  then back to Android's own answer), so on normal networks the map works exactly as before.
 
 ## Open questions
 
@@ -169,3 +218,6 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 4. **"What's in Moshpoint+"** (the list free users can open from Plan a gig) doesn't mention
    Text my spot or satellite data, because free users aren't meant to see them. Add a row for
    each?
+5. **Reading the crew chat over satellite.** Sending works (chat lines go in the batch), but
+   reading is the chat's own poll, which stays off satellite. Move the chat poll into the
+   two-minute batch too? That's more data over satellite each time.

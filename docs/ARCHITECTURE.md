@@ -101,7 +101,7 @@ where everything moved in the tidy-up, is in docs/CODE_STRUCTURE.md.
 | `service/VisibilityService.kt` | Foreground service (type `connectedDevice`) that keeps us findable with the app closed: runs the finder's `Findable` (the advert, swapped every rotation; on UWB phones the listen for lookers and `UwbResponder`) and the gig work around it. |
 | `service/BootReceiver.kt` | Turns visibility back on after a reboot, only if the user chose "always on". |
 | `ui/finder/FinderScreen.kt` | No-signal state, one arrow per friend with avatar and distance, Scan flow. |
-| `ui/home/FriendsScreen.kt` | The home screen (docs/HOME_REDESIGN.md): header with Need help, the Live switch, tonight's crew (faces, Find everyone, crew chat, photos, meet-up), the crew menu (invite, family, reset, end the night), Up next, memories, past gigs, friends. Its inputs are grouped in `FriendsScreenState.kt`; its sections are in `HomeSections.kt`, `HomeHeroes.kt`, `HomeGigLists.kt`, `HomePanels.kt` and `HomeBar.kt`, the building blocks in `HomeKit.kt`, `HomeButtons.kt`, `HomeFaces.kt` and `HomeSheets.kt` (all in `ui/home/`). |
+| `ui/home/FriendsScreen.kt` | The home screen (docs/HOME_REDESIGN.md): header (the wordmark), the Live switch, tonight's crew (faces, Find everyone, crew chat, photos, meet-up), the crew menu (invite, family, reset, end the night), Up next, memories, past gigs, friends. Its inputs are grouped in `FriendsScreenState.kt`; its sections are in `HomeSections.kt`, `HomeHeroes.kt`, `HomeGigLists.kt`, `HomePanels.kt` and `HomeBar.kt`, the building blocks in `HomeKit.kt`, `HomeButtons.kt`, `HomeFaces.kt` and `HomeSheets.kt` (all in `ui/home/`). |
 | `friends/Friends.kt` | `FriendsRepository`: saved to `friends.tsv` in app-private storage. |
 
 ## Methods: status and plan
@@ -144,13 +144,14 @@ route works:
 |---|---|
 | `core/Courier.kt` | All the delivery logic: the outbox, messages carried for crew mates, duplicates (by message id), the states Waiting / Sent nearby / Sent, what to upload and when, what to put on air. Plain synchronous code with the clock passed in, so `CourierSimTest` steps several phones through a night. |
 | `core/MessagePacket.kt` | Version 2 of the relay packet (a sealed message instead of a location; older phones drop it), fragments for long chat lines, `MessageRelay` (what a stranger's phone passes on, and its limits), `RelaySchedule` (whose turn it is in the relay's one advertising set). |
-| `core/MessageRules.kt` | Small rules, each tested: `MessageClock` (order), `PinRule`, `PingPolicy` (staleness per kind; Need help is never dropped), `OutboxState` (states only move forward), `IntroForms`. |
+| `core/MessageRules.kt` | Small rules, each tested: `MessageClock` (order), `PinRule`, `PingPolicy` (staleness per kind; an older build's Need help, Check in and Home safe are ordinary pings), `OutboxState` (states only move forward), `IntroForms`. |
 | `core/CheckIns.kt` | Removed with check-ins (owner's decision, 16 November 2026; docs/REMOVE_SAFETY.md). |
 | `core/RekeyPolicy.kt` | Who may move a crew to a new key, and which notice a phone follows. In a crew with an owner (`GigGroup.owned`: its key is a hash of the creator's key and a salt), only the owner, to a key bound to an owner. |
 | `core/RelayBudget.kt` | The relay's daily and per-minute limits; only charged when the relay answers. |
 | `core/GigGroup.kt` | `messageId` (one id for every copy of a message), the signed pin, the `mp2` envelope for receipts and summaries, the intro form with no constant prefix. |
 | `app/OfflineMessages.kt` | Connects the courier to the phone: uploads through `RelayClient` to the mailbox valid at that moment, packets in and out through `CrowdRelayRadio`, arrivals and states into `CrewChat` and `GroupSync`. Also the test builds' route log. |
-| `app/NetState.kt` | Whether the phone has a network at all, so nothing is tried (or charged) without one. |
+| `app/NetState.kt` | Whether the phone has a network at all, so nothing is tried (or charged) without one, and whether it's a satellite one (a satellite network counts only for a Moshpoint+ member who switched it on: `SatelliteSwitch`). |
+| `core/SatelliteRule.kt` | Satellite data (Android 16, docs/REMOVE_SAFETY.md, stage 4): what counts as a satellite network, and what may go over one: nothing unless a member switched it on, then only the relay's batch, at most every two minutes. `RelayClient.exchange` is the one gate; Discover, venue lookups and maps, the map's tiles (`MapNet`) and Facebook never use one. |
 | `finder/…/locate/CrowdRelayRadio.kt` | The relay's advertising set now takes turns between locations and message packets (the app plugs `OfflineMessages` in as the finder's `relayLane`). |
 | `app/ui/OfflineDebug.kt` | Test builds: the "Force no internet" switch and the message route list in Settings. |
 
@@ -261,12 +262,12 @@ reasons are in [WATCH.md](WATCH.md). Where the code is:
 |---|---|
 | `core/watch/WristArrow.kt` | The arrow maths: the watch's own compass plus the declination the phone sends gives true north; the tilt gate (arrow only within 40° of flat, held to 50°); how old a reading is without comparing clocks; when an arrow is only "rough". |
 | `core/watch/WristDirections.kt` | Which methods' directions still mean anything with the phone in a pocket (GPS and crowd relay do; UWB, spin scan and walk don't unless the phone is held as a finder), then the ordinary `MethodArbiter` over what's left. |
-| `core/watch/BuzzPlan.kt` | Which buzz to play and when: ticks that quicken as you close in, "facing them", "wrong way", "found", "lost the phone". Never more than one second of motor in ten. Also the two-second hold for Need help. |
-| `core/watch/WatchProtocol.kt`, `WatchState.kt`, `FindLease.kt`, `WatchGate.kt`, `WristDistance.kt`, `WristText.kt` | The versioned messages between phone and watch, the crew status the watch shows, the lease that keeps the phone finding only while the watch asks, the one rule for what Moshpoint+ covers (never Need help), distances in the watch's units, how text may wrap on a small round screen. |
-| `wear/` | The watch app (Compose for Wear OS): crew list, finder, Need help, the tile and the watch-face complication, the compass, the buzzer, the foreground service that holds a find. Same application id and signing key as the phone app. |
+| `core/watch/BuzzPlan.kt` | Which buzz to play and when: ticks that quicken as you close in, "facing them", "wrong way", "found", "lost the phone". Never more than one second of motor in ten. |
+| `core/watch/WatchProtocol.kt`, `WatchState.kt`, `FindLease.kt`, `WatchGate.kt`, `WristDistance.kt`, `WristText.kt` | The versioned messages between phone and watch, the crew status the watch shows, the lease that keeps the phone finding only while the watch asks, the one rule for what Moshpoint+ covers (everything on the watch), distances in the watch's units, how text may wrap on a small round screen. |
+| `wear/` | The watch app (Compose for Wear OS): crew list, finder, quick messages, the tile and the watch-face complication, the compass, the buzzer, the foreground service that holds a find. Same application id and signing key as the phone app. |
 | `app/…/watch/WatchLinkService.kt` | The phone's listener on the Wear Data Layer. Play services starts it when the watch speaks, app open or not. |
 | `app/…/watch/WatchFind.kt`, `WatchFinderService.kt`, `PhoneFinderBridge.kt`, finder `PocketFinder.kt` | Finding for the watch: a cut-down finder that works with the screen off and the phone in a pocket, inside a foreground service that stops when the watch stops asking. If the phone's own finder is running, the watch is fed from it through a read-only bridge instead (`MainActivity` registers the finder with it). |
-| `app/…/watch/WatchPings.kt` | Quick messages and Need help from the wrist, through `GroupSync.sendPing`. The watch is told what the outbox says: sent, sent nearby, or not sent yet. |
+| `app/…/watch/WatchPings.kt` | Quick messages from the wrist, through `GroupSync.sendPing` (an older watch's Need help is answered "not sent"). The watch is told what the outbox says: sent, sent nearby, or not sent yet. |
 | `app/…/watch/WatchSync.kt`, `Entitlements.kt` | Pushes crew status and faces to the watch when they change (never polled), and the one Moshpoint+ check. |
 
 - The watch gets only what its screen shows: names, colours, small faces, distances, a

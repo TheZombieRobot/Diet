@@ -1055,6 +1055,25 @@ billing exists, so any test build shows it.
 - [ ] Optional, a phone with satellite texting (Android 15+ on a carrier that offers it) and no
   signal: the texting app offers to send it by satellite. Note the carrier and what it says.
 
+## 4n. Satellite data (Moshpoint+; an Android 16 phone with satellite data, 30 min)
+
+New on 18 November 2026 (docs/REMOVE_SAFETY.md, stage 4). Needs a carrier that offers satellite
+data to apps and lists Moshpoint (owner to-do, docs/PRODUCTION_AUDIT.md), an Android 16 phone that
+supports it, a build with our own relay (`MOSHPOINT_SERVER`), and open sky away from any mobile
+signal. **A** is that phone; **B** is a mate with normal signal, in A's crew.
+
+- [ ] Settings on A: **Use satellite when there's no signal** is off, under the Moshpoint+ mark.
+- [ ] Switch off, only satellite: A sends a ping and a chat line. They wait ("Waiting for
+  signal"); the chat says "No signal". Nothing reaches B except by Bluetooth. With adb, `adb shell
+  dumpsys netstats` (or the carrier's usage page) shows no satellite data used by Moshpoint.
+- [ ] Switch on: within about two minutes B gets the ping and the chat line, and A's spot on B's
+  map moves. B sends a ping and drops a pin: A gets both within about two minutes. A doesn't get
+  B's chat lines until it has normal signal (or B is close enough for Bluetooth).
+- [ ] Still on satellite: a photo or clip from A waits, the map shows only what's saved, and
+  Plan a gig's search says it can't search right now. Nothing big downloads.
+- [ ] Back to normal signal: everything that waited goes, as usual, within a minute.
+- [ ] Note how long each message took, and what the carrier charged, if it shows.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).

@@ -75,7 +75,7 @@ open class SpotSnapshotTest {
         snapMessage()
     }
 
-    /** Settings for a Moshpoint+ member: the Moshpoint+ mark, then Text my spot (off) after Data saver. */
+    /** Settings for a Moshpoint+ member: the Moshpoint+ mark, then Text my spot and satellite data (both off) after Data saver. */
     @Test fun settingsPlus() = snap {
         MoshTheme {
             Box(Modifier.background(Mosh.Deep)) {

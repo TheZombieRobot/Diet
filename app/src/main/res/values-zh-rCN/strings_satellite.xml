@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chinese (Simplified): "Use satellite when there's no signal" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 4). -->
+<resources>
+    <string name="satellite_data">没有信号时使用卫星</string>
+    <string name="satellite_data_setting">仅限含卫星数据的套餐。运营商可能收费，且需要能看到开阔的天空。</string>
+</resources>
