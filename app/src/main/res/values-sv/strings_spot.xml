@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">Sms:a min plats</string>
+    <string name="spot_text_setting">Öppnar meddelandeappen med din plats, redo att skicka. Sms via satellit kan kosta extra med vissa abonnemang.</string>
+    <string name="spot_text_line">Jag är här:</string>
+    <string name="spot_text_no_fix">Min telefon vet inte var jag är just nu.</string>
+    <string name="spot_text_no_app">Den här telefonen har ingen meddelandeapp.</string>
+</resources>

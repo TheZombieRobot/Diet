@@ -96,6 +96,8 @@ internal fun CrewChatScreen(
     offlineHint: String? = null,
     /** Holding someone else's message: block (and report) them (docs/REPORT_BLOCK.md). Null = not offered. */
     onLineOptions: ((CrewChat.Line) -> Unit)? = null,
+    /** "Text my spot" after the pings (Moshpoint+, switched on in Settings). Null = not shown. */
+    onTextSpot: (() -> Unit)? = null,
 ) {
     BackHandler(onBack = onBack)
     var draft by remember { mutableStateOf("") }
@@ -178,7 +180,7 @@ internal fun CrewChatScreen(
         }
         if (!readOnly) {
             Column(Modifier.background(Mosh.Deep).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (nightTools) PingBar(onPing = onPing)
+                if (nightTools) PingBar(onPing = onPing, onTextSpot = onTextSpot)
                 else Text(
                     stringResource(R.string.crew_chat_night_tools_later),
                     style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 4.dp),

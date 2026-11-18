@@ -96,6 +96,14 @@ Android app for finding your mates at gigs and festivals. No accounts.
   minutes, and the vibe shows under your tile. (untested)
 - **Plan card:** the gig, the plan, the meet-up and who's coming, as a shareable picture.
 - **Crew pings:** On my way, Where are you?, Stay put, Meet at the pin, All good.
+- **Text my spot (Moshpoint+):** for members who switch it on in Settings (it's off until they
+  do), a violet button after the pings, in Message crew and in the crew chat. It opens the
+  phone's own texting app with a text already written: "Here's my spot:", a Google Maps link and
+  the plain coordinates (5 decimals), which still make sense with no data. You pick who gets it
+  and press Send: Moshpoint never sends or reads a text itself and asks for no SMS permission.
+  With no location fix the text says so plainly; on a phone with no texting app (a tablet) the
+  button says so. With no signal, a phone whose carrier texts by satellite sends it that way
+  (some plans charge for it). (untested)
 - **Removed (owner's decision, 16 November 2026):** Need help (the crew alert, the text to an
   emergency contact, the Call 111 button, the satellite SOS hint) and Check In ("Heading home"
   with a timer, "I'm home safe", the overdue alert). A gig app doesn't need its own emergency

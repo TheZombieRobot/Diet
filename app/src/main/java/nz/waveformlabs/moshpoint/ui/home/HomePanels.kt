@@ -2,6 +2,7 @@ package nz.waveformlabs.moshpoint.ui.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -176,9 +177,13 @@ internal fun CrewMenuContent(
     }
 }
 
-/** One-tap messages to the whole crew. */
+/**
+ * One-tap messages to the whole crew. [onTextSpot]: "Text my spot" last in the row (Moshpoint+,
+ * switched on in Settings; null = not shown): it opens the phone's texting app, so it's violet,
+ * not a ping's cyan, and never turns into "Sent".
+ */
 @Composable
-internal fun PingBar(onPing: (Int) -> Unit) {
+internal fun PingBar(onPing: (Int) -> Unit, onTextSpot: (() -> Unit)? = null, scroll: ScrollState = rememberScrollState()) {
     var sent by remember { mutableStateOf<Int?>(null) }
     val items = listOf(
         GigGroup.Ping.COMING to stringResource(R.string.home_ping_on_my_way),
@@ -188,13 +193,14 @@ internal fun PingBar(onPing: (Int) -> Unit) {
         GigGroup.Ping.ALL_GOOD to stringResource(R.string.home_ping_all_good),
     )
     val sentLabel = stringResource(R.string.home_ping_sent)
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(Modifier.horizontalScroll(scroll), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items.forEach { (kind, label) ->
             PingChip(if (sent == kind) sentLabel else label, if (sent == kind) Mosh.Lime else Mosh.Cyan) {
                 onPing(kind)
                 sent = kind
             }
         }
+        if (onTextSpot != null) PingChip(stringResource(R.string.spot_text), Mosh.Violet, onTextSpot)
     }
 }
 
@@ -283,17 +289,21 @@ internal fun AddSheetContent(
     }
 }
 
-/** Everything you can tell the crew in one tap, in one panel. */
+/** Everything you can tell the crew in one tap, in one panel. [onTextSpot]: see [PingBar]. */
 @Composable
-internal fun MessageSheet(onPing: (Int) -> Unit, onClose: () -> Unit) {
-    MoshSheet(onClose = onClose) {
-        Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(start = HomeSide, end = HomeSide, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Text(stringResource(R.string.home_message_crew), style = HomeType.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
-            Text(stringResource(R.string.home_message_crew_text), style = HomeType.Body)
-            PingBar(onPing = { onPing(it) })
-        }
+internal fun MessageSheet(onPing: (Int) -> Unit, onClose: () -> Unit, onTextSpot: (() -> Unit)? = null) {
+    MoshSheet(onClose = onClose) { MessageSheetContent(onPing, onTextSpot) }
+}
+
+/** The Message crew panel's contents (separate so it can be screenshot-tested; [pings]: the row's scroll). */
+@Composable
+internal fun MessageSheetContent(onPing: (Int) -> Unit, onTextSpot: (() -> Unit)?, pings: ScrollState = rememberScrollState()) {
+    Column(
+        Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(start = HomeSide, end = HomeSide, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Text(stringResource(R.string.home_message_crew), style = HomeType.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
+        Text(stringResource(R.string.home_message_crew_text), style = HomeType.Body)
+        PingBar(onPing = { onPing(it) }, onTextSpot = onTextSpot, scroll = pings)
     }
 }

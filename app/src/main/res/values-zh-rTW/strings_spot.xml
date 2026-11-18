@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chinese (Traditional): "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">簡訊傳我的位置</string>
+    <string name="spot_text_setting">打開簡訊 App 並附上你的位置，可以直接傳送。部分方案透過衛星傳簡訊可能另外收費。</string>
+    <string name="spot_text_line">我在這裡：</string>
+    <string name="spot_text_no_fix">我的手機現在定位不到我在哪裡。</string>
+    <string name="spot_text_no_app">這支手機沒有簡訊 App。</string>
+</resources>

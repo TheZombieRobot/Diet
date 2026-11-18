@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">Mijn locatie sms\'en</string>
+    <string name="spot_text_setting">Opent je berichtenapp met je locatie, klaar om te versturen. Sms\'jes via satelliet kunnen bij sommige abonnementen extra kosten.</string>
+    <string name="spot_text_line">Ik ben hier:</string>
+    <string name="spot_text_no_fix">Mijn telefoon weet nu niet waar ik ben.</string>
+    <string name="spot_text_no_app">Deze telefoon heeft geen berichtenapp.</string>
+</resources>

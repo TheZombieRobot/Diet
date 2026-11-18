@@ -51,6 +51,7 @@ import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.safety.GhostMode
 import nz.waveformlabs.moshpoint.safety.Housekeeping
 import nz.waveformlabs.moshpoint.safety.Notices
+import nz.waveformlabs.moshpoint.sharing.TextMySpot
 import nz.waveformlabs.moshpoint.service.LiveControl
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.venue.Floors
@@ -160,6 +161,7 @@ class MainActivity : ComponentActivity() {
         Spots.init(this)
         GhostMode.init(this)
         ShareQuality.init(this)
+        TextMySpot.init(this)
         DebugStatus.initUi(this)
         GroupSync.load(this)
         VenueMaps.sync(this) // the venue's street map saves itself for every crew we're in

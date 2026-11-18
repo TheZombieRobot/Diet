@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">ส่งตำแหน่งทาง SMS</string>
+    <string name="spot_text_setting">เปิดแอปข้อความพร้อมตำแหน่งของคุณ พร้อมส่งทันที SMS ผ่านดาวเทียมอาจมีค่าใช้จ่ายเพิ่มในบางแพ็กเกจ</string>
+    <string name="spot_text_line">อยู่ตรงนี้:</string>
+    <string name="spot_text_no_fix">ตอนนี้มือถือหาตำแหน่งไม่ได้</string>
+    <string name="spot_text_no_app">มือถือเครื่องนี้ไม่มีแอปข้อความ</string>
+</resources>

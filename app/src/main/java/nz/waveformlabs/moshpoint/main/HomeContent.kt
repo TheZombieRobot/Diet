@@ -44,6 +44,7 @@ import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.safety.GhostMode
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.sharing.Sharing
+import nz.waveformlabs.moshpoint.sharing.TextMySpot
 import nz.waveformlabs.moshpoint.ui.countdown
 import nz.waveformlabs.moshpoint.ui.gigWhen
 import nz.waveformlabs.moshpoint.ui.home.FriendsScreen
@@ -75,6 +76,7 @@ internal fun HomeContent(a: MainActivity) {
             setupIssues = a.permissions.setupIssues,
             myName = a.home.myName,
             ghost = GhostMode.on.value,
+            plus = Entitlements.plus(a),
         ),
         crew = HomeCrew(
             friends = FriendsRepository.friends,
@@ -185,6 +187,8 @@ internal fun HomeContent(a: MainActivity) {
                 val loc = a.lastKnownLocation()
                 GroupSync.sendPing(a, kind, loc?.latitude, loc?.longitude)
             },
+            // Text my spot (Moshpoint+, switched on in Settings): the texting app, ready to send.
+            onTextSpot = if (TextMySpot.shown(a)) ({ TextMySpot.open(a) }) else null,
             describePing = GroupSync::pingText,
             onShareMoment = a.momentFlow::start,
             onOpenStory = { a.story.showStory = true },

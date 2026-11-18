@@ -22,6 +22,8 @@ class HomeMe(
     val missingPermissions: List<String>,
     val setupIssues: List<SetupIssue> = emptyList(),
     val ghost: Boolean = false,
+    /** A Moshpoint+ member: Settings offers Text my spot. */
+    val plus: Boolean = false,
 )
 
 /** Tonight's crew and your friends: who's in, where they are, and what the crew has sent. */
@@ -108,6 +110,8 @@ class HomeCrewActions(
     /** Snap Map style view of where everyone is. */
     val onOpenMap: () -> Unit = {},
     val onPing: (Int) -> Unit = {},
+    /** "Text my spot" after the pings (Moshpoint+, switched on in Settings): opens the texting app. Null = not shown. */
+    val onTextSpot: (() -> Unit)? = null,
     val describePing: (Int) -> String = { Txt.s(R.string.home_ping_default) },
     val onShareMoment: () -> Unit = {},
     val onOpenMoment: (Moments.Item) -> Unit = {},

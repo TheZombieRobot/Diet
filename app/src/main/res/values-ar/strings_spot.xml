@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">أرسل مكاني برسالة</string>
+    <string name="spot_text_setting">يفتح تطبيق الرسائل مع مكانك، جاهزًا للإرسال. قد تُحتسب رسوم إضافية على الرسائل عبر الأقمار الصناعية في بعض الباقات.</string>
+    <string name="spot_text_line">هذا مكاني:</string>
+    <string name="spot_text_no_fix">هاتفي لا يستطيع تحديد مكاني الآن.</string>
+    <string name="spot_text_no_app">لا يوجد على هذا الهاتف تطبيق رسائل.</string>
+</resources>

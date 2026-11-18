@@ -1034,6 +1034,27 @@ For each tick that failed: what you did, what you saw, and roughly when (so it c
 the debug log); and Moshpoint's
 mobile data use for parts C and D on A and B.
 
+## 4m. Text my spot (Moshpoint+; one phone in a crew, a mate's number, 10 min)
+
+New on 18 November 2026 (docs/REMOVE_SAFETY.md, stage 3). Moshpoint+ is on for everyone until
+billing exists, so any test build shows it.
+
+- [ ] Settings: under the small amber **Moshpoint+** mark, **Text my spot** is off. Message crew
+  and the crew chat show the five pings only.
+- [ ] Switch it on. Message crew: after **All good** (scroll the row) there's a violet **Text my
+  spot**. The crew chat shows it in the same place.
+- [ ] Outdoors with a fix: tap it. The phone's texting app opens with no one chosen and the text
+  ready: "Here's my spot:", a Google Maps link, then the coordinates (5 decimals, with a dot even
+  in German or French). Pick a mate and send: the link opens the spot in their maps; the
+  coordinates paste into any map.
+- [ ] Indoors, location off (or no fix for 10 minutes): tap it. The text is "My phone can't tell
+  where I am right now." and nothing else.
+- [ ] A tablet with no texting app (if you have one): tap it. "This phone has no texting app."
+- [ ] Android, Settings → Apps → Moshpoint → Permissions: still no SMS permission.
+- [ ] Switch it off: the button is gone from both places. Restart the app: it stays off.
+- [ ] Optional, a phone with satellite texting (Android 15+ on a carrier that offers it) and no
+  signal: the texting app offers to send it by satellite. Note the carrier and what it says.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).

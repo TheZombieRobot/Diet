@@ -115,6 +115,7 @@ fun FriendsScreen(
             onSelfie = meActions.onSelfie, onPickMyPhoto = meActions.onPickMyPhoto, onRemoveMyPhoto = meActions.onRemoveMyPhoto, onFacebook = meActions.onFacebook,
             alwaysOn = me.alwaysOn, onAlwaysOn = meActions.onAlwaysOn,
             phoneSummary = me.phoneSummary,
+            plus = me.plus,
             onClose = { settingsOpen = false },
         )
     }
@@ -206,7 +207,7 @@ fun FriendsScreen(
         }
     }
 
-    if (messageOpen) MessageSheet(onPing = { crewActions.onPing(it) }, onClose = { messageOpen = false })
+    if (messageOpen) MessageSheet(onPing = { crewActions.onPing(it) }, onClose = { messageOpen = false }, onTextSpot = crewActions.onTextSpot)
     if (addOpen) {
         AddSheet(
             inCrew = crew.groupName != null,

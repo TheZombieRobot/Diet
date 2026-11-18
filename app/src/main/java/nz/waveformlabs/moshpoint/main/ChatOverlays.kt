@@ -26,6 +26,7 @@ import nz.waveformlabs.moshpoint.moderation.Person
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
+import nz.waveformlabs.moshpoint.sharing.TextMySpot
 import nz.waveformlabs.moshpoint.ui.chat.CrewChatScreen
 import nz.waveformlabs.moshpoint.ui.chat.PrivateChatScreen
 import nz.waveformlabs.moshpoint.ui.countdown
@@ -100,6 +101,8 @@ internal fun ChatOverlays(a: MainActivity) {
                 val loc = a.lastKnownLocation()
                 GroupSync.sendPing(a, kind, loc?.latitude, loc?.longitude)
             },
+            // Text my spot (Moshpoint+, switched on in Settings): the texting app, ready to send.
+            onTextSpot = if (TextMySpot.shown(a)) ({ TextMySpot.open(a) }) else null,
             onSharePlan = { a.chat.sharePlanCard() },
             onOpenMap = { a.chat.closeChat(); a.map.openMap() },
             onBack = { a.chat.closeChat() },

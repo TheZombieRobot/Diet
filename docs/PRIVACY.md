@@ -33,6 +33,11 @@ that contact's name and phone number on your phone for it. That feature has been
 app deletes a contact saved that way the first time it opens after updating, and never sends a
 text itself.
 
+Text my spot (Moshpoint+, only if you switch it on in Settings) opens your own texting app with
+your location already written in: a map link and the coordinates. You choose who gets it and
+press Send yourself. Moshpoint doesn't see the text or who it goes to, keeps no copy, and needs
+no SMS permission.
+
 ## What goes to your watch (only if you install the watch app)
 
 If you put Moshpoint on a Wear OS watch that is paired with your phone, your phone sends the

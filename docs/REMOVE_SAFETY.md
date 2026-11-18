@@ -8,7 +8,7 @@ features (Text my spot, satellite data). Branch: `claude/remove-safety` (from
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 18 November
-2026, 23:35 UTC._
+2026, 23:55 UTC._
 
 - **Done, stage 1 core (52c876a):** core tests green locally (622; server 103), using a scratch
   Gradle build of only `:core` and `:server` (docs/WATCH.md, "Working notes").
@@ -66,15 +66,33 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   - **Screenshots, phone:** byte-identical to run 348's set (no file differs).
   - **Merged manifest:** the same one-line difference as stage 1 (the removed
     `CheckInAlarmReceiver`); `SosActivity` was the watch's. Licence list the same (126).
-- **In progress, stage 3 (Text my spot):** written, not yet pushed for CI.
-- **Exact next step:** finish stage 3 (core tests, type-check, docs), push it for CI.
+- **Done, stage 3 (Text my spot), pushed for CI:**
+  - Core: `SpotText` builds the text (the line, a Google Maps link and the plain coordinates,
+    5 decimals in `Locale.ROOT`; with no usable fix, the "can't tell where I am" line alone),
+    with `SpotTextTest`. Core tests green locally (623).
+  - App: `sharing/TextMySpot` (the switch, stored in `text_my_spot`, off by default; members
+    only through `Entitlements.plus`; opens `ACTION_SENDTO` `smsto:` with no number and the text
+    in `sms_body`; "This phone has no texting app." when nothing can send one). The violet
+    button is the last in the ping row (`PingBar`), so it shows in Message crew and in the crew
+    chat. Settings: `ui/settings/PlusSettings` after Data saver, members only, under the small
+    amber Moshpoint+ mark. Strings: `strings_spot.xml`, 5 strings in all 20 languages.
+  - Screenshot tests: `SpotSnapshotTest` (21 languages): `textMySpot` and
+    `smallPhoneLargeFontTextMySpot` (Message crew over the crew home, the row scrolled to its
+    end), `settingsPlus` (Settings as a member sees it) and `smallPhoneLargeFontPlusSettings` (the
+    Moshpoint+ section alone). `settingsSheet` stays the free user's view, so it shouldn't change.
+  - Docs: FEATURES, ROADMAP (status), PRIVACY, PLAY_STORE (data safety), FIELD_TEST_PLAN 4m.
+  - Checked before pushing: translations (both checks), secrets, every `R.string` resolves, and
+    the plain-`kotlinc` type-check shows nothing new about our own code against stage 2.
+- **Exact next step:** when the stage 3 run is green: check screenshots (expected: phone all
+  identical to run 349's, plus 84 new: the four `SpotSnapshotTest` screens × 21; watch all
+  identical), look at the new ones in en, de, ar, ja, then stage 4 (satellite switch).
 - **Last green run:** 349 (5203058).
 
 ### Stages (each must be green in CI before the next)
 
 1. Phone removal and interop. **Done, green: run 348.**
 2. Watch removal. **Done, green: run 349.**
-3. Text my spot. (in progress)
+3. Text my spot. (pushed, CI running)
 4. Satellite switch.
 5. **Added 18 November 2026 (relayed by the session that started this one, as the owner's):**
    the receiving end of Text my spot.
@@ -123,7 +141,17 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 - **No permission was used only by these features:** the text and the call went through
   `ACTION_SENDTO` and `ACTION_DIAL`, which need none. The manifest loses only the receiver.
 - **Text my spot reuses the emergency SMS's text code** (`Safety.helpText` at 75fe2fb: the
-  maps link at 5 decimals, `Locale.ROOT`); it moves into core in stage 3.
+  maps link at 5 decimals, `Locale.ROOT`), moved into core as `SpotText` and tested there. Like
+  the old text, with no fix it leaves the link out and says so ("My phone can't tell where I am
+  right now."), and still opens the texting app, so the person can say where they are in words.
+- **Where Text my spot is: the last button in the ping row,** in violet (the slot "Heading home"
+  had). That row is where every crew ping is sent from, in Message crew and in the crew chat, so
+  one change puts it in both. It isn't a ping (it leaves the app and never turns into "Sent"),
+  hence its own colour. Only members who switched it on see it, so they know it's there; with it
+  off, the row and every existing screen are exactly as before.
+- **The Moshpoint+ pattern used:** the small amber Moshpoint+ mark (`PlusChip`, as Plan a gig
+  shows members) above the Moshpoint+ switches in Settings. Free users see neither the switch
+  nor the button, and nothing invites them to pay (no new paywall screen).
 
 ## Open questions
 
@@ -138,3 +166,6 @@ _Keep this section current: whoever picks this up next starts here. Last updated
    (`WatchPings.followUp`, `PingOutcome.improvesOn`), but only the removed Need help screen ever
    showed that. It's generic wrist-ping code, so it stayed. Remove it, or let the quick-ping
    flash show it?
+4. **"What's in Moshpoint+"** (the list free users can open from Plan a gig) doesn't mention
+   Text my spot or satellite data, because free users aren't meant to see them. Add a row for
+   each?

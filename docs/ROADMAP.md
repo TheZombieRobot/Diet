@@ -216,13 +216,13 @@ Moshpoint opens weeks before the gig, not only on the night.
   type their gig in by hand. The production relay checks membership before it answers a keyed
   endpoint, comes with billing.
 - One purchase covers phone and watch.
-- **Text my spot (owner's decision, 16 November 2026).** In the crew area, beside the pings:
-  opens the phone's own texting app with a message already written (a short line, a maps link and
-  the plain coordinates, which make sense without data); the person picks a mate and presses Send.
-  Moshpoint never sends or reads texts itself (no SMS permissions). With no signal, phones on
-  carriers with satellite texting send it by satellite. Members only, behind a Settings switch
-  that's off by default. **Status: not built yet** (stage 3 of
-  [REMOVE_SAFETY.md](REMOVE_SAFETY.md)).
+- **Text my spot (owner's decision, 16 November 2026).** In the crew area, after the pings
+  (Message crew and the crew chat): opens the phone's own texting app with a message already
+  written (a short line, a maps link and the plain coordinates, which make sense without data);
+  the person picks a mate and presses Send. Moshpoint never sends or reads texts itself (no SMS
+  permissions). With no signal, phones on carriers with satellite texting send it by satellite.
+  Members only, behind a Settings switch that's off by default. **Status: built** (stage 3 of
+  [REMOVE_SAFETY.md](REMOVE_SAFETY.md)); not yet tried on a phone (FIELD_TEST_PLAN.md, 4m).
 - **Satellite data (owner's decision, 16 November 2026).** "Use satellite when there's no
   signal": on Android 16, where the carrier allows it, the small things (locations, pings, chat
   text, pins) go over a satellite network when it's the only one. Members only, behind a Settings
