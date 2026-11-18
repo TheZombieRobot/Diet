@@ -51,7 +51,8 @@ nz/waveformlabs/moshpoint/
   privatemsg/  PrivateMessages
   moments/     Moments, MomentFlow, ShareQuality
   gigs/        GigArchive, GigSearch, GigWake, Memories, NightStats
-  safety/      Safety, EmergencyNumbers, GhostMode, TorchStrobe ("Light me up")
+  safety/      GhostMode, TorchStrobe ("Light me up"), AppErrors, Housekeeping, Notices (Safety and
+               EmergencyNumbers were removed with Need help, 16 November 2026: REMOVE_SAFETY.md)
   profile/     Identity, PhotoStore, AvatarSync, FacebookLogin
   friends/     Friend + FriendsRepository (Friends.kt), Friendship
   map/         Spots, LocationBook, HerePins

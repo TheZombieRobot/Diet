@@ -25,8 +25,8 @@ for it is written.
 | Piece | State |
 |---|---|
 | Design (this note) | Done. All eleven decisions below. |
-| Shared logic, `core/…/core/watch/` | Done. 108 unit tests: the arrow maths (true north, declination, tilt gate, old readings), which directions survive a pocket, the buzz planner, hold-to-send, message encoding and versioning, the lease, the Moshpoint+ rule, how text may wrap. |
-| Watch app, `wear/` | Builds in CI, debug and release (R8). Crew list, finder, Need help, tile, complication, ongoing activity, ambient screen. |
+| Shared logic, `core/…/core/watch/` | Done. 108 unit tests: the arrow maths (true north, declination, tilt gate, old readings), which directions survive a pocket, the buzz planner, message encoding and versioning, the lease, the Moshpoint+ rule, how text may wrap. |
+| Watch app, `wear/` | Builds in CI, debug and release (R8). Crew list, finder, tile, complication, ongoing activity, ambient screen. (Need help on the wrist was removed, owner's decision, 16 November 2026: [REMOVE_SAFETY.md](REMOVE_SAFETY.md).) |
 | Phone side, `app/…/moshpoint/watch/` | Builds in CI, debug and release (R8), on top of the merged main branch (Bluetooth backup and the venue map, merged in `62a770a` with no conflicts). |
 | Translations | 19 languages for the watch (62 strings) and for the phone's watch notification (4). Checked by the script. Not yet read by native speakers; notes for them are at the end of each `docs/i18n/*.md`. |
 | Checker and its CI step | `tools/check_translation.py` works on any module and can compare languages between modules; the CI step runs it over `app` and `wear`. |
@@ -43,7 +43,7 @@ app's code. None of it has been seen working. Each has a line in the field test 
   giving an arrow, the 15-minute cap. All first guesses.
 - That Android lets the phone start finding from a pocket (problem 4), on Samsung and Xiaomi
   phones especially.
-- That a wrist Need help gets out when the phone app is closed, and when the phone has been
+- That a wrist ping gets out when the phone app is closed, and when the phone has been
   asleep for a while (problem 8).
 - Battery cost on the watch and the phone.
 - The install steps: written from Google's and Samsung's instructions, not followed on a watch.
@@ -105,16 +105,16 @@ says a wrist ping is doing.
 | Arrow | Tap a mate. An arrow on the wrist points at them, with their face, name and distance. |
 | Buzzes | Faster as you get closer, a double tap when you're facing them, one long buzz when you're heading away. |
 | Tile and watch face | Crew status tile; complication with the nearest mate, or "4 of 5 live". |
-| Wrist pings | "On my way", "All good", and hold-to-send "Need help". |
-| Paid | Everything is Moshpoint+ except "Need help", which is free for everyone, always. |
+| Wrist pings | "On my way", "All good". |
+| Paid | Everything is Moshpoint+. |
 
 ## How the pieces fit
 
 ```
  WATCH (wear)                              PHONE (app)
  compass + tilt ──┐                        WatchLinkService  (Data Layer listener)
- WristArrow maths │   messages, 2 a second   ├─ Need help ──► GroupSync.sendPing
- BuzzPlan ────────┼◄──────────────────────►  ├─ pings (Moshpoint+)
+ WristArrow maths │   messages, 2 a second   ├─ pings (Moshpoint+) ──► GroupSync.sendPing
+ BuzzPlan ────────┼◄──────────────────────►  │
  FindSession      │   (true bearing,          └─ find start / renew / stop
  (foreground      │    distance, ages)      WatchFind + WatchFinderService (foreground)
   service +       │                           ├─ PocketFinder: BLE, UWB, Wi-Fi Aware, GPS
@@ -286,7 +286,7 @@ whether UWB ranges from a pocket at all.
   stops.
 - **Only a phone that's with you counts.** Finding requires a *nearby* Data Layer node (direct
   Bluetooth). A phone left at home and reached through the cloud would point from the wrong
-  place. "Need help" goes by any route.
+  place.
 - **Faces sent once:** each mate's face (their photo, else the drawn default avatar, as on the
   phone) goes as a 96-pixel image in its own data item, named by a hash of the picture. The
   watch keeps it. The twice-a-second updates carry no images and no names.
@@ -325,7 +325,7 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
 | One long buzz | "Wrong way" | When the distance has clearly grown; ticks pause; repeats every 6 s while it keeps growing |
 | Short, short, long | "Found them" | Once, under 3 m; the find ends |
 | Two long buzzes | "Lost the phone" | Once, when updates stop |
-| One very long buzz | "Need help reached someone" | The relay has it, or at least a crew phone nearby does |
+| One short buzz | "Your ping went" | The relay has it, or at least a crew phone nearby does |
 | Four rapid ticks | "That has not gone" | Any ping that failed, or is still waiting for signal |
 
 - **Never constant:** every pattern is under a second, with at least 0.4 s of silence after
@@ -336,64 +336,43 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   watch's vibration strength, its master switch, silent mode, Do Not Disturb and battery
   saver; the app does not second-guess or override any of them. When one of those is
   silencing the buzzes, the finder says "Buzzes are off on this watch" so the quiet isn't a
-  mystery. The short confirmations under your finger (hold ticks, sent, not sent) are touch
+  mystery. The short confirmations under your finger (sent, not sent) are touch
   feedback and follow the watch's touch-vibration setting.
 - The choice of pattern and its timing is pure logic in `core/watch/BuzzPlan`, unit-tested.
 
-### 8. "Need help" from the wrist
+### 8. Quick messages from the wrist
 
-- **Hold to send:** press and hold the red button for 2 seconds. A ring fills and the watch
-  ticks each half second; let go early and nothing is sent.
-- **Same path as the phone:** the phone's `WatchLinkService` calls `GroupSync.sendPing(NEED_HELP)`
-  with the phone's last known position, exactly as the button in the app does. It works with
-  the app closed: Play services wakes the listener, which loads the crew first. From there the
-  phone's outbox (Bluetooth backup, `OfflineMessages`) looks after it like any crew message:
-  the relay when there's signal, crew phones nearby over Bluetooth when there isn't.
-- **It says what happened, and only what it knows.** The watch repeats what the outbox says,
-  in the phone's own words, never anything kinder:
-
-  | What happened | The wrist says | Buzz |
-  |---|---|---|
-  | No phone in reach, or the message can't be handed over | **Not sent** · Your phone is out of reach · Try again | Not gone |
-  | The relay has it | **Sent to your crew** · I'm OK now | Long |
-  | No signal, but a crew phone nearby took it over Bluetooth | **Sent nearby** · Only crew nearby have it so far · I'm OK now | Long |
-  | Still in the phone's outbox after about 8 seconds (5 with no network) | **Not sent yet** · Waiting for signal · Try again | Not gone |
-  | The phone took it but never answered (12 s) | **Not confirmed** · Your phone didn't answer · Try again | Not gone |
-  | Not in a crew | **Not sent** · You're not in a crew, so there's no one to tell | Not gone |
-
-- **Later news reaches the wrist.** If the ping gets further after the watch was answered (a
-  crew phone takes it, or signal comes back), the phone tells the watch, and a screen still
-  showing "Not sent yet" changes to "Sent nearby" or "Sent to your crew" with the long buzz.
-  News only moves forward: "sent" is never taken back (`PingOutcome.improvesOn`, unit-tested).
-  The phone doesn't poll for this; the chat line that carries the outbox's state is Compose
-  state, so it wakes only when that changes, for up to 30 minutes.
-- **Never twice.** "Try again" reuses the same request number. If the phone already has that
-  ping in its outbox it does not send another: it asks the outbox to try now and reports again.
-- After a send, "I'm OK now" tells the crew you're all good.
-- **As built today:** the phone handles Need help (and its all-clear) before, and without,
-  the Moshpoint+ check; the watch shows the button in every state, including the locked one
-  and the tile. (Not an owner's rule: what's paid is the owner's call, with billing. ROADMAP.md.)
-- **A limit to know about:** while the phone has no signal and you aren't live, Android may
-  put the phone app to sleep once the watch has been answered. The ping stays in the outbox
-  and goes when the app next runs: when you open it or go live, or at its hourly chat check.
-  So the wrist says "Not sent yet" and makes no promise about when. The same can happen with
-  signal, if the phone has been lying untouched long enough for Android to hold back the
-  internet of apps that aren't in use (and Moshpoint's battery setting isn't Unrestricted):
-  whether a wrist ping gets through then depends on how Android treats an app woken by the
-  watch, which only a real phone can answer. **Verify on a watch** (field test 4c F, "the
-  sleepy phone"); if either turns out to matter, the fix is to hold the phone awake with a
-  foreground service from the moment a wrist Need help arrives until it has gone.
-- How the phone knows: the outbox reports on each of your own messages on its line in the crew
-  chat. The phone side finds the line `sendPing` just added and reads its state. If the chat
-  in memory is another crew's (you were reading it on the phone), it falls back to looking on
-  the relay for its own signed ping. Neither `sendPing` nor the outbox is changed.
+- **Removed (owner's decision, 16 November 2026):** hold-to-send "Need help" (its screen and
+  activity, the tile's button) and "I'm OK now" ([REMOVE_SAFETY.md](REMOVE_SAFETY.md)). An
+  older watch app may still send them (wire codes 3 and 4, never reused): the phone reads them
+  as a kind it doesn't know, sends nothing and answers "not sent".
+- **Same path as the phone:** the phone's `WatchLinkService` hands "On my way" and "All good" to
+  `GroupSync.sendPing` with the phone's last known position, exactly as the buttons in the app
+  do. It works with the app closed: Play services wakes the listener, which loads the crew
+  first. From there the phone's outbox (Bluetooth backup, `OfflineMessages`) looks after it like
+  any crew message: the relay when there's signal, crew phones nearby over Bluetooth when there
+  isn't.
+- **It says what happened, and only what it knows.** The watch shows, big for a moment over the
+  crew list, what the outbox says, in the phone's own words, never anything kinder: **Sent**,
+  **Sent nearby** (only crew nearby have it so far), **Not sent yet** (waiting for signal),
+  **Not confirmed** (the phone took it but never answered), or **Not sent** (no phone in reach,
+  or not in a crew).
+- **Never twice.** A retry reuses the same request number. If the phone already has that ping in
+  its outbox it does not send another: it asks the outbox to try now and reports again.
+- **Later news** still goes from the phone to the watch when a ping gets further after the watch
+  was answered (`PingOutcome.improvesOn`), but no watch screen shows it any more: only the
+  Need help screen did. See the open questions in REMOVE_SAFETY.md.
+- **A limit to know about:** while the phone has no signal and you aren't live, Android may put
+  the phone app to sleep once the watch has been answered. The ping stays in the outbox and goes
+  when the app next runs (when you open it or go live, or at its hourly chat check). So the
+  wrist says "Not sent yet" and makes no promise about when. **Verify on a watch** (field test
+  4c F, "the sleepy phone").
 - **With the phone app not running** there is one trap, found by reading the outbox's code:
   loading the crew starts the outbox, and the outbox finishes starting a moment later, in a
   main-thread task of its own. A ping handed to it before then is dropped without a word. So
   the phone side loads the crew in one main-thread task and hands the ping over in the next,
   and afterwards asks the outbox whether it is really holding that message. If it isn't, the
-  wrist is told it failed, and "Try again" sends a fresh one. **Verify on a phone:** swipe
-  Moshpoint away, then send Need help from the wrist (field test, section 4c F).
+  wrist is told it failed.
 
 ### 9. Moshpoint+ check
 
@@ -404,11 +383,10 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
 - **Synced to the watch** in the crew-status data item. The watch uses it to choose between
   the real screens and a "Moshpoint+ · unlock on your phone" screen; the phone enforces it
   again on every find request and paid ping, so an old or tampered watch gains nothing.
-- **Wrist SOS skips the check** on both sides (problem 8). `core/watch/WatchGate` holds the
-  rule and a test pins it.
+- `core/watch/WatchGate` holds the rule (everything on the wrist is Moshpoint+) and a test pins
+  it. Need help and "I'm OK now" were the free exceptions until they were removed.
 - **To try it without billing:** test builds have a switch, phone Settings → TESTING →
-  "Moshpoint+ (watch app)". Off shows the watch as a non-member sees it, and is how the field
-  test checks that Need help still goes.
+  "Moshpoint+ (watch app)". Off shows the watch as a non-member sees it.
 
 ### 10. Small round screens in 19 languages
 
@@ -436,7 +414,7 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   watch in every language, with the round edge drawn in, so clipped text shows up in review.
   All 21 locales (the 19 languages, English, and US English for feet and miles) were looked
   through on the small watch. Nothing ran off the glass; what was cut short or broke badly
-  was fixed (the Polish "Need help" title, the distance in the Polish and Vietnamese crew
+  was fixed (a Polish title, the distance in the Polish and Vietnamese crew
   list, single characters stranded on a line in Japanese, Chinese and Korean, and the plus of
   "Moshpoint+" changing sides in Arabic).
 

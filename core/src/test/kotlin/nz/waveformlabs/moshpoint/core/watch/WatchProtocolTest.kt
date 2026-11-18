@@ -26,7 +26,7 @@ class WatchProtocolTest {
             WatchMessage.FindStart(0x1234ABCD, "b3c1e9aa-0000-4000-8000-123456789abc", fast = true, watchClockMs = -5),
             WatchMessage.FindRenew(7, fast = false, watchClockMs = 99),
             WatchMessage.FindStop(7),
-            WatchMessage.Ping(41, PingKind.NEED_HELP),
+            WatchMessage.Ping(41, PingKind.ALL_GOOD),
             WatchMessage.Ping(42, PingKind.ON_MY_WAY),
             WatchMessage.SyncRequest,
             WatchMessage.FindUpdate(7, 65_535, FindStatus.OK, pointing, echoWatchClockMs = 123_456, echoHeldMs = 1_200),
@@ -67,12 +67,13 @@ class WatchProtocolTest {
             hex(WatchProtocol.encode(update)),
         )
         assertEquals("4d0101" + "0000002a" + "01" + "00000007" + "0003" + "73616d", hex(WatchProtocol.encode(WatchMessage.FindStart(42, "sam", true, 7))))
-        assertEquals("4d0104" + "00000009" + "03", hex(WatchProtocol.encode(WatchMessage.Ping(9, PingKind.NEED_HELP))))
+        assertEquals("4d0104" + "00000009" + "02", hex(WatchProtocol.encode(WatchMessage.Ping(9, PingKind.ALL_GOOD))))
         assertEquals("4d017f" + "0101", hex(WatchProtocol.versionNotice()))
     }
 
     @Test fun numbersOnTheWireNeverChange() {
-        assertEquals(listOf(1, 2, 3, 4, 0), PingKind.entries.map { it.code })
+        // 3 and 4 were Need help and "I'm OK now" (removed 16 November 2026): never reused.
+        assertEquals(listOf(1, 2, 0), PingKind.entries.map { it.code })
         assertEquals(listOf(0, 1, 2, 3, 4, 5, 255), FindStatus.entries.map { it.code })
         assertEquals(listOf(1, 2, 3, 4, 5, 255), EndReason.entries.map { it.code })
         assertEquals(listOf(1, 2, 3, 4, 5, 6, 7, 255), PingOutcome.entries.map { it.code })
@@ -316,16 +317,22 @@ class WatchStateTest {
 }
 
 class WatchGateTest {
-    @Test fun needHelpIsNeverBehindThePaywall() {
-        assertTrue(WatchGate.allows(WatchFeature.NEED_HELP, plus = false))
-        assertTrue(WatchGate.allows(WatchFeature.SOS_ALL_CLEAR, plus = false))
-        assertTrue(WatchGate.allows(PingKind.NEED_HELP, plus = false))
-        assertTrue(WatchGate.allows(PingKind.SOS_ALL_CLEAR, plus = false))
+    /**
+     * An older watch still has Need help and "I'm OK now" (codes 3 and 4; removed on 16 November
+     * 2026). Its message reads the same as ever, as a kind this build doesn't know, so the
+     * phone sends nothing and answers that it wasn't sent.
+     */
+    @Test fun anOlderWatchsNeedHelpIsReadButNeverSent() {
+        for (code in listOf(3, 4)) {
+            val bytes = WatchProtocol.encode(WatchMessage.Ping(9, PingKind.ON_MY_WAY)).also { it[it.size - 1] = code.toByte() }
+            assertEquals(WatchMessage.Ping(9, PingKind.UNKNOWN), assertIs<Decoded.Ok>(WatchProtocol.decode(bytes)).message, "code $code")
+            assertEquals(null, WatchGate.featureOf(PingKind.UNKNOWN))
+            assertFalse(WatchGate.allows(PingKind.UNKNOWN, plus = true), "code $code")
+        }
     }
 
-    @Test fun everythingElseIsMoshpointPlus() {
-        val free = WatchFeature.entries.filter { WatchGate.allows(it, plus = false) }.toSet()
-        assertEquals(setOf(WatchFeature.NEED_HELP, WatchFeature.SOS_ALL_CLEAR), free)
+    @Test fun everythingIsMoshpointPlus() {
+        assertTrue(WatchFeature.entries.none { WatchGate.allows(it, plus = false) })
         assertTrue(WatchFeature.entries.all { WatchGate.allows(it, plus = true) })
         assertFalse(WatchGate.allows(PingKind.ON_MY_WAY, plus = false))
         assertFalse(WatchGate.allows(PingKind.ALL_GOOD, plus = false))

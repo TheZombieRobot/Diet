@@ -11,8 +11,6 @@ import nz.waveformlabs.moshpoint.BuildConfig
  * Functionality policy, and any paywall must use Play Billing; docs/WAVE2_PLAY.md, item 10).
  * Billing plugs in here and nowhere else: set [BILLING] to true, and when a purchase is confirmed
  * (or lapses) call [set]; the phone and the watch both follow.
- *
- * "Need help" from the wrist never asks this: see [WatchPings].
  */
 object Entitlements {
     /** Moshpoint+ can be bought (Play Billing is in). Until then everyone has it. */

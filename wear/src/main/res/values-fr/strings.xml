@@ -22,7 +22,6 @@
     </plurals>
     <string name="ping_on_my_way">J\'arrive</string>
     <string name="ping_all_good">Tout va bien</string>
-    <string name="need_help">Besoin d\'aide</string>
     <string name="ping_sent">Envoyé</string>
     <string name="ping_nearby">Envoyé à proximité</string>
     <string name="ping_waiting">En attente de réseau</string>
@@ -59,19 +58,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">Appui long</string>
-    <string name="sos_hint">Maintiens pour prévenir ta crew</string>
-    <string name="sos_sending">Envoi…</string>
-    <string name="sos_sent">Envoyé à ta crew</string>
-    <string name="sos_not_sent">Pas envoyé</string>
-    <string name="sos_out_of_reach">Ton téléphone est hors de portée</string>
-    <string name="sos_nearby_detail">Pour l\'instant, seule la crew à proximité l\'a reçu</string>
-    <string name="sos_unconfirmed">Pas confirmé</string>
-    <string name="sos_no_answer">Ton téléphone n\'a pas répondu</string>
-    <string name="sos_no_crew">Tu n\'es dans aucune crew, donc il n\'y a personne à prévenir</string>
-    <string name="sos_retry">Réessayer</string>
-    <string name="sos_im_ok">Ça va maintenant</string>
-    <string name="sos_ok_sent">Ta crew sait que ça va</string>
+    <string name="ping_sending">Envoi…</string>
+    <string name="ping_out_of_reach">Ton téléphone est hors de portée</string>
+    <string name="ping_nearby_detail">Pour l\'instant, seule la crew à proximité l\'a reçu</string>
+    <string name="ping_unconfirmed">Pas confirmé</string>
+    <string name="ping_no_answer">Ton téléphone n\'a pas répondu</string>
+    <string name="ping_no_crew">Tu n\'es dans aucune crew, donc il n\'y a personne à prévenir</string>
 
     <string name="plus_text">Débloque l\'appli montre sur ton téléphone</string>
 

@@ -37,8 +37,9 @@ import nz.waveformlabs.moshpoint.locate.RelayClient
  * the ping, "sent nearby" once a crew phone has it, and otherwise that it is still waiting.
  * If it gets further after the watch has been answered, the watch hears that too.
  *
- * "Need help" (and the "I'm OK now" that follows one) is free for everyone. It never reaches
- * the Moshpoint+ check below.
+ * Every wrist ping is Moshpoint+. An older watch's Need help or "I'm OK now" (removed on
+ * 16 November 2026) reads as a kind this build doesn't know: nothing is sent, and the watch is
+ * told so.
  */
 internal object WatchPings {
     /**
@@ -77,12 +78,10 @@ internal object WatchPings {
 
     private suspend fun process(app: Context, m: WatchMessage.Ping): PingOutcome {
         val feature = WatchGate.featureOf(m.kind) ?: return PingOutcome.FAILED
-        // Safety is never paywalled: a free feature doesn't look at the entitlement at all.
-        if (!feature.free && !Entitlements.plus(app)) return PingOutcome.NOT_ENTITLED
+        if (!WatchGate.allows(feature, Entitlements.plus(app))) return PingOutcome.NOT_ENTITLED
         val crewKind = when (m.kind) {
-            PingKind.NEED_HELP -> GigGroup.Ping.NEED_HELP
             PingKind.ON_MY_WAY -> GigGroup.Ping.COMING
-            PingKind.ALL_GOOD, PingKind.SOS_ALL_CLEAR -> GigGroup.Ping.ALL_GOOD
+            PingKind.ALL_GOOD -> GigGroup.Ping.ALL_GOOD
             PingKind.UNKNOWN -> return PingOutcome.FAILED
         }
         val before = taken(m.requestId)

@@ -18,7 +18,6 @@
     </plurals>
     <string name="ping_on_my_way">กำลังไป</string>
     <string name="ping_all_good">โอเคดี</string>
-    <string name="need_help">ขอความช่วยเหลือ</string>
     <string name="ping_sent">ส่งแล้ว</string>
     <string name="ping_nearby">ส่งถึงเพื่อนใกล้ๆ แล้ว</string>
     <string name="ping_waiting">รอสัญญาณ</string>
@@ -55,19 +54,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">กดค้าง</string>
-    <string name="sos_hint">กดค้างเพื่อบอกแก๊ง</string>
-    <string name="sos_sending">กำลังส่ง…</string>
-    <string name="sos_sent">ส่งถึงแก๊งแล้ว</string>
-    <string name="sos_not_sent">ส่งไม่สำเร็จ</string>
-    <string name="sos_out_of_reach">เชื่อมต่อมือถือไม่ได้</string>
-    <string name="sos_nearby_detail">ตอนนี้ถึงแค่แก๊งที่อยู่ใกล้ๆ</string>
-    <string name="sos_unconfirmed">ยังไม่ยืนยัน</string>
-    <string name="sos_no_answer">มือถือไม่ตอบกลับ</string>
-    <string name="sos_no_crew">คุณยังไม่มีแก๊ง เลยไม่มีใครให้บอก</string>
-    <string name="sos_retry">ลองใหม่</string>
-    <string name="sos_im_ok">ตอนนี้โอเคแล้ว</string>
-    <string name="sos_ok_sent">บอกแก๊งแล้วว่าคุณโอเค</string>
+    <string name="ping_sending">กำลังส่ง…</string>
+    <string name="ping_out_of_reach">เชื่อมต่อมือถือไม่ได้</string>
+    <string name="ping_nearby_detail">ตอนนี้ถึงแค่แก๊งที่อยู่ใกล้ๆ</string>
+    <string name="ping_unconfirmed">ยังไม่ยืนยัน</string>
+    <string name="ping_no_answer">มือถือไม่ตอบกลับ</string>
+    <string name="ping_no_crew">คุณยังไม่มีแก๊ง เลยไม่มีใครให้บอก</string>
 
     <string name="plus_text">ปลดล็อกแอปนาฬิกาบนมือถือ</string>
 

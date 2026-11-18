@@ -18,7 +18,6 @@
     </plurals>
     <string name="ping_on_my_way">马上到</string>
     <string name="ping_all_good">一切都好</string>
-    <string name="need_help">需要帮助</string>
     <string name="ping_sent">已发送</string>
     <string name="ping_nearby">已发给附近队友</string>
     <string name="ping_waiting">等待信号</string>
@@ -55,19 +54,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">按住</string>
-    <string name="sos_hint">按住通知小队</string>
-    <string name="sos_sending">发送中…</string>
-    <string name="sos_sent">已发给小队</string>
-    <string name="sos_not_sent">未发送</string>
-    <string name="sos_out_of_reach">连不上你的手机</string>
-    <string name="sos_nearby_detail">目前只有附近的队友收到</string>
-    <string name="sos_unconfirmed">未确认</string>
-    <string name="sos_no_answer">手机没有回应</string>
-    <string name="sos_no_crew">你不在任何小队里，没有人可以通知</string>
-    <string name="sos_retry">再试一次</string>
-    <string name="sos_im_ok">我没事了</string>
-    <string name="sos_ok_sent">已告诉小队你没事了</string>
+    <string name="ping_sending">发送中…</string>
+    <string name="ping_out_of_reach">连不上你的手机</string>
+    <string name="ping_nearby_detail">目前只有附近的队友收到</string>
+    <string name="ping_unconfirmed">未确认</string>
+    <string name="ping_no_answer">手机没有回应</string>
+    <string name="ping_no_crew">你不在任何小队里，没有人可以通知</string>
 
     <string name="plus_text">在手机上解锁手表应用</string>
 

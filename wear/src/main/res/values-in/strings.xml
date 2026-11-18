@@ -18,7 +18,6 @@
     </plurals>
     <string name="ping_on_my_way">OTW</string>
     <string name="ping_all_good">Aman</string>
-    <string name="need_help">Perlu bantuan</string>
     <string name="ping_sent">Terkirim</string>
     <string name="ping_nearby">Terkirim ke HP terdekat</string>
     <string name="ping_waiting">Menunggu sinyal</string>
@@ -55,19 +54,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">Tahan</string>
-    <string name="sos_hint">Tahan untuk kabari gengmu</string>
-    <string name="sos_sending">Mengirim…</string>
-    <string name="sos_sent">Terkirim ke gengmu</string>
-    <string name="sos_not_sent">Belum terkirim</string>
-    <string name="sos_out_of_reach">HP-mu tidak terhubung</string>
-    <string name="sos_nearby_detail">Baru sampai ke geng yang di dekatmu</string>
-    <string name="sos_unconfirmed">Belum terkonfirmasi</string>
-    <string name="sos_no_answer">HP-mu tidak merespons</string>
-    <string name="sos_no_crew">Kamu belum punya geng, jadi nggak ada yang bisa dikabari</string>
-    <string name="sos_retry">Coba lagi</string>
-    <string name="sos_im_ok">Aku sudah aman</string>
-    <string name="sos_ok_sent">Gengmu sudah dikabari kamu aman</string>
+    <string name="ping_sending">Mengirim…</string>
+    <string name="ping_out_of_reach">HP-mu tidak terhubung</string>
+    <string name="ping_nearby_detail">Baru sampai ke geng yang di dekatmu</string>
+    <string name="ping_unconfirmed">Belum terkonfirmasi</string>
+    <string name="ping_no_answer">HP-mu tidak merespons</string>
+    <string name="ping_no_crew">Kamu belum punya geng, jadi nggak ada yang bisa dikabari</string>
 
     <string name="plus_text">Buka kunci aplikasi jam di HP-mu</string>
 

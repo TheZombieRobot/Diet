@@ -55,8 +55,8 @@ object Wrist {
     val Lime = Color(0xFFB6FF3B) // live / found / facing
     val Amber = Color(0xFFFFB020)
 
-    /** "Need help": the same red as the phone's help notification. */
-    val Help = Color(0xFFFF3B5C)
+    /** Something that didn't go (a quick ping not sent). */
+    val Red = Color(0xFFFF3B5C)
 
     val Display = FontFamily(Font(R.font.unbounded_extrabold, FontWeight.ExtraBold))
     val Inter = FontFamily(
@@ -80,7 +80,7 @@ fun WristTheme(content: @Composable () -> Unit) {
             secondaryVariant = Wrist.Lime,
             background = Wrist.Ground,
             surface = Wrist.Deep,
-            error = Wrist.Help,
+            error = Wrist.Red,
             onPrimary = Color.White,
             onSecondary = Color.Black,
             onBackground = Wrist.Text,

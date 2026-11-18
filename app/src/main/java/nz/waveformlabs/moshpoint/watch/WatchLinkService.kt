@@ -12,7 +12,7 @@ import nz.waveformlabs.moshpoint.core.watch.WatchProtocol
  * (and the app's process, if need be) whenever a message comes in, so it works with the phone
  * app closed and the screen off.
  *
- *  - Wrist pings, "Need help" first among them: [WatchPings].
+ *  - Wrist pings ("On my way", "All good"): [WatchPings].
  *  - Find start / still looking / stop: [WatchFind].
  *  - "Tell me the crew status again": [WatchSync].
  */

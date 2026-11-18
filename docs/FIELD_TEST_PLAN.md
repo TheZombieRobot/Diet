@@ -306,7 +306,7 @@ A makes a **new** crew (crews made before this build keep the old rule); B and C
 
 ## 4c. On the wrist (Wear OS watch, 45 min)
 
-The watch app puts the arrow, the buzzes and Need help on your wrist while the phone stays in
+The watch app puts the arrow, the buzzes and quick messages on your wrist while the phone stays in
 your pocket. How it works and why: `docs/WATCH.md`. Nothing here has run on a real watch
 before this test, so expect surprises and write them down.
 
@@ -386,38 +386,33 @@ Set up:
   on the watch. Expected: "Open Moshpoint on your phone". If it just works instead, good: note
   the phone model and Android version either way.
 
-### F. Need help and quick messages
+### F. Quick messages
 
-- [ ] Crew list → **Need help** → hold. It ticks every half second for two seconds. Let go
-  early once: nothing should be sent.
-- [ ] Hold all the way. A's phone gets the Need help alert; the watch says "Sent to your crew"
-  with one long buzz. How long from letting go to A's alert?
-- [ ] Tap **I'm OK now**. A sees "All good".
-- [ ] Swipe Moshpoint away on phone B (app closed), then send Need help from the wrist again.
+(Need help and "I'm OK now" were removed on 16 November 2026: docs/REMOVE_SAFETY.md.)
+
+- [ ] **On my way** and **All good** from the crew list: A sees each one; the watch flashes "Sent".
+  How long from the tap to A's phone?
+- [ ] Swipe Moshpoint away on phone B (app closed), then **On my way** from the wrist again.
   It must still arrive.
 - [ ] The sleepy phone: phone B not live, Moshpoint closed, screen off and untouched in your
-  pocket for 20 minutes (long enough for Android to start saving battery). Then Need help from
-  the wrist. Did it say "Sent to your crew", or "Not sent yet"? If "Not sent yet", how long
-  until it went, and did the wrist change by itself? Note whether Moshpoint's battery setting
-  on that phone is Unrestricted.
+  pocket for 20 minutes (long enough for Android to start saving battery). Then **All good**
+  from the wrist. Did it say "Sent", or "Not sent yet"? If "Not sent yet", how long until A got
+  it? Note whether Moshpoint's battery setting on that phone is Unrestricted.
 - [ ] Phone B in airplane mode with Bluetooth turned back on, A standing next to you and
-  live: hold Need help. Expected within a few seconds: "Sent nearby", and A's phone alerts.
-- [ ] Same, but A far away: "Not sent yet · Waiting for signal" with the stutter buzz. Now
-  turn airplane mode off while that screen is still showing. It should change to "Sent to your
-  crew" with the long buzz, by itself. Did it? How long did it take?
-- [ ] Leave phone B behind (out of Bluetooth range) or switch it off: hold Need help → "Not
+  live: **On my way**. Expected within a few seconds: "Sent nearby", and A gets it.
+- [ ] Leave phone B behind (out of Bluetooth range) or switch it off: **On my way** → "Not
   sent · Your phone is out of reach".
-- [ ] **On my way** and **All good** from the crew list: A sees each one; the watch flashes "Sent".
-- [ ] Free means free. On phone B: Settings → TESTING → **Moshpoint+ (watch app)** off. The
-  watch should show its Moshpoint+ screen instead of the crew, and tapping a mate or a quick
-  message should do nothing useful. **Need help must still be there and must still arrive on
-  A's phone.** Turn Moshpoint+ back on afterwards.
+- [ ] Not a member: on phone B, Settings → TESTING → **Moshpoint+ (watch app)** off. The watch
+  shows its Moshpoint+ screen instead of the crew, and tapping a mate or a quick message does
+  nothing useful. Turn Moshpoint+ back on afterwards.
+- [ ] If you still have an older watch build with Need help: hold it. The watch should say it
+  wasn't sent, and nothing reaches A.
 
 ### G. Tile and watch face
 
 - [ ] Add the **Crew status** tile and the **Nearest mate** complication (install steps, step 10).
 - [ ] With A live and near: the complication shows A's name and distance, or "1/1"-style
-  counts on a small slot. The tile lists the crew with Need help at the bottom.
+  counts on a small slot. The tile lists the crew.
 - [ ] A goes hidden. How long until the tile and the watch face catch up? (The watch face may
   lag a few minutes: it is only redrawn when the phone sends news, and not more than once
   every five minutes.)

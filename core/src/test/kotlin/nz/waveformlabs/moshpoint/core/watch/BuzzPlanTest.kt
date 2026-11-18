@@ -140,48 +140,8 @@ class BuzzPlanTest {
         fun shape(b: Buzz) = b.pulsesMs.filterIndexed { i, _ -> i % 2 == 0 }.joinToString("") { if (it >= 200) "L" else "s" }
         val guidance = Buzz.entries.filter { it.guidance }
         assertEquals(guidance.size, guidance.map(::shape).toSet().size, guidance.associateWith(::shape).toString())
-        // And the two answers to "did my Need help go?" can't be confused.
-        assertEquals("L", shape(Buzz.SOS_SENT))
+        // And the two answers to "did my ping go?" can't be confused.
+        assertEquals("s", shape(Buzz.PING_SENT))
         assertEquals("ssss", shape(Buzz.FAILED))
-    }
-}
-
-class HoldToSendTest {
-    @Test fun lettingGoEarlySendsNothing() {
-        val h = HoldToSend()
-        h.press(0)
-        var events = (0L..1_900L step 50).mapNotNull { h.poll(it) }
-        assertTrue(HoldToSend.Event.SEND !in events)
-        h.release()
-        events = (1_950L..10_000L step 50).mapNotNull { h.poll(it) }
-        assertTrue(events.isEmpty())
-        assertEquals(0f, h.progress(5_000))
-    }
-
-    @Test fun aFullHoldSendsExactlyOnce() {
-        val h = HoldToSend()
-        h.press(1_000)
-        val events = (1_000L..9_000L step 16).mapNotNull { h.poll(it) }
-        assertEquals(1, events.count { it == HoldToSend.Event.SEND })
-        assertEquals(3, events.count { it == HoldToSend.Event.TICK }) // at 0.5, 1.0 and 1.5 s
-        assertEquals(HoldToSend.Event.SEND, events.last())
-    }
-
-    @Test fun ringFillsOverTwoSeconds() {
-        val h = HoldToSend()
-        assertEquals(0f, h.progress(0))
-        h.press(100)
-        assertEquals(0.5f, h.progress(1_100), 1e-3f)
-        assertEquals(1f, h.progress(2_100), 1e-3f)
-        assertEquals(1f, h.progress(9_000), 1e-3f)
-    }
-
-    @Test fun aSecondPressAfterLettingGoStartsFromNothing() {
-        val h = HoldToSend()
-        h.press(0); h.poll(1_500); h.release()
-        h.press(2_000)
-        assertEquals(0.25f, h.progress(2_500), 1e-3f)
-        assertNull((2_000L..3_900L step 100).mapNotNull { h.poll(it) }.firstOrNull { it == HoldToSend.Event.SEND })
-        assertEquals(HoldToSend.Event.SEND, h.poll(4_000))
     }
 }

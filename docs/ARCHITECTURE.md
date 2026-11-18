@@ -145,7 +145,7 @@ route works:
 | `core/Courier.kt` | All the delivery logic: the outbox, messages carried for crew mates, duplicates (by message id), the states Waiting / Sent nearby / Sent, what to upload and when, what to put on air. Plain synchronous code with the clock passed in, so `CourierSimTest` steps several phones through a night. |
 | `core/MessagePacket.kt` | Version 2 of the relay packet (a sealed message instead of a location; older phones drop it), fragments for long chat lines, `MessageRelay` (what a stranger's phone passes on, and its limits), `RelaySchedule` (whose turn it is in the relay's one advertising set). |
 | `core/MessageRules.kt` | Small rules, each tested: `MessageClock` (order), `PinRule`, `PingPolicy` (staleness per kind; Need help is never dropped), `OutboxState` (states only move forward), `IntroForms`. |
-| `core/CheckIns.kt` | Check in / Home safe by the sender's clock, whatever order they arrive in. |
+| `core/CheckIns.kt` | Removed with check-ins (owner's decision, 16 November 2026; docs/REMOVE_SAFETY.md). |
 | `core/RekeyPolicy.kt` | Who may move a crew to a new key, and which notice a phone follows. In a crew with an owner (`GigGroup.owned`: its key is a hash of the creator's key and a salt), only the owner, to a key bound to an owner. |
 | `core/RelayBudget.kt` | The relay's daily and per-minute limits; only charged when the relay answers. |
 | `core/GigGroup.kt` | `messageId` (one id for every copy of a message), the signed pin, the `mp2` envelope for receipts and summaries, the intro form with no constant prefix. |

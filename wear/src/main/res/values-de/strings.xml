@@ -20,7 +20,6 @@
     </plurals>
     <string name="ping_on_my_way">Bin unterwegs</string>
     <string name="ping_all_good">Alles gut</string>
-    <string name="need_help">Brauche Hilfe</string>
     <string name="ping_sent">Gesendet</string>
     <string name="ping_nearby">In der Nähe gesendet</string>
     <string name="ping_waiting">Warte auf Empfang</string>
@@ -57,19 +56,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">Halten</string>
-    <string name="sos_hint">Halten, um deiner Crew Bescheid zu sagen</string>
-    <string name="sos_sending">Wird gesendet…</string>
-    <string name="sos_sent">An deine Crew gesendet</string>
-    <string name="sos_not_sent">Nicht gesendet</string>
-    <string name="sos_out_of_reach">Dein Handy ist außer Reichweite</string>
-    <string name="sos_nearby_detail">Bisher hat es nur die Crew in der Nähe</string>
-    <string name="sos_unconfirmed">Nicht bestätigt</string>
-    <string name="sos_no_answer">Dein Handy hat nicht geantwortet</string>
-    <string name="sos_no_crew">Du bist in keiner Crew, also kann niemand Bescheid bekommen</string>
-    <string name="sos_retry">Nochmal versuchen</string>
-    <string name="sos_im_ok">Bin wieder okay</string>
-    <string name="sos_ok_sent">Deine Crew weiß, dass es dir gut geht</string>
+    <string name="ping_sending">Wird gesendet…</string>
+    <string name="ping_out_of_reach">Dein Handy ist außer Reichweite</string>
+    <string name="ping_nearby_detail">Bisher hat es nur die Crew in der Nähe</string>
+    <string name="ping_unconfirmed">Nicht bestätigt</string>
+    <string name="ping_no_answer">Dein Handy hat nicht geantwortet</string>
+    <string name="ping_no_crew">Du bist in keiner Crew, also kann niemand Bescheid bekommen</string>
 
     <string name="plus_text">Schalte die Uhr-App auf deinem Handy frei</string>
 

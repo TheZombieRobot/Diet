@@ -27,8 +27,7 @@ import nz.waveformlabs.moshpoint.ui.Mosh
  *
  * There is no billing yet, so in a test build everyone is a member. This switch lets a tester
  * see the watch app as someone who hasn't paid does: the locked screen, the arrow and the
- * quick messages refused. And it lets them check the one thing that must never be behind
- * that: Need help from the wrist still goes (docs/WATCH.md, problems 8 and 9).
+ * quick messages refused (docs/WATCH.md, problem 9).
  *
  * Plain English on purpose, like the other debug tools: none of this is in release builds.
  */
@@ -41,7 +40,7 @@ fun WatchDebugTools() {
         Column(Modifier.weight(1f)) {
             Text("Moshpoint+ (watch app)", style = Mosh.Label)
             Text(
-                "Off: the watch shows its locked screen, and finding and quick messages from the wrist are refused. Need help from the wrist must still work.",
+                "Off: the watch shows its locked screen, and finding and quick messages from the wrist are refused.",
                 style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
             )
         }

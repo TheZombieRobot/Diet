@@ -195,8 +195,8 @@
 
         <!-- ===== Watch app (wear/, docs/WATCH.md) ===== -->
 
-        <!-- Everything the watch asks of the phone arrives here: Need help and the other wrist
-             pings, and "find this mate for me". Play services starts it when a message comes
+        <!-- Everything the watch asks of the phone arrives here: the wrist pings, and "find
+             this mate for me". Play services starts it when a message comes
              in, app open or not. Only Play services can bind to it. -->
         <service
             android:name=".watch.WatchLinkService"

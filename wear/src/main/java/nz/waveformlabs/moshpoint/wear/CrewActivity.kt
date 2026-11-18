@@ -21,7 +21,7 @@ import nz.waveformlabs.moshpoint.core.watch.WatchMate
 import nz.waveformlabs.moshpoint.core.watch.WatchMessage
 import kotlin.random.Random
 
-/** The first screen: the crew (tap a mate to find them), quick pings, and Need help. */
+/** The first screen: the crew (tap a mate to find them) and quick pings. */
 class CrewActivity : ComponentActivity() {
     private var nowSec by mutableLongStateOf(System.currentTimeMillis() / 1000)
     private var flash by mutableStateOf<PingFate?>(null)
@@ -36,7 +36,6 @@ class CrewActivity : ComponentActivity() {
                 CrewScreen(
                     state = state, nowSec = nowSec, faces = CrewStore.faces, flash = flash,
                     onMate = ::find, onPing = ::ping,
-                    onHelp = { startActivity(Intent(this, SosActivity::class.java)) },
                 )
             }
         }

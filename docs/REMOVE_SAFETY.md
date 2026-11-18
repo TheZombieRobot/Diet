@@ -46,16 +46,24 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   - **Screenshots, watch:** all 798 identical.
   - **Merged manifest:** differs from the published main build by one line, the removed
     `CheckInAlarmReceiver`: expected. Licence list the same (126 libraries).
-- **Exact next step:** stage 2 (watch): remove `SosActivity`, `SosScreen`, the crew screen's Need
-  help chip, the tile's button, "I'm OK now", `WatchFeature.NEED_HELP`/`SOS_ALL_CLEAR` and the
-  phone's handling of them (an old watch's SOS is answered "not sent"), the SOS-only strings;
-  keep the `sos_*` strings and `Wrist.Help` red the quick pings' result screen uses.
+- **Done, stage 2 (watch), pushed for CI:** `SosActivity` and `SosScreen` removed (and the
+  manifest entry); the crew screen's Need help chip, the tile's button, `HoldToSend` and its two
+  buzzes, `WatchFeature.NEED_HELP`/`SOS_ALL_CLEAR` and `PingKind` codes 3 and 4 (an older
+  watch's Need help now reads as unknown: the phone sends nothing and answers "not sent";
+  `WatchGateTest` pins it). Every wrist ping is Moshpoint+. Watch strings: 8 removed from all 20
+  folders; the 6 that the quick pings' result screen shares are renamed `sos_*` → `ping_*`, and
+  the red is `Wrist.Red` (same colour). Docs: WATCH.md (problem 8 is now quick messages),
+  FEATURES section 10, README, FIELD_TEST_PLAN 4c F and G, ROADMAP, ARCHITECTURE,
+  CODE_STRUCTURE. Core tests green locally (618); type-check clean for app and watch.
+- **Exact next step:** when the stage 2 run is green: compare the watch screenshots (expected to
+  change: the crew screens, which lose the chip at the bottom; gone: the six SOS screens) and
+  the phone ones (expected: all identical to run 348's), then stage 3 (Text my spot).
 - **Last green run:** 348 (2974cb1).
 
 ### Stages (each must be green in CI before the next)
 
 1. Phone removal and interop. **Done, green: run 348.**
-2. Watch removal.
+2. Watch removal. (pushed, CI running)
 3. Text my spot.
 4. Satellite switch.
 5. **Added 18 November 2026 (relayed by the session that started this one, as the owner's):**
@@ -116,3 +124,7 @@ _Keep this section current: whoever picks this up next starts here. Last updated
    30 min"**, but this build never alerts if they don't check in. Reword how it's shown here (for
    example "Heading home 🏠 (30 min)")? That needs new wording in 20 languages, so it wasn't done
    without asking.
+3. **The phone still tells the watch when a wrist ping gets further** after its first answer
+   (`WatchPings.followUp`, `PingOutcome.improvesOn`), but only the removed Need help screen ever
+   showed that. It's generic wrist-ping code, so it stayed. Remove it, or let the quick-ping
+   flash show it?

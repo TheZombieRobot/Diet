@@ -189,10 +189,10 @@ Galaxy Watch4 and newer, Pixel Watch. The phone stays in your pocket. Details: [
 - **Arrow on the wrist:** pick a mate and an arrow points at them, with their face, name and distance. It uses the watch's own compass, so it keeps up as you turn.
 - **Honest about what it knows:** the arrow only shows with your wrist held flat, and only when the direction is real. With the phone in a pocket and your mate close, it shows the distance instead and the buzzes guide you.
 - **Buzzes you can follow without looking:** ticks that quicken as you get closer, two quick ticks when you're facing them, one long buzz when you're going the wrong way, and a flourish when you've found them. It respects the watch's vibration, silent and Do Not Disturb settings.
-- **Need help from the wrist:** hold the red button for two seconds and the whole crew is told. It says plainly whether it went: sent, sent nearby, or not sent yet. **Free for everyone.**
+- **Removed (owner's decision, 16 November 2026):** Need help from the wrist (hold the red button) and its "I'm OK now".
 - **Quick messages:** On my way, All good.
 - **Watch face and tile:** your nearest mate, or how many of the crew are live, and the crew at a glance.
-- **Moshpoint+:** everything on the watch except Need help is part of Moshpoint+ (on for everyone in test builds).
+- **Moshpoint+:** everything on the watch is part of Moshpoint+ (on for everyone in test builds).
 - **Easy on batteries:** the phone only works for the watch while you're actually finding someone, and stops when the watch stops asking.
 
 ## Known gaps

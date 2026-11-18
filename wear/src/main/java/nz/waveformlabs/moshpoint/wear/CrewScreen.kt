@@ -36,10 +36,7 @@ import nz.waveformlabs.moshpoint.core.watch.PingKind
 import nz.waveformlabs.moshpoint.core.watch.WatchMate
 import nz.waveformlabs.moshpoint.core.watch.WatchState
 
-/**
- * The first screen: tonight's crew (tap a mate to find them), two quick pings, and Need help.
- * Need help is on it in every state, locked or not: asking for help is never paywalled.
- */
+/** The first screen: tonight's crew (tap a mate to find them) and two quick pings. */
 @Composable
 fun CrewScreen(
     state: WatchState?,
@@ -49,7 +46,6 @@ fun CrewScreen(
     flash: PingFate? = null,
     onMate: (WatchMate) -> Unit = {},
     onPing: (PingKind) -> Unit = {},
-    onHelp: () -> Unit = {},
 ) {
     val glance = CrewGlance.of(state, nowSec)
     val listState = rememberScalingLazyListState()
@@ -97,14 +93,6 @@ fun CrewScreen(
                     item { PingChip(stringResource(R.string.ping_on_my_way)) { onPing(PingKind.ON_MY_WAY) } }
                     item { PingChip(stringResource(R.string.ping_all_good)) { onPing(PingKind.ALL_GOOD) } }
                 }
-            }
-            item {
-                Chip(
-                    label = { ChipLabel(stringResource(R.string.need_help), Color.White) },
-                    onClick = onHelp,
-                    colors = ChipDefaults.chipColors(backgroundColor = Wrist.Help, contentColor = Color.White),
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
         }
         if (flash != null) PingFlashOverlay(flash)
@@ -162,11 +150,11 @@ private fun PingFlashOverlay(fate: PingFate) {
             FitText(
                 stringResource(
                     when (fate) {
-                        PingFate.SENDING -> R.string.sos_sending
+                        PingFate.SENDING -> R.string.ping_sending
                         PingFate.SENT -> R.string.ping_sent
                         PingFate.NEARBY -> R.string.ping_nearby
                         PingFate.WAITING -> R.string.ping_not_yet
-                        PingFate.UNCONFIRMED -> R.string.sos_unconfirmed
+                        PingFate.UNCONFIRMED -> R.string.ping_unconfirmed
                         PingFate.LOCKED -> R.string.plus_title
                         PingFate.OUT_OF_REACH, PingFate.NO_CREW -> R.string.ping_not_sent
                     },
@@ -178,17 +166,17 @@ private fun PingFlashOverlay(fate: PingFate) {
                         PingFate.SENT, PingFate.NEARBY -> Wrist.Lime
                         PingFate.WAITING, PingFate.UNCONFIRMED -> Wrist.Amber
                         PingFate.LOCKED -> Wrist.Pink
-                        PingFate.OUT_OF_REACH, PingFate.NO_CREW -> Wrist.Help
+                        PingFate.OUT_OF_REACH, PingFate.NO_CREW -> Wrist.Red
                     },
                 ),
                 Modifier.width(w * 0.76f), maxLines = 2,
             )
             val detail = when (fate) {
-                PingFate.OUT_OF_REACH -> R.string.sos_out_of_reach
-                PingFate.NEARBY -> R.string.sos_nearby_detail
+                PingFate.OUT_OF_REACH -> R.string.ping_out_of_reach
+                PingFate.NEARBY -> R.string.ping_nearby_detail
                 PingFate.WAITING -> R.string.ping_waiting
-                PingFate.UNCONFIRMED -> R.string.sos_no_answer
-                PingFate.NO_CREW -> R.string.sos_no_crew
+                PingFate.UNCONFIRMED -> R.string.ping_no_answer
+                PingFate.NO_CREW -> R.string.ping_no_crew
                 PingFate.LOCKED -> R.string.plus_text
                 PingFate.SENDING, PingFate.SENT -> null
             }

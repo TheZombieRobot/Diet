@@ -270,7 +270,7 @@ internal fun SettingsContent(
                     }
                     // Messages without signal: a "no internet" switch and which way each message went.
                     OfflineDebugTools()
-                    // The watch app: Moshpoint+ off and on, to check Need help from the wrist stays free.
+                    // The watch app: Moshpoint+ off and on, to see the watch as someone who hasn't paid.
                     nz.waveformlabs.moshpoint.watch.WatchDebugTools()
                 }
             }

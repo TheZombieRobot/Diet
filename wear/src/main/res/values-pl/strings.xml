@@ -24,7 +24,6 @@
     </plurals>
     <string name="ping_on_my_way">Już idę</string>
     <string name="ping_all_good">Wszystko OK</string>
-    <string name="need_help">Potrzebuję pomocy</string>
     <string name="ping_sent">Wysłano</string>
     <string name="ping_nearby">Wysłano w pobliżu</string>
     <string name="ping_waiting">Czeka na zasięg</string>
@@ -61,19 +60,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">Trzymaj</string>
-    <string name="sos_hint">Przytrzymaj, żeby dać znać ekipie</string>
-    <string name="sos_sending">Wysyłam…</string>
-    <string name="sos_sent">Wysłano do ekipy</string>
-    <string name="sos_not_sent">Nie wysłano</string>
-    <string name="sos_out_of_reach">Brak połączenia z telefonem</string>
-    <string name="sos_nearby_detail">Na razie ma to tylko ekipa w pobliżu</string>
-    <string name="sos_unconfirmed">Bez potwierdzenia</string>
-    <string name="sos_no_answer">Telefon nie odpowiedział</string>
-    <string name="sos_no_crew">Nie masz ekipy, więc nie ma kogo powiadomić</string>
-    <string name="sos_retry">Spróbuj ponownie</string>
-    <string name="sos_im_ok">Już wszystko OK</string>
-    <string name="sos_ok_sent">Ekipa wie, że wszystko OK</string>
+    <string name="ping_sending">Wysyłam…</string>
+    <string name="ping_out_of_reach">Brak połączenia z telefonem</string>
+    <string name="ping_nearby_detail">Na razie ma to tylko ekipa w pobliżu</string>
+    <string name="ping_unconfirmed">Bez potwierdzenia</string>
+    <string name="ping_no_answer">Telefon nie odpowiedział</string>
+    <string name="ping_no_crew">Nie masz ekipy, więc nie ma kogo powiadomić</string>
 
     <string name="plus_text">Odblokuj aplikację zegarka na telefonie</string>
 

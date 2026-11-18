@@ -32,20 +32,11 @@ enum class PingFate {
     UNCONFIRMED,
     NO_CREW,
 
-    /** Not Moshpoint+ (never the answer to Need help). */
+    /** Not Moshpoint+. */
     LOCKED;
 
     /** It reached someone: the relay, or at least a crew phone nearby. */
     val went: Boolean get() = this == SENT || this == NEARBY
-
-    /** The phone's answer this stands for, for telling later news from old (see [PingOutcome.improvesOn]). */
-    val outcome: PingOutcome
-        get() = when (this) {
-            SENT -> PingOutcome.SENT
-            NEARBY -> PingOutcome.SENT_NEARBY
-            WAITING -> PingOutcome.WAITING
-            else -> PingOutcome.UNCONFIRMED
-        }
 }
 
 /**

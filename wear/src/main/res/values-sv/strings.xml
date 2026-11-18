@@ -20,7 +20,6 @@
     </plurals>
     <string name="ping_on_my_way">På väg</string>
     <string name="ping_all_good">Allt lugnt</string>
-    <string name="need_help">Behöver hjälp</string>
     <string name="ping_sent">Skickat</string>
     <string name="ping_nearby">Skickat i närheten</string>
     <string name="ping_waiting">Väntar på täckning</string>
@@ -57,19 +56,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">Håll in</string>
-    <string name="sos_hint">Håll in för att säga till gruppen</string>
-    <string name="sos_sending">Skickar…</string>
-    <string name="sos_sent">Skickat till gruppen</string>
-    <string name="sos_not_sent">Inte skickat</string>
-    <string name="sos_out_of_reach">Telefonen är utom räckhåll</string>
-    <string name="sos_nearby_detail">Än så länge har bara gruppen i närheten fått det</string>
-    <string name="sos_unconfirmed">Inte bekräftat</string>
-    <string name="sos_no_answer">Telefonen svarade inte</string>
-    <string name="sos_no_crew">Du är inte med i någon grupp, så det finns ingen att säga till</string>
-    <string name="sos_retry">Försök igen</string>
-    <string name="sos_im_ok">Jag är okej nu</string>
-    <string name="sos_ok_sent">Gruppen vet att du är okej</string>
+    <string name="ping_sending">Skickar…</string>
+    <string name="ping_out_of_reach">Telefonen är utom räckhåll</string>
+    <string name="ping_nearby_detail">Än så länge har bara gruppen i närheten fått det</string>
+    <string name="ping_unconfirmed">Inte bekräftat</string>
+    <string name="ping_no_answer">Telefonen svarade inte</string>
+    <string name="ping_no_crew">Du är inte med i någon grupp, så det finns ingen att säga till</string>
 
     <string name="plus_text">Lås upp klockappen på telefonen</string>
 

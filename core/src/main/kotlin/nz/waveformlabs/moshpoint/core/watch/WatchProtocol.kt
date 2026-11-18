@@ -372,11 +372,12 @@ sealed interface WatchMessage {
     }
 }
 
+/**
+ * A wrist ping's kind. Codes 3 (Need help) and 4 ("I'm OK now") were removed on 16 November
+ * 2026: an older watch may still send them, and they read as [UNKNOWN]. Never reuse 3 or 4.
+ */
 enum class PingKind(val code: Int) {
-    ON_MY_WAY(1), ALL_GOOD(2), NEED_HELP(3),
-
-    /** "I'm OK now" after a wrist Need help: part of the safety feature, so free like it. */
-    SOS_ALL_CLEAR(4),
+    ON_MY_WAY(1), ALL_GOOD(2),
     UNKNOWN(0);
 
     companion object {

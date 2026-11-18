@@ -22,7 +22,6 @@
     </plurals>
     <string name="ping_on_my_way">Sto arrivando</string>
     <string name="ping_all_good">Tutto ok</string>
-    <string name="need_help">Mi serve aiuto</string>
     <string name="ping_sent">Inviato</string>
     <string name="ping_nearby">Inviato qui vicino</string>
     <string name="ping_waiting">In attesa di segnale</string>
@@ -59,19 +58,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">Tieni premuto</string>
-    <string name="sos_hint">Tieni premuto per avvisare il gruppo</string>
-    <string name="sos_sending">Invio…</string>
-    <string name="sos_sent">Inviato al tuo gruppo</string>
-    <string name="sos_not_sent">Non inviato</string>
-    <string name="sos_out_of_reach">Il telefono è fuori portata</string>
-    <string name="sos_nearby_detail">Per ora ce l\'ha solo chi del gruppo è vicino</string>
-    <string name="sos_unconfirmed">Non confermato</string>
-    <string name="sos_no_answer">Il telefono non ha risposto</string>
-    <string name="sos_no_crew">Non sei in un gruppo, quindi non c\'è nessuno da avvisare</string>
-    <string name="sos_retry">Riprova</string>
-    <string name="sos_im_ok">Ora sto bene</string>
-    <string name="sos_ok_sent">Il gruppo sa che stai bene</string>
+    <string name="ping_sending">Invio…</string>
+    <string name="ping_out_of_reach">Il telefono è fuori portata</string>
+    <string name="ping_nearby_detail">Per ora ce l\'ha solo chi del gruppo è vicino</string>
+    <string name="ping_unconfirmed">Non confermato</string>
+    <string name="ping_no_answer">Il telefono non ha risposto</string>
+    <string name="ping_no_crew">Non sei in un gruppo, quindi non c\'è nessuno da avvisare</string>
 
     <string name="plus_text">Sblocca l\'app per orologio dal telefono</string>
 
