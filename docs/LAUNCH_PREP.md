@@ -9,26 +9,25 @@ items, in order, each green in CI before the next.
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
-2026, 06:58 UTC._
+2026, 07:16 UTC._
 
-- **Now:** item 7 (docs/RELEASE_CHECKLIST.md, the Play Console answers, the store images),
-  pushed for its CI check. Items 1 to 6 are done and green.
-- **Done:** item 1, green in run 363 (493fd3b); item 2, green in run 364 (d88c2bf); item 3,
-  green in run 365 (838f941: its step printed "OK: SpotLinkActivity with one autoVerify filter
-  for https://relay.example.invalid/spot", "OK: no SpotLinkActivity and no verified link" and
-  "OK: the release APK has no SpotLinkActivity (no relay of its own)"); item 4, green in run 366
-  (da28245; core and server tests passed in CI with the fix); item 5, green in run 367
-  (de83af6); item 6, green in run 368 (e6e70c3: the Facebook check, the throwaway-key rehearsal
-  and the 16 KB check of its bundle all passed).
-- **Screenshots:** unchanged after items 1 to 4 and 6 (phone 2,320 and watch 546 identical to
-  e2d5384's by blob hash, apart from item 5's). After item 5: phone 2,312 identical, 8 changed,
-  all `smallPhoneLargeFontTextedSpotMap` (fr, in, nl, pl, sv, th, tr, vi: the languages whose
-  title was cut to a dot or a few letters; looked at: Polish now shows "Mapa" and its status,
-  the buttons on a line under them); watch 546 identical.
-- **Last green run:** 368 (e6e70c3, item 6; 06:58 UTC).
-- **Baseline:** core 658 and server 108 tests pass locally at e2d5384 (scratch Gradle build of
-  only `:core` and `:server`, Maven Central only); server 115 with items 2 and 4, core 660 with
-  item 6.
+- **Now:** all seven items are done, each green in CI before the next. What's left is the
+  owner's: **docs/RELEASE_CHECKLIST.md**, from step 0.
+- **Done:** item 1, green in run 363 (493fd3b); item 2, run 364 (d88c2bf); item 3, run 365
+  (838f941: "OK: SpotLinkActivity with one autoVerify filter for
+  https://relay.example.invalid/spot", "OK: no SpotLinkActivity and no verified link", "OK: the
+  release APK has no SpotLinkActivity"); item 4, run 366 (da28245); item 5, run 367 (de83af6);
+  item 6, run 368 (e6e70c3: the Facebook check, the throwaway-key rehearsal and the 16 KB check
+  of its bundle all passed); item 7, run 369 (08cd36e).
+- **Screenshots:** against e2d5384's, by blob hash: phone 2,312 identical and 8 changed, all
+  `smallPhoneLargeFontTextedSpotMap` (fr, in, nl, pl, sv, th, tr, vi: item 5, the languages
+  whose map title was cut to a dot or a few letters; looked at: Polish now shows "Mapa" and its
+  status, the buttons on a line under them); watch 546 identical. No other item changed one.
+- **Last green run:** 369 (08cd36e, item 7; 07:16 UTC). The commit after it (this handover,
+  and the Live notification's button named as it is, "Go hidden", in the checklist's video steps
+  and PLAY_STORE.md) is docs only, pushed with `[skip ci]`.
+- **Tests:** core 660 and server 115 pass locally (scratch Gradle build of only `:core` and
+  `:server`, Maven Central only); at e2d5384 they were 658 and 108.
 
 ### The seven items
 
@@ -315,6 +314,9 @@ screenshot changed.
   `MOSHPOINT_APP_CERTS` (INSERTPLAYSHA256HERE), and the relay's secrets now say they go in
   GitHub (the Deploy server workflow copies them). **README**: the checklist first under
   Releasing.
+
+**Result (run 369):** green; no screenshot changed. After it, the checklist's video steps and
+PLAY_STORE.md name the Live notification's button as the app does ("Go hidden", not "Stop").
 
 ## Open questions
 

@@ -206,11 +206,11 @@ is, why it can't wait, and for a short video of it. The app has two services wit
    > end-to-end encrypted (location). This must continue with the app closed and the screen off:
    > at a gig the phone is in a pocket, and a friend trying to find the user in a crowd needs the
    > signal now, not when the app is next opened. The user starts it with "Go live" (or the Quick
-   > Settings tile) after a disclosure, sees a persistent notification with a Stop button the
+   > Settings tile) after a disclosure, sees a persistent notification with a "Go hidden" button the
    > whole time, and it stops when they stop it.
 
    Video: tap Go live, show the notification, lock the phone, show a friend's phone still
-   finding it, tap Stop in the notification.
+   finding it, tap Go hidden in the notification.
 2. `WatchFinderService`, types **connectedDevice** and **location** (finding for the watch):
    > When the user asks their paired Wear OS watch to find a friend, the phone does the finding
    > (Bluetooth, UWB and Wi-Fi Aware ranging with the friend's phone, and GPS) while it stays in

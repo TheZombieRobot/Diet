@@ -188,14 +188,15 @@ Settings → **Screen record**), with a friend's phone nearby, both in one crew.
 before the first upload (step 9), so use the test build from the testing page on both phones.
 
 - **connectedDevice** (finding nearby friends over Bluetooth, UWB and Wi-Fi Aware). Record:
-  open Moshpoint → **Go live** → show the notification ("You're live…" with **Stop**) → lock the
-  phone → on your friend's phone, find you: the arrow and the distance update while your screen
-  is off → unlock and tap **Stop** in the notification. 30–60 seconds.
+  open Moshpoint → **Go live** → show the notification ("You're live: mates can find you", with
+  **Go hidden**) → lock the phone → on your friend's phone, find you: the arrow and the distance
+  update while your screen is off → unlock and tap **Go hidden** in the notification.
+  30–60 seconds.
   Paste in "task": the paragraph for `VisibilityService` in docs/PLAY_STORE.md (Foreground
   service permissions).
 - **location** (sharing GPS with your crew when you're far apart). Record: **Go live** →
   lock the phone → walk 100 m or more (or use a friend across town) → your friend's map and
-  finder show your position moving while your phone is in your pocket → tap **Stop** in the
+  finder show your position moving while your phone is in your pocket → tap **Go hidden** in the
   notification. 30–60 seconds. Same paragraph, plus the one for `WatchFinderService` if the form
   asks about every service.
 
