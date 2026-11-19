@@ -1,5 +1,9 @@
 # Wave 2c: battery
 
+> **Since 16 November 2026** Need help, check-ins and Home safe are removed from the app, and
+> `RelayUse.SAFETY` with them, with every special case below (going alone, never held, never
+> counted): [REMOVE_SAFETY.md](REMOVE_SAFETY.md). What this page says about safety pings is history.
+
 The battery items of [PRODUCTION_AUDIT.md](PRODUCTION_AUDIT.md) that don't need the server:
 performance P0-3 (the finder's screen), P1-9 (GPS cadence), the server-independent part of
 P0-2 (network hygiene), and the small radio wins from the P2 list. Details and estimates:

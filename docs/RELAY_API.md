@@ -67,8 +67,9 @@ Location packets, crowd-relay uploads, floor boxes, crew pings, the pin and crew
 
 ## 3. Crew chat (72 hours)
 
-Chat lines, history bundles, private messages, and the safety pings (Need help, Check in, Home
-safe) that are also posted here.
+Chat lines, history bundles and private messages. (Need help, Check in and Home safe were also
+posted here until they were removed on 16 November 2026, docs/REMOVE_SAFETY.md; an older build
+may still post them, and they're stored like any other record.)
 
 `PUT /v1/held/{id}`, body = 16 to 4,000 bytes → `204`. Kept 72 hours, at most 200 records per id,
 same rules as boxes (the same bytes take one slot and count as newest).
@@ -267,7 +268,8 @@ In `RelayClient` and the courier, in this order (each step works on its own):
 4. **One batch a minute.** The 60 s sync becomes one `/v1/batch`: every queued location, floor
    and crowd-relay packet (each rotating id at most once per batch, newest copy), queued
    pings, chat and pins as puts; the crew's box ids, ping id, pin id and chat ids as gets with
-   their cursors. Need help still goes at once, on its own (`PUT /v1/held` and `/v1/box`).
+   their cursors. (Need help used to go at once, on its own; it was removed on 16 November 2026,
+   docs/REMOVE_SAFETY.md.)
 5. **Moments.** Upload with `Content-Length` (HttpURLConnection's `setFixedLengthStreamingMode`).
    A `400` for a photo means "reseal and try again" (the 1-in-2.5-million false match).
 6. **Budgets.** `ownBudget` in `RelayClient` can then drop its 600 requests a minute to about 10.
