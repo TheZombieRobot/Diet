@@ -9,18 +9,20 @@ items, in order, each green in CI before the next.
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
-2026, 05:58 UTC._
+2026, 06:20 UTC._
 
-- **Now:** item 4 (the flaky `ReportTest`: reports in the same millisecond), pushed for its CI
-  check. Next: item 5 (the map's top bar), drafted.
+- **Now:** item 5 (the map's top bar on a small phone with large text), pushed for its CI check.
+  Expected screenshot change: `smallPhoneLargeFontTextedSpotMap` only, in the languages whose
+  title was cut. Next: item 6 (drafted), then item 7 (drafted).
 - **Done:** item 1, green in run 363 (493fd3b); item 2, green in run 364 (d88c2bf); item 3,
   green in run 365 (838f941: its step printed "OK: SpotLinkActivity with one autoVerify filter
   for https://relay.example.invalid/spot", "OK: no SpotLinkActivity and no verified link" and
-  "OK: the release APK has no SpotLinkActivity (no relay of its own)"). Screenshots unchanged
-  after each (phone 2,320 and watch 546 identical to e2d5384's by blob hash).
-- **Last green run:** 365 (838f941, item 3; 05:54 UTC).
+  "OK: the release APK has no SpotLinkActivity (no relay of its own)"); item 4, green in run 366
+  (da28245; core and server tests passed in CI with the fix). Screenshots unchanged after each
+  (phone 2,320 and watch 546 identical to e2d5384's by blob hash).
+- **Last green run:** 366 (da28245, item 4; 06:17 UTC).
 - **Baseline:** core 658 and server 108 tests pass locally at e2d5384 (scratch Gradle build of
-  only `:core` and `:server`, Maven Central only).
+  only `:core` and `:server`, Maven Central only); server 115 with items 2 and 4.
 
 ### The seven items
 
@@ -186,6 +188,22 @@ stands still, four reports, 25 times over: newest first every time) and
 `theOrderHoldsAcrossARestartEvenIfTheClockWentBack` (two reports, a new store on the same
 folder with the clock 5 seconds behind: the third still lists first, nothing swept early).
 `ReportTest`: 12 tests pass locally.
+
+## Item 5: the map's top bar on a small phone with large text
+
+**The problem:** the map's top bar was one Row: the back chevron, the title over the status, then
+Pin, All and Me, with the title and status given whatever the buttons left. On a small phone with
+large text (`smallPhoneLargeFontTextedSpotMap`: Nexus 5, text at 130%) the buttons took nearly
+all of it, and in many languages the title was cut to "·" or a few letters (Polish: Pinezka,
+Wszyscy and Ja). On normal phones the title fits in every language.
+
+**Fixed with the place rows' rule** (`ListRow`, the same map's list): wherever the longest word
+of the title and the status fits between the chevron and the buttons, the bar is laid out exactly
+as the Row it was (`MapTopBar` measures and places its parts the way Row does, so nothing changes
+there). Below that, the buttons go on a line of their own under the title, at the end, and the
+title and status get the bar's whole width. The map style's button under the bar (Bright, Night,
+Dark) moves down with it then, 20 dp under the bar as before (`MapTopArea`); otherwise it stays
+where it was. No new strings; RTL mirrors as before (`placeRelative`).
 
 ## Open questions
 
