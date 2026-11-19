@@ -132,7 +132,8 @@ Where things live: docs/CODE_STRUCTURE.md.
     the mate on screen.
   - Bluetooth gets you within about 20 m; the camera picks them out.
   - Hard parts:
-    - stage strobes and other phones (use a pseudo-random code and the mate's colour);
+    - stage strobes and other phones (rely on a pseudo-random timing code, not colour: a torch is
+      white, and colour washes out at a distance for eyes and cameras alike);
     - a tiny light at 30 m;
     - auto-exposure, so lock it;
     - keeping the flash rate reasonable.
