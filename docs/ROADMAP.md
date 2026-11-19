@@ -233,7 +233,8 @@ Moshpoint opens weeks before the gig, not only on the night.
 - **Satellite data (owner's decision, 16 November 2026).** "Use satellite when there's no
   signal": on Android 16, where the carrier allows it, the small things (locations, pings, chat
   text, pins) go over a satellite network when it's the only one, in the relay's batch at most
-  every two minutes. Members only, behind a Settings switch that's off by default; with it off,
+  every two minutes. Both it and Text my spot are listed on "What's in Moshpoint+" (19 November
+  2026, SPOT_LINKS.md item 5). Members only, behind a Settings switch that's off by default; with it off,
   nothing goes over satellite at all. **Owner to-do after launch:** carriers decide which apps may
   use satellite data (Spark and One NZ keep app lists): ask to have Moshpoint added
   (PRODUCTION_AUDIT.md, Owner to-do). **Status: built** (stage 4 of REMOVE_SAFETY.md); not yet

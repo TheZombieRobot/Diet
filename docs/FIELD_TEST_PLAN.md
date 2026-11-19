@@ -936,8 +936,10 @@ joins. Use a date at least a week away so the crew sleeps.
 2. The sheet asks, in order: **Who's playing**, the **date** and **time** buttons, **Where
    (optional)** with "Venue and town" greyed in. No search box.
 3. Under Start the crew: the small amber **Moshpoint+** card, no price, no Upgrade button.
-4. Type a name, tap **What's in Moshpoint+**: the list, "COMING SOON", **Back to the plan**. Back:
-   the name you typed is still there.
+4. Type a name, tap **What's in Moshpoint+**: the list (smart search, Coming up near you, venue
+   maps offline, the watch, **Text my spot** and **Use satellite when there's no signal**; the last
+   two since 19 November 2026, docs/SPOT_LINKS.md item 5), "COMING SOON", **Back to the plan**.
+   Back: the name you typed is still there.
 5. Start the crew: the crew is made as before, its invite shows.
 
 ### C. Smart search (stage 3; a member on a test relay with `MOSHPOINT_DISCOVER_OPEN=1`)

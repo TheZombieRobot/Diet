@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">خريطة القمر الصناعي للمكان، محفوظة على هاتفك لوقت انقطاع الإشارة.</string>
     <string name="plus_info_watch_title">اعثر عليهم من معصمك</string>
     <string name="plus_info_watch_text">سهم على ساعتك يهتز كلما اقتربت أو ابتعدت.</string>
+    <string name="plus_info_spot_text">أرسل مكانك برسالة نصية. يرى أصحابك الذين لديهم Moshpoint سهمًا يدلّهم عليه، حتى دون بيانات.</string>
+    <string name="plus_info_satellite_text">عند انقطاع الإشارة تُرسَل رسائل الشلة ومكانك عبر القمر الصناعي، في الباقات التي تدعم ذلك.</string>
     <string name="plus_info_soon_title">قريبًا</string>
     <string name="plus_info_soon_text">لا يمكن شراء Moshpoint+ بعد. كتابة حفلتك والشلة والدردشة والعثور على أصحابك تبقى مجانية.</string>
     <string name="plus_info_back">العودة إلى الخطة</string>

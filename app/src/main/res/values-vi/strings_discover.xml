@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">Bản đồ vệ tinh của địa điểm, lưu trên điện thoại phòng khi mất sóng.</string>
     <string name="plus_info_watch_title">Tìm bạn từ cổ tay</string>
     <string name="plus_info_watch_text">Mũi tên trên đồng hồ rung khi gần hơn hay xa hơn.</string>
+    <string name="plus_info_spot_text">Nhắn vị trí của mình qua tin nhắn. Bạn bè có Moshpoint sẽ thấy mũi tên chỉ đến đó, kể cả khi không có dữ liệu.</string>
+    <string name="plus_info_satellite_text">Khi không có sóng, tin nhắn nhóm và vị trí của mình đi qua vệ tinh, với các gói cước hỗ trợ.</string>
     <string name="plus_info_soon_title">SẮP RA MẮT</string>
     <string name="plus_info_soon_text">Moshpoint+ chưa bán. Tự nhập buổi diễn, nhóm, chat và tìm bạn bè vẫn miễn phí.</string>
     <string name="plus_info_back">Quay lại kế hoạch</string>

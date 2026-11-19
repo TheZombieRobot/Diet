@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">Satellitkartan över stället, sparad i mobilen för när täckningen försvinner.</string>
     <string name="plus_info_watch_title">Hitta dem från handleden</string>
     <string name="plus_info_watch_text">En pil på klockan som vibrerar varmare och kallare.</string>
+    <string name="plus_info_spot_text">Sms:a din plats. Kompisar med Moshpoint får en pil dit, även utan data.</string>
+    <string name="plus_info_satellite_text">Utan täckning går meddelanden från gruppen och din plats via satellit, med abonnemang som har det.</string>
     <string name="plus_info_soon_title">KOMMER SNART</string>
     <string name="plus_info_soon_text">Moshpoint+ går inte att köpa än. Att skriva in spelningen, grupper, chatt och att hitta kompisarna förblir gratis.</string>
     <string name="plus_info_back">Tillbaka till planen</string>

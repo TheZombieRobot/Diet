@@ -49,6 +49,11 @@
     <string name="plus_info_watch_title">Find them from your wrist</string>
     <!-- Under "Find them from your wrist". -->
     <string name="plus_info_watch_text">An arrow on your watch that buzzes warmer and colder.</string>
+    <!-- Explanation page, fifth item: its title is the button's own name (spot_text, "Text my spot"). The receiving end is
+         free: a mate's Moshpoint opens the link as a place on the map, with the finder's arrow to it (docs/SPOT_LINKS.md). -->
+    <string name="plus_info_spot_text">Send your spot in a text. Mates with Moshpoint get an arrow to it, even with no data.</string>
+    <!-- Explanation page, sixth item: its title is the switch's own name (satellite_data). Plans = phone plans with satellite data. -->
+    <string name="plus_info_satellite_text">When there\'s no signal, crew messages and your spot go by satellite, on plans that have it.</string>
     <!-- Small capitals over the note that Moshpoint+ can't be bought yet (no billing). -->
     <string name="plus_info_soon_title">COMING SOON</string>
     <!-- Under COMING SOON. Keep "Moshpoint+" as it is. -->

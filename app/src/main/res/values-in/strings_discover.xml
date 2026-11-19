@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">Peta satelit venue, disimpan di HP kamu buat jaga-jaga kalau sinyal hilang.</string>
     <string name="plus_info_watch_title">Temukan mereka dari pergelangan tangan</string>
     <string name="plus_info_watch_text">Panah di jam tangan yang bergetar makin dekat atau makin jauh.</string>
+    <string name="plus_info_spot_text">Kirim lokasimu lewat SMS. Teman yang punya Moshpoint dapat panah ke sana, bahkan tanpa data.</string>
+    <string name="plus_info_satellite_text">Kalau nggak ada sinyal, pesan geng dan lokasimu tetap terkirim lewat satelit, di paket yang mendukungnya.</string>
     <string name="plus_info_soon_title">SEGERA HADIR</string>
     <string name="plus_info_soon_text">Moshpoint+ belum bisa dibeli. Ketik konser, geng, chat, dan cari teman tetap gratis.</string>
     <string name="plus_info_back">Kembali ke rencana</string>

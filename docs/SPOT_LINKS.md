@@ -32,12 +32,14 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   test shows an older build's check-in). The first attempt failed on a server test that has
   nothing to do with these items (`ReportTest.aReportIsStoredAndTheOwnerCanListAndDeleteIt`;
   open question 5); only the failed job was run again, on the same commit.
-- **Item 4 (crew chat read over satellite): built, pushed for CI.** Core tests green locally
-  (658; server 108), translations (both checks) and secrets pass.
-- **Exact next step:** read item 4's run. No screenshot should change (nothing on screen is
-  new). Then push item 5. Items 5 and 6 are committed locally, one commit each, on top of item
-  4; each goes up after the one before is green.
-- **Last green run:** 358 (9db9044, item 3). Baseline for screenshot comparisons: dad5a3f's
+- **Item 4 (crew chat read over satellite): done, green in CI** (run 359, b39bc3d). No
+  screenshot changed, as expected (nothing on screen is new).
+- **Item 5 (Text my spot and satellite in "What's in Moshpoint+"): built, pushed for CI.** Core
+  tests green locally (658; server 108), translations (both checks) and secrets pass.
+- **Exact next step:** read item 5's run. Screenshots expected to change: `plusInfo` and
+  `smallPhoneLargeFontPlusInfo` (the two new rows), in all 21 languages, nothing else. Then push
+  item 6, committed locally on top of item 5.
+- **Last green run:** 359 (b39bc3d, item 4). Baseline for screenshot comparisons: dad5a3f's
   `ui-screenshots` and `ui-screenshots-watch`.
 
 ### The six items
@@ -45,8 +47,8 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 1. Texted spots open in Moshpoint (stage 5 part 2). **Done: green in runs 355 and 356.**
 2. "Heading home 🏠" back as a plain quick ping. **Done: green in run 357.**
 3. An older build's check-in shown as "<name> is heading home". **Done: green in run 358.**
-4. Crew chat read over satellite. **Built; CI pending.**
-5. Text my spot and satellite in "What's in Moshpoint+". Built (local commit).
+4. Crew chat read over satellite. **Done: green in run 359.**
+5. Text my spot and satellite in "What's in Moshpoint+". **Built; CI pending.**
 6. `WatchPings.followUp`: removed, as only Need help used it. Built (local commit).
 
 ### Item 1: what was built
@@ -146,7 +148,24 @@ _Keep this section current: whoever picks this up next starts here. Last updated
     `syncWithChat`; on any other network it calls the chat poll and `sync` exactly as before.
 - **Docs:** FEATURES, ROADMAP, RELAY_API (section 11), FIELD_TEST_PLAN 4n.
 
+### Item 5: what was built
+
+- **"What's in Moshpoint+"** (`PlusInfoContent` in `ui/home/PlanGig.kt`) gets two rows after the
+  watch: **Text my spot** (the chat icon) and **Use satellite when there's no signal** (a new
+  `HomeIcons.Satellite`, drawn in the same line style). Their titles are the features' own names
+  (`spot_text`, `satellite_data`), so the page says exactly what Settings says; the two lines under
+  them are new (`plus_info_spot_text`, `plus_info_satellite_text`), in all 20 languages, using each
+  language's own words for crew and mates.
+- **Docs:** FEATURES (Plan a gig), ROADMAP, FIELD_TEST_PLAN (Plan a gig, step 4), DISCOVER_APP.
+
 ## Decisions (with reasons)
+
+### Item 5
+
+- **The features' own names as titles:** a member then finds them in Settings under the same
+  words. Only the descriptions are new.
+- **Text my spot's line mentions the free receiving end** ("Mates with Moshpoint get an arrow to
+  it"), since that's what makes it worth sending; still no price and no Upgrade button.
 
 ### Item 4
 

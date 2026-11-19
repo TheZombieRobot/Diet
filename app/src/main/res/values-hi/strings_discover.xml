@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">वेन्यू का सैटेलाइट मैप, आपके फ़ोन में सेव, ताकि सिग्नल जाए तब भी काम आए।</string>
     <string name="plus_info_watch_title">कलाई से ढूँढें</string>
     <string name="plus_info_watch_text">घड़ी पर एक तीर जो पास-दूर होने पर वाइब्रेट करता है।</string>
+    <string name="plus_info_spot_text">अपनी लोकेशन SMS से भेजो। Moshpoint वाले दोस्तों को वहाँ तक का तीर दिखेगा, बिना डेटा के भी।</string>
+    <string name="plus_info_satellite_text">सिग्नल न हो तो ग्रुप के मैसेज और तुम्हारी लोकेशन सैटेलाइट से जाती है, उन प्लान पर जिनमें यह सुविधा है।</string>
     <string name="plus_info_soon_title">जल्द आ रहा है</string>
     <string name="plus_info_soon_text">Moshpoint+ अभी खरीदा नहीं जा सकता। अपना शो लिखना, ग्रुप, चैट और दोस्तों को ढूँढना फ़्री रहेगा।</string>
     <string name="plus_info_back">प्लान पर वापस</string>

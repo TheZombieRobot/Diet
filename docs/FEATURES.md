@@ -19,7 +19,10 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **Finding each other's details:** crew members pass each other's details on over Bluetooth
   (gossip) and through an internet relay. (partly tested)
 - **Plan a gig ahead:** search upcoming gigs ("Iron…" lists Iron Maiden, venue, date), or type
-  the gig in. Search needs a Ticketmaster key; typing it in works now.
+  the gig in. Search needs a Ticketmaster key; typing it in works now. Free users get a quiet
+  Moshpoint+ card with "What's in Moshpoint+": smart search, Coming up near you, venue maps
+  offline, the watch, Text my spot and satellite data (the last two since 19 November 2026,
+  [SPOT_LINKS.md](SPOT_LINKS.md) item 5).
 - **Sleeping crews:** a crew for a later date sleeps until the day, with no Bluetooth, GPS or
   battery use. Mates can join any time.
   - On the day, 3 h before the start: "Iron Maiden tonight! Tap to go live".

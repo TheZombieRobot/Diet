@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">La carte satellite de la salle, gardée sur ton téléphone pour quand le réseau lâche.</string>
     <string name="plus_info_watch_title">Retrouve-les depuis ton poignet</string>
     <string name="plus_info_watch_text">Une flèche sur ta montre qui vibre chaud ou froid.</string>
+    <string name="plus_info_spot_text">Envoie ta position par SMS. Tes potes avec Moshpoint ont une flèche vers elle, même sans données.</string>
+    <string name="plus_info_satellite_text">Sans réseau, les messages de la crew et ta position passent par satellite, avec les forfaits qui le permettent.</string>
     <string name="plus_info_soon_title">BIENTÔT</string>
     <string name="plus_info_soon_text">Moshpoint+ n\'est pas encore en vente. Saisir ton concert, les crews, le chat et retrouver tes potes restent gratuits.</string>
     <string name="plus_info_back">Retour au plan</string>

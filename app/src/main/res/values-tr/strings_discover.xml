@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">Mekânın uydu haritası, şebeke çekmediğinde diye telefonunda kayıtlı.</string>
     <string name="plus_info_watch_title">Bileğinden bul</string>
     <string name="plus_info_watch_text">Saatinde yaklaştıkça titreşen bir ok.</string>
+    <string name="plus_info_spot_text">Konumunu SMS ile gönder. Moshpoint\'i olan arkadaşların, veri olmadan bile oraya giden bir ok görür.</string>
+    <string name="plus_info_satellite_text">Sinyal yokken ekip mesajları ve konumun uydu üzerinden gider; bunu destekleyen tarifelerde.</string>
     <string name="plus_info_soon_title">ÇOK YAKINDA</string>
     <string name="plus_info_soon_text">Moshpoint+ henüz satışta değil. Konserini yazmak, ekipler, sohbet ve arkadaşlarını bulmak ücretsiz kalıyor.</string>
     <string name="plus_info_back">Plana dön</string>

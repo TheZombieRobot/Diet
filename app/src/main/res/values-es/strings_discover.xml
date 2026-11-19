@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">El mapa satelital del lugar, guardado en tu teléfono por si se cae la señal.</string>
     <string name="plus_info_watch_title">Encuéntralos desde tu muñeca</string>
     <string name="plus_info_watch_text">Una flecha en tu reloj que vibra más caliente o más frío.</string>
+    <string name="plus_info_spot_text">Manda tu ubicación por SMS. Tus amigos con Moshpoint ven una flecha hacia ella, incluso sin datos.</string>
+    <string name="plus_info_satellite_text">Sin señal, los mensajes del grupo y tu ubicación van por satélite, en planes que lo incluyen.</string>
     <string name="plus_info_soon_title">MUY PRONTO</string>
     <string name="plus_info_soon_text">Moshpoint+ todavía no está a la venta. Escribir tu concierto, los grupos, el chat y encontrar a tus amigos siguen siendo gratis.</string>
     <string name="plus_info_back">Volver al plan</string>
