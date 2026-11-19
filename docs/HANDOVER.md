@@ -106,6 +106,9 @@ Where things live: docs/CODE_STRUCTURE.md.
    - On Bluetooth-only phones, show an honest wide arrow instead of a sharp needle.
    - Make the distance trend the main signal ("closer… 12 m… 6 m").
    - Offer Light me up automatically within about 15 m.
+   - Make Light me up easy to pick out when a whole crowd's phones are lit: flash in the mate's
+     own colour and a rhythm that's unique to them (owner's idea, 19 November), shown to the
+     finder as the thing to look for.
    - Try Bluetooth 5's long-range mode (LE Coded PHY) in the field test, on phones that support it
      (`isLeCodedPhySupported`): an extended advert on Coded alongside the normal one. Compare its
      range and detection in a packed crowd against battery cost. Wave 2c dropped Coded scanning
