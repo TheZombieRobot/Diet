@@ -1070,8 +1070,12 @@ signal. **A** is that phone; **B** is a mate with normal signal, in A's crew.
   signal"); the chat says "No signal". Nothing reaches B except by Bluetooth. With adb, `adb shell
   dumpsys netstats` (or the carrier's usage page) shows no satellite data used by Moshpoint.
 - [ ] Switch on: within about two minutes B gets the ping and the chat line, and A's spot on B's
-  map moves. B sends a ping and drops a pin: A gets both within about two minutes. A doesn't get
-  B's chat lines until it has normal signal (or B is close enough for Bluetooth).
+  map moves. B sends a ping and drops a pin: A gets both within about two minutes. B sends a chat
+  line: A gets it within about two minutes too, in the same exchange (since 19 November 2026,
+  docs/SPOT_LINKS.md item 4), with the usual notification. A private message from B to A arrives
+  the same way.
+- [ ] Still on satellite, B posts a photo to the crew: A sees nothing of it until normal signal
+  (no media over satellite, ever).
 - [ ] Still on satellite: a photo or clip from A waits, the map shows only what's saved, and
   Plan a gig's search says it can't search right now. Nothing big downloads.
 - [ ] Back to normal signal: everything that waited goes, as usual, within a minute.

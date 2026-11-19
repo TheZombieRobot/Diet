@@ -27,21 +27,25 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   nothing else; watch identical. Reviewed in en, de, ar (right to left), ja, small phone and
   large font: the chip reads in full, cyan like the other pings. Crew chat and Message crew
   shots that show the row from its start didn't change (the sixth chip is off screen there).
-- **Item 3 (an older build's check-in reads as "<name> is heading home"): built, pushed for
-  CI.** Core tests green locally (654; server 108), translations (both checks) and secrets pass.
-- **Exact next step:** read item 3's run. No screenshot should change: no screenshot test shows
-  an older build's check-in, and the strings removed were used only for it. Then push item 4.
-  Items 4 to 6 are committed locally, one commit each, on top of item 3 (core 658, server 108
-  with all of them); each goes up after the one before is green.
-- **Last green run:** 357 (12540f0, item 2). Baseline for screenshot comparisons: dad5a3f's
+- **Item 3 (an older build's check-in reads as "<name> is heading home"): done, green in CI**
+  (run 358, 9db9044, on its second attempt). No screenshot changed, as expected (no screenshot
+  test shows an older build's check-in). The first attempt failed on a server test that has
+  nothing to do with these items (`ReportTest.aReportIsStoredAndTheOwnerCanListAndDeleteIt`;
+  open question 5); only the failed job was run again, on the same commit.
+- **Item 4 (crew chat read over satellite): built, pushed for CI.** Core tests green locally
+  (658; server 108), translations (both checks) and secrets pass.
+- **Exact next step:** read item 4's run. No screenshot should change (nothing on screen is
+  new). Then push item 5. Items 5 and 6 are committed locally, one commit each, on top of item
+  4; each goes up after the one before is green.
+- **Last green run:** 358 (9db9044, item 3). Baseline for screenshot comparisons: dad5a3f's
   `ui-screenshots` and `ui-screenshots-watch`.
 
 ### The six items
 
 1. Texted spots open in Moshpoint (stage 5 part 2). **Done: green in runs 355 and 356.**
 2. "Heading home 🏠" back as a plain quick ping. **Done: green in run 357.**
-3. An older build's check-in shown as "<name> is heading home". **Built; CI pending.**
-4. Crew chat read over satellite. Built (local commit).
+3. An older build's check-in shown as "<name> is heading home". **Done: green in run 358.**
+4. Crew chat read over satellite. **Built; CI pending.**
 5. Text my spot and satellite in "What's in Moshpoint+". Built (local commit).
 6. `WatchPings.followUp`: removed, as only Need help used it. Built (local commit).
 
@@ -122,7 +126,42 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 - **Unchanged:** the message itself. It's still kept, carried and passed on as it came (its
   minutes included), handled as an ordinary ping (`PingPolicy.Group.OLDER_BUILDS`).
 
+### Item 4: what was built
+
+- **Core:** `SatelliteRule.chatInBatch` (over satellite, for a member who switched it on: the chat
+  is read in the batch; any other network: never) and `SatelliteRule.chatCrews` (when the chat
+  doesn't fit in the batch's 150 reads: tonight's crew first, the others in turn, never half a
+  crew). `SatelliteRuleTest`, 4 new tests (13 in all), including that the chat's own poll never
+  goes over satellite and the batch at most every two minutes.
+- **App:**
+  - `ChatSync`: the poll split into `mailboxes` (which ids, in order) and `read` (what to do with
+    the answer), unchanged; `satelliteMailboxes` (over satellite only) and `readFromBatch` use
+    the same two.
+  - `RelayClient.syncWithChat`: the crew sync's batch with `GET_HELD` ops for those mailboxes
+    after its own `GET_BOX` ops, from the chat's cursors (`HeldMirror`, under the same lock as
+    `/v1/heldsince`), so the next normal poll carries on from where the batch left off. A chat
+    mailbox that answers MORE gets the rest in the next batch. If any chat mailbox couldn't be
+    read, none of the chat is used that time.
+  - `GroupSync.syncServer`: over satellite it asks `ChatSync` for the mailboxes and uses
+    `syncWithChat`; on any other network it calls the chat poll and `sync` exactly as before.
+- **Docs:** FEATURES, ROADMAP, RELAY_API (section 11), FIELD_TEST_PLAN 4n.
+
 ## Decisions (with reasons)
+
+### Item 4
+
+- **In the crew sync's batch, not a batch of its own:** over satellite a batch goes at most every
+  two minutes, so a second one for the chat would halve how often each goes. One exchange
+  carries the crew's messages both ways.
+- **The same cursors** as the chat's own poll (`/v1/heldsince`), so nothing is read twice when
+  normal signal comes back.
+- **Everything the chat poll reads, as text:** each crew's chat mailbox and private mailbox (and
+  a rekeyed crew's old ones for a day). Photos and clips are files of their own and never go
+  over satellite.
+- **Reads only:** the chat poll's periodic re-posts (the pinned plan, history copies, "joined")
+  don't run over satellite; what the crew writes still goes up in the batch.
+- **All or nothing per batch:** the courier is only told about mailboxes really read, so a
+  failed read can't make it think a message is missing from the relay.
 
 ### Item 3
 
@@ -191,3 +230,9 @@ _Keep this section current: whoever picks this up next starts here. Last updated
    (seen in Polish in `smallPhoneLargeFontTextedSpotMap`: Pinezka, Wszyscy and Ja take the
    width). It was like that before these items (no earlier test drew that case) and isn't
    changed here; fix it the same way as the place rows?
+5. **A flaky server test:** `ReportTest.aReportIsStoredAndTheOwnerCanListAndDeleteIt` posts two
+   reports and expects the newer first, but a report's id is its arrival millisecond and a
+   random part (`ReportStore.add`), and the list is sorted by id: two reports in the same
+   millisecond come back in either order. It failed once here (run 358's first attempt) with
+   nothing changed in the server. Fix in the server's own work: a counter within the
+   millisecond in the id, or the test waiting a millisecond between the two.

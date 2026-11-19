@@ -583,10 +583,20 @@ object GroupSync {
         AvatarSync.publishMine(c) // our face on the crew's tiles (re-shared every couple of hours)
         AvatarSync.fetchFriends(c)
         CrewChat.tick()
-        ChatSync.pollAll(c, minGapMs = 120_000)
+        // Over satellite the chat's own poll can't go (only this batch may, every two minutes), so
+        // the chat's text mailboxes ride in this batch, from its own cursors (docs/SPOT_LINKS.md,
+        // item 4; core SatelliteRule.chatInBatch). Any other network: the chat's own poll, as before.
+        val chat = ChatSync.satelliteMailboxes(c, room = RelayClient.chatRoom(ids.size))
+        if (chat == null) ChatSync.pollAll(c, minGapMs = 120_000)
         // With our own relay, one batch: these lookups plus every location, floor, crowd-relay
         // packet, intro and crew message waiting to go up (RelayClient.sync). Else a lookup, as before.
-        val found = RelayClient.sync(ids) ?: return
+        val found = if (chat == null) {
+            RelayClient.sync(ids) ?: return
+        } else {
+            val (boxes, chatFound) = RelayClient.syncWithChat(ids, chat.ids) ?: return
+            ChatSync.readFromBatch(c, chat, chatFound)
+            boxes
+        }
         found.subList(0, 2).flatten().forEach { received(c, g, it) }
         // The courier notes what's on the relay, so nothing it carries is uploaded twice, and
         // says which pings this phone has never had before.

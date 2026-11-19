@@ -186,10 +186,11 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **Use satellite when there's no signal (Moshpoint+):** a Settings switch, off until a member
   turns it on. On Android 16, where the carrier offers satellite data and lists Moshpoint, crew
   messages and locations still go when the only network is a satellite one: the small things
-  (locations, pings, chat text, pins, and reading the crew's pings, pins and locations) in one
-  request to our relay at most every two minutes. Photos, clips, faces, Discover, venue maps and
-  the map's tiles wait for a normal network. With the switch off, or for free users, a satellite
-  network counts as no signal, and Bluetooth passes messages on as usual. (untested)
+  (locations, pings, chat text, pins, and reading the crew's pings, pins, locations and, since 19
+  November 2026, the crew chat's text) in one request to our relay at most every two minutes.
+  Photos, clips, faces, Discover, venue maps and the map's tiles wait for a normal network. With
+  the switch off, or for free users, a satellite network counts as no signal, and Bluetooth
+  passes messages on as usual. (untested)
 - **Test builds:** scrambled (R8), about 27 MB, from a public download link. The repo is
   public; there's a proprietary licence.
 

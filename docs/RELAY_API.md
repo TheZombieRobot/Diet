@@ -277,6 +277,14 @@ In `RelayClient` and the courier, in this order (each step works on its own):
 Older relays (none in use once the hardened relay is deployed) answer the new endpoints `404`;
 fall back to the old ones on `404`.
 
+**Over satellite** (Moshpoint+, the switch on; docs/REMOVE_SAFETY.md stage 4 and
+docs/SPOT_LINKS.md item 4) only `/v1/batch` goes, at most every two minutes. The crew chat's
+own poll (`/v1/heldsince`) is a request of its own, so over satellite its mailboxes ride in the
+crew sync's batch instead: `GET_HELD` ops for each crew's chat and private mailboxes, from the
+same cursors, after the sync's `GET_BOX` ops (at most 150 reads in all: when the chat doesn't
+fit, tonight's crew first and the others in turn). Nothing changes on the relay, and nothing
+else: no file is ever read or written over satellite.
+
 ## 12. Discover (new, Moshpoint+ only)
 
 Smart search and "Coming up near you" (ROADMAP.md, "Discover and hype"). Both answer only from

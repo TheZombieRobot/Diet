@@ -25,6 +25,9 @@ import nz.waveformlabs.moshpoint.crew.CrewRekey
 import nz.waveformlabs.moshpoint.crew.Crews
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.locate.RelayClient
+import nz.waveformlabs.moshpoint.setup.SatelliteSwitch
+import nz.waveformlabs.moshpoint.setup.NetState
+import nz.waveformlabs.moshpoint.core.SatelliteRule
 
 /**
  * Fetches the chat for every crew you're in (main and Up next) in one request: often while
@@ -59,18 +62,83 @@ object ChatSync {
         if (crews.isEmpty()) return
         CrewChat.retryOutbox(app, crews)
         PrivateMessages.retryOutbox(app, crews)
-        val day = Math.floorDiv(now / 1000, 86_400L)
-        // For a day after a crew moves to a new key, its old mailbox is still read (see CrewRekey.graceCrews).
-        val grace = CrewRekey.graceCrews(app)
-        // Each crew's private mailbox (docs/PRIVATE_MESSAGES.md) rides in the same request, after
-        // everything else; not for crews followed from home.
-        val pmCrews = crews.filter { PrivateMessages.takesPart(it) }
-        val pmGrace = grace.filter { PrivateMessages.takesPart(it.now) }
-        val ids = crews.flatMap { listOf(it.chatIdForDay(day), it.chatIdForDay(day - 1)) } +
+        val m = mailboxes(crews, CrewRekey.graceCrews(app), Math.floorDiv(now / 1000, 86_400L))
+        val found = RelayClient.lookupHeld(m.ids) ?: return
+        read(app, m, found, notify)
+        CrewRekey.resend(app)
+        CrewChat.repostPlans(app, crews)
+        nz.waveformlabs.moshpoint.discover.HypeTickets.repost(app, crews)
+        CrewChat.shareHistory(app, crews)
+        // Say hello in each crew we're in (followers too: then a new crew key reaches them as well).
+        crews.forEach { g -> CrewChat.announceJoin(app, g) }
+    }
+
+    /**
+     * The chat mailboxes of [crews] on [day], in the order [read] takes them: each crew's chat
+     * (today's and yesterday's), then for a day after a crew moved to a new key its old key's
+     * (see CrewRekey.graceCrews), then each crew's private mailbox (docs/PRIVATE_MESSAGES.md; not
+     * for crews followed from home), then the old key's private mailbox.
+     */
+    class Mailboxes(val crews: List<GigGroup>, val grace: List<CrewRekey.Grace>, val pmCrews: List<GigGroup>, val pmGrace: List<CrewRekey.Grace>, day: Long) {
+        val ids: List<ByteArray> = crews.flatMap { listOf(it.chatIdForDay(day), it.chatIdForDay(day - 1)) } +
             grace.flatMap { listOf(it.old.chatIdForDay(day), it.old.chatIdForDay(day - 1)) } +
             pmCrews.flatMap { listOf(it.privateIdForDay(day), it.privateIdForDay(day - 1)) } +
             pmGrace.flatMap { listOf(it.old.privateIdForDay(day), it.old.privateIdForDay(day - 1)) }
-        val found = RelayClient.lookupHeld(ids) ?: return
+    }
+
+    /** [crews]' mailboxes, with the rekey graces among [allGrace] that are theirs. */
+    private fun mailboxes(crews: List<GigGroup>, allGrace: List<CrewRekey.Grace>, day: Long): Mailboxes {
+        val grace = allGrace.filter { gr -> crews.any { it.key.contentEquals(gr.now.key) } }
+        // Each crew's private mailbox (docs/PRIVATE_MESSAGES.md) rides in the same request, after
+        // everything else; not for crews followed from home.
+        return Mailboxes(crews, grace, crews.filter { PrivateMessages.takesPart(it) }, grace.filter { PrivateMessages.takesPart(it.now) }, day)
+    }
+
+    /** Batches over satellite so far: whose chats the next one reads when they don't all fit (core SatelliteRule.chatCrews). */
+    private var satelliteTurn = 0
+
+    /**
+     * Over satellite (docs/SPOT_LINKS.md, item 4): the chat's own poll is a request of its own,
+     * which never goes over satellite, so the crew sync's batch reads the chat instead, from the
+     * same cursors. The mailboxes for it to read, for as many crews as fit in [room] reads (core
+     * SatelliteRule.chatCrews: tonight's crew first, the others in turn); null on any other
+     * network (the chat's own poll reads it, as before) or with nothing to read. Chat waiting to
+     * go up is handed to the courier first, as the chat's own poll does: it rides in the batch.
+     * Nothing is re-posted from here (plans, history copies, "joined"): over satellite only what
+     * the crew writes goes up.
+     */
+    fun satelliteMailboxes(c: Context, room: Int): Mailboxes? {
+        val app = c.applicationContext
+        if (!SatelliteRule.chatInBatch(NetState.satellite, SatelliteSwitch.allowed(app))) return null
+        val crews = allCrews(app)
+        if (crews.isEmpty()) return null
+        val day = Math.floorDiv(System.currentTimeMillis() / 1000, 86_400L)
+        val grace = CrewRekey.graceCrews(app)
+        val sizes = crews.map { mailboxes(listOf(it), grace, day).ids.size }
+        val picked = SatelliteRule.chatCrews(sizes, room, satelliteTurn++).map { crews[it] }
+        if (picked.isEmpty()) return null
+        CrewChat.retryOutbox(app, crews)
+        PrivateMessages.retryOutbox(app, crews)
+        return mailboxes(picked, grace, day)
+    }
+
+    /**
+     * What a satellite batch read of [m] (newest first, as [RelayClient.lookupHeld] gives it):
+     * handled exactly as the chat's own poll handles it. [found] null: not every mailbox could be
+     * read this time, so none is used (the courier must only hear about mailboxes really read);
+     * the next batch asks again.
+     */
+    fun readFromBatch(c: Context, m: Mailboxes, found: List<List<ByteArray>>?) {
+        if (found == null || found.size != m.ids.size) return
+        read(c.applicationContext, m, found, notify = true)
+    }
+
+    /** The chat poll's answer for [m] ([found]: each mailbox's records, newest first): shown, announced, and noted by the courier. */
+    private fun read(app: Context, m: Mailboxes, found: List<List<ByteArray>>, notify: Boolean) {
+        val crews = m.crews
+        val grace = m.grace
+        val pmCrews = m.pmCrews
+        val pmGrace = m.pmGrace
         crews.forEachIndexed { i, g ->
             val fresh = mutableListOf<String>()
             val blobs = found.getOrNull(2 * i).orEmpty() + found.getOrNull(2 * i + 1).orEmpty()
@@ -144,12 +212,6 @@ object ChatSync {
                 if (p.sender in old.allowed) PrivateMessages.arrived(app, old.now, p)
             }
         }
-        CrewRekey.resend(app)
-        CrewChat.repostPlans(app, crews)
-        nz.waveformlabs.moshpoint.discover.HypeTickets.repost(app, crews)
-        CrewChat.shareHistory(app, crews)
-        // Say hello in each crew we're in (followers too: then a new crew key reaches them as well).
-        crews.forEach { g -> CrewChat.announceJoin(app, g) }
     }
 
     /** A chat line, plan or "joined" that arrived over Bluetooth: shown and announced exactly like one from the relay. */

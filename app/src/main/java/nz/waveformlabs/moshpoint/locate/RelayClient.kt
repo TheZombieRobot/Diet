@@ -685,6 +685,54 @@ object RelayClient {
         lookup(ids)
     }
 
+    /** Reads a satellite batch has left for the crew chat after the crew sync's [syncGets] (see [syncWithChat]). */
+    fun chatRoom(syncGets: Int): Int = (MAX_SYNC_GETS - syncGets).coerceAtLeast(0)
+
+    /**
+     * Over satellite (docs/SPOT_LINKS.md, item 4; core SatelliteRule.chatInBatch): the crew sync's
+     * batch, also reading the crew chat's text mailboxes [held] from the chat's own cursors (core
+     * [HeldMirror], as `/v1/heldsince` does), so the chat comes down in the same exchange as
+     * everything else, at most once every two minutes. Nothing but these reads and what's waiting
+     * to go up: never a file, a photo or a clip.
+     *
+     * The answer: the crew sync's mailboxes as [sync] gives them, and the chat mailboxes as
+     * [lookupHeld] does (each one's records, newest first), or null for the chat when one of them
+     * couldn't be read this time (none is used then: the courier must only hear about mailboxes
+     * really read; the next batch asks again). A mailbox with more than one answer holds (MORE)
+     * gets the rest in the next batch, from where this one stopped. Null if the batch didn't go
+     * (not yet two minutes since the last, no answer, a relay without batches).
+     */
+    suspend fun syncWithChat(ids: List<ByteArray>, held: List<ByteArray>): Pair<List<List<ByteArray>>, List<List<ByteArray>>?>? = withContext(Dispatchers.IO) {
+        if (ids.isEmpty()) return@withContext null
+        if (NetState.satellite && !satelliteBatchDue()) return@withContext null
+        if (held.isEmpty() || !batching || offline || ids.size + held.size > MAX_SYNC_GETS) return@withContext sync(ids)?.let { it to null }
+        heldPolls.withLock {
+            // Cursors and the copy belong to one relay, as for the chat's own poll.
+            mirror.relay(base)
+            val keys = held.map { it.hex() }
+            val cursors = keys.map { mirror.cursor(it) }
+            val gets = ids.map { BatchPlan.Get(it, held = false, since = 0L) } +
+                held.indices.map { BatchPlan.Get(held[it], held = true, since = cursors[it]) }
+            when (val out = sendBatch(gets)) {
+                is BatchOut.Done -> {
+                    // Over satellite there's no second round for two minutes: a box that filled the
+                    // answer (rare: they're small) gets the rest next time, as the chat does.
+                    val boxes = ids.indices.map { out.blocks.getOrNull(it)?.records.orEmpty().asReversed().toList() }
+                    val now = SystemClock.elapsedRealtime()
+                    var readAll = true
+                    held.indices.forEach { j ->
+                        val block = out.blocks.getOrNull(ids.size + j)
+                        if (block == null || (block.status != RelayWire.OK && block.status != RelayWire.MORE)) readAll = false
+                        else mirror.apply(keys[j], cursors[j], block, now)
+                    }
+                    mirror.trim(keys, now)
+                    boxes to (if (readAll) keys.map { mirror.newestFirst(it, now) } else null)
+                }
+                else -> null
+            }
+        }
+    }
+
     /** How a batch went: [Done] with each get's block (null: none), [Failed] (no answer, too many), [Missing] (this relay has no batches). */
     private sealed class BatchOut {
         class Done(val blocks: List<RelayWire.Block?>) : BatchOut()
