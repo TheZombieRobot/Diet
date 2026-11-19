@@ -22,6 +22,8 @@ class HomeMe(
     val missingPermissions: List<String>,
     val setupIssues: List<SetupIssue> = emptyList(),
     val ghost: Boolean = false,
+    /** A Moshpoint+ member: Settings offers Text my spot and satellite data. */
+    val plus: Boolean = false,
 )
 
 /** Tonight's crew and your friends: who's in, where they are, and what the crew has sent. */
@@ -41,8 +43,6 @@ class HomeCrew(
     val nowSec: Long = 0L,
     val pings: List<GigGroup.Ping> = emptyList(),
     val moments: List<Moments.Item> = emptyList(),
-    /** "2:15 am" while we're checking in, else null. */
-    val checkInBy: String? = null,
     /** Metres to each crew member, worked out in the background. */
     val distances: Map<String, Double> = emptyMap(),
     /** The crew QR's contents, shown right on the home while no one has joined. */
@@ -110,11 +110,11 @@ class HomeCrewActions(
     /** Snap Map style view of where everyone is. */
     val onOpenMap: () -> Unit = {},
     val onPing: (Int) -> Unit = {},
+    /** "Text my spot" after the pings (Moshpoint+, switched on in Settings): opens the texting app. Null = not shown. */
+    val onTextSpot: (() -> Unit)? = null,
     val describePing: (Int) -> String = { Txt.s(R.string.home_ping_default) },
     val onShareMoment: () -> Unit = {},
     val onOpenMoment: (Moments.Item) -> Unit = {},
-    val onCheckIn: (Int) -> Unit = {},
-    val onHomeSafe: () -> Unit = {},
     /** The night's photos and clips as Polaroids. */
     val onOpenStory: () -> Unit = {},
     /** Share the follow-along invite with family. */

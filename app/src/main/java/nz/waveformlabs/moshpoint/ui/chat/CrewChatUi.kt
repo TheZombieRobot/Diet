@@ -75,7 +75,6 @@ internal fun CrewChatScreen(
     onFlare: (String) -> Unit,
     onEndFlare: () -> Unit,
     onPing: (Int) -> Unit,
-    onCheckIn: (Int) -> Unit,
     onSharePlan: () -> Unit,
     onOpenMap: () -> Unit,
     onBack: () -> Unit,
@@ -95,10 +94,10 @@ internal fun CrewChatScreen(
     colourOf: (String) -> Int? = { null },
     /** A line for when messages can't go the usual way ("No signal. Messages are passed to crew phones nearby…"). */
     offlineHint: String? = null,
-    /** Need help's "Go live", for an alert waiting with no signal while you're not live. */
-    onGoLive: (() -> Unit)? = null,
     /** Holding someone else's message: block (and report) them (docs/REPORT_BLOCK.md). Null = not offered. */
     onLineOptions: ((CrewChat.Line) -> Unit)? = null,
+    /** "Text my spot" after the pings (Moshpoint+, switched on in Settings). Null = not shown. */
+    onTextSpot: (() -> Unit)? = null,
 ) {
     BackHandler(onBack = onBack)
     var draft by remember { mutableStateOf("") }
@@ -181,7 +180,7 @@ internal fun CrewChatScreen(
         }
         if (!readOnly) {
             Column(Modifier.background(Mosh.Deep).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (nightTools) PingBar(onPing = onPing, onCheckIn = onCheckIn, onGoLive = onGoLive)
+                if (nightTools) PingBar(onPing = onPing, onTextSpot = onTextSpot)
                 else Text(
                     stringResource(R.string.crew_chat_night_tools_later),
                     style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 4.dp),

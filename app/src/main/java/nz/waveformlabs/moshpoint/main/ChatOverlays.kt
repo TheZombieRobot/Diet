@@ -26,6 +26,7 @@ import nz.waveformlabs.moshpoint.moderation.Person
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
+import nz.waveformlabs.moshpoint.sharing.TextMySpot
 import nz.waveformlabs.moshpoint.ui.chat.CrewChatScreen
 import nz.waveformlabs.moshpoint.ui.chat.PrivateChatScreen
 import nz.waveformlabs.moshpoint.ui.countdown
@@ -82,7 +83,6 @@ internal fun ChatOverlays(a: MainActivity) {
             onInvite = { a.invites.qrCrew = chatCrew; a.invites.showGroupQr = true },
             onRetry = { CrewChat.retry(a, it) },
             offlineHint = OfflineMessages.chatHint(a, chatCrew),
-            onGoLive = { a.home.setVisibility(true) },
             onMakeMain = if (waiting != null && !chatCrew.dormant(a.home.homeNow) && !waiting.following) ({
                 GroupSync.makeMain(a, waiting)
                 CrewChat.show(a, GroupSync.group.value)
@@ -101,10 +101,8 @@ internal fun ChatOverlays(a: MainActivity) {
                 val loc = a.lastKnownLocation()
                 GroupSync.sendPing(a, kind, loc?.latitude, loc?.longitude)
             },
-            onCheckIn = { minutes ->
-                val loc = a.lastKnownLocation()
-                GroupSync.startCheckIn(a, minutes, loc?.latitude, loc?.longitude)
-            },
+            // Text my spot (Moshpoint+, switched on in Settings): the texting app, ready to send.
+            onTextSpot = if (TextMySpot.shown(a)) ({ TextMySpot.open(a) }) else null,
             onSharePlan = { a.chat.sharePlanCard() },
             onOpenMap = { a.chat.closeChat(); a.map.openMap() },
             onBack = { a.chat.closeChat() },

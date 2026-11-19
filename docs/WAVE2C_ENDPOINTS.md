@@ -1,5 +1,9 @@
 # Wave 2c, part 3: the app adopts the relay's new endpoints
 
+> **Since 16 November 2026** Need help, check-ins and Home safe are removed from the app, and
+> `RelayUse.SAFETY` with them, with every special case below (going alone, never held, never
+> counted): [REMOVE_SAFETY.md](REMOVE_SAFETY.md). What this page says about safety pings is history.
+
 The app side of [RELAY_API.md](RELAY_API.md) sections 7 to 11 (install token, 429 by kind,
 cursors, batch), plus moments uploads and clips on Wi-Fi: the audit's biggest remaining battery
 items, performance P0-2 (the mobile radio never idles) and P1-8 (chat polls re-download

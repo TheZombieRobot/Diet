@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">1 घंटे के लिए घोस्ट</string>
     <string name="setup_data_saver">डेटा सेवर</string>
     <string name="setup_data_saver_desc">हल्की फ़ोटो और क्लिप शेयर करें (कमज़ोर सिग्नल पर तेज़)। बंद: हाई क्वालिटी, ताकि सबकी सेव की गई कॉपी साफ़ रहें। आपकी अपनी ओरिजिनल फ़ाइलें हमेशा फ़ुल क्वालिटी में रहती हैं।</string>
-    <string name="setup_emergency_contact">इमरजेंसी कॉन्टैक्ट</string>
-    <string name="setup_emergency_contact_desc">\"मदद चाहिए\" उन्हें आपकी लोकेशन नॉर्मल SMS से भेज सकता है (बिना डेटा के भी)। यह इसी फ़ोन पर रहता है।</string>
-    <string name="setup_contact_name">नाम</string>
-    <string name="setup_contact_mobile">मोबाइल</string>
-    <string name="setup_contact_saved">सेव हो गया</string>
-    <string name="setup_contact_need_number">मोबाइल नंबर डालें</string>
-    <string name="setup_contact_removed">हटा दिया</string>
-    <string name="setup_save">सेव करें</string>
-    <string name="setup_remove">हटाएँ</string>
     <string name="setup_about">जानकारी</string>
     <string name="setup_about_text">Moshpoint %1$s. कोई अकाउंट नहीं, बदलते कोड, एंड-टू-एंड एन्क्रिप्टेड लोकेशन। आपको सिर्फ़ तभी ढूँढा जा सकता है जब आप लाइव हों।</string>
     <string name="setup_open_source_licences">थर्ड-पार्टी लाइसेंस</string>

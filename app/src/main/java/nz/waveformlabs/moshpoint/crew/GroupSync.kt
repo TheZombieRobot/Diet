@@ -37,18 +37,13 @@ import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.IntroRadio
-import nz.waveformlabs.moshpoint.core.CheckInReminder
-import nz.waveformlabs.moshpoint.core.CheckIns
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup
-import nz.waveformlabs.moshpoint.core.HelpRules
 import nz.waveformlabs.moshpoint.core.IntroForms
-import nz.waveformlabs.moshpoint.core.OutboxState
 import nz.waveformlabs.moshpoint.core.PinRule
 import nz.waveformlabs.moshpoint.core.PingPolicy
 import nz.waveformlabs.moshpoint.core.LocationBox
-import nz.waveformlabs.moshpoint.core.watch.PingOutcome
 import nz.waveformlabs.moshpoint.locate.BleHub
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
@@ -203,10 +198,8 @@ object GroupSync {
         rally.value = p.getString("rally", null)?.split(',', limit = 4)?.takeIf { it.size == 4 }?.let {
             runCatching { GigGroup.Rally(it[0].toDouble(), it[1].toDouble(), it[3], PinRule.capped(it[2].toLong(), nowSec)) }.getOrNull()
         }
-        checkInState = CheckIns.restore(p.getString("checkins", null))
-        // Our own check-in survives a restart too, so "I'm home safe" is still offered.
-        myCheckInBy.value = p.longOf("myCheckIn").takeIf { it > nowSec - 6 * 3600 } ?: 0L
-        planCheckInAlarms(c)
+        // Check-ins were removed (16 November 2026): what an older build saved for them goes.
+        if (RETIRED_KEYS.any { p.contains(it) }) p.edit().apply { RETIRED_KEYS.forEach { remove(it) } }.apply()
         introForms = IntroForms(p.getString("introForms", null))
         members.clear()
         p.getString("members", null)?.split(',')?.filter { it.length == 64 }?.let { members.addAll(it) }
@@ -242,8 +235,8 @@ object GroupSync {
     val following: Boolean get() = followingState.value
 
     /**
-     * One quiet sync with the app closed (followers' background check): pings, help alerts,
-     * check-ins, moments and whereabouts. Posts our follower intro so the crew sees us.
+     * One quiet sync with the app closed (followers' background check): pings, moments and
+     * whereabouts. Posts our follower intro so the crew sees us.
      */
     suspend fun syncOnce(c: Context) {
         val app = c.applicationContext
@@ -366,8 +359,11 @@ object GroupSync {
     // ---- Several crews (see Crews) ----
 
     // Every key saved as a Long or a Boolean must be listed, or [activate] brings it back as a
-    // String and its read throws (myCheckInSent wasn't: a crash on every start).
-    private val longKeys = setOf("created", "at", "rallyCleared", "myCheckIn", "myCheckInSent", "myCheckInId")
+    // String and its read throws (one that wasn't once crashed every start).
+    private val longKeys = setOf("created", "at", "rallyCleared")
+
+    /** Saved by older builds for check-ins (removed 16 November 2026); dropped when a crew loads. */
+    private val RETIRED_KEYS = listOf("checkins", "myCheckIn", "myCheckInSent", "myCheckInId")
     private val boolKeys = setOf("following", "rallyMine")
 
     /** Put the main crew aside in Up next, keeping its settings and crew-only mates. */
@@ -450,11 +446,6 @@ object GroupSync {
         followers.clear()
         FollowCheck.cancel(app)
         GigWake.cancel(app)
-        checkInState = CheckIns()
-        myCheckInBy.value = 0L
-        CheckInAlarm.planDue(app, null)
-        CheckInAlarm.planReminder(app, null)
-        CheckInAlarm.cancelReminderNotification(app)
         Moments.clear()
         runCatching { CrewWidget.update(app, emptyList()) }
         members.clear()
@@ -591,7 +582,6 @@ object GroupSync {
         Moments.refresh(c, g)
         AvatarSync.publishMine(c) // our face on the crew's tiles (re-shared every couple of hours)
         AvatarSync.fetchFriends(c)
-        checkOverdue(c)
         CrewChat.tick()
         ChatSync.pollAll(c, minGapMs = 120_000)
         // With our own relay, one batch: these lookups plus every location, floor, crowd-relay
@@ -600,9 +590,9 @@ object GroupSync {
         found.subList(0, 2).flatten().forEach { received(c, g, it) }
         // The courier notes what's on the relay, so nothing it carries is uploaded twice, and
         // says which pings this phone has never had before.
-        val freshPings = OfflineMessages.fetched(c, g, Courier.Box.PING, found.subList(4, 6).flatten())
+        OfflineMessages.fetched(c, g, Courier.Box.PING, found.subList(4, 6).flatten())
         OfflineMessages.fetched(c, g, Courier.Box.PIN, found.subList(2, 4).flatten())
-        found.subList(4, 6).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob, fresh = it.id in freshPings) } }
+        found.subList(4, 6).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
         crewIds.forEachIndexed { i, (f, id) ->
             found[6 + i].forEach { sealed -> LocationBox.open(f.secret, id, sealed)?.let { LocationBook.update(f.id, it) } }
         }
@@ -636,8 +626,8 @@ object GroupSync {
         if (g.dormant(System.currentTimeMillis())) return
         val epoch = Math.floorDiv(System.currentTimeMillis(), EphemeralId.DEFAULT_ROTATION_MS)
         val found = RelayClient.lookup(listOf(g.pingIdForEpoch(epoch), g.pingIdForEpoch(epoch - 1))) ?: return
-        val freshPings = OfflineMessages.fetched(c, g, Courier.Box.PING, found.flatten())
-        found.flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob, fresh = it.id in freshPings) } }
+        OfflineMessages.fetched(c, g, Courier.Box.PING, found.flatten())
+        found.flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
     }
 
     // ---- Crew pings ----
@@ -646,22 +636,13 @@ object GroupSync {
     val pings = androidx.compose.runtime.mutableStateListOf<GigGroup.Ping>()
     private val seenPings = HashSet<String>()
 
-    /** What became of a ping handed to [sendPing]: its message id (0 = none) and how it starts out (the watch's model). */
-    class PingResult(val id: Long, val outcome: PingOutcome)
-
-    /** A Need help this phone sent: its message id (0 = the outbox refused it), when, and whether it carried where we were. */
-    class HelpSent(val id: Long, val atMs: Long, val withLocation: Boolean)
-
-    /** The last Need help sent from this phone (Compose state): the Need help dialog follows it. */
-    val lastHelp = mutableStateOf<HelpSent?>(null)
-
     /**
      * Send a quick message to the whole crew. Sealed once, then the courier gets it there: the
-     * relay with signal (about a minute), crew phones nearby and the crowd relay without.
-     * Returns what became of it: NO_CREW, FAILED (the outbox refused it), or where it starts.
+     * relay with signal (about a minute), crew phones nearby and the crowd relay without. Its
+     * line in the crew chat shows how it's going.
      */
-    fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null, minutes: Int = 0, text: String = "", quiet: Boolean = false): PingResult {
-        val g = group.value ?: return PingResult(0L, PingOutcome.NO_CREW)
+    fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null, minutes: Int = 0, text: String = "", quiet: Boolean = false) {
+        val g = group.value ?: return
         val app = c.applicationContext
         // "Meet at the pin" says which pin, so it still makes sense if the pin itself arrives later.
         val words = if (kind == GigGroup.Ping.MEET_AT_PIN && text.isEmpty()) rally.value?.name.orEmpty() else text
@@ -676,32 +657,22 @@ object GroupSync {
         val first = OfflineMessages.firstState()
         CrewChat.pingLine(app, opened ?: p, mine = true, state = first)
         if (kind == GigGroup.Ping.MEET_AT_PIN) repostRally(app, g)
-        // Safety pings (Need help, Check in, Home safe) are followed from before they're handed
-        // over, so no word from the outbox is missed (Need help and the check-in reminder show it).
-        val id = opened?.id ?: 0L
-        val safety = PingPolicy.group(kind) == PingPolicy.Group.SAFETY
-        if (safety) OfflineMessages.follow(id, first)
-        val queued = OfflineMessages.post(app, g, blob) != null
-        if (!queued) {
-            DebugStatus.log("Ping not queued: ${pingText(kind)}")
-            if (safety) OfflineMessages.follow(id, OutboxState.FAILED)
-        }
-        if (kind == GigGroup.Ping.NEED_HELP) lastHelp.value = HelpSent(if (queued) id else 0L, System.currentTimeMillis(), withLocation = lat != null && lon != null)
-        return PingResult(id, if (queued) HelpRules.outcomeOf(first) else PingOutcome.FAILED)
+        if (OfflineMessages.post(app, g, blob) == null) DebugStatus.log("Ping not queued: ${pingText(kind)}")
     }
 
     /**
      * A quick ping that arrived over Bluetooth (or was kept in the chat mailbox): handled like
-     * one from the ping mailbox. [fresh] = this phone has never had this message before.
+     * one from the ping mailbox.
      */
-    internal fun arrived(c: Context, p: GigGroup.Ping, blob: ByteArray, fresh: Boolean) = onPing(c, p, blob, fresh)
+    internal fun arrived(c: Context, p: GigGroup.Ping, blob: ByteArray) = onPing(c, p, blob)
 
-    private fun onPing(c: Context, signed: GigGroup.Ping, blob: ByteArray, fresh: Boolean) {
+    private fun onPing(c: Context, signed: GigGroup.Ping, blob: ByteArray) {
         if (!seenPings.add(blob.contentHashCode().toString())) return
         if (signed.sender == 0L) return // unsigned: could be anyone claiming any name
         val nowSec = System.currentTimeMillis() / 1000
-        // What to do with it depends on its kind and age (core PingPolicy). Need help is never
-        // dropped; a kind this build doesn't know is ignored rather than announced.
+        // What to do with it depends on its kind and age (core PingPolicy). An older build's Need
+        // help, Check in or Home safe is an ordinary ping; a kind this build doesn't know is
+        // ignored rather than announced.
         val verdict = PingPolicy.onArrival(signed.kind, signed.timeSec, signed.minutes, nowSec)
         if (!verdict.show) return
         val g = group.value ?: return
@@ -724,18 +695,9 @@ object GroupSync {
             return
         }
         if (PingPolicy.group(p.kind) == PingPolicy.Group.CHAT) return // "joined": a chat line, not a ping
-        // Check in and Home safe update the state whatever order they arrive in (core CheckIns).
-        if (checkInState.onPing(p.sender, p.from, p.kind, p.timeSec, p.minutes, nowSec)) saveCheckIns(c)
         // Already in the chat (the same message by another route, or from before a restart): don't
-        // announce it again. One exception: a Need help, Check in or Home safe this phone has
-        // never had, which the chat is too full of newer lines to show. That still gets its alert.
-        // (Not if it's already a line there: then it has been announced, even if the courier's
-        // own record of that was lost with a restart.)
-        val had = CrewChat.hasPing(c, p)
-        val shown = CrewChat.pingLine(c, p, mine = false)
-        if (!shown && !(fresh && !had && PingPolicy.group(p.kind) == PingPolicy.Group.SAFETY)) return
-        // Announced on the courier's record alone (the chat couldn't take the line): keep that record now.
-        if (!shown) OfflineMessages.rememberNow()
+        // announce it again.
+        if (!CrewChat.pingLine(c, p, mine = false)) return
         // Newest by the sender's time first, so a late arrival slots in where it belongs.
         val at = pings.indexOfFirst { it.timeSec < p.timeSec }.let { if (it < 0) pings.size else it }
         pings.add(at, p)
@@ -743,37 +705,10 @@ object GroupSync {
         if (verdict.alert) CrewNotifications.ping(c, p, if (verdict.late) nz.waveformlabs.moshpoint.ui.ago(nowSec - verdict.timeSec) else null)
     }
 
-    // ---- Check in ("tell the crew if I'm not home in 45 min") ----
-
-    /** Who's heading home and whether they've checked in: kept per person and saved (core CheckIns). */
-    private var checkInState = CheckIns()
-
     /** Which crew mates' phones read the intro form with no constant prefix (core IntroForms). */
     private var introForms = IntroForms()
 
     private fun unhex(s: String): ByteArray = ByteArray(s.length / 2) { s.substring(2 * it, 2 * it + 2).toInt(16).toByte() }
-
-    private fun saveCheckIns(c: Context) {
-        prefs(c.applicationContext).edit().putString("checkins", checkInState.snapshot()).apply()
-        planCheckInAlarms(c)
-    }
-
-    /**
-     * Doze-capable alarms (reliability P0-4): one for the next moment a mate on their way home
-     * can be overdue, one to remind us about our own check-in. Set again whenever either changes.
-     */
-    private fun planCheckInAlarms(c: Context) {
-        val app = c.applicationContext
-        val nowSec = System.currentTimeMillis() / 1000
-        CheckInAlarm.planDue(app, checkInState.nextCheckSec(nowSec))
-        val mine = myCheckInBy.value
-        // Once per check-in, never in the past (core CheckInReminder.armAt): it used to go off again
-        // on every plan, after its time too.
-        CheckInAlarm.planReminder(
-            app,
-            if (mine > 0) CheckInReminder.armAt(prefs(app).longOf("myCheckInSent", mine), mine, nowSec, CheckInAlarm.remindedFor(app)) else null,
-        )
-    }
 
     /** A Long or Boolean setting, also when it was brought back as text (from before longKeys listed it). */
     private fun android.content.SharedPreferences.longOf(key: String, def: Long = 0L): Long =
@@ -781,61 +716,6 @@ object GroupSync {
 
     private fun android.content.SharedPreferences.boolOf(key: String): Boolean =
         runCatching { getBoolean(key, false) }.getOrElse { runCatching { getString(key, null)?.toBoolean() }.getOrNull() ?: false }
-
-    /** Our own check-in deadline (unix s), or 0. */
-    val myCheckInBy = mutableStateOf(0L)
-
-    /** Heading home: the crew's phones raise the alarm if we don't tap "Home safe" in time. */
-    fun startCheckIn(c: Context, minutes: Int, lat: Double?, lon: Double?) {
-        val nowSec = System.currentTimeMillis() / 1000
-        val sent = sendPing(c, GigGroup.Ping.CHECK_IN, lat, lon, minutes)
-        // Not even in the outbox (no crew, or refused): nobody can be told, so there's no "heading
-        // home" to show and nothing to remind about. Its chat line says Not sent.
-        if (sent.outcome == PingOutcome.FAILED || sent.outcome == PingOutcome.NO_CREW) return
-        myCheckInBy.value = nowSec + minutes * 60L
-        // Its message id too: the reminder says whether the crew really has it.
-        prefs(c.applicationContext).edit().putLong("myCheckIn", myCheckInBy.value).putLong("myCheckInSent", nowSec).putLong("myCheckInId", sent.id).apply()
-        planCheckInAlarms(c)
-    }
-
-    fun homeSafe(c: Context): PingResult {
-        myCheckInBy.value = 0L
-        prefs(c.applicationContext).edit().remove("myCheckIn").remove("myCheckInSent").remove("myCheckInId").apply()
-        planCheckInAlarms(c)
-        CheckInAlarm.cancelReminderNotification(c)
-        return sendPing(c, GigGroup.Ping.HOME_SAFE)
-    }
-
-    /**
-     * Anyone past their check-in time is flagged to the crew, once: from the sync loops, the
-     * hourly background check and the check-in alarm. On the help channel, which is urgent and
-     * set apart from chat, so muting the chat never mutes this.
-     */
-    internal fun checkOverdue(c: Context) {
-        val due = checkInState.due(System.currentTimeMillis() / 1000)
-        if (due.isEmpty()) return
-        saveCheckIns(c)
-        for (d in due) CrewNotifications.overdue(c, d.name)
-    }
-
-    /** The check-in alarm went off: look for a Home safe on the relay first (any signal at all), then check. */
-    internal suspend fun checkInsDue(c: Context) {
-        withTimeoutOrNull(20_000) { runCatching { pollPingsNow(c) } }
-        checkOverdue(c)
-        planCheckInAlarms(c)
-    }
-
-    /** Our own check-in is nearly due and we haven't said Home safe: remind us, before the crew is alerted. */
-    internal fun remindCheckIn(c: Context) {
-        val by = myCheckInBy.value
-        if (by <= 0L || group.value == null) return
-        // Once per check-in.
-        if (!CheckInAlarm.markReminded(c, by)) return
-        // "Your crew will be told" only if they have the check-in (the relay, or a crew phone nearby).
-        val id = prefs(c.applicationContext).longOf("myCheckInId")
-        val state = OfflineMessages.followedState(id) ?: OfflineMessages.stateOf(id)
-        CrewNotifications.checkInReminder(c, crewHasIt = CheckInReminder.crewHasIt(state))
-    }
 
     /** What a ping says, e.g. "is coming to you" (shown after the sender's name). */
     fun pingText(kind: Int): String = Txt.s(

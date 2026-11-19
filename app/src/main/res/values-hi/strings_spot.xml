@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">मेरी लोकेशन SMS करें</string>
+    <string name="spot_text_setting">आपका मैसेज ऐप आपकी लोकेशन के साथ खुलेगा, भेजने के लिए तैयार। कुछ प्लान पर सैटेलाइट से भेजे गए SMS के अलग पैसे लग सकते हैं।</string>
+    <string name="spot_text_line">मैं यहाँ हूँ:</string>
+    <string name="spot_text_no_fix">मेरा फ़ोन अभी पता नहीं लगा पा रहा कि मैं कहाँ हूँ।</string>
+    <string name="spot_text_no_app">इस फ़ोन में कोई मैसेज ऐप नहीं है।</string>
+</resources>

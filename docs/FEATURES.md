@@ -25,8 +25,8 @@ Android app for finding your mates at gigs and festivals. No accounts.
   - On the day, 3 h before the start: "Iron Maiden tonight! Tap to go live".
   - The crew ends itself the morning after.
 - **Follow from home:** a separate invite for family. Followers:
-  - see the photo Story, where everyone is ("at the venue" or "1.2 km from the venue"), pings,
-    check-ins and help alerts;
+  - see the photo Story, where everyone is ("at the venue" or "1.2 km from the venue"), and
+    pings;
   - never broadcast and can't be found;
   - are shown to the crew ("Following from home: Mum").
 - **Several crews at once:** a new crew never replaces the one you're in.
@@ -75,7 +75,7 @@ Android app for finding your mates at gigs and festivals. No accounts.
   - Ask: a "go live" message.
 - **Save this area for no signal:** an offline map of the venue.
 
-## 4. Messaging and safety
+## 4. Messaging
 - **Crew chat, one per crew:** short messages (up to 140 characters), encrypted with the crew
   key. Chat works weeks before the gig, for the hype. Followers at home can read but not
   post. (untested)
@@ -96,13 +96,20 @@ Android app for finding your mates at gigs and festivals. No accounts.
   minutes, and the vibe shows under your tile. (untested)
 - **Plan card:** the gig, the plan, the meet-up and who's coming, as a shareable picture.
 - **Crew pings:** On my way, Where are you?, Stay put, Meet at the pin, All good.
-- **Need help:**
-  - an urgent alert to the crew with your location;
-  - a text to your emergency contact with a map link (plain SMS, so it works without data);
-  - a Call 111 button;
-  - a hint about satellite SOS when there's no signal.
-- **Check In:** "Heading home" with a 30–90 minute timer. If you don't tap "I'm home safe",
-  the crew is alerted. The timer runs on the crew's phones, so it still works if yours dies.
+- **Text my spot (Moshpoint+):** for members who switch it on in Settings (it's off until they
+  do), a violet button after the pings, in Message crew and in the crew chat. It opens the
+  phone's own texting app with a text already written: "Here's my spot:", a Google Maps link and
+  the plain coordinates (5 decimals), which still make sense with no data. You pick who gets it
+  and press Send: Moshpoint never sends or reads a text itself and asks for no SMS permission.
+  With no location fix the text says so plainly; on a phone with no texting app (a tablet) the
+  button says so. With no signal, a phone whose carrier texts by satellite sends it that way
+  (some plans charge for it). (untested)
+- **Removed (owner's decision, 16 November 2026):** Need help (the crew alert, the text to an
+  emergency contact, the Call 111 button, the satellite SOS hint) and Check In ("Heading home"
+  with a timer, "I'm home safe", the overdue alert). A gig app doesn't need its own emergency
+  system; people ring emergency services themselves. A mate on an older build can still send
+  them: they show as ordinary crew pings in their own words, with no alarm. The phone also
+  deletes an emergency contact an older build stored. Details: [REMOVE_SAFETY.md](REMOVE_SAFETY.md).
 - **"Bevan is on the move":** fires when a mate moves 200 m or more away from where they
   were, at most once every 20 minutes per person.
 - **Ghost mode:** hidden from the map but findable up close, optionally for 1 hour.
@@ -160,6 +167,13 @@ Android app for finding your mates at gigs and festivals. No accounts.
   Relay server. The invites you share carry it, so your crew switches too.
 - **Public relay is frugal:** location is only sent after moving 25 m, and intros less often
   late in the night, so it lasts a big night.
+- **Use satellite when there's no signal (Moshpoint+):** a Settings switch, off until a member
+  turns it on. On Android 16, where the carrier offers satellite data and lists Moshpoint, crew
+  messages and locations still go when the only network is a satellite one: the small things
+  (locations, pings, chat text, pins, and reading the crew's pings, pins and locations) in one
+  request to our relay at most every two minutes. Photos, clips, faces, Discover, venue maps and
+  the map's tiles wait for a normal network. With the switch off, or for free users, a satellite
+  network counts as no signal, and Bluetooth passes messages on as usual. (untested)
 - **Test builds:** scrambled (R8), about 27 MB, from a public download link. The repo is
   public; there's a proprietary licence.
 
@@ -190,10 +204,10 @@ Galaxy Watch4 and newer, Pixel Watch. The phone stays in your pocket. Details: [
 - **Arrow on the wrist:** pick a mate and an arrow points at them, with their face, name and distance. It uses the watch's own compass, so it keeps up as you turn.
 - **Honest about what it knows:** the arrow only shows with your wrist held flat, and only when the direction is real. With the phone in a pocket and your mate close, it shows the distance instead and the buzzes guide you.
 - **Buzzes you can follow without looking:** ticks that quicken as you get closer, two quick ticks when you're facing them, one long buzz when you're going the wrong way, and a flourish when you've found them. It respects the watch's vibration, silent and Do Not Disturb settings.
-- **Need help from the wrist:** hold the red button for two seconds and the whole crew is told. It says plainly whether it went: sent, sent nearby, or not sent yet. **Free for everyone.**
+- **Removed (owner's decision, 16 November 2026):** Need help from the wrist (hold the red button) and its "I'm OK now".
 - **Quick messages:** On my way, All good.
 - **Watch face and tile:** your nearest mate, or how many of the crew are live, and the crew at a glance.
-- **Moshpoint+:** everything on the watch except Need help is part of Moshpoint+ (on for everyone in test builds).
+- **Moshpoint+:** everything on the watch is part of Moshpoint+ (on for everyone in test builds).
 - **Easy on batteries:** the phone only works for the watch while you're actually finding someone, and stops when the watch stops asking.
 
 ## Known gaps

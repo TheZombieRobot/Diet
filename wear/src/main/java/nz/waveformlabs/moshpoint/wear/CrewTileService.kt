@@ -19,9 +19,8 @@ import nz.waveformlabs.moshpoint.core.watch.CrewGlance
 import nz.waveformlabs.moshpoint.core.watch.WatchState
 
 /**
- * The crew status tile: the headline ("Sam · 40 m" or "4 of 5 live"), the next couple of
- * mates, and a Need help button that is there whatever else is (it opens the hold-to-send
- * screen). Tapping anywhere else opens the app.
+ * The crew status tile: the headline ("Sam · 40 m" or "4 of 5 live") and the next couple of
+ * mates. Tapping it opens the app.
  *
  * Refresh interval 0: the system never re-asks on a timer. It is redrawn when the phone pushes
  * a change ([Glance.requestRedraw]), and its timeline swaps to an "out of reach" version by
@@ -86,8 +85,6 @@ class CrewTileService : TileService() {
                 column.addContent(text(line, 13f, DIM, lines = 1))
             }
         }
-        column.addContent(LayoutElementBuilders.Spacer.Builder().setHeight(dp(6f)).build())
-        column.addContent(helpButton())
         return LayoutElementBuilders.Box.Builder()
             .setWidth(expand())
             .setHeight(expand())
@@ -103,26 +100,6 @@ class CrewTileService : TileService() {
             .addContent(column.build())
             .build()
     }
-
-    /** Need help: on the tile in every state. It opens the hold-to-send screen (a tap can't send by itself). */
-    private fun helpButton(): LayoutElementBuilders.LayoutElement =
-        LayoutElementBuilders.Box.Builder()
-            .setWidth(wrap())
-            .setHeight(wrap())
-            .setModifiers(
-                ModifiersBuilders.Modifiers.Builder()
-                    .setClickable(open("help", SosActivity::class.java))
-                    .setBackground(
-                        ModifiersBuilders.Background.Builder()
-                            .setColor(argb(HELP))
-                            .setCorner(ModifiersBuilders.Corner.Builder().setRadius(dp(18f)).build())
-                            .build(),
-                    )
-                    .setPadding(ModifiersBuilders.Padding.Builder().setStart(dp(14f)).setEnd(dp(14f)).setTop(dp(7f)).setBottom(dp(7f)).build())
-                    .build(),
-            )
-            .addContent(text(getString(R.string.need_help), 14f, WHITE, lines = 1, bold = true))
-            .build()
 
     private fun open(id: String, activity: Class<*>): ModifiersBuilders.Clickable =
         ModifiersBuilders.Clickable.Builder()
@@ -154,6 +131,5 @@ class CrewTileService : TileService() {
         const val DIM = 0xFFD9D4EC.toInt()
         const val FAINT = 0xFF8E87A6.toInt()
         const val AMBER = 0xFFFFB020.toInt()
-        const val HELP = 0xFFFF3B5C.toInt()
     }
 }

@@ -67,8 +67,9 @@ Location packets, crowd-relay uploads, floor boxes, crew pings, the pin and crew
 
 ## 3. Crew chat (72 hours)
 
-Chat lines, history bundles, private messages, and the safety pings (Need help, Check in, Home
-safe) that are also posted here.
+Chat lines, history bundles and private messages. (Need help, Check in and Home safe were also
+posted here until they were removed on 16 November 2026, docs/REMOVE_SAFETY.md; an older build
+may still post them, and they're stored like any other record.)
 
 `PUT /v1/held/{id}`, body = 16 to 4,000 bytes → `204`. Kept 72 hours, at most 200 records per id,
 same rules as boxes (the same bytes take one slot and count as newest).
@@ -267,7 +268,8 @@ In `RelayClient` and the courier, in this order (each step works on its own):
 4. **One batch a minute.** The 60 s sync becomes one `/v1/batch`: every queued location, floor
    and crowd-relay packet (each rotating id at most once per batch, newest copy), queued
    pings, chat and pins as puts; the crew's box ids, ping id, pin id and chat ids as gets with
-   their cursors. Need help still goes at once, on its own (`PUT /v1/held` and `/v1/box`).
+   their cursors. (Need help used to go at once, on its own; it was removed on 16 November 2026,
+   docs/REMOVE_SAFETY.md.)
 5. **Moments.** Upload with `Content-Length` (HttpURLConnection's `setFixedLengthStreamingMode`).
    A `400` for a photo means "reseal and try again" (the 1-in-2.5-million false match).
 6. **Budgets.** `ownBudget` in `RelayClient` can then drop its 600 requests a minute to about 10.
@@ -363,4 +365,36 @@ The next 12 months, biggest first.
 - `regions` lists the country's regions, so the phone can pick its own (the nearest middle; in
   New Zealand, the island). It then sends only the `id`, never its location.
 - `total` counts every show in the scope. `shows` holds the first `limit`.
+
+## 13. Text my spot's links (new; docs/REMOVE_SAFETY.md, stage 5)
+
+Text my spot (Moshpoint+) puts a link to the sender's spot in a text the person sends from their
+own texting app: `https://<relay>/spot#<lat>,<lon>[,<first name>]` (core `SpotLink`: 5 decimals,
+the name percent-encoded UTF-8). Everything after `#` stays on the phone: browsers never send it,
+so the relay only ever sees `GET /spot` and never learns where anyone is. With no relay built in
+(`MOSHPOINT_SERVER` blank) the text has a Google Maps link instead.
+
+### `GET /.well-known/assetlinks.json`
+
+The Digital Asset Links statement that lets Android open these links straight in the app (an App
+Link, verified when the app is installed):
+
+```json
+[{"relation":["delegate_permission/common.handle_all_urls"],
+  "target":{"namespace":"android_app","package_name":"nz.waveformlabs.moshpoint",
+            "sha256_cert_fingerprints":["89:B4:37:..."]}}]
+```
+
+The fingerprints come from `MOSHPOINT_APP_CERTS` (comma-separated SHA-256 fingerprints of the
+signing certificates; not secret). Unset: only the public debug key's (`app/debug.keystore`),
+which signs test builds. `MOSHPOINT_APP_ID` changes the app id (default
+`nz.waveformlabs.moshpoint`). Cached an hour.
+
+### `GET /spot` and `GET /spot.js`
+
+For a phone without the app: a small page whose own script (`/spot.js`) reads the spot after `#`
+in the browser, checks it as the app does (plain decimals in range, not 0,0; the name letters
+only, at most 24, set as text), and opens it in Google Maps, with a "Get Moshpoint" line. Its
+`Content-Security-Policy` allows only its own script and nothing from anywhere else; it sends no
+referrer and nothing back to us. Any query is ignored.
 

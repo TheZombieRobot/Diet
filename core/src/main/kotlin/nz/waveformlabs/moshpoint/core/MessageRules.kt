@@ -67,15 +67,21 @@ object PinRule {
 /**
  * What to do with a quick ping when it arrives, by kind and by how old it is.
  *
- * Before this, every ping older than 20 minutes was dropped without a trace, "Need help"
- * included, and any kind a build didn't know was announced as "pinged the crew".
+ * Before this, every ping older than 20 minutes was dropped without a trace, and any kind a
+ * build didn't know was announced as "pinged the crew".
  */
 object PingPolicy {
     enum class Group {
-        /** Need help, Check in, Home safe: never dropped, sent first. */
-        SAFETY,
         /** On my way, Where are you?, Stay put, Meet at the pin, All good, Heading home. */
         QUICK,
+        /**
+         * Need help, Check in and Home safe. This build doesn't send them (the owner removed
+         * those features on 16 November 2026), but older builds still do, and the message
+         * format is unchanged. They're shown as ordinary pings with their plain words: the
+         * ordinary crew notification while fresh, nothing more. Crew phones carry them like
+         * any ping, but this build never sends them through strangers' phones (no crowd hops).
+         */
+        OLDER_BUILDS,
         /** "Here for the next half hour", with a spot. */
         FLARE,
         /** Chat lines, the pinned plan, "joined": they live in the chat mailbox. */
@@ -87,34 +93,31 @@ object PingPolicy {
     /** Pings count as fresh, and are announced, for this long. */
     const val FRESH_SEC = 20 * 60L
 
-    /** A Need help still raises an alert this long after it was sent (then it's only shown). */
-    const val HELP_ALERT_SEC = 12 * 3600L
-
     fun group(kind: Int): Group = when (kind) {
-        GigGroup.Ping.NEED_HELP, GigGroup.Ping.CHECK_IN, GigGroup.Ping.HOME_SAFE -> Group.SAFETY
         GigGroup.Ping.COMING, GigGroup.Ping.STAY_PUT, GigGroup.Ping.WHERE_ARE_YOU, GigGroup.Ping.MEET_AT_PIN,
         GigGroup.Ping.ALL_GOOD, GigGroup.Ping.GOING_HOME -> Group.QUICK
+        GigGroup.Ping.NEED_HELP, GigGroup.Ping.CHECK_IN, GigGroup.Ping.HOME_SAFE -> Group.OLDER_BUILDS
         GigGroup.Ping.FLARE -> Group.FLARE
         GigGroup.Ping.CHAT, GigGroup.Ping.PLAN, GigGroup.Ping.JOIN -> Group.CHAT
         else -> Group.UNKNOWN
     }
 
-    /** How the relay budget treats it. */
-    fun use(kind: Int): RelayUse = if (group(kind) == Group.SAFETY) RelayUse.SAFETY else RelayUse.MESSAGE
-
-    /** Safety pings are also posted to the crew's chat mailbox, which keeps them for days (older builds ignore them there). */
-    fun alsoHeld(kind: Int): Boolean = group(kind) == Group.SAFETY
-
     /** How long phones carry it for crew mates who haven't had it. */
     fun carrySec(kind: Int): Long = when (group(kind)) {
-        Group.SAFETY -> 12 * 3600L
-        Group.QUICK, Group.FLARE -> 2 * 3600L
+        Group.QUICK, Group.OLDER_BUILDS, Group.FLARE -> 2 * 3600L
         Group.CHAT -> 24 * 3600L
         Group.UNKNOWN -> 0L
     }
 
-    /** How long strangers' phones pass it along (see MessageRelay). */
-    fun crowdSec(kind: Int): Long = if (kind == GigGroup.Ping.NEED_HELP) 3600L else FRESH_SEC
+    /**
+     * Does it go through strangers' phones (the crowd relay, for [FRESH_SEC]), or only ever crew
+     * phones? Chat goes through crew phones only, and so do older builds' Need help, Check in
+     * and Home safe when this build carries them.
+     */
+    fun crowd(kind: Int): Boolean = when (group(kind)) {
+        Group.CHAT, Group.OLDER_BUILDS -> false
+        else -> true
+    }
 
     class Verdict(
         /** Put it in the chat (and on the crew's ping list). False only for kinds we don't know. */
@@ -133,13 +136,8 @@ object PingPolicy {
         val late = age > FRESH_SEC
         return when (group(kind)) {
             Group.UNKNOWN -> Verdict(show = false, alert = false, late = false, timeSec = t)
-            Group.SAFETY -> Verdict(
-                show = true,
-                // Need help is announced even hours late; a late Check in or Home safe only updates the state.
-                alert = if (kind == GigGroup.Ping.NEED_HELP) age <= HELP_ALERT_SEC else !late,
-                late = late, timeSec = t,
-            )
-            Group.QUICK -> Verdict(show = true, alert = !late, late = late, timeSec = t)
+            // An older build's Need help, Check in or Home safe: exactly an ordinary ping.
+            Group.QUICK, Group.OLDER_BUILDS -> Verdict(show = true, alert = !late, late = late, timeSec = t)
             Group.FLARE -> {
                 val live = t + minutes.coerceIn(1, 120) * 60L > nowSec
                 Verdict(show = true, alert = live, late = !live, timeSec = t)

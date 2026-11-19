@@ -11,17 +11,6 @@
     <string name="home_ping_meet_at_pin">Widzimy się przy pinezce</string>
     <string name="home_ping_all_good">Wszystko OK</string>
     <string name="home_ping_sent">Wysłano ✓</string>
-    <string name="home_ping_heading_home">Wracam do domu</string>
-    <string name="home_ping_need_help">Potrzebuję pomocy</string>
-    <string name="home_heading_home_title">Wracasz do domu?</string>
-    <string name="home_heading_home_text">Daj znać, jak dotrzesz. Jeśli nie dasz, twoja ekipa dostanie alert z twoim ostatnim miejscem (nawet jeśli padnie ci telefon).</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="one">%d min</item>
-        <item quantity="few">%d min</item>
-        <item quantity="many">%d min</item>
-        <item quantity="other">%d min</item>
-    </plurals>
-    <string name="home_just_tell_them">Tylko daj im znać</string>
     <string name="home_cancel">Anuluj</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">pinguje ekipę</string>
@@ -45,8 +34,6 @@
     <string name="home_my_friend_qr">Mój QR dla znajomych</string>
     <string name="home_enter_code">Wpisz kod</string>
 
-    <string name="home_check_in_by">Daj znać do %1$s</string>
-    <string name="home_home_safe">Jestem bezpiecznie w domu</string>
 
     <string name="home_message_crew">Napisz do ekipy</string>
     <string name="home_message_crew_text">Jedno kliknięcie: cała ekipa to dostanie, razem z tym, gdzie jesteś.</string>

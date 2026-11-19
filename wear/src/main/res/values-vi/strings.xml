@@ -18,7 +18,6 @@
     </plurals>
     <string name="ping_on_my_way">Đang tới</string>
     <string name="ping_all_good">Ổn cả</string>
-    <string name="need_help">Cần giúp đỡ</string>
     <string name="ping_sent">Đã gửi</string>
     <string name="ping_nearby">Đã gửi cho máy ở gần</string>
     <string name="ping_waiting">Đang chờ có sóng</string>
@@ -55,19 +54,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">Nhấn giữ</string>
-    <string name="sos_hint">Nhấn giữ để báo cho nhóm</string>
-    <string name="sos_sending">Đang gửi…</string>
-    <string name="sos_sent">Đã gửi cho nhóm</string>
-    <string name="sos_not_sent">Chưa gửi được</string>
-    <string name="sos_out_of_reach">Mất kết nối với điện thoại</string>
-    <string name="sos_nearby_detail">Mới chỉ tới người trong nhóm ở gần</string>
-    <string name="sos_unconfirmed">Chưa xác nhận</string>
-    <string name="sos_no_answer">Điện thoại không phản hồi</string>
-    <string name="sos_no_crew">Bạn chưa ở trong nhóm nào nên không có ai để báo</string>
-    <string name="sos_retry">Thử lại</string>
-    <string name="sos_im_ok">Mình ổn rồi</string>
-    <string name="sos_ok_sent">Đã báo cho nhóm là bạn ổn</string>
+    <string name="ping_sending">Đang gửi…</string>
+    <string name="ping_out_of_reach">Mất kết nối với điện thoại</string>
+    <string name="ping_nearby_detail">Mới chỉ tới người trong nhóm ở gần</string>
+    <string name="ping_unconfirmed">Chưa xác nhận</string>
+    <string name="ping_no_answer">Điện thoại không phản hồi</string>
+    <string name="ping_no_crew">Bạn chưa ở trong nhóm nào nên không có ai để báo</string>
 
     <string name="plus_text">Mở khóa ứng dụng đồng hồ trên điện thoại</string>
 

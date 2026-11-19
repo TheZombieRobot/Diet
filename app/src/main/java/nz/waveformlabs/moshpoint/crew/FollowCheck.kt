@@ -9,8 +9,8 @@ import nz.waveformlabs.moshpoint.core.AlarmPlan
 
 /**
  * For loved ones following a crew from home: about every 15 minutes, with the app closed,
- * one quiet check for help alerts, missed check-ins and new photos, so a "Bevan needs help"
- * still reaches Mum.
+ * one quiet check for the crew's pings and new photos, so "Bevan is on their way" still
+ * reaches Mum.
  *
  * A Doze-capable wake-up alarm (setAndAllowWhileIdle, RTC_WAKEUP; no exact-alarm permission),
  * set again each time it runs (reliability P1-5): the inexact repeating alarm it replaces could

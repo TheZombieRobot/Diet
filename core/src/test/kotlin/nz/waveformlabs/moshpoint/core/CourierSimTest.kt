@@ -34,12 +34,10 @@ class CourierSimTest {
         var refuses = false
         /** Every upload that reached the relay, whatever it answered. */
         var attempts = 0
-        /** With [tooMany]: safety pings are let through all the same (the app's budget does this). */
-        var safetyGetsThrough = false
 
         fun put(job: Courier.Upload): PutResult {
             attempts++
-            if (tooMany && !(safetyGetsThrough && job.use == RelayUse.SAFETY)) return PutResult.THROTTLED
+            if (tooMany) return PutResult.THROTTLED
             if (refuses) return PutResult.REFUSED
             puts++
             val q = boxes.getOrPut("${job.crewId}/${job.box}") { ArrayDeque() }
@@ -436,9 +434,9 @@ class CourierSimTest {
         assertEquals(1, a.puts)
     }
 
-    // ---- Need help, and the crowd ----
+    // ---- Pings and the crowd ----
 
-    @Test fun needHelpCrossesAStrangersPhoneButChatDoesNot() {
+    @Test fun aQuickPingCrossesAStrangersPhoneButChatDoesNot() {
         val w = World()
         val a = Phone("A", w, group)
         // Any two Moshpoint phones, not in this crew (two, so the hop count shows it was passed on).
@@ -448,18 +446,61 @@ class CourierSimTest {
         w.link(a, s1)
         w.link(s1, s2)
         w.link(s2, b)
-        val help = a.post(GigGroup.Ping.NEED_HELP)
+        val ping = a.post(GigGroup.Ping.COMING)
         val chat = a.chat("not through strangers")
         w.run(240)
-        assertTrue(b.has(help), "B heard it through the strangers")
-        assertEquals(Courier.Route.CROWD, b.routes[help])
+        assertTrue(b.has(ping), "B heard it through the strangers")
+        assertEquals(Courier.Route.CROWD, b.routes[ping])
         assertFalse(b.has(chat), "chat is only carried by crew phones")
         // B's receipt comes back the same way, so A knows.
-        assertEquals(Courier.State.NEARBY, a.state(help))
+        assertEquals(Courier.State.NEARBY, a.state(ping))
         assertTrue(s1.got.isEmpty() && s2.got.isEmpty(), "the strangers' phones could read none of it")
     }
 
-    @Test fun needHelpIsCarriedForHoursAndUploadedWhereItLasts() {
+    // ---- An older build's Need help, Check in or Home safe (removed 16 November 2026) ----
+
+    /**
+     * This build puts an older build's Need help on air with no crowd hops: crew phones carry it,
+     * strangers' phones never pass it on. (Here A stands in for any phone of ours holding one.)
+     */
+    @Test fun anOlderBuildsNeedHelpIsCarriedByCrewPhonesOnly() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val s1 = Phone("S1", w, null)
+        val s2 = Phone("S2", w, null)
+        val b = Phone("B", w, group)
+        val c = Phone("C", w, group)
+        w.link(a, s1)
+        w.link(s1, s2)
+        w.link(s2, b)
+        w.link(a, c)
+        val help = a.post(GigGroup.Ping.NEED_HELP)
+        val ping = a.post(GigGroup.Ping.COMING)
+        w.run(300)
+        assertTrue(c.has(help), "a crew phone in range has it")
+        assertEquals(Courier.Route.BLUETOOTH, c.routes[help])
+        assertTrue(b.has(ping), "an ordinary ping crosses the strangers")
+        assertFalse(b.has(help), "Need help doesn't")
+    }
+
+    @Test fun anOlderBuildsNeedHelpIsCarriedAndUploadedLikeAnyPing() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        w.link(a, b)
+        val help = a.post(GigGroup.Ping.NEED_HELP)
+        w.run(60)
+        assertTrue(b.has(help))
+        // An hour later B reaches signal: it goes to the ping mailbox, as any ping does, and nowhere else.
+        w.cut(a, b)
+        w.run(3600)
+        b.online = true
+        w.run(200)
+        assertEquals(1, w.relay.get(crewId, Courier.Box.PING).size, b.trace.toString())
+        assertEquals(0, w.relay.get(crewId, chatBox).size, "no extra copy in the chat mailbox")
+    }
+
+    @Test fun anOlderBuildsNeedHelpIsNotCarriedPastAnyPingsTime() {
         val w = World()
         val a = Phone("A", w, group)
         val b = Phone("B", w, group)
@@ -468,19 +509,15 @@ class CourierSimTest {
         val help = a.post(GigGroup.Ping.NEED_HELP)
         w.run(60)
         assertTrue(b.has(help))
-        // Three hours pass before B gets anywhere near C. Before: dropped after 20 minutes.
+        // Three hours pass before B gets near C: any ping is carried for two.
         w.cut(a, b)
         w.run(3 * 3600)
         w.link(b, c)
         w.run(240)
-        assertTrue(c.has(help), c.trace.toString())
-        val verdict = PingPolicy.onArrival(GigGroup.Ping.NEED_HELP, c.got.single().timeSec, 0, c.now / 1000)
-        assertTrue(verdict.alert && verdict.late)
-        // C reaches signal: it goes to the ping mailbox, and to the chat mailbox that keeps it for days.
-        c.online = true
+        assertFalse(c.has(help), c.trace.toString())
+        b.online = true
         w.run(200)
-        assertEquals(1, w.relay.get(crewId, Courier.Box.PING).size)
-        assertEquals(1, w.relay.get(crewId, chatBox).size)
+        assertEquals(0, w.relay.get(crewId, Courier.Box.PING).size, "too old to upload for someone else")
     }
 
     // ---- Uploading for others ----
@@ -639,31 +676,6 @@ class CourierSimTest {
         assertEquals(Courier.State.SENT, a.state(id), "still only the first, short wait")
     }
 
-    @Test fun needHelpKeepsTryingWhileEverythingElseWaits() {
-        val w = World()
-        val a = Phone("A", w, group)
-        a.online = true
-        w.relay.tooMany = true
-        val chat = a.chat("first")
-        w.run(5)
-        val before = w.relay.attempts
-        a.chat("second")
-        w.run(20)
-        assertEquals(before, w.relay.attempts, "chat waits out the pause")
-        // Need help doesn't wait: it's tried at once and again every few seconds.
-        val help = a.post(GigGroup.Ping.NEED_HELP)
-        w.run(40)
-        assertTrue(w.relay.attempts >= before + 2, "${w.relay.attempts - before} tries in 40 s")
-        w.relay.safetyGetsThrough = true
-        w.run(20)
-        assertEquals(Courier.State.SENT, a.state(help))
-        assertNotEquals(Courier.State.SENT, a.state(chat))
-        // Many uploads refused at once count as one "slow down", so the pause is still the first, short one.
-        w.relay.tooMany = false
-        w.run(90)
-        assertEquals(Courier.State.SENT, a.state(chat))
-    }
-
     // ---- The relay's budget ----
 
     @Test fun whenTheRelaySaysTooManyMessagesWaitThenFlush() {
@@ -684,7 +696,7 @@ class CourierSimTest {
         assertFalse(a.courier.onHold(a.now))
     }
 
-    @Test fun aSpentBudgetHoldsChatBackButNotNeedHelpAndFlushesNextDay() {
+    @Test fun aSpentBudgetHoldsMessagesBackAndFlushesNextDay() {
         val w = World()
         val a = Phone("A", w, group)
         val budget = RelayBudget(random = { 0.0 })
@@ -693,15 +705,11 @@ class CourierSimTest {
         // A long day: location shares used their 150, messages most of the rest.
         var t = a.now - 3600_000L
         repeat(150) { budget.settle(budget.take(RelayUse.BACKGROUND, true, t)!!, RelayBudget.Outcome.OK, t); t += 10_000 }
-        repeat(38) { budget.settle(budget.take(RelayUse.MESSAGE, true, t)!!, RelayBudget.Outcome.OK, t); t += 10_000 }
-        // 188 of the day's 200 are gone. Ordinary messages may use two more; safety pings the lot.
+        repeat(48) { budget.settle(budget.take(RelayUse.MESSAGE, true, t)!!, RelayBudget.Outcome.OK, t); t += 10_000 }
+        // 198 of the day's 200 are gone: two more messages fit.
         val chats = (1..4).map { a.chat("late one $it") }
         w.run(60)
         assertEquals(2, chats.count { a.state(it) == Courier.State.SENT }, "two messages fitted, two wait")
-        val help = a.post(GigGroup.Ping.NEED_HELP)
-        w.run(120)
-        assertEquals(Courier.State.SENT, a.state(help), "Need help has its own share of the budget")
-        assertEquals(1, w.relay.get(crewId, Courier.Box.PING).size)
         w.run(40 * 60)
         assertEquals(2, chats.count { a.state(it) == Courier.State.SENT }, "the other two are still waiting")
         // The budget's day rolls over: the rest go out by themselves.
@@ -837,7 +845,7 @@ class CourierSimTest {
         a.online = true
         // The app has just started: the queue is restored but the crew list isn't known yet.
         a.courier = Courier(a, a, a, java.util.Random(7))
-        val sealed = a.seal(GigGroup.Ping.NEED_HELP)
+        val sealed = a.seal(GigGroup.Ping.COMING)
         assertNull(a.courier.post(crewId, sealed, a.now), "without the crew a message can't be taken")
         // What OfflineMessages.post does at start-up: learn just this crew, without dropping others.
         a.courier.knowCrew(Courier.Crew(crewId, group, a.signer, main = false))
@@ -1360,9 +1368,9 @@ class CourierSimTest {
         w.link(s1, s2)
         w.link(s2, b)
         val pm = a.pm(b, "not through strangers")
-        val help = a.post(GigGroup.Ping.NEED_HELP)
+        val ping = a.post(GigGroup.Ping.COMING)
         w.run(300)
-        assertTrue(b.has(help), "Need help still crosses them")
+        assertTrue(b.has(ping), "a ping still crosses them")
         assertFalse(b.has(pm), "a private message is only ever carried by crew phones")
         assertNotEquals(Courier.State.NEARBY, a.state(pm))
         assertTrue(s1.got.isEmpty() && s2.got.isEmpty())

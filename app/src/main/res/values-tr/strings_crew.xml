@@ -8,7 +8,6 @@
     <string name="crew_someone">Biri</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">İptal</string>
-    <string name="crew_close">Kapat</string>
 
     <string name="crew_chat_subtitle">Ekip sohbeti · sadece ekibin okuyabilir</string>
     <string name="crew_chat_invite">＋ Davet et</string>
@@ -92,26 +91,8 @@
     <string name="crew_flare_own_hint">Ya da kendininkini yaz…</string>
     <string name="crew_flare_send">Gönder</string>
 
-    <string name="crew_help_title">Yardım al</string>
-    <string name="crew_help_alert">Ekibimi uyar</string>
-    <string name="crew_help_alert_sub">Nerede olduğunla birlikte acil uyarı</string>
-    <string name="crew_help_text_contact">SMS gönder: %1$s</string>
-    <string name="crew_help_text_contact_sub">Mesajlar uygulaman konumunla açılır. Veri olmadan çalışır.</string>
-    <string name="crew_help_add_contact">Acil durum kişisi ekle</string>
-    <string name="crew_help_add_contact_sub">Önemli bir anda mesaj atabileceğin, ekip dışından biri</string>
-    <string name="crew_help_contact_name">Ad (ör. Annem)</string>
-    <string name="crew_help_contact_number">Cep numarası</string>
-    <string name="crew_help_save_contact">Kişiyi kaydet</string>
-    <string name="crew_help_call">Ara: %1$s</string>
-    <string name="crew_help_call_sub">Polis, itfaiye, ambulans</string>
-    <string name="crew_help_call_police">Polis</string>
-    <string name="crew_help_call_ambulance">Ambulans ve itfaiye</string>
-    <string name="crew_help_no_signal">Hiç çekmiyor mu? Yeni telefonların çoğu acil servislere uydu üzerinden ulaşabilir: %1$s numarasını ara ve yönergeleri izle. Festivalde güvenlik ve ilk yardım çadırları hızlıca yardım edebilir.</string>
-    <string name="crew_help_sms">Yardıma ihtiyacım var. (Moshpoint ile gönderildi)</string>
-    <string name="crew_help_sms_where">Yardıma ihtiyacım var. Buradayım: %1$s (Moshpoint ile gönderildi)</string>
 
     <string name="crew_channel_messages">Ekip mesajları</string>
-    <string name="crew_channel_help">Ekip yardım çağrıları</string>
     <string name="crew_channel_requests">Seni arayan arkadaşlar</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -127,10 +108,6 @@
     <string name="crew_notif_done_title">Bitti: %1$s</string>
     <string name="crew_notif_done_saved">Fotoğrafların ve videoların Geçmiş konserler bölümüne kaydedildi.</string>
     <string name="crew_notif_done_text">Umarız efsane geçmiştir. İstediğin zaman yeni bir ekip kur.</string>
-    <string name="crew_notif_overdue_title">%1$s haber vermedi</string>
-    <string name="crew_notif_overdue_text">Eve dönüyordu, şimdiye varmış olmalıydı. Onu ara. Son konumu için dokun.</string>
-    <string name="crew_notif_help_where">Yardım lazım\'a bastı. Nerede olduğunu görmek için dokun. Bir yokla.</string>
-    <string name="crew_notif_help">Yardım lazım\'a bastı. Bir yokla.</string>
     <string name="crew_notif_tap_where">Nerede olduğunu görmek için dokun.</string>
     <string name="crew_notif_from_crew">Ekibinden</string>
 

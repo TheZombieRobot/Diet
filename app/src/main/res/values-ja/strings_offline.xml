@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">このクルーは新しいキーに切り替え中です。電波が戻ったらメッセージが送信されます。</string>
     <string name="offline_note_rekey_offline">スマホに電波が戻ると、クルーに新しいキーが届きます。それまでBluetoothのメッセージは保留になります。</string>
     <string name="offline_notif_late">%1$sに送信。たった今届きました。</string>
-    <string name="offline_notif_help_late">%1$sに「助けて」が押されました。たった今届きました。様子を見てあげて。</string>
     <string name="offline_meet_pin_named">ピンで集合 📍 %1$s</string>
     <string name="offline_need_nearby_why">Bluetooth、Wi-Fi、UWBで仲間を探し、電波がなくてもメッセージを渡すため</string>
 

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). -->
+<resources>
+
+    <string name="live_channel_notices">Aviseringar om Live och lagring</string>
+    <string name="live_off_title">Du är inte live längre</string>
+    <string name="live_off_text">Android stoppade Moshpoint i bakgrunden, så kompisarna kan inte hitta dig. Tryck för att gå live igen.</string>
+    <string name="live_cant_start_text">Android lät inte Moshpoint förbli live, så kompisarna kan inte hitta dig. Kolla att Moshpoints behörigheter är på och gå sedan live igen.</string>
+    <string name="live_crew_not_on_text">Din huvudgrupp är inte igång just nu, så Live stängdes av för att spara batteri.</string>
+    <string name="live_long_title">Kvar på spelningen?</string>
+    <string name="live_long_text">Du var live i 12 timmar, så Live stängdes av för att spara batteri.</string>
+    <string name="live_long_notif">Du var live i 12 timmar, så Live stängdes av för att spara batteri. Tryck om du är kvar.</string>
+    <string name="live_go_live">Gå live</string>
+    <string name="live_bluetooth_off">Bluetooth är av: kompisarna kan inte hitta dig på nära håll</string>
+    <string name="storage_full_title">Telefonens lagringsutrymme är fullt</string>
+    <string name="storage_full_text">Moshpoint kan inte spara nya meddelanden eller bilder förrän du frigör lite utrymme.</string>
+
+</resources>

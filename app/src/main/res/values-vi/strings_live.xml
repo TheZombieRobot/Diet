@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). -->
+<resources>
+
+    <string name="live_channel_notices">Thông báo về chia sẻ và bộ nhớ</string>
+    <string name="live_off_title">Bạn không còn chia sẻ nữa</string>
+    <string name="live_off_text">Android đã dừng Moshpoint khi chạy nền, nên bạn bè không tìm được bạn. Chạm để bật chia sẻ lại.</string>
+    <string name="live_cant_start_text">Android không cho Moshpoint tiếp tục chia sẻ, nên bạn bè không tìm được bạn. Kiểm tra xem các quyền của app đã bật chưa, rồi bật chia sẻ lại.</string>
+    <string name="live_crew_not_on_text">Nhóm chính của bạn hiện không hoạt động, nên Hiển thị đã tự tắt để tiết kiệm pin cho bạn.</string>
+    <string name="live_long_title">Vẫn còn ở show à?</string>
+    <string name="live_long_text">Bạn đã chia sẻ suốt 12 giờ, nên Hiển thị đã tự tắt để tiết kiệm pin cho bạn.</string>
+    <string name="live_long_notif">Bạn đã chia sẻ suốt 12 giờ, nên Hiển thị đã tự tắt để tiết kiệm pin cho bạn. Chạm nếu bạn vẫn còn ở đó.</string>
+    <string name="live_go_live">Bật chia sẻ</string>
+    <string name="live_bluetooth_off">Bluetooth đang tắt: ở gần, bạn bè không tìm được bạn</string>
+    <string name="storage_full_title">Bộ nhớ máy đã đầy</string>
+    <string name="storage_full_text">Moshpoint không lưu được tin nhắn hay ảnh mới cho đến khi bạn giải phóng bớt dung lượng.</string>
+
+</resources>

@@ -8,7 +8,6 @@
     <string name="crew_someone">有人</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">取消</string>
-    <string name="crew_close">關閉</string>
 
     <string name="crew_chat_subtitle">小隊聊天 · 只有小隊看得到</string>
     <string name="crew_chat_invite">＋ 邀請</string>
@@ -87,26 +86,8 @@
     <string name="crew_flare_own_hint">或自己寫…</string>
     <string name="crew_flare_send">傳送</string>
 
-    <string name="crew_help_title">求助</string>
-    <string name="crew_help_alert">通知我的小隊</string>
-    <string name="crew_help_alert_sub">緊急通知，附上你的位置</string>
-    <string name="crew_help_text_contact">傳簡訊給 %1$s</string>
-    <string name="crew_help_text_contact_sub">簡訊 App 會打開並附上你的位置。不用網路。</string>
-    <string name="crew_help_add_contact">新增緊急聯絡人</string>
-    <string name="crew_help_add_contact_sub">小隊以外、緊要時可以傳簡訊的人</string>
-    <string name="crew_help_contact_name">名字（例如：媽媽）</string>
-    <string name="crew_help_contact_number">手機號碼</string>
-    <string name="crew_help_save_contact">儲存聯絡人</string>
-    <string name="crew_help_call">撥打 %1$s</string>
-    <string name="crew_help_call_sub">報警、消防、救護車</string>
-    <string name="crew_help_call_police">報警</string>
-    <string name="crew_help_call_ambulance">救護車和消防</string>
-    <string name="crew_help_no_signal">完全沒訊號？很多新手機可以透過衛星聯絡緊急服務：撥打 %1$s 並依照提示操作。在音樂祭，保全和醫療帳篷也能很快幫上忙。</string>
-    <string name="crew_help_sms">我需要幫忙。（從 Moshpoint 傳送）</string>
-    <string name="crew_help_sms_where">我需要幫忙。我在這裡：%1$s（從 Moshpoint 傳送）</string>
 
     <string name="crew_channel_messages">小隊訊息</string>
-    <string name="crew_channel_help">小隊求助</string>
     <string name="crew_channel_requests">朋友在找你</string>
     <string name="crew_notif_line">%1$s：%2$s</string>
     <plurals name="crew_new_messages">
@@ -120,10 +101,6 @@
     <string name="crew_notif_done_title">%1$s 結束了</string>
     <string name="crew_notif_done_saved">你的相片和影片都存在「看過的演出」裡。</string>
     <string name="crew_notif_done_text">希望你玩得開心。隨時可以開新小隊。</string>
-    <string name="crew_notif_overdue_title">%1$s 還沒報平安</string>
-    <string name="crew_notif_overdue_text">對方說要回家，現在應該到了。打個電話問問吧。點一下看最後位置。</string>
-    <string name="crew_notif_help_where">對方按了「需要幫忙」。點一下看位置，去關心一下。</string>
-    <string name="crew_notif_help">對方按了「需要幫忙」。去關心一下。</string>
     <string name="crew_notif_tap_where">點一下看位置。</string>
     <string name="crew_notif_from_crew">來自你的小隊</string>
 

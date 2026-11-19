@@ -13,16 +13,6 @@
     <string name="home_ping_meet_at_pin">Meet at the pin</string>
     <string name="home_ping_all_good">All good</string>
     <string name="home_ping_sent">Sent ✓</string>
-    <string name="home_ping_heading_home">Heading home</string>
-    <string name="home_ping_need_help">Need help</string>
-    <string name="home_heading_home_title">Heading home?</string>
-    <string name="home_heading_home_text">Check in when you get there. If you don\'t, your crew gets an alert with your last spot (even if your phone dies).</string>
-    <!-- Check-in timer choice, %d = minutes -->
-    <plurals name="home_checkin_minutes">
-        <item quantity="one">%d min</item>
-        <item quantity="other">%d min</item>
-    </plurals>
-    <string name="home_just_tell_them">Just tell them</string>
     <string name="home_cancel">Cancel</string>
     <!-- A line in the ping feed. %1$s = mate's name, %2$s = what they said, e.g. "is on their way" -->
     <string name="home_ping_line">%1$s %2$s</string>
@@ -49,10 +39,6 @@
     <string name="home_friends_every_gig">FRIENDS FOR EVERY GIG</string>
     <string name="home_my_friend_qr">My friend QR</string>
     <string name="home_enter_code">Enter a code</string>
-
-    <!-- Check-in banner. %1$s = clock time, e.g. "2:15 am" -->
-    <string name="home_check_in_by">Check in by %1$s</string>
-    <string name="home_home_safe">I\'m home safe</string>
 
     <!-- Message sheet -->
     <string name="home_message_crew">Message the crew</string>

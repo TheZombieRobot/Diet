@@ -121,18 +121,4 @@ class WatchScreensTest(private val lang: String, private val size: String) {
     @Test fun finderFound() = finder(FinderUi("Sam", 0xFF22E4FF.toInt(), FinderStatus.FOUND, canRestart = true))
 
     @Test fun finderAmbient() = finder(live(WristView.DistanceOnly(40.0, Trend.STEADY, NoArrow.HOLD_FLAT)).copy(ambient = true))
-
-    // ---- Need help ----
-
-    @Test fun sosHold() = snap { SosScreen(SosUi(SosPhase.HOLD, progress = 0.6f)) }
-
-    @Test fun sosSent() = snap { SosScreen(SosUi(SosPhase.SENT)) }
-
-    @Test fun sosNotSent() = snap { SosScreen(SosUi(SosPhase.OUT_OF_REACH)) }
-
-    @Test fun sosUnconfirmed() = snap { SosScreen(SosUi(SosPhase.UNCONFIRMED)) }
-
-    @Test fun sosWaiting() = snap { SosScreen(SosUi(SosPhase.WAITING)) }
-
-    @Test fun sosNearby() = snap { SosScreen(SosUi(SosPhase.NEARBY)) }
 }

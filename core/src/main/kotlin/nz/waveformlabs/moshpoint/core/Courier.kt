@@ -150,7 +150,6 @@ class Courier(
 
         // Uploading
         var primaryFlying = false
-        var durableFlying = false
         var retryAtMs = 0L
         var tries = 0
         var refusals = 0
@@ -160,7 +159,6 @@ class Courier(
         // On air
         var aired = 0
         var heardOnAirMs = 0L
-        var boosted = false
     }
 
     private class Retired(val group: GigGroup, val untilMs: Long, var nextMs: Long)
@@ -561,7 +559,7 @@ class Courier(
         val p = parcels[job.id]
         val primary = p == null || job.box == primaryBox(p.kind)
         if (p != null) {
-            if (primary) p.primaryFlying = false else p.durableFlying = false
+            if (primary) p.primaryFlying = false
         }
         when (result) {
             PutResult.SENT -> {
@@ -585,15 +583,12 @@ class Courier(
                 // The relay (or the app's budget for it) said "too many": everything waits a
                 // little, 30 s then up to 2 min, so the queue doesn't spin. How long the relay
                 // really needs is the budget's business (it answers "too many" for free until
-                // then). Uploads already on their way when the wait began, and a safety ping
-                // sent through it, don't make it longer.
+                // then). Uploads already on their way when the wait began don't make it longer.
                 if (nowMs >= uploadHoldUntilMs) {
                     val base = minOf(30_000L shl throttleStep.coerceAtMost(2), 120_000L)
                     uploadHoldUntilMs = nowMs + base + random.nextInt((base / 2).toInt())
                     throttleStep++
                 }
-                // Need help keeps trying through the wait, a little apart.
-                if (p != null && rank(p.kind) == 0) p.retryAtMs = nowMs + SAFETY_RETRY_MS
             }
             PutResult.REFUSED -> {
                 relayAnswered(nowMs)
@@ -637,30 +632,24 @@ class Courier(
     private fun planUploads(nowMs: Long): Pair<List<Upload>, List<String>> {
         val jobs = ArrayList<Upload>()
         val wantFetch = ArrayList<String>()
-        if (!online) return jobs to wantFetch
-        // Asked to slow down: only safety pings still go (the app's budget spaces those out too).
-        val held = nowMs < uploadHoldUntilMs
+        // Asked to slow down: nothing goes until the wait is over.
+        if (!online || nowMs < uploadHoldUntilMs) return jobs to wantFetch
         var free = MAX_IN_FLIGHT - inFlight
 
         fun start(p: Parcel, box: Box, helper: Boolean) {
-            if (box == primaryBox(p.kind)) p.primaryFlying = true else p.durableFlying = true
+            p.primaryFlying = true
             if (helper) helping++ else {
                 inFlight++
                 free--
             }
-            val use = if (p.kind < 0) RelayUse.MESSAGE else PingPolicy.use(p.kind)
-            jobs += Upload(p.crewId, p.id, box, p.sealed, use, helper)
+            jobs += Upload(p.crewId, p.id, box, p.sealed, RelayUse.MESSAGE, helper)
         }
 
-        // Our own first: the author is the one who should upload. Safety pings, then oldest first.
+        // Our own first: the author is the one who should upload. The pin first, then oldest first.
         val own = parcels.values.filter { it.mine && it.crewId in crews && nowMs >= it.retryAtMs && it.refusals < MAX_REFUSALS && !it.gaveUp && hereStands(it, nowMs) }
             .sortedWith(compareBy<Parcel>({ rank(it.kind) }, { it.timeSec }))
         for (p in own) {
-            // Safety pings never wait for a free slot: with our relay's batches the other uploads
-            // in flight can be waiting up to a minute for theirs (docs/WAVE2C_REVIEW.md, F2).
-            val safety = rank(p.kind) == 0
-            if (free <= 0 && !safety) break
-            if (held && !safety) continue
+            if (free <= 0) break
             // A crew phone already has this one and may have uploaded it while we had no signal:
             // look at the mailbox first (for a moment), rather than post a second copy.
             if (p.nearby && !p.onServer && nowMs - onlineSinceMs < LOOK_FIRST_MS &&
@@ -676,19 +665,18 @@ class Courier(
             // So is our "I'm here" (or the clear that took it down), for as long as it lasts.
             val pinDue = active && (p.kind == KIND_PIN || p.kind == KIND_HERE) && nowMs - p.putAtMs >= PIN_REPOST_MS
             if ((!p.onServer || pinDue) && !p.primaryFlying) start(p, primaryBox(p.kind), false)
-            if ((free > 0 || safety) && wantsDurable(p) && !p.durableFlying) start(p, Box.CHAT, false)
         }
 
         // Then what we carry for crew mates, after a random wait and a fresh look at the mailbox.
         // One small batch at a time, all started together straight after that look.
-        if (held || helping > 0) return jobs to wantFetch
+        if (helping > 0) return jobs to wantFetch
         for (crewId in crews.keys) {
             for (box in Box.values()) {
                 val key = "$crewId/${box.ordinal}"
                 val waiting = parcels.values.filter {
                     !it.mine && it.crewId == crewId && !it.helperStopped && nowMs >= it.retryAtMs && it.route != Route.INTERNET &&
                         worthCarrying(it.kind, it.timeSec, nowMs) && hereStands(it, nowMs) &&
-                        ((primaryBox(it.kind) == box && !it.onServer && !it.primaryFlying) || (box == Box.CHAT && wantsDurable(it) && !it.durableFlying))
+                        primaryBox(it.kind) == box && !it.onServer && !it.primaryFlying
                 }
                 if (waiting.isEmpty()) continue
                 val fetchedAt = lastFetchMs[key] ?: 0L
@@ -704,8 +692,8 @@ class Courier(
                 }
                 var batch = helperBatch[key] ?: 0
                 var room = if (held(box)) HELD_LIMIT - (heldCount[key] ?: 0) else Int.MAX_VALUE
-                // Safety first. Then, if the mailbox is nearly full, the newest (old backlog is what
-                // waits); with room to spare, this phone's own order.
+                // If the mailbox is nearly full, the newest first (old backlog is what waits); with
+                // room to spare, this phone's own order.
                 val order = if (room < checked.size) compareBy<Parcel> { rank(it.kind) }.thenByDescending { it.timeSec }
                 else compareBy<Parcel> { rank(it.kind) }.thenBy { (it.id xor helperSalt) * -0x61c8864680b583ebL }
                 for (p in checked.sortedWith(order)) {
@@ -721,14 +709,12 @@ class Courier(
         return jobs to wantFetch
     }
 
-    private fun wantsDurable(p: Parcel) = p.kind != KIND_PIN && p.kind != KIND_HERE && p.kind != KIND_TICKET && PingPolicy.alsoHeld(p.kind) && !p.durable
-
     private fun expire(nowMs: Long) {
         val it = parcels.values.iterator()
         while (it.hasNext()) {
             val p = it.next()
             // Never from under an upload that's on its way: its answer still has to land somewhere.
-            if (p.primaryFlying || p.durableFlying) continue
+            if (p.primaryFlying) continue
             // An "I'm here" that has run out is no use to anyone (every phone drops it by itself).
             if (p.kind == KIND_HERE && !hereStands(p, nowMs)) {
                 it.remove()
@@ -818,9 +804,6 @@ class Courier(
             return relay.next(nowSec)?.encode()
         }
 
-        // Safety pings jump the queue.
-        nextPush(nowMs, safetyOnly = true)?.let { return it }
-
         if (receipts.isNotEmpty() && nowMs >= receiptDueMs) {
             val batch = receipts.entries.take(MAX_RECEIPT_IDS)
             val body = ByteBuffer.allocate(1 + batch.size * 9).put(batch.size.toByte())
@@ -834,7 +817,7 @@ class Courier(
             return out(MessagePacket(hops, 0, 1, crew.group.sealEnvelope(GigGroup.ENV_RECEIPT, body.array(), nowSec, secure)), nowSec)
         }
 
-        nextPush(nowMs, safetyOnly = false)?.let { return it }
+        nextPush(nowMs)?.let { return it }
 
         if (nowMs >= haveDueMs) {
             haveDueMs = Long.MAX_VALUE
@@ -852,10 +835,9 @@ class Courier(
         return p.encode()
     }
 
-    private fun nextPush(nowMs: Long, safetyOnly: Boolean): ByteArray? {
+    private fun nextPush(nowMs: Long): ByteArray? {
         val nowSec = nowMs / 1000
         val due = pushes.entries.filter { nowMs >= it.value }.mapNotNull { parcels[it.key] }
-            .filter { !safetyOnly || rank(it.kind) == 0 }
             .sortedWith(compareBy<Parcel> { rank(it.kind) }.thenByDescending { it.timeSec })
         // Tidy up pushes for messages we no longer hold.
         pushes.keys.removeAll { it !in parcels }
@@ -876,14 +858,13 @@ class Courier(
 
     /** Pings and pins start with 4 or 5 hops (not always the same, so the count doesn't show how far a packet has come). Chat gets none. */
     private fun hopsFor(p: Parcel, nowMs: Long): Int {
-        // A private message, like chat, is only ever carried by crew phones. So is a ticket tick: it's never urgent.
-        if (p.kind == KIND_PRIVATE || p.kind == KIND_TICKET) return 0
+        // Chat, private messages and ticket ticks are only ever carried by crew phones (a tick is
+        // never urgent); so are older builds' Need help, Check in and Home safe (PingPolicy.crowd).
+        if (!crowdKind(p.kind)) return 0
         // "I'm here" crosses strangers' phones for as long as it lasts (it's only aired while it does).
         if (p.kind == KIND_HERE) return crowdHops()
-        if (p.kind != KIND_PIN && PingPolicy.group(p.kind) == PingPolicy.Group.CHAT) return 0
         val age = (nowMs - minOf(p.timeSec * 1000, p.heldAtMs)) / 1000
-        val crowdFor = if (p.kind == KIND_PIN) PingPolicy.FRESH_SEC else PingPolicy.crowdSec(p.kind)
-        return if (age <= crowdFor) crowdHops() else 0
+        return if (age <= PingPolicy.FRESH_SEC) crowdHops() else 0
     }
 
     private fun crowdHops() = MessagePacket.MAX_TTL - random.nextInt(2)
@@ -902,16 +883,11 @@ class Courier(
         val offlinePeerNear = nowMs - offlinePeerAtMs < OFFLINE_PEER_MS
         for (p in parcels.values) {
             if (p.crewId != crew.id || p.aired > 0 || p.id in pushes || !airWorthy(p, nowMs)) continue
-            val safety = rank(p.kind) == 0
             if (p.mine) {
-                // Ours goes on air straight away when we're cut off or it's urgent; otherwise only
-                // if the relay hasn't taken it within a few seconds, or a mate nearby has no signal.
+                // Ours goes on air straight away when we're cut off; otherwise only if the relay
+                // hasn't taken it within a few seconds, or a mate nearby has no signal.
                 val waited = nowMs - p.heldAtMs >= AIR_GRACE_MS && !p.onServer
-                if (cut || safety || waited || offlinePeerNear) pushes[p.id] = nowMs
-            } else if (safety && !p.boosted && p.route != Route.INTERNET) {
-                // A safety ping we were handed: put it on air once more ourselves, without waiting to be asked.
-                p.boosted = true
-                pushes[p.id] = nowMs + 2_000L + random.nextInt(4_000)
+                if (cut || waited || offlinePeerNear) pushes[p.id] = nowMs
             }
         }
         // With no signal, say what we hold about once a minute, so crew phones in range fill the gaps.
@@ -1210,7 +1186,6 @@ class Courier(
         p.notified = State.values().getOrNull(notified)
         // Already on air before the restart, as far as anyone waiting is concerned: don't re-send unasked.
         p.aired = if (p.mine && !p.onServer && !p.nearby) 0 else 1
-        p.boosted = true
         return p
     }
 
@@ -1271,7 +1246,6 @@ class Courier(
         private const val LOOK_FIRST_MS = 15_000L
         /** How long after a crew phone says "I uploaded yours" before a mailbox without it counts as proof it didn't. */
         private const val TOLD_CHECK_AFTER_MS = 30_000L
-        private const val SAFETY_RETRY_MS = 15_000L
         private const val PIN_REPOST_MS = 10 * 60_000L
         private const val PIN_LAPSE_MS = 60_000L
         private const val PIN_CARRY_MS = 18 * 3600_000L
@@ -1296,11 +1270,10 @@ class Courier(
         private const val RETIRED_FOR_MS = 6 * 3600_000L
         private const val PAUSE_MS = 30 * 60_000L
 
-        /** Safety pings first, then the pin, then other pings, then chat (and private messages, with it). */
+        /** The pin (and "I'm here") first, then pings, then chat (and private messages, with it). */
         private fun rank(kind: Int): Int = when {
             kind == KIND_PIN || kind == KIND_HERE -> 1
             kind == KIND_PRIVATE || kind == KIND_TICKET -> 3
-            PingPolicy.group(kind) == PingPolicy.Group.SAFETY -> 0
             PingPolicy.group(kind) == PingPolicy.Group.CHAT -> 3
             else -> 2
         }
@@ -1317,8 +1290,11 @@ class Courier(
         private fun held(box: Box): Boolean = box == Box.CHAT || box == Box.PRIVATE
 
         /** Passed on through strangers' phones (pings, pins, "I'm here"), not just crew phones (chat, private messages)? */
-        private fun crowdKind(kind: Int): Boolean =
-            kind != KIND_PRIVATE && kind != KIND_TICKET && (kind == KIND_PIN || PingPolicy.group(kind) != PingPolicy.Group.CHAT)
+        private fun crowdKind(kind: Int): Boolean = when (kind) {
+            KIND_PIN, KIND_HERE -> true
+            KIND_PRIVATE, KIND_TICKET -> false
+            else -> PingPolicy.crowd(kind)
+        }
 
         private fun carryMs(kind: Int): Long = when (kind) {
             KIND_PIN -> PIN_CARRY_MS

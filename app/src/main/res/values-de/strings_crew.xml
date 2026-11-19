@@ -9,7 +9,6 @@
     <string name="crew_someone">Jemand</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">Abbrechen</string>
-    <string name="crew_close">Schließen</string>
 
     <string name="crew_chat_subtitle">Crew-Chat · nur deine Crew kann ihn lesen</string>
     <string name="crew_chat_invite">＋ Einladen</string>
@@ -93,26 +92,8 @@
     <string name="crew_flare_own_hint">Oder dein eigener…</string>
     <string name="crew_flare_send">Senden</string>
 
-    <string name="crew_help_title">Hilfe holen</string>
-    <string name="crew_help_alert">Crew alarmieren</string>
-    <string name="crew_help_alert_sub">Dringende Warnung mit deinem Standort</string>
-    <string name="crew_help_text_contact">%1$s schreiben</string>
-    <string name="crew_help_text_contact_sub">Deine SMS-App öffnet sich mit deinem Standort. Klappt ohne mobile Daten.</string>
-    <string name="crew_help_add_contact">Notfallkontakt hinzufügen</string>
-    <string name="crew_help_add_contact_sub">Jemand außerhalb der Crew, dem du im Ernstfall schreibst</string>
-    <string name="crew_help_contact_name">Name (z. B. Mama)</string>
-    <string name="crew_help_contact_number">Handynummer</string>
-    <string name="crew_help_save_contact">Kontakt speichern</string>
-    <string name="crew_help_call">%1$s anrufen</string>
-    <string name="crew_help_call_sub">Polizei, Feuerwehr, Rettungsdienst</string>
-    <string name="crew_help_call_police">Polizei</string>
-    <string name="crew_help_call_ambulance">Rettungsdienst und Feuerwehr</string>
-    <string name="crew_help_no_signal">Gar kein Empfang? Viele neuere Handys erreichen den Notruf per Satellit: ruf %1$s an und folge den Anweisungen. Auf Festivals helfen Security und Sanitätszelte schnell.</string>
-    <string name="crew_help_sms">Ich brauche Hilfe. (gesendet von Moshpoint)</string>
-    <string name="crew_help_sms_where">Ich brauche Hilfe. Ich bin hier: %1$s (gesendet von Moshpoint)</string>
 
     <string name="crew_channel_messages">Crew-Nachrichten</string>
-    <string name="crew_channel_help">Hilferufe der Crew</string>
     <string name="crew_channel_requests">Freunde, die dich suchen</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -128,10 +109,6 @@
     <string name="crew_notif_done_title">%1$s ist vorbei</string>
     <string name="crew_notif_done_saved">Deine Fotos und Clips sind unter Frühere Konzerte gespeichert.</string>
     <string name="crew_notif_done_text">Hoffentlich war\'s gut. Starte jederzeit eine neue Crew.</string>
-    <string name="crew_notif_overdue_title">%1$s hat sich nicht gemeldet</string>
-    <string name="crew_notif_overdue_text">War auf dem Heimweg und sollte längst da sein. Ruf an. Tippen für den letzten Standort.</string>
-    <string name="crew_notif_help_where">Hat auf Brauche Hilfe getippt. Tippe, um zu sehen, wo. Frag nach, ob alles okay ist.</string>
-    <string name="crew_notif_help">Hat auf Brauche Hilfe getippt. Frag nach, ob alles okay ist.</string>
     <string name="crew_notif_tap_where">Tippe, um zu sehen, wo.</string>
     <string name="crew_notif_from_crew">Von deiner Crew</string>
 

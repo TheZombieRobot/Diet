@@ -159,8 +159,11 @@ class BatchPlanTest {
         assertNull(RelayWire.parseBatch(byteArrayOf(2, 2, 0, 0), ops), "another version")
     }
 
-    /** Our relay's budget with batches (as RelayClient builds it): a full minute never holds up a safety ping. */
-    @Test fun aBusyMinuteNeverHoldsUpSafety() {
+    /**
+     * Our relay's budget with batches (as RelayClient builds it): a full minute holds every
+     * request alike. (Need help used to skip the queue; the owner removed it, 16 November 2026.)
+     */
+    @Test fun aBusyMinuteHoldsEveryRequestAlike() {
         val b = RelayBudget.withBatches(random = { 0.0 })
         var now = 0L
         repeat(120) {
@@ -169,14 +172,11 @@ class BatchPlanTest {
             now += 490L
         }
         now = 59_000L
-        assertNull(b.take(RelayUse.MESSAGE, false, now), "the minute is full for everything else")
+        assertNull(b.take(RelayUse.MESSAGE, false, now), "the minute is full")
+        assertNull(b.take(RelayUse.MESSAGE, true, now), "for a message too")
         assertNull(b.take(RelayUse.BACKGROUND, true, now))
-        assertEquals(0L, b.roomInMs(RelayUse.SAFETY, true, now), "Need help doesn't wait for room")
-        assertNotNull(b.take(RelayUse.SAFETY, true, now), "and goes")
-        // The public relay's budget is unchanged: its limits are the relay's own.
-        val public = RelayBudget(random = { 0.0 })
-        repeat(8) { public.take(RelayUse.MESSAGE, false, it * 1_000L) }
-        assertNull(public.take(RelayUse.SAFETY, true, 9_000L))
+        assertEquals(1_000L, b.roomInMs(RelayUse.MESSAGE, true, now), "room comes as the minute moves on")
+        assertNotNull(b.take(RelayUse.MESSAGE, true, now + 1_000L))
     }
 
     /**
@@ -210,7 +210,6 @@ class BatchPlanTest {
             }
             now += 1_000L
         }
-        assertNotNull(b.take(RelayUse.SAFETY, true, now), "and safety, as ever")
         // Still a net for a runaway loop: a minute of requests back to back stops at the relay's own rate.
         var looped = 0
         repeat(500) { b.take(RelayUse.MESSAGE, false, now)?.let { t -> b.settle(t, RelayBudget.Outcome.OK, now); looped++ } }
@@ -290,131 +289,5 @@ class BatchPlanTest {
         }
         assertTrue(third.id in went, "the line just written went within 10 s (the batch is due in ${(plan.dueAtMs() - now) / 1000} s)")
         assertTrue(went.getValue(third.id) - written <= 5_000L, "within a couple of seconds and a tick or two")
-    }
-
-    /**
-     * The hard rule: Need help never waits for the batch. A real courier posts it while a batch
-     * is half a minute away: its upload starts at once, on its own, and no batch ever carries it.
-     * Its durable copy for the chat mailbox goes the same way. A chat message posted at the same
-     * moment waits for the batch.
-     */
-    @Test fun needHelpDoesNotWaitForTheBatch() {
-        val group = GigGroup(ByteArray(32) { (it + 1).toByte() }, "Laneway", 0L)
-        val crewId = "crew"
-        val signer = CrewKeys.generate()
-        var now = 1_800_000_000_000L
-        val plan = BatchPlan()
-        val alone = ArrayList<Pair<Courier.Upload, Long>>()
-        val batched = HashMap<Long, Courier.Upload>()
-        lateinit var courier: Courier
-        // The app's uplink, as OfflineMessages does it: route by use, safety straight to the relay.
-        val uplink = object : Courier.Uplink {
-            override fun upload(job: Courier.Upload) {
-                when (BatchPlan.route(job.use)) {
-                    BatchPlan.Route.ALONE -> {
-                        alone += job to now
-                        courier.onUploaded(job, PutResult.SENT, now)
-                    }
-                    BatchPlan.Route.BATCH -> {
-                        val key = batched.size + 1L
-                        batched[key] = job
-                        plan.add(BatchPlan.Put(id(job.box.ordinal), job.sealed, held = job.box == Courier.Box.CHAT, replaceable = false, key = key), BatchPlan.Timing.MINUTE, now)
-                    }
-                }
-            }
-        }
-        val host = object : Courier.Host {
-            override fun deliver(crew: Courier.Crew, message: Courier.Message, route: Courier.Route) {}
-            override fun stateChanged(crewId: String, id: Long, state: Courier.State) {}
-            override fun fetchWanted(crewId: String) {}
-            override fun paused(crewId: String, on: Boolean) {}
-            override fun trace(id: Long, kind: Int, what: String) {}
-        }
-        courier = Courier(host, uplink, object : Courier.Air { override fun ready() = false })
-        courier.setCrews(listOf(Courier.Crew(crewId, group, signer, main = true)), now)
-        courier.setOnline(true, now)
-        // A location waits for the minute's batch; it's due 30 s from now.
-        plan.add(loc(1, 1), BatchPlan.Timing.MINUTE, now - 30_000L)
-        val chat = assertNotNull(courier.post(crewId, group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Jo", now / 1000, text = "at the bar"), signer), now))
-        val help = assertNotNull(courier.post(crewId, group.sealPing(GigGroup.Ping(GigGroup.Ping.NEED_HELP, "Jo", now / 1000), signer), now))
-        courier.tick(now)
-        val helpUploads = alone.filter { it.first.id == help.id }
-        assertTrue(helpUploads.isNotEmpty(), "Need help started straight away")
-        assertTrue(helpUploads.all { it.second == now && it.first.use == RelayUse.SAFETY }, "at the moment it was posted")
-        assertEquals(setOf(Courier.Box.PING, Courier.Box.CHAT), helpUploads.map { it.first.box }.toSet(), "its ping and its durable copy, each on its own")
-        assertTrue(batched.values.none { it.id == help.id }, "never handed to the batch")
-        // The courier's next tick starts the chat message (Need help took both upload slots first).
-        now += 1_000L
-        courier.tick(now)
-        assertTrue(alone.none { it.first.id == chat.id }, "a chat message waits for the batch")
-        assertTrue(batched.values.any { it.id == chat.id })
-        assertTrue(plan.dueAtMs() > now, "and the batch isn't sent early for it")
-        now += 29_000L
-        val b = plan.take(emptyList(), now)
-        assertTrue(b.puts.none { p -> p.record.contentEquals(help.sealed) }, "no batch carries it")
-        assertTrue(b.puts.any { p -> p.record.contentEquals(chat.sealed) })
-    }
-
-    /**
-     * Review finding F2 (docs/WAVE2C_REVIEW.md): messages already waiting in the minute's batch
-     * hold the courier's upload slots until the batch answers, up to a minute. Need help posted
-     * then must still start at once, on its own, not when the batch has gone.
-     */
-    @Test fun needHelpDoesNotWaitBehindMessagesAlreadyInTheBatch() {
-        val group = GigGroup(ByteArray(32) { (it + 1).toByte() }, "Laneway", 0L)
-        val crewId = "crew"
-        val signer = CrewKeys.generate()
-        var now = 1_800_000_000_000L
-        val plan = BatchPlan()
-        val alone = ArrayList<Pair<Courier.Upload, Long>>()
-        val batched = HashMap<Long, Courier.Upload>()
-        lateinit var courier: Courier
-        // The app's uplink, as OfflineMessages does it: safety straight to the relay, the rest
-        // into the batch, answered only when the batch is (not in this test: it's a minute away).
-        val uplink = object : Courier.Uplink {
-            override fun upload(job: Courier.Upload) {
-                when (BatchPlan.route(job.use)) {
-                    BatchPlan.Route.ALONE -> {
-                        alone += job to now
-                        courier.onUploaded(job, PutResult.SENT, now)
-                    }
-                    BatchPlan.Route.BATCH -> {
-                        val key = batched.size + 1L
-                        batched[key] = job
-                        plan.add(BatchPlan.Put(id(job.box.ordinal), job.sealed, held = job.box == Courier.Box.CHAT, replaceable = false, key = key), BatchPlan.Timing.MINUTE, now)
-                    }
-                }
-            }
-        }
-        val host = object : Courier.Host {
-            override fun deliver(crew: Courier.Crew, message: Courier.Message, route: Courier.Route) {}
-            override fun stateChanged(crewId: String, id: Long, state: Courier.State) {}
-            override fun fetchWanted(crewId: String) {}
-            override fun paused(crewId: String, on: Boolean) {}
-            override fun trace(id: Long, kind: Int, what: String) {}
-        }
-        courier = Courier(host, uplink, object : Courier.Air { override fun ready() = false })
-        courier.setCrews(listOf(Courier.Crew(crewId, group, signer, main = true)), now)
-        // Two lines written in a basement go up when the signal comes back, with the minute's batch.
-        courier.setOnline(false, now)
-        val lines = listOf("on our way", "grab a spot").map { text ->
-            assertNotNull(courier.post(crewId, group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Jo", now / 1000, text = text), signer), now))
-        }
-        now += 120_000L
-        courier.setOnline(true, now)
-        courier.tick(now)
-        assertEquals(lines.map { it.id }.toSet(), batched.values.map { it.id }.toSet(), "both lines wait in the batch, unanswered")
-        // Need help, with the batch still most of a minute away.
-        now += 5_000L
-        val help = assertNotNull(courier.post(crewId, group.sealPing(GigGroup.Ping(GigGroup.Ping.NEED_HELP, "Jo", now / 1000), signer), now))
-        courier.tick(now)
-        val helpUploads = alone.filter { it.first.id == help.id }
-        assertEquals(setOf(Courier.Box.PING, Courier.Box.CHAT), helpUploads.map { it.first.box }.toSet(), "Need help and its durable copy start at once")
-        assertTrue(helpUploads.all { it.second == now && it.first.use == RelayUse.SAFETY }, "at the moment it was posted, as safety")
-        assertTrue(batched.values.none { it.id == help.id }, "never handed to the batch")
-        // Nothing else jumps in: the two lines still wait for their batch, and no third line starts.
-        val third = assertNotNull(courier.post(crewId, group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Jo", now / 1000, text = "where are you"), signer), now))
-        courier.tick(now)
-        assertTrue(batched.values.none { it.id == third.id } && alone.none { it.first.id == third.id }, "a chat line still waits for a free slot")
     }
 }

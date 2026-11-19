@@ -557,7 +557,7 @@ object CrewChat {
         val mine = signed.sender == myTag(c, g)
         rememberKey(c, g, signed.pub)
         // Someone blocked on this phone: kept (so unblocking brings it back), never announced.
-        val hidden = nz.waveformlabs.moshpoint.moderation.Blocks.now(c).hidesLine(signed.sender, signed.kind, mine)
+        val hidden = nz.waveformlabs.moshpoint.moderation.Blocks.now(c).hidesLine(signed.sender, mine)
         val p = signed.copy(from = displayName(c, g, signed.sender, signed.from))
         // A time in the future here (their clock is wrong) sorts at when it arrived.
         val at = MessageClock.sortTime(p.timeSec, System.currentTimeMillis() / 1000)
@@ -640,14 +640,6 @@ object CrewChat {
         val at = MessageClock.sortTime(p.timeSec, System.currentTimeMillis() / 1000)
         // False if we already had it (by message id): the caller then doesn't announce it again.
         return add(c, g, Line(if (mine) me(c) else p.from, at, payload, mine, p.kind, sender = if (mine) myTag(c, g) else p.sender, state = state, id = idOf(p)))
-    }
-
-    /** Is this ping already a line in the main crew's chat (by message id)? */
-    fun hasPing(c: Context, p: GigGroup.Ping): Boolean {
-        val g = GroupSync.group.value ?: return false
-        val id = idOf(p).ifEmpty { return false }
-        val crew = GigArchive.idFor(g)
-        return (if (crew == viewingId) lines.toList() else readLines(c, crew)).any { it.id == id }
     }
 
     /** A one-tap ping's kind (shown as a chat bubble, worded by [quickText]). */

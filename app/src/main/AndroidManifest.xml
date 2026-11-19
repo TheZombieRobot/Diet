@@ -81,6 +81,13 @@
         <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" android:value="false" />
         <meta-data android:name="com.facebook.sdk.AdvertiserIDCollectionEnabled" android:value="false" />
 
+        <!-- Android 16: built for satellite data, so a phone whose carrier allows it may use a
+             satellite network when there's no other (carriers keep lists of apps; owner to-do in
+             docs/PRODUCTION_AUDIT.md). The app sends nothing over one unless a Moshpoint+ member
+             switches "Use satellite when there's no signal" on, and then only the relay's batch,
+             at most every two minutes (core SatelliteRule, docs/REMOVE_SAFETY.md, stage 4). -->
+        <meta-data android:name="android.telephony.PROPERTY_SATELLITE_DATA_OPTIMIZED" android:value="${applicationId}" />
+
         <!-- configChanges: dark mode at night (Bedtime), a font or display size change, split screen,
              a foldable, or rotation on a large screen (Android 16 ignores the portrait lock there) no
              longer recreate the activity, which closed a find in progress. Compose redraws for them.
@@ -108,11 +115,6 @@
 
         <receiver
             android:name=".FollowCheckReceiver"
-            android:exported="false" />
-
-        <!-- Overdue check-ins on time with the app closed (docs/WAVE2_SAFETY.md) -->
-        <receiver
-            android:name=".CheckInAlarmReceiver"
             android:exported="false" />
 
         <receiver
@@ -200,8 +202,8 @@
 
         <!-- ===== Watch app (wear/, docs/WATCH.md) ===== -->
 
-        <!-- Everything the watch asks of the phone arrives here: Need help and the other wrist
-             pings, and "find this mate for me". Play services starts it when a message comes
+        <!-- Everything the watch asks of the phone arrives here: the wrist pings, and "find
+             this mate for me". Play services starts it when a message comes
              in, app open or not. Only Play services can bind to it. -->
         <service
             android:name=".watch.WatchLinkService"

@@ -11,16 +11,6 @@
     <string name="home_ping_meet_at_pin">Encontro no pin</string>
     <string name="home_ping_all_good">Tudo certo</string>
     <string name="home_ping_sent">Enviado ✓</string>
-    <string name="home_ping_heading_home">Indo pra casa</string>
-    <string name="home_ping_need_help">Preciso de ajuda</string>
-    <string name="home_heading_home_title">Indo pra casa?</string>
-    <string name="home_heading_home_text">Dê um check-in quando chegar. Se não der, sua galera recebe um alerta com seu último local (mesmo se o celular morrer).</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="one">%d min</item>
-        <item quantity="many">%d min</item>
-        <item quantity="other">%d min</item>
-    </plurals>
-    <string name="home_just_tell_them">Só avisar</string>
     <string name="home_cancel">Cancelar</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">avisou a galera</string>
@@ -44,8 +34,6 @@
     <string name="home_my_friend_qr">Meu QR de amigo</string>
     <string name="home_enter_code">Digitar um código</string>
 
-    <string name="home_check_in_by">Check-in até %1$s</string>
-    <string name="home_home_safe">Cheguei bem em casa</string>
 
     <string name="home_message_crew">Mandar msg pra galera</string>
     <string name="home_message_crew_text">Um toque: todo mundo da galera recebe, com onde você está.</string>

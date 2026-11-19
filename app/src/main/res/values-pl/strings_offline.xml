@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">Ta ekipa dostaje nowy klucz. Wiadomości zostaną wysłane, gdy złapiesz zasięg.</string>
     <string name="offline_note_rekey_offline">Ekipa dostanie nowy klucz, gdy telefony znów złapią zasięg. Do tego czasu wiadomości przez Bluetooth są wstrzymane.</string>
     <string name="offline_notif_late">Wysłano %1$s. Dotarło dopiero teraz.</string>
-    <string name="offline_notif_help_late">Wysłano „Potrzebuję pomocy” %1$s. Dotarło dopiero teraz. Sprawdź, co się dzieje.</string>
     <string name="offline_meet_pin_named">Widzimy się przy pinezce 📍 %1$s</string>
     <string name="offline_need_nearby_why">żeby szukać znajomych przez Bluetooth, Wi-Fi i UWB i przekazywać wiadomości bez zasięgu</string>
 

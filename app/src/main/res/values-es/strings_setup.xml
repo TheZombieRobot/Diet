@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">Fantasma 1 hora</string>
     <string name="setup_data_saver">Ahorro de datos</string>
     <string name="setup_data_saver_desc">Comparte fotos y clips más ligeros (más rápido con poca señal). Desactivado: alta calidad, para que las copias de todos se vean nítidas. Tus originales siempre se guardan a máxima calidad.</string>
-    <string name="setup_emergency_contact">Contacto de emergencia</string>
-    <string name="setup_emergency_contact_desc">\"Necesito ayuda\" puede enviarle tu ubicación por SMS normal (funciona sin datos). Se queda en este celular.</string>
-    <string name="setup_contact_name">Nombre</string>
-    <string name="setup_contact_mobile">Celular</string>
-    <string name="setup_contact_saved">Guardado</string>
-    <string name="setup_contact_need_number">Agrega un número de celular</string>
-    <string name="setup_contact_removed">Eliminado</string>
-    <string name="setup_save">Guardar</string>
-    <string name="setup_remove">Quitar</string>
     <string name="setup_about">INFORMACIÓN</string>
     <string name="setup_about_text">Moshpoint %1$s. Sin cuenta, códigos rotativos, ubicaciones cifradas de extremo a extremo. Solo te pueden encontrar mientras estás en vivo.</string>
     <string name="setup_open_source_licences">Licencias de terceros</string>

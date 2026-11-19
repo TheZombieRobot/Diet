@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">Spöke i 1 timme</string>
     <string name="setup_data_saver">Datasparläge</string>
     <string name="setup_data_saver_desc">Dela lättare bilder och klipp (snabbare med svag täckning). Av: hög kvalitet, så allas sparade kopior blir skarpa. Dina egna original sparas alltid i full kvalitet.</string>
-    <string name="setup_emergency_contact">Nödkontakt</string>
-    <string name="setup_emergency_contact_desc">\"Behöver hjälp\" kan skicka din plats till dem som vanligt sms (funkar utan data). Stannar på den här telefonen.</string>
-    <string name="setup_contact_name">Namn</string>
-    <string name="setup_contact_mobile">Mobilnummer</string>
-    <string name="setup_contact_saved">Sparat</string>
-    <string name="setup_contact_need_number">Lägg till ett mobilnummer</string>
-    <string name="setup_contact_removed">Borttaget</string>
-    <string name="setup_save">Spara</string>
-    <string name="setup_remove">Ta bort</string>
     <string name="setup_about">OM</string>
     <string name="setup_about_text">Moshpoint %1$s. Inget konto, roterande koder, end-to-end-krypterade platser. Du går bara att hitta när du är live.</string>
     <string name="setup_open_source_licences">Tredjepartslicenser</string>

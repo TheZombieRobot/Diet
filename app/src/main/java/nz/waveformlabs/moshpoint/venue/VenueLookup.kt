@@ -12,6 +12,7 @@ import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.VenueQuery
 import nz.waveformlabs.moshpoint.locate.RelayClient
+import nz.waveformlabs.moshpoint.setup.NetState
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -64,6 +65,8 @@ object VenueLookup {
                 if (!o.has("lat") && age < NOT_FOUND_KEEP_MS) return Result.NotFound
             }
         }
+        // Never over satellite (docs/REMOVE_SAFETY.md, stage 4): asked again on a normal network.
+        if (NetState.satellite) return Result.Failed
         val result = oneAtATime.withLock {
             // One request a second at the very most, whoever is asking.
             val wait = MIN_GAP_MS - (SystemClock.elapsedRealtime() - lastAskedAt)

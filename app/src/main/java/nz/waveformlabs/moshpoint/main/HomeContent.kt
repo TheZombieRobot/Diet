@@ -6,8 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanOptions
-import java.text.DateFormat
-import java.util.Date
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
@@ -46,6 +44,7 @@ import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.safety.GhostMode
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.sharing.Sharing
+import nz.waveformlabs.moshpoint.sharing.TextMySpot
 import nz.waveformlabs.moshpoint.ui.countdown
 import nz.waveformlabs.moshpoint.ui.gigWhen
 import nz.waveformlabs.moshpoint.ui.home.FriendsScreen
@@ -77,6 +76,7 @@ internal fun HomeContent(a: MainActivity) {
             setupIssues = a.permissions.setupIssues,
             myName = a.home.myName,
             ghost = GhostMode.on.value,
+            plus = Entitlements.plus(a),
         ),
         crew = HomeCrew(
             friends = FriendsRepository.friends,
@@ -88,9 +88,6 @@ internal fun HomeContent(a: MainActivity) {
             nowSec = a.home.homeNow / 1000,
             pings = GroupSync.pings,
             moments = Blocks.visibleMoments(Moments.items),
-            checkInBy = GroupSync.myCheckInBy.value.takeIf { it > 0 }?.let {
-                DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it * 1000))
-            },
             distances = CrewStatus.distances,
             crewQrPayload = GroupSync.group.value?.let { a.invites.crewQr(it) },
             chatUnread = CrewChat.unreadFor(a, GroupSync.group.value),
@@ -190,13 +187,10 @@ internal fun HomeContent(a: MainActivity) {
                 val loc = a.lastKnownLocation()
                 GroupSync.sendPing(a, kind, loc?.latitude, loc?.longitude)
             },
+            // Text my spot (Moshpoint+, switched on in Settings): the texting app, ready to send.
+            onTextSpot = if (TextMySpot.shown(a)) ({ TextMySpot.open(a) }) else null,
             describePing = GroupSync::pingText,
             onShareMoment = a.momentFlow::start,
-            onCheckIn = { minutes ->
-                val loc = a.lastKnownLocation()
-                GroupSync.startCheckIn(a, minutes, loc?.latitude, loc?.longitude)
-            },
-            onHomeSafe = { GroupSync.homeSafe(a) },
             onOpenStory = { a.story.showStory = true },
             onOpenChat = { a.chat.openChat(null) },
             onLetFamilyFollow = {

@@ -271,7 +271,7 @@ class VisibilityService : LifecycleService() {
                 c, 1, Intent(c, VisibilityService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE,
             )
             return NotificationCompat.Builder(c, CHANNEL)
-                .setContentTitle(c.getString(if (bluetooth) R.string.visibility_notification else R.string.safety_live_bluetooth_off))
+                .setContentTitle(c.getString(if (bluetooth) R.string.visibility_notification else R.string.live_bluetooth_off))
                 .apply { if (crew != null) setContentText(crew).setStyle(NotificationCompat.BigTextStyle().bigText(crew)) }
                 .setSmallIcon(R.drawable.ic_launcher_monochrome)
                 .setOngoing(true)
@@ -310,7 +310,7 @@ class VisibilityService : LifecycleService() {
         /** How often a running Live checks whether it should go off by itself. */
         private const val CHECK_EVERY_MS = 60_000L
         private const val REQUEST_CHANNEL = "requests"
-        /** "Light up" requests, one per friend: a range of their own (5000 up used to reach into the crew alerts' ids, Need help among them). */
+        /** "Light up" requests, one per friend: a range of their own (5000 up used to reach into the crew alerts' ids). */
         private const val REQUEST_NOTIFICATION_BASE = 0x40000000
         private const val NOTIFICATION_ID = 1
         /** A mate lighting up their screen: a buzz at most this often per mate. */

@@ -2,6 +2,7 @@ package nz.waveformlabs.moshpoint.ui.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -50,7 +50,6 @@ import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.GigGroup
-import nz.waveformlabs.moshpoint.ui.chat.HelpDialog
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.glow
 import nz.waveformlabs.moshpoint.ui.pressScale
@@ -178,11 +177,13 @@ internal fun CrewMenuContent(
     }
 }
 
-/** One-tap messages to the whole crew. "Need help" asks first. [onGoLive]: Need help's "Go live" (see HelpDialog). */
+/**
+ * One-tap messages to the whole crew. [onTextSpot]: "Text my spot" last in the row (Moshpoint+,
+ * switched on in Settings; null = not shown): it opens the phone's texting app, so it's violet,
+ * not a ping's cyan, and never turns into "Sent".
+ */
 @Composable
-internal fun PingBar(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit = {}, onGoLive: (() -> Unit)? = null) {
-    var confirmHelp by remember { mutableStateOf(false) }
-    var goingHome by remember { mutableStateOf(false) }
+internal fun PingBar(onPing: (Int) -> Unit, onTextSpot: (() -> Unit)? = null, scroll: ScrollState = rememberScrollState()) {
     var sent by remember { mutableStateOf<Int?>(null) }
     val items = listOf(
         GigGroup.Ping.COMING to stringResource(R.string.home_ping_on_my_way),
@@ -192,41 +193,14 @@ internal fun PingBar(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit = {}, onGoL
         GigGroup.Ping.ALL_GOOD to stringResource(R.string.home_ping_all_good),
     )
     val sentLabel = stringResource(R.string.home_ping_sent)
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(Modifier.horizontalScroll(scroll), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items.forEach { (kind, label) ->
             PingChip(if (sent == kind) sentLabel else label, if (sent == kind) Mosh.Lime else Mosh.Cyan) {
                 onPing(kind)
                 sent = kind
             }
         }
-        PingChip(stringResource(R.string.home_ping_heading_home), Mosh.Violet) { goingHome = true }
-        PingChip(stringResource(R.string.home_ping_need_help), Mosh.Danger) { confirmHelp = true }
-    }
-    if (goingHome) {
-        AlertDialog(
-            onDismissRequest = { goingHome = false },
-            containerColor = Mosh.Deep,
-            title = { Text(stringResource(R.string.home_heading_home_title), style = HomeType.Heading) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(stringResource(R.string.home_heading_home_text), style = HomeType.Body)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(30, 45, 60, 90).forEach { m ->
-                            PingChip(pluralStringResource(R.plurals.home_checkin_minutes, m, m), Mosh.Violet) { onCheckIn(m); sent = GigGroup.Ping.CHECK_IN; goingHome = false }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { onPing(GigGroup.Ping.GOING_HOME); sent = GigGroup.Ping.GOING_HOME; goingHome = false }) {
-                    Text(stringResource(R.string.home_just_tell_them), style = HomeType.Label.copy(color = Mosh.Cyan))
-                }
-            },
-            dismissButton = { TextButton(onClick = { goingHome = false }) { Text(stringResource(R.string.home_cancel), style = HomeType.Label) } },
-        )
-    }
-    if (confirmHelp) {
-        HelpDialog(onAlertCrew = { onPing(GigGroup.Ping.NEED_HELP); sent = GigGroup.Ping.NEED_HELP }, onGoLive = onGoLive, onClose = { confirmHelp = false })
+        if (onTextSpot != null) PingChip(stringResource(R.string.spot_text), Mosh.Violet, onTextSpot)
     }
 }
 
@@ -315,17 +289,21 @@ internal fun AddSheetContent(
     }
 }
 
-/** Everything you can tell the crew, in one panel: pings, heading home, need help. */
+/** Everything you can tell the crew in one tap, in one panel. [onTextSpot]: see [PingBar]. */
 @Composable
-internal fun MessageSheet(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit, onClose: () -> Unit, onGoLive: (() -> Unit)? = null) {
-    MoshSheet(onClose = onClose) {
-        Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(start = HomeSide, end = HomeSide, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Text(stringResource(R.string.home_message_crew), style = HomeType.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
-            Text(stringResource(R.string.home_message_crew_text), style = HomeType.Body)
-            PingBar(onPing = { onPing(it) }, onCheckIn = { onCheckIn(it) }, onGoLive = onGoLive)
-        }
+internal fun MessageSheet(onPing: (Int) -> Unit, onClose: () -> Unit, onTextSpot: (() -> Unit)? = null) {
+    MoshSheet(onClose = onClose) { MessageSheetContent(onPing, onTextSpot) }
+}
+
+/** The Message crew panel's contents (separate so it can be screenshot-tested; [pings]: the row's scroll). */
+@Composable
+internal fun MessageSheetContent(onPing: (Int) -> Unit, onTextSpot: (() -> Unit)?, pings: ScrollState = rememberScrollState()) {
+    Column(
+        Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(start = HomeSide, end = HomeSide, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Text(stringResource(R.string.home_message_crew), style = HomeType.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
+        Text(stringResource(R.string.home_message_crew_text), style = HomeType.Body)
+        PingBar(onPing = { onPing(it) }, onTextSpot = onTextSpot, scroll = pings)
     }
 }

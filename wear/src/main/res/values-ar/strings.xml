@@ -28,7 +28,6 @@
     </plurals>
     <string name="ping_on_my_way">في الطريق</string>
     <string name="ping_all_good">كل شيء تمام</string>
-    <string name="need_help">أحتاج مساعدة</string>
     <string name="ping_sent">أُرسلت</string>
     <string name="ping_nearby">أُرسلت لمن حولك</string>
     <string name="ping_waiting">بانتظار الإشارة</string>
@@ -65,19 +64,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">اضغط مطولًا</string>
-    <string name="sos_hint">اضغط مطولًا لإبلاغ شلتك</string>
-    <string name="sos_sending">جارٍ الإرسال…</string>
-    <string name="sos_sent">أُرسلت إلى شلتك</string>
-    <string name="sos_not_sent">لم تُرسَل</string>
-    <string name="sos_out_of_reach">لا اتصال بهاتفك</string>
-    <string name="sos_nearby_detail">وصلت لمن حولك من الشلة فقط حتى الآن</string>
-    <string name="sos_unconfirmed">غير مؤكدة</string>
-    <string name="sos_no_answer">هاتفك لم يردّ</string>
-    <string name="sos_no_crew">لست في أي شلة، فلا أحد لإبلاغه</string>
-    <string name="sos_retry">حاول مجددًا</string>
-    <string name="sos_im_ok">أنا بخير الآن</string>
-    <string name="sos_ok_sent">علمت شلتك أنك بخير</string>
+    <string name="ping_sending">جارٍ الإرسال…</string>
+    <string name="ping_out_of_reach">لا اتصال بهاتفك</string>
+    <string name="ping_nearby_detail">وصلت لمن حولك من الشلة فقط حتى الآن</string>
+    <string name="ping_unconfirmed">غير مؤكدة</string>
+    <string name="ping_no_answer">هاتفك لم يردّ</string>
+    <string name="ping_no_crew">لست في أي شلة، فلا أحد لإبلاغه</string>
 
     <string name="plus_text">فعّل تطبيق الساعة من هاتفك</string>
 

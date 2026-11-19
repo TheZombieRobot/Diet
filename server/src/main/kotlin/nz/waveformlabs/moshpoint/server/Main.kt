@@ -19,6 +19,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.response.respondText
+import io.ktor.server.response.header
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -70,6 +71,7 @@ fun Application.moshpoint(
     venues: VenueLookup = VenueLookup(),
     discover: Discover = Discover(DiscoverConfig.fromEnv(relay.config.dataDir), clock = relay.clock),
     entitlements: EntitlementCheck = EntitlementCheck.fromEnv(),
+    appLinks: AppLinks = AppLinks.fromEnv(),
 ) {
     val log = LoggerFactory.getLogger("nz.waveformlabs.moshpoint.server")
     if (entitlements === EntitlementCheck.EVERYONE) log.warn("MOSHPOINT_DISCOVER_OPEN=1: Discover is open to everyone. Internal testing only, never on the production relay.")
@@ -208,6 +210,25 @@ fun Application.moshpoint(
 
     routing {
         get("/healthz") { call.respondText("ok") }
+
+        // Text my spot's links (SpotPage.kt, RELAY_API.md section 13): the spot rides after `#`,
+        // which never reaches us. The App Link statement, and a page that opens the spot in a map.
+        get("/.well-known/assetlinks.json") {
+            call.response.header("Cache-Control", "public, max-age=3600")
+            call.respondText(appLinks.assetLinks(), ContentType.Application.Json)
+        }
+        get("/spot") {
+            call.response.header("Content-Security-Policy", SpotPage.SECURITY)
+            call.response.header("Referrer-Policy", "no-referrer")
+            call.response.header("X-Content-Type-Options", "nosniff")
+            call.response.header("Cache-Control", "public, max-age=86400")
+            call.respondText(SpotPage.html(appLinks.appId), ContentType.Text.Html)
+        }
+        get("/spot.js") {
+            call.response.header("X-Content-Type-Options", "nosniff")
+            call.response.header("Cache-Control", "public, max-age=86400")
+            call.respondText(SpotPage.SCRIPT, ContentType.Application.JavaScript)
+        }
 
         // A report of objectionable content: what the reporter's phone could see (Reports.kt).
         post("/v1/report") {

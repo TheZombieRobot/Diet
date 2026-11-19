@@ -242,7 +242,7 @@ class GigGroup(
             .put("mp-pin1".toByteArray()).put(hmac(key, "moshpoint-group-sig".toByteArray()).copyOf(8))
             .putInt(timeSec.toInt()).putDouble(lat).putDouble(lon).put(name.size.toByte()).put(name).array()
 
-    /** Mailbox id for crew pings ("Coming", "Need help"...), rotating with the epoch. */
+    /** Mailbox id for crew pings ("Coming", "Stay put"...), rotating with the epoch. */
     fun pingIdForEpoch(epoch: Long): ByteArray =
         hmac(key, "moshpoint-group-ping".toByteArray() + ByteBuffer.allocate(8).putLong(epoch).array()).copyOf(16)
 
@@ -257,7 +257,7 @@ class GigGroup(
         val timeSec: Long,
         val lat: Double? = null,
         val lon: Double? = null,
-        /** [CHECK_IN]: minutes until they should be home. [FLARE]: minutes it lasts. */
+        /** [FLARE]: minutes it lasts. [CHECK_IN] (older builds): minutes until they said they'd be home. */
         val minutes: Int = 0,
         /** [CHAT] message, [FLARE] vibe, or the [PLAN] text (up to [MAX_TEXT_BYTES]). */
         val text: String = "",
@@ -286,10 +286,15 @@ class GigGroup(
             const val MEET_AT_PIN = 4
             const val ALL_GOOD = 5
             const val GOING_HOME = 6
+            /**
+             * Need help, Check in and Home safe: only older builds send these (the features were
+             * removed on 16 November 2026). Kept so this build still opens and shows them, as
+             * ordinary pings ([PingPolicy.Group.OLDER_BUILDS]). Never reuse these numbers.
+             */
             const val NEED_HELP = 7
-            /** "Heading home: worry if I haven't checked in within [minutes]." */
+            /** An older build's "Heading home: worry if I haven't checked in within [minutes]." */
             const val CHECK_IN = 8
-            /** "Home safe": ends a check-in. */
+            /** An older build's "Home safe", which ended a check-in. */
             const val HOME_SAFE = 9
             /** A short text message to the crew. */
             const val CHAT = 10

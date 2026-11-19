@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">Cette crew change de clé. Les messages partiront quand tu auras du réseau.</string>
     <string name="offline_note_rekey_offline">La crew recevra sa nouvelle clé quand les téléphones auront de nouveau du réseau. D\'ici là, les messages Bluetooth sont en pause.</string>
     <string name="offline_notif_late">Envoyé %1$s. Ça vient seulement d\'arriver.</string>
-    <string name="offline_notif_help_late">A appuyé sur Besoin d\'aide %1$s. Ça vient seulement d\'arriver. Prends des nouvelles.</string>
     <string name="offline_meet_pin_named">RDV au repère 📍 %1$s</string>
     <string name="offline_need_nearby_why">pour trouver tes potes en Bluetooth, Wi-Fi et UWB, et faire passer les messages sans réseau</string>
 

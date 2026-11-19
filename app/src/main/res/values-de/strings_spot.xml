@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- German: "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">Standort per SMS</string>
+    <string name="spot_text_setting">Öffnet deine SMS-App mit deinem Standort, fertig zum Senden. SMS per Satellit können bei manchen Tarifen extra kosten.</string>
+    <string name="spot_text_line">Hier bin ich:</string>
+    <string name="spot_text_no_fix">Mein Handy weiß gerade nicht, wo ich bin.</string>
+    <string name="spot_text_no_app">Dieses Handy hat keine SMS-App.</string>
+</resources>

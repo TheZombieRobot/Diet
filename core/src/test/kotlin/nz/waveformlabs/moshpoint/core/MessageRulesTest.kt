@@ -39,7 +39,7 @@ class MessageRulesTest {
         // The old key (sender|time|text) couldn't tell a quick ping from a "joined" line in the same second.
         assertNotEquals(id(GigGroup.Ping.COMING, now, ""), id(GigGroup.Ping.JOIN, now, ""))
         // Where it was sent from is part of it; the display name is not.
-        assertNotEquals(id(GigGroup.Ping.NEED_HELP, now, ""), id(GigGroup.Ping.NEED_HELP, now, "", lat = -36.85))
+        assertNotEquals(id(GigGroup.Ping.COMING, now, ""), id(GigGroup.Ping.COMING, now, "", lat = -36.85))
         assertEquals(base, id(GigGroup.Ping.CHAT, now, "hi", name = "Joanna"))
     }
 
@@ -274,19 +274,29 @@ class MessageRulesTest {
 
     // ---- Pings by kind and age ----
 
-    @Test fun needHelpIsNeverDropped() {
-        // Was: anything older than 20 minutes vanished, Need help included.
-        for (age in listOf(0L, 19 * 60L, 21 * 60L, 3 * 3600L, 11 * 3600L)) {
-            val v = PingPolicy.onArrival(GigGroup.Ping.NEED_HELP, now - age, 0, now)
-            assertTrue(v.show && v.alert, "Need help ${age / 60} min old")
-            assertEquals(age > 20 * 60, v.late)
+    /**
+     * Need help, Check in and Home safe from an older build (the features were removed on 16
+     * November 2026): ordinary pings in every way. Shown, announced only while fresh, carried
+     * as long as any ping, and never sent through strangers' phones by this build.
+     */
+    @Test fun anOlderBuildsNeedHelpIsAnOrdinaryPing() {
+        for (kind in listOf(GigGroup.Ping.NEED_HELP, GigGroup.Ping.CHECK_IN, GigGroup.Ping.HOME_SAFE)) {
+            assertEquals(PingPolicy.Group.OLDER_BUILDS, PingPolicy.group(kind))
+            for (age in listOf(0L, 19 * 60L, 21 * 60L, 3 * 3600L, 11 * 3600L, 30 * 3600L)) {
+                val v = PingPolicy.onArrival(kind, now - age, 45, now)
+                val ordinary = PingPolicy.onArrival(GigGroup.Ping.COMING, now - age, 45, now)
+                assertTrue(v.show, "kind $kind, ${age / 60} min old")
+                assertEquals(ordinary.alert, v.alert, "kind $kind, ${age / 60} min old: alerts like any ping")
+                assertEquals(ordinary.late, v.late)
+                assertEquals(ordinary.timeSec, v.timeSec)
+            }
+            assertEquals(PingPolicy.carrySec(GigGroup.Ping.COMING), PingPolicy.carrySec(kind))
+            assertFalse(PingPolicy.crowd(kind), "kind $kind: crew phones only")
         }
-        // A day later it's still shown, just not as an alarm.
-        val old = PingPolicy.onArrival(GigGroup.Ping.NEED_HELP, now - 30 * 3600L, 0, now)
-        assertTrue(old.show && !old.alert && old.late)
-        assertEquals(RelayUse.SAFETY, PingPolicy.use(GigGroup.Ping.NEED_HELP))
-        assertTrue(PingPolicy.alsoHeld(GigGroup.Ping.NEED_HELP))
-        assertTrue(PingPolicy.crowdSec(GigGroup.Ping.NEED_HELP) > PingPolicy.crowdSec(GigGroup.Ping.COMING))
+        // Today's pings still cross strangers' phones while fresh; chat never does.
+        assertTrue(PingPolicy.crowd(GigGroup.Ping.COMING))
+        assertTrue(PingPolicy.crowd(GigGroup.Ping.FLARE))
+        assertFalse(PingPolicy.crowd(GigGroup.Ping.CHAT))
     }
 
     @Test fun otherLatePingsStillShowButDoNotBuzz() {
@@ -300,7 +310,7 @@ class MessageRulesTest {
     }
 
     @Test fun aPingStampedInTheFutureCountsFromWhenItArrived() {
-        val v = PingPolicy.onArrival(GigGroup.Ping.NEED_HELP, now + 5 * 3600L, 0, now)
+        val v = PingPolicy.onArrival(GigGroup.Ping.COMING, now + 5 * 3600L, 0, now)
         assertTrue(v.show && v.alert)
         assertEquals(now, v.timeSec)
         assertEquals(now + 30, PingPolicy.onArrival(GigGroup.Ping.ALL_GOOD, now + 30, 0, now).timeSec)

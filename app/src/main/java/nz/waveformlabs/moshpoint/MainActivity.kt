@@ -51,6 +51,7 @@ import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.safety.GhostMode
 import nz.waveformlabs.moshpoint.safety.Housekeeping
 import nz.waveformlabs.moshpoint.safety.Notices
+import nz.waveformlabs.moshpoint.sharing.TextMySpot
 import nz.waveformlabs.moshpoint.service.LiveControl
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.venue.Floors
@@ -160,6 +161,7 @@ class MainActivity : ComponentActivity() {
         Spots.init(this)
         GhostMode.init(this)
         ShareQuality.init(this)
+        TextMySpot.init(this)
         DebugStatus.initUi(this)
         GroupSync.load(this)
         VenueMaps.sync(this) // the venue's street map saves itself for every crew we're in
@@ -170,7 +172,7 @@ class MainActivity : ComponentActivity() {
             Moments.loadCurrent(this@MainActivity) // tonight's Story survives restarts
             GigArchive.refreshList(this@MainActivity)
             Memories.schedule(this@MainActivity, GigArchive.gigs)
-            Housekeeping.run(this@MainActivity) // old cached clips and half-written files, once a day
+            Housekeeping.run(this@MainActivity) // what removed features left; old cached clips and half-written files, once a day
         }
         home.mySecret = VisibilityPrefs.mySecret(this)
         // The finder (finder module, docs/FINDER_MODULE.md), with the gig app's parts plugged in.

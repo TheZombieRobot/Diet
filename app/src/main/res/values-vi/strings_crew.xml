@@ -8,7 +8,6 @@
     <string name="crew_someone">Ai đó</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">Hủy</string>
-    <string name="crew_close">Đóng</string>
 
     <string name="crew_chat_subtitle">Chat nhóm · chỉ người trong nhóm đọc được</string>
     <string name="crew_chat_invite">＋ Mời</string>
@@ -87,26 +86,8 @@
     <string name="crew_flare_own_hint">Hoặc tự viết…</string>
     <string name="crew_flare_send">Gửi</string>
 
-    <string name="crew_help_title">Cần giúp đỡ</string>
-    <string name="crew_help_alert">Báo động cho nhóm</string>
-    <string name="crew_help_alert_sub">Cảnh báo khẩn kèm vị trí của bạn</string>
-    <string name="crew_help_text_contact">Nhắn tin cho %1$s</string>
-    <string name="crew_help_text_contact_sub">App tin nhắn sẽ mở kèm vị trí của bạn. Không cần dữ liệu.</string>
-    <string name="crew_help_add_contact">Thêm liên hệ khẩn cấp</string>
-    <string name="crew_help_add_contact_sub">Một người ngoài nhóm để nhắn khi cần</string>
-    <string name="crew_help_contact_name">Tên (vd: Mẹ)</string>
-    <string name="crew_help_contact_number">Số điện thoại</string>
-    <string name="crew_help_save_contact">Lưu liên hệ</string>
-    <string name="crew_help_call">Gọi %1$s</string>
-    <string name="crew_help_call_sub">Công an, cứu hỏa, cấp cứu</string>
-    <string name="crew_help_call_police">Công an</string>
-    <string name="crew_help_call_ambulance">Cấp cứu và cứu hỏa</string>
-    <string name="crew_help_no_signal">Không có sóng? Nhiều máy đời mới gọi được dịch vụ khẩn cấp qua vệ tinh: gọi %1$s và làm theo hướng dẫn. Ở festival, bảo vệ và lều sơ cứu có thể giúp nhanh.</string>
-    <string name="crew_help_sms">Mình cần giúp đỡ. (gửi từ Moshpoint)</string>
-    <string name="crew_help_sms_where">Mình cần giúp đỡ. Mình đang ở đây: %1$s (gửi từ Moshpoint)</string>
 
     <string name="crew_channel_messages">Tin nhắn nhóm</string>
-    <string name="crew_channel_help">Yêu cầu trợ giúp từ nhóm</string>
     <string name="crew_channel_requests">Bạn bè đang tìm bạn</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -120,10 +101,6 @@
     <string name="crew_notif_done_title">%1$s đã kết thúc</string>
     <string name="crew_notif_done_saved">Ảnh và clip của bạn đã lưu trong Show đã qua.</string>
     <string name="crew_notif_done_text">Mong là đêm nay vui hết nấc. Lập nhóm mới lúc nào cũng được.</string>
-    <string name="crew_notif_overdue_title">%1$s chưa check-in</string>
-    <string name="crew_notif_overdue_text">Họ đang về nhà và lẽ ra đã tới nơi. Gọi cho họ thử. Chạm để xem vị trí cuối cùng.</string>
-    <string name="crew_notif_help_where">Họ vừa bấm Cần giúp đỡ. Chạm để xem họ ở đâu. Hỏi han họ ngay.</string>
-    <string name="crew_notif_help">Họ vừa bấm Cần giúp đỡ. Hỏi han họ ngay.</string>
     <string name="crew_notif_tap_where">Chạm để xem ở đâu.</string>
     <string name="crew_notif_from_crew">Từ nhóm của bạn</string>
 

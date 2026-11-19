@@ -24,6 +24,7 @@ import java.net.URL
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.setup.NetState
 
 /**
  * "Continue with Facebook": fills in your name and profile photo (public_profile only).
@@ -82,6 +83,8 @@ class FacebookLogin(
 
     fun login() {
         val l = launcher ?: return onFail(Txt.s(R.string.main_facebook_not_set_up))
+        // Never over satellite (docs/REMOVE_SAFETY.md, stage 4): it says there's no signal.
+        if (NetState.satellite) return onFail(Txt.s(R.string.main_facebook_failed, Txt.s(R.string.find_strip_no_signal)))
         runCatching { l.launch(listOf("public_profile")) }
             .onFailure { onFail(Txt.s(R.string.main_facebook_failed, it.message ?: Txt.s(R.string.main_facebook_unknown_error))) }
     }
@@ -100,6 +103,7 @@ class FacebookLogin(
     }
 
     private suspend fun downloadPhoto(url: String) = withContext(Dispatchers.IO) {
+        if (NetState.satellite) return@withContext null
         runCatching {
             val c = URL(url).openConnection() as HttpURLConnection
             c.connectTimeout = 8_000

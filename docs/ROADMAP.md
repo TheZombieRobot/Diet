@@ -54,7 +54,7 @@ launch: saved keys under an Android Keystore key (milestone 1), the relay server
 Moshpoint+ (a Mapbox account for satellite, Play billing), the Play Store listing.
 
 ### 1. Messages without signal (Bluetooth backup): about 3–5 days
-- Crew chat, quick pings ("On my way", "All good", "Need help") and pins send as normal; the
+- Crew chat, quick pings ("On my way", "All good") and pins send as normal; the
   app picks the route. No separate Bluetooth mode.
 - Routes: the internet first. With no signal, straight to crew phones in Bluetooth range
   (over the crowd relay's Bluetooth adverts), hopping through other crew phones; the first phone back on
@@ -216,10 +216,27 @@ Moshpoint opens weeks before the gig, not only on the night.
   type their gig in by hand. The production relay checks membership before it answers a keyed
   endpoint, comes with billing.
 - One purchase covers phone and watch.
-- **No "safety" rules from the owner (owner, 16 November 2026).** The owner never asked for
-  special rules for Need help, check-ins or their alerts (such as "never paywalled" or "never
-  limited"). Earlier notes stated such rules as the owner's by mistake. Don't add or enforce any
-  in the owner's name: how those features are priced or limited is the owner's call, with billing.
+- **Text my spot (owner's decision, 16 November 2026).** In the crew area, after the pings
+  (Message crew and the crew chat): opens the phone's own texting app with a message already
+  written (a short line, a maps link and the plain coordinates, which make sense without data);
+  the person picks a mate and presses Send. Moshpoint never sends or reads texts itself (no SMS
+  permissions). With no signal, phones on carriers with satellite texting send it by satellite.
+  Members only, behind a Settings switch that's off by default. **Status: built** (stage 3 of
+  [REMOVE_SAFETY.md](REMOVE_SAFETY.md)); not yet tried on a phone (FIELD_TEST_PLAN.md, 4m).
+- **Satellite data (owner's decision, 16 November 2026).** "Use satellite when there's no
+  signal": on Android 16, where the carrier allows it, the small things (locations, pings, chat
+  text, pins) go over a satellite network when it's the only one, in the relay's batch at most
+  every two minutes. Members only, behind a Settings switch that's off by default; with it off,
+  nothing goes over satellite at all. **Owner to-do after launch:** carriers decide which apps may
+  use satellite data (Spark and One NZ keep app lists): ask to have Moshpoint added
+  (PRODUCTION_AUDIT.md, Owner to-do). **Status: built** (stage 4 of REMOVE_SAFETY.md); not yet
+  tried on a satellite network (FIELD_TEST_PLAN.md, 4n).
+- **Need help, check-ins and the watch's SOS are removed (owner's decision, 16 November 2026).**
+  A gig app doesn't need its own emergency system; people ring emergency services themselves.
+  Mates on older builds can still send them: they show as ordinary crew pings
+  ([REMOVE_SAFETY.md](REMOVE_SAFETY.md)). The owner never set rules for those features (such as
+  "never paywalled" or "never limited"); earlier notes stated such rules as the owner's by
+  mistake.
 
 ### Later
 - **Before launch:** move the finder engine out of the gig code (the watch and any spin-off

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">Nhắn vị trí của mình</string>
+    <string name="spot_text_setting">Mở app tin nhắn kèm vị trí của bạn, sẵn sàng gửi. Tin nhắn qua vệ tinh có thể tốn thêm phí ở một số gói cước.</string>
+    <string name="spot_text_line">Mình đang ở đây:</string>
+    <string name="spot_text_no_fix">Điện thoại chưa xác định được mình đang ở đâu.</string>
+    <string name="spot_text_no_app">Máy này không có app tin nhắn.</string>
+</resources>

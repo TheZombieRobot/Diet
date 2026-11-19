@@ -11,16 +11,6 @@
     <string name="home_ping_meet_at_pin">RDV au repère</string>
     <string name="home_ping_all_good">Tout va bien</string>
     <string name="home_ping_sent">Envoyé ✓</string>
-    <string name="home_ping_heading_home">Je rentre</string>
-    <string name="home_ping_need_help">Besoin d\'aide</string>
-    <string name="home_heading_home_title">Tu rentres ?</string>
-    <string name="home_heading_home_text">Fais un check-in en arrivant. Sinon, ta crew reçoit une alerte avec ta dernière position (même si ton téléphone meurt).</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="one">%d min</item>
-        <item quantity="many">%d min</item>
-        <item quantity="other">%d min</item>
-    </plurals>
-    <string name="home_just_tell_them">Juste les prévenir</string>
     <string name="home_cancel">Annuler</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">a pingé la crew</string>
@@ -44,8 +34,6 @@
     <string name="home_my_friend_qr">Mon QR ami</string>
     <string name="home_enter_code">Entrer un code</string>
 
-    <string name="home_check_in_by">Check-in avant %1$s</string>
-    <string name="home_home_safe">Je suis à la maison</string>
 
     <string name="home_message_crew">Écrire à la crew</string>
     <string name="home_message_crew_text">Un seul tap : toute la crew le reçoit, avec ta position.</string>

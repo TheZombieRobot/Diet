@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). -->
+<resources>
+
+    <string name="live_channel_notices">แจ้งเตือนการแชร์และพื้นที่เก็บข้อมูล</string>
+    <string name="live_off_title">คุณไม่ได้แชร์อยู่แล้ว</string>
+    <string name="live_off_text">Android หยุด Moshpoint ที่ทำงานเบื้องหลัง เพื่อนเลยหาคุณไม่เจอ แตะเพื่อเริ่มแชร์อีกครั้ง</string>
+    <string name="live_cant_start_text">Android ไม่ยอมให้ Moshpoint แชร์ต่อ เพื่อนเลยหาคุณไม่เจอ เช็กว่าอนุญาตสิทธิ์ให้แอปครบแล้ว จากนั้นเริ่มแชร์อีกครั้ง</string>
+    <string name="live_crew_not_on_text">ตอนนี้แก๊งหลักของคุณไม่ได้ใช้งานอยู่ “มองเห็นได้” เลยปิดเองเพื่อประหยัดแบตของคุณ</string>
+    <string name="live_long_title">ยังอยู่ที่คอนไหม?</string>
+    <string name="live_long_text">คุณแชร์อยู่ครบ 12 ชั่วโมงแล้ว “มองเห็นได้” เลยปิดเองเพื่อประหยัดแบตของคุณ</string>
+    <string name="live_long_notif">คุณแชร์อยู่ครบ 12 ชั่วโมงแล้ว “มองเห็นได้” เลยปิดเองเพื่อประหยัดแบตของคุณ ถ้ายังอยู่ที่นั่นแตะได้เลย</string>
+    <string name="live_go_live">เริ่มแชร์</string>
+    <string name="live_bluetooth_off">Bluetooth ปิดอยู่: เพื่อนหาคุณในระยะใกล้ไม่เจอ</string>
+    <string name="storage_full_title">พื้นที่เก็บข้อมูลในมือถือของคุณเต็มแล้ว</string>
+    <string name="storage_full_text">Moshpoint บันทึกข้อความหรือรูปใหม่ไม่ได้ จนกว่าคุณจะเคลียร์พื้นที่ให้ว่างบ้าง</string>
+
+</resources>

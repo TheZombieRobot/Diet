@@ -8,7 +8,6 @@
     <string name="crew_someone">Seseorang</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">Batal</string>
-    <string name="crew_close">Tutup</string>
 
     <string name="crew_chat_subtitle">Chat geng · cuma gengmu yang bisa baca</string>
     <string name="crew_chat_invite">＋ Undang</string>
@@ -87,26 +86,8 @@
     <string name="crew_flare_own_hint">Atau tulis sendiri…</string>
     <string name="crew_flare_send">Kirim</string>
 
-    <string name="crew_help_title">Minta bantuan</string>
-    <string name="crew_help_alert">Kabari gengku</string>
-    <string name="crew_help_alert_sub">Peringatan darurat dengan lokasimu</string>
-    <string name="crew_help_text_contact">SMS %1$s</string>
-    <string name="crew_help_text_contact_sub">Aplikasi pesan terbuka dengan lokasimu. Bisa tanpa data.</string>
-    <string name="crew_help_add_contact">Tambah kontak darurat</string>
-    <string name="crew_help_add_contact_sub">Seseorang di luar geng untuk dihubungi saat genting</string>
-    <string name="crew_help_contact_name">Nama (misalnya Mama)</string>
-    <string name="crew_help_contact_number">Nomor HP</string>
-    <string name="crew_help_save_contact">Simpan kontak</string>
-    <string name="crew_help_call">Telepon %1$s</string>
-    <string name="crew_help_call_sub">Polisi, pemadam kebakaran, ambulans</string>
-    <string name="crew_help_call_police">Polisi</string>
-    <string name="crew_help_call_ambulance">Ambulans dan pemadam kebakaran</string>
-    <string name="crew_help_no_signal">Sama sekali nggak ada sinyal? Banyak HP baru bisa menghubungi layanan darurat lewat satelit: telepon %1$s dan ikuti petunjuknya. Di festival, petugas keamanan dan tenda P3K bisa bantu dengan cepat.</string>
-    <string name="crew_help_sms">Aku perlu bantuan. (dikirim dari Moshpoint)</string>
-    <string name="crew_help_sms_where">Aku perlu bantuan. Aku di sini: %1$s (dikirim dari Moshpoint)</string>
 
     <string name="crew_channel_messages">Pesan geng</string>
-    <string name="crew_channel_help">Permintaan bantuan geng</string>
     <string name="crew_channel_requests">Teman yang mencarimu</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -120,10 +101,6 @@
     <string name="crew_notif_done_title">%1$s selesai</string>
     <string name="crew_notif_done_saved">Foto dan videomu tersimpan di Konser sebelumnya.</string>
     <string name="crew_notif_done_text">Semoga seru ya. Bikin geng baru kapan aja.</string>
-    <string name="crew_notif_overdue_title">%1$s belum ngabarin</string>
-    <string name="crew_notif_overdue_text">Dia lagi pulang dan harusnya sudah sampai. Coba telepon dia. Ketuk untuk lihat lokasi terakhirnya.</string>
-    <string name="crew_notif_help_where">Dia menekan Perlu bantuan. Ketuk untuk lihat lokasinya. Cek keadaannya.</string>
-    <string name="crew_notif_help">Dia menekan Perlu bantuan. Cek keadaannya.</string>
     <string name="crew_notif_tap_where">Ketuk untuk lihat lokasinya.</string>
     <string name="crew_notif_from_crew">Dari gengmu</string>
 

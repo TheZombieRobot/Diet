@@ -34,6 +34,7 @@ import org.json.JSONObject
 import org.maplibre.android.MapLibre
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.offline.OfflineManager
+import nz.waveformlabs.moshpoint.setup.NetState
 import org.maplibre.android.offline.OfflineRegion
 import org.maplibre.android.offline.OfflineRegionError
 import org.maplibre.android.offline.OfflineRegionStatus
@@ -165,8 +166,11 @@ object VenueMaps {
         return AtGig.atGig(g, GroupSync.following, venueOf(g), LatLon(me.latitude, me.longitude), me.accuracy.toDouble(), now - me.time, now)
     }
 
-    /** True if the phone has a working internet connection, as far as Android can tell. */
-    fun online(c: Context): Boolean = runCatching {
+    /**
+     * True if the phone has a working internet connection, as far as Android can tell. A satellite
+     * one doesn't count: venue maps never download over satellite (docs/REMOVE_SAFETY.md, stage 4).
+     */
+    fun online(c: Context): Boolean = !NetState.satellite && runCatching {
         val cm = c.applicationContext.getSystemService(ConnectivityManager::class.java) ?: return true
         val caps = cm.getNetworkCapabilities(cm.activeNetwork ?: return false) ?: return false
         caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
@@ -294,7 +298,7 @@ object VenueMaps {
         val needsMapLibre = areas.isNotEmpty() || legacySeenAtMs == 0L || now - legacySeenAtMs > VenueMapPlan.LEGACY_KEEP_MS
         if (!needsMapLibre) return
         val om = runCatching {
-            MapLibre.getInstance(c)
+            nz.waveformlabs.moshpoint.setup.MapNet.init(c) // nothing downloaded over satellite
             OfflineManager.getInstance(c)
         }.getOrNull() ?: return
         val regions = list(om) ?: return

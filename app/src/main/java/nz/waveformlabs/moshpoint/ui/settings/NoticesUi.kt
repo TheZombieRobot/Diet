@@ -59,7 +59,7 @@ internal fun NoticeCard(kind: Notices.Kind) {
 @Composable
 private fun NoticeConfirm(kind: Notices.Kind, onGoLive: () -> Unit, onClose: () -> Unit) {
     if (kind.isLive) {
-        TextButton(onClick = onGoLive) { Text(stringResource(R.string.safety_go_live), style = Mosh.Label.copy(color = Mosh.Lime)) }
+        TextButton(onClick = onGoLive) { Text(stringResource(R.string.live_go_live), style = Mosh.Label.copy(color = Mosh.Lime)) }
     } else {
         TextButton(onClick = onClose) { Text(stringResource(R.string.find_ok), style = Mosh.Label.copy(color = Mosh.Cyan)) }
     }
@@ -73,18 +73,18 @@ private fun NoticeDismiss(onClose: () -> Unit) {
 @Composable
 private fun noticeTitle(kind: Notices.Kind): String = stringResource(
     when (kind) {
-        Notices.Kind.LIVE_STOPPED, Notices.Kind.LIVE_CANT_START, Notices.Kind.LIVE_CREW_NOT_ON -> R.string.safety_live_off_title
-        Notices.Kind.LIVE_TOO_LONG -> R.string.safety_live_long_title
-        Notices.Kind.STORAGE_FULL -> R.string.safety_storage_full_title
+        Notices.Kind.LIVE_STOPPED, Notices.Kind.LIVE_CANT_START, Notices.Kind.LIVE_CREW_NOT_ON -> R.string.live_off_title
+        Notices.Kind.LIVE_TOO_LONG -> R.string.live_long_title
+        Notices.Kind.STORAGE_FULL -> R.string.storage_full_title
     },
 )
 
 @Composable
 private fun noticeText(kind: Notices.Kind): String = stringResource(
     when (kind) {
-        Notices.Kind.LIVE_STOPPED, Notices.Kind.LIVE_CANT_START -> R.string.safety_live_cant_start_text
-        Notices.Kind.LIVE_TOO_LONG -> R.string.safety_live_long_text
-        Notices.Kind.STORAGE_FULL -> R.string.safety_storage_full_text
-        Notices.Kind.LIVE_CREW_NOT_ON -> R.string.safety_live_crew_not_on_text
+        Notices.Kind.LIVE_STOPPED, Notices.Kind.LIVE_CANT_START -> R.string.live_cant_start_text
+        Notices.Kind.LIVE_TOO_LONG -> R.string.live_long_text
+        Notices.Kind.STORAGE_FULL -> R.string.storage_full_text
+        Notices.Kind.LIVE_CREW_NOT_ON -> R.string.live_crew_not_on_text
     },
 )

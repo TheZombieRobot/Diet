@@ -11,16 +11,6 @@
     <string name="home_ping_meet_at_pin">Nos vemos en el pin</string>
     <string name="home_ping_all_good">Todo bien</string>
     <string name="home_ping_sent">Enviado ✓</string>
-    <string name="home_ping_heading_home">Vuelvo a casa</string>
-    <string name="home_ping_need_help">Necesito ayuda</string>
-    <string name="home_heading_home_title">¿Vuelves a casa?</string>
-    <string name="home_heading_home_text">Avisa cuando llegues. Si no, tu grupo recibe una alerta con tu última ubicación (aunque se te muera el móvil).</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="one">%d min</item>
-        <item quantity="many">%d min</item>
-        <item quantity="other">%d min</item>
-    </plurals>
-    <string name="home_just_tell_them">Solo avisarles</string>
     <string name="home_cancel">Cancelar</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">ha avisado al grupo</string>
@@ -44,8 +34,6 @@
     <string name="home_my_friend_qr">Mi QR de amigo</string>
     <string name="home_enter_code">Introducir un código</string>
 
-    <string name="home_check_in_by">Avisa antes de las %1$s</string>
-    <string name="home_home_safe">Ya estoy en casa</string>
 
     <string name="home_message_crew">Escribir al grupo</string>
     <string name="home_message_crew_text">Un toque: le llega a todo el grupo, con dónde estás.</string>

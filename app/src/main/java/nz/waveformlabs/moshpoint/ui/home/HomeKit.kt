@@ -165,7 +165,6 @@ internal object HomeIcons {
     private fun solid(name: String, vararg d: String) = build(name, 0f, true, false, d)
     private fun circle(cx: Float, cy: Float, r: Float) = "M${cx - r} ${cy}a$r $r 0 1 0 ${2 * r} 0a$r $r 0 1 0 ${-2 * r} 0"
 
-    val Help by lazy { line("help", 2.2f, circle(12f, 12f, 9f), "M12 7.5v5.5", "M12 16.5h.01") }
     val More by lazy { solid("more", circle(5f, 12f, 2f), circle(12f, 12f, 2f), circle(19f, 12f, 2f)) }
     val Navigate by lazy { line("navigate", 2.4f, "M4 11l16-7-7 16-2-7z") }
     val Chat by lazy { line("chat", 2f, "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z") }

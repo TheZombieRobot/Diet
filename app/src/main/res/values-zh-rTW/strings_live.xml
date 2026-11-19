@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chinese (Traditional): Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). -->
+<resources>
+
+    <string name="live_channel_notices">上線狀態和儲存空間通知</string>
+    <string name="live_off_title">你已經下線了</string>
+    <string name="live_off_text">Android 在背景關掉了 Moshpoint，所以朋友找不到你了。點一下重新上線。</string>
+    <string name="live_cant_start_text">Android 沒讓 Moshpoint 保持上線，所以朋友找不到你了。檢查一下權限有沒有開啟，再重新上線。</string>
+    <string name="live_crew_not_on_text">你的主要小隊現在沒有在進行中，為了省電，「在線」已自動關閉。</string>
+    <string name="live_long_title">還在演出現場嗎？</string>
+    <string name="live_long_text">你上線了 12 小時，為了省電，「在線」已自動關閉。</string>
+    <string name="live_long_notif">你上線了 12 小時，為了省電，「在線」已自動關閉。還在現場的話，點一下。</string>
+    <string name="live_go_live">上線</string>
+    <string name="live_bluetooth_off">Bluetooth 沒開：靠近時朋友找不到你</string>
+    <string name="storage_full_title">手機儲存空間滿了</string>
+    <string name="storage_full_text">清出一些空間之前，Moshpoint 無法儲存新的訊息或相片。</string>
+
+</resources>

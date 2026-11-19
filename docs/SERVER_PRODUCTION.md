@@ -253,6 +253,21 @@ Then set the GitHub repository variable `MOSHPOINT_SERVER` to `https://moshpoint
 (Settings → Secrets and variables → Actions → Variables). The next build uses it; test builds stop
 falling back to ntfy.sh.
 
+**Text my spot's links open in the app** (RELAY_API.md section 13) for builds signed with a
+certificate listed in `MOSHPOINT_APP_CERTS`. Unset, that's only the public debug key, which signs
+test builds. Once Play App Signing is set up, add Play's app signing key (Play Console → Test and
+release → App integrity → App signing: the SHA-256 certificate fingerprint) and keep the debug
+one for test builds. Fingerprints aren't secret, so this is an ordinary setting in fly.toml's
+`[env]` (kept with every deploy), not a Fly secret:
+
+```toml
+[env]
+  MOSHPOINT_APP_CERTS = "<Play's SHA-256>,89:B4:37:7F:73:AB:77:7E:46:EF:31:37:6F:55:ED:E5:3E:CB:EA:D9:9A:33:18:64:C7:35:A7:17:40:26:1A:8D"
+```
+
+Then `fly deploy --ha=false`, and check:
+`curl https://moshpoint-relay.fly.dev/.well-known/assetlinks.json`.
+
 **Already deployed with the old fly.toml?** `fly scale count 1`, then `fly deploy --ha=false`.
 The old relay kept nothing on disk, so there's nothing to move.
 

@@ -80,11 +80,11 @@ object Blocks {
     fun visibleLines(lines: List<CrewChat.Line>): List<CrewChat.Line> {
         val l = list.value
         if (l.isEmpty) return lines
-        return lines.filterNot { l.hidesLine(it.sender, it.kind, it.mine) }
+        return lines.filterNot { l.hidesLine(it.sender, it.mine) }
     }
 
     /** Is this crew chat line hidden? (Not read while drawing: no redraw is asked for.) */
-    fun hidesLine(c: Context, line: CrewChat.Line): Boolean = now(c).hidesLine(line.sender, line.kind, line.mine)
+    fun hidesLine(c: Context, line: CrewChat.Line): Boolean = now(c).hidesLine(line.sender, line.mine)
 
     /** Tonight's photos and clips to show (read while drawing). The same list when nobody is blocked. */
     fun visibleMoments(items: List<Moments.Item>): List<Moments.Item> {

@@ -8,7 +8,6 @@
     <string name="crew_someone">ใครสักคน</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">ยกเลิก</string>
-    <string name="crew_close">ปิด</string>
 
     <string name="crew_chat_subtitle">แชทแก๊ง · อ่านได้แค่คนในแก๊ง</string>
     <string name="crew_chat_invite">＋ ชวน</string>
@@ -87,26 +86,8 @@
     <string name="crew_flare_own_hint">หรือพิมพ์เอง…</string>
     <string name="crew_flare_send">ส่ง</string>
 
-    <string name="crew_help_title">ขอความช่วยเหลือ</string>
-    <string name="crew_help_alert">แจ้งเตือนแก๊ง</string>
-    <string name="crew_help_alert_sub">แจ้งเตือนด่วนพร้อมตำแหน่งของคุณ</string>
-    <string name="crew_help_text_contact">ส่ง SMS หา %1$s</string>
-    <string name="crew_help_text_contact_sub">แอปข้อความจะเปิดพร้อมตำแหน่งของคุณ ใช้ได้แม้ไม่มีเน็ต</string>
-    <string name="crew_help_add_contact">เพิ่มผู้ติดต่อฉุกเฉิน</string>
-    <string name="crew_help_add_contact_sub">คนนอกแก๊งที่ส่งข้อความหาได้ตอนจำเป็น</string>
-    <string name="crew_help_contact_name">ชื่อ (เช่น แม่)</string>
-    <string name="crew_help_contact_number">เบอร์มือถือ</string>
-    <string name="crew_help_save_contact">บันทึกผู้ติดต่อ</string>
-    <string name="crew_help_call">โทร %1$s</string>
-    <string name="crew_help_call_sub">ตำรวจ ดับเพลิง รถพยาบาล</string>
-    <string name="crew_help_call_police">ตำรวจ</string>
-    <string name="crew_help_call_ambulance">รถพยาบาลและดับเพลิง</string>
-    <string name="crew_help_no_signal">ไม่มีสัญญาณเลย? มือถือรุ่นใหม่หลายรุ่นติดต่อเหตุฉุกเฉินผ่านดาวเทียมได้: โทร %1$s แล้วทำตามขั้นตอน ถ้าอยู่ในเฟสติวัล เจ้าหน้าที่รักษาความปลอดภัยและเต็นท์ปฐมพยาบาลช่วยได้เร็ว</string>
-    <string name="crew_help_sms">ขอความช่วยเหลือด่วน (ส่งจาก Moshpoint)</string>
-    <string name="crew_help_sms_where">ขอความช่วยเหลือด่วน อยู่ตรงนี้: %1$s (ส่งจาก Moshpoint)</string>
 
     <string name="crew_channel_messages">ข้อความแก๊ง</string>
-    <string name="crew_channel_help">คำขอความช่วยเหลือจากแก๊ง</string>
     <string name="crew_channel_requests">เพื่อนกำลังหาคุณ</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -120,10 +101,6 @@
     <string name="crew_notif_done_title">%1$s จบแล้ว</string>
     <string name="crew_notif_done_saved">รูปและคลิปบันทึกไว้ใน คอนที่ผ่านมา แล้ว</string>
     <string name="crew_notif_done_text">หวังว่าจะมันส์นะ ตั้งแก๊งใหม่ได้ทุกเมื่อ</string>
-    <string name="crew_notif_overdue_title">%1$s ยังไม่เช็กอิน</string>
-    <string name="crew_notif_overdue_text">เขากำลังกลับบ้านและน่าจะถึงแล้ว ลองโทรหาหน่อย แตะเพื่อดูตำแหน่งล่าสุด</string>
-    <string name="crew_notif_help_where">เขากด ขอความช่วยเหลือ แตะเพื่อดูว่าอยู่ไหน แล้วเช็กว่าเขาโอเคไหม</string>
-    <string name="crew_notif_help">เขากด ขอความช่วยเหลือ เช็กว่าเขาโอเคไหม</string>
     <string name="crew_notif_tap_where">แตะเพื่อดูว่าอยู่ไหน</string>
     <string name="crew_notif_from_crew">จากแก๊งของคุณ</string>
 

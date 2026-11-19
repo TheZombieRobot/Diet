@@ -52,12 +52,6 @@
             android:launchMode="singleTop"
             android:taskAffinity="" />
 
-        <!-- Hold-to-send "Need help". Exported so the tile can open it. Free for everyone. -->
-        <activity
-            android:name=".SosActivity"
-            android:exported="true"
-            android:taskAffinity="" />
-
         <service
             android:name=".FindSessionService"
             android:exported="false"

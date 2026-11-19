@@ -31,12 +31,6 @@ enum class Buzz(val guidance: Boolean, vararg pulses: Long) {
     /** "Lost the phone": guidance has stopped, silence no longer means "no change". */
     LINK_LOST(true, 260, 220, 260),
 
-    /** One step of the hold-to-send ring filling. */
-    HOLD_TICK(false, 25),
-
-    /** "Need help was sent." */
-    SOS_SENT(false, 650),
-
     /** A quick ping went. */
     PING_SENT(false, 45),
 
@@ -188,55 +182,5 @@ class BuzzPlanner {
                 (log10(FAR_M) - log10(FOUND_WITHIN_M))).coerceIn(0.0, 1.0)
             return (FASTEST_TICK_MS + t * (SLOWEST_TICK_MS - FASTEST_TICK_MS)).toLong()
         }
-    }
-}
-
-/**
- * Hold-to-send for "Need help": nothing goes unless the button is held for the whole
- * [holdMs]; letting go early cancels. Ticks mark each [tickEveryMs] so the hold can be felt.
- */
-class HoldToSend(val holdMs: Long = 2_000, private val tickEveryMs: Long = 500) {
-    enum class Event { TICK, SEND }
-
-    private var pressedAtMs: Long? = null
-    private var ticks = 0
-    private var fired = false
-
-    val pressed: Boolean get() = pressedAtMs != null
-
-    fun press(nowMs: Long) {
-        if (pressedAtMs != null) return
-        pressedAtMs = nowMs
-        ticks = 0
-        fired = false
-    }
-
-    /** Finger lifted, slid off, or the screen went away. */
-    fun release() {
-        pressedAtMs = null
-    }
-
-    /** 0..1: how full the ring is. */
-    fun progress(nowMs: Long): Float {
-        val at = pressedAtMs ?: return 0f
-        if (fired) return 1f
-        return ((nowMs - at).toFloat() / holdMs).coerceIn(0f, 1f)
-    }
-
-    /** Call every frame while showing the button. [Event.SEND] comes exactly once per full hold. */
-    fun poll(nowMs: Long): Event? {
-        val at = pressedAtMs ?: return null
-        if (fired) return null
-        val held = nowMs - at
-        if (held >= holdMs) {
-            fired = true
-            return Event.SEND
-        }
-        val due = (held / tickEveryMs).toInt()
-        if (due > ticks) {
-            ticks = due
-            return Event.TICK
-        }
-        return null
     }
 }

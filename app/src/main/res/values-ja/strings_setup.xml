@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">1時間ゴーストにする</string>
     <string name="setup_data_saver">データセーバー</string>
     <string name="setup_data_saver_desc">写真と動画を軽くしてシェア（電波が弱くても速い）。オフ：高画質なので、みんなの保存データもきれい。自分のオリジナルは常にフル画質で残ります。</string>
-    <string name="setup_emergency_contact">緊急連絡先</string>
-    <string name="setup_emergency_contact_desc">「助けて」を押すと、この人に普通のSMSで位置情報を送れます（データ通信なしでもOK）。この情報はこのスマホにだけ保存されます。</string>
-    <string name="setup_contact_name">名前</string>
-    <string name="setup_contact_mobile">携帯番号</string>
-    <string name="setup_contact_saved">保存しました</string>
-    <string name="setup_contact_need_number">携帯番号を入力してね</string>
-    <string name="setup_contact_removed">削除しました</string>
-    <string name="setup_save">保存</string>
-    <string name="setup_remove">削除</string>
     <string name="setup_about">このアプリについて</string>
     <string name="setup_about_text">Moshpoint %1$s。アカウント不要、コードは定期的に変更、位置情報はエンドツーエンド暗号化。見つけてもらえるのはシェア中だけです。</string>
     <string name="setup_open_source_licences">サードパーティ ライセンス</string>

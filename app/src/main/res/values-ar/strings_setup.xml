@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">شبح لمدة ساعة</string>
     <string name="setup_data_saver">توفير البيانات</string>
     <string name="setup_data_saver_desc">شارك صورًا ومقاطع أخف (أسرع مع الإشارة الضعيفة). عند الإيقاف: جودة عالية، فتكون النسخ المحفوظة عند الجميع واضحة. صورك الأصلية تبقى دائمًا بجودتها الكاملة.</string>
-    <string name="setup_emergency_contact">جهة اتصال للطوارئ</string>
-    <string name="setup_emergency_contact_desc">زر «أحتاج مساعدة» يمكنه إرسال موقعك إليه برسالة SMS عادية (تعمل بدون بيانات). تبقى على هذا الهاتف.</string>
-    <string name="setup_contact_name">الاسم</string>
-    <string name="setup_contact_mobile">رقم الجوال</string>
-    <string name="setup_contact_saved">حُفظ</string>
-    <string name="setup_contact_need_number">أضف رقم جوال</string>
-    <string name="setup_contact_removed">أُزيل</string>
-    <string name="setup_save">حفظ</string>
-    <string name="setup_remove">إزالة</string>
     <string name="setup_about">حول التطبيق</string>
     <string name="setup_about_text">Moshpoint %1$s. بلا حساب، رموز متغيّرة، ومواقع مشفّرة بالكامل بين الطرفين. لا يمكن إيجادك إلا وأنت ظاهر.</string>
     <string name="setup_open_source_licences">تراخيص الجهات الخارجية</string>

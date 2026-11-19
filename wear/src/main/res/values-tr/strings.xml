@@ -20,7 +20,6 @@
     </plurals>
     <string name="ping_on_my_way">Geliyorum</string>
     <string name="ping_all_good">Her şey yolunda</string>
-    <string name="need_help">Yardım lazım</string>
     <string name="ping_sent">Gönderildi</string>
     <string name="ping_nearby">Yakındakilere gönderildi</string>
     <string name="ping_waiting">Sinyal bekleniyor</string>
@@ -57,19 +56,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">Basılı tut</string>
-    <string name="sos_hint">Ekibine haber vermek için basılı tut</string>
-    <string name="sos_sending">Gönderiliyor…</string>
-    <string name="sos_sent">Ekibine gönderildi</string>
-    <string name="sos_not_sent">Gönderilmedi</string>
-    <string name="sos_out_of_reach">Telefonuna ulaşılamıyor</string>
-    <string name="sos_nearby_detail">Şimdilik yalnızca yakındaki ekip üyelerinde</string>
-    <string name="sos_unconfirmed">Doğrulanamadı</string>
-    <string name="sos_no_answer">Telefonun yanıt vermedi</string>
-    <string name="sos_no_crew">Bir ekipte değilsin, haber verecek kimse yok</string>
-    <string name="sos_retry">Tekrar dene</string>
-    <string name="sos_im_ok">Artık iyiyim</string>
-    <string name="sos_ok_sent">Ekibin iyi olduğunu biliyor</string>
+    <string name="ping_sending">Gönderiliyor…</string>
+    <string name="ping_out_of_reach">Telefonuna ulaşılamıyor</string>
+    <string name="ping_nearby_detail">Şimdilik yalnızca yakındaki ekip üyelerinde</string>
+    <string name="ping_unconfirmed">Doğrulanamadı</string>
+    <string name="ping_no_answer">Telefonun yanıt vermedi</string>
+    <string name="ping_no_crew">Bir ekipte değilsin, haber verecek kimse yok</string>
 
     <string name="plus_text">Saat uygulamasının kilidini telefonundan aç</string>
 

@@ -48,11 +48,10 @@ class BlockList private constructor(val entries: List<Blocked>) {
 
     /**
      * Is a crew chat line hidden? Lines are signed, so it's by key ([sender]'s tag). Everything
-     * from a blocked person is hidden except **Need help**: blocking is for what people write,
-     * never for a safety alert. Our own lines never are.
+     * from a blocked person is hidden, whatever its kind: an older build's Need help is an
+     * ordinary ping here (it used to be the one exception). Our own lines never are.
      */
-    fun hidesLine(sender: Long, kind: Int, mine: Boolean): Boolean =
-        !mine && kind != GigGroup.Ping.NEED_HELP && blocksTag(sender)
+    fun hidesLine(sender: Long, mine: Boolean): Boolean = !mine && blocksTag(sender)
 
     /**
      * Is a photo or clip hidden? A moment carries only its sender's name (moments aren't signed),

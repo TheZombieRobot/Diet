@@ -11,15 +11,6 @@
     <string name="home_ping_meet_at_pin">Ses vid nålen</string>
     <string name="home_ping_all_good">Allt lugnt</string>
     <string name="home_ping_sent">Skickat ✓</string>
-    <string name="home_ping_heading_home">På väg hem</string>
-    <string name="home_ping_need_help">Behöver hjälp</string>
-    <string name="home_heading_home_title">På väg hem?</string>
-    <string name="home_heading_home_text">Checka in när du är framme. Gör du inte det får gruppen en varning med din senaste plats (även om mobilen dör).</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="one">%d min</item>
-        <item quantity="other">%d min</item>
-    </plurals>
-    <string name="home_just_tell_them">Säg bara till dem</string>
     <string name="home_cancel">Avbryt</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">pingade gruppen</string>
@@ -43,8 +34,6 @@
     <string name="home_my_friend_qr">Min kompis-QR</string>
     <string name="home_enter_code">Ange en kod</string>
 
-    <string name="home_check_in_by">Checka in senast %1$s</string>
-    <string name="home_home_safe">Jag är hemma</string>
 
     <string name="home_message_crew">Skriv till gruppen</string>
     <string name="home_message_crew_text">Ett tryck: alla i gruppen får det, med var du är.</string>

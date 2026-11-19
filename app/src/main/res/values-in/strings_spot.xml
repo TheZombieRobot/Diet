@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian (in): "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">SMS lokasiku</string>
+    <string name="spot_text_setting">Membuka aplikasi pesan dengan lokasimu, siap dikirim. SMS lewat satelit bisa kena biaya tambahan di beberapa paket.</string>
+    <string name="spot_text_line">Aku di sini:</string>
+    <string name="spot_text_no_fix">HP-ku belum tahu aku di mana sekarang.</string>
+    <string name="spot_text_no_app">HP ini nggak punya aplikasi pesan.</string>
+</resources>

@@ -11,14 +11,6 @@
     <string name="home_ping_meet_at_pin">เจอกันที่หมุด</string>
     <string name="home_ping_all_good">โอเคดี</string>
     <string name="home_ping_sent">ส่งแล้ว ✓</string>
-    <string name="home_ping_heading_home">กำลังกลับบ้าน</string>
-    <string name="home_ping_need_help">ขอความช่วยเหลือ</string>
-    <string name="home_heading_home_title">จะกลับบ้านแล้วเหรอ?</string>
-    <string name="home_heading_home_text">ถึงแล้วเช็กอินด้วยนะ ถ้าไม่เช็กอิน แก๊งจะได้แจ้งเตือนพร้อมตำแหน่งล่าสุดของคุณ (แม้มือถือจะแบตหมด)</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="other">%d นาที</item>
-    </plurals>
-    <string name="home_just_tell_them">แค่บอกเฉยๆ</string>
     <string name="home_cancel">ยกเลิก</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">ส่งสัญญาณหาแก๊ง</string>
@@ -42,8 +34,6 @@
     <string name="home_my_friend_qr">QR เพื่อนของฉัน</string>
     <string name="home_enter_code">ใส่โค้ด</string>
 
-    <string name="home_check_in_by">เช็กอินก่อน %1$s</string>
-    <string name="home_home_safe">ถึงบ้านปลอดภัยแล้ว</string>
 
     <string name="home_message_crew">ส่งข้อความหาแก๊ง</string>
     <string name="home_message_crew_text">แตะทีเดียว ทุกคนในแก๊งได้รับ พร้อมตำแหน่งของคุณ</string>

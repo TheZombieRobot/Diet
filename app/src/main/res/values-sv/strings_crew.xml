@@ -8,7 +8,6 @@
     <string name="crew_someone">Någon</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
     <string name="crew_cancel">Avbryt</string>
-    <string name="crew_close">Stäng</string>
 
     <string name="crew_chat_subtitle">Gruppens chatt · bara din grupp kan läsa den</string>
     <string name="crew_chat_invite">＋ Bjud in</string>
@@ -92,26 +91,8 @@
     <string name="crew_flare_own_hint">Eller din egen…</string>
     <string name="crew_flare_send">Skicka</string>
 
-    <string name="crew_help_title">Få hjälp</string>
-    <string name="crew_help_alert">Larma min grupp</string>
-    <string name="crew_help_alert_sub">Brådskande larm med var du är</string>
-    <string name="crew_help_text_contact">Sms:a %1$s</string>
-    <string name="crew_help_text_contact_sub">Meddelandeappen öppnas med din plats. Funkar utan data.</string>
-    <string name="crew_help_add_contact">Lägg till en nödkontakt</string>
-    <string name="crew_help_add_contact_sub">Någon utanför gruppen att sms:a när det gäller</string>
-    <string name="crew_help_contact_name">Namn (t.ex. Mamma)</string>
-    <string name="crew_help_contact_number">Mobilnummer</string>
-    <string name="crew_help_save_contact">Spara kontakt</string>
-    <string name="crew_help_call">Ring %1$s</string>
-    <string name="crew_help_call_sub">Polis, brandkår, ambulans</string>
-    <string name="crew_help_call_police">Polis</string>
-    <string name="crew_help_call_ambulance">Ambulans och brandkår</string>
-    <string name="crew_help_no_signal">Ingen täckning alls? Många nyare telefoner kan nå räddningstjänsten via satellit: ring %1$s och följ instruktionerna. På en festival kan vakter och sjukvårdstältet hjälpa snabbt.</string>
-    <string name="crew_help_sms">Jag behöver hjälp. (skickat från Moshpoint)</string>
-    <string name="crew_help_sms_where">Jag behöver hjälp. Jag är här: %1$s (skickat från Moshpoint)</string>
 
     <string name="crew_channel_messages">Meddelanden från gruppen</string>
-    <string name="crew_channel_help">Hjälpförfrågningar från gruppen</string>
     <string name="crew_channel_requests">Kompisar som letar efter dig</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -127,10 +108,6 @@
     <string name="crew_notif_done_title">%1$s är över</string>
     <string name="crew_notif_done_saved">Dina bilder och klipp är sparade under Tidigare spelningar.</string>
     <string name="crew_notif_done_text">Hoppas det var grymt. Starta en ny grupp när du vill.</string>
-    <string name="crew_notif_overdue_title">%1$s har inte checkat in</string>
-    <string name="crew_notif_overdue_text">De var på väg hem och borde vara framme nu. Ring dem. Tryck för att se deras senaste plats.</string>
-    <string name="crew_notif_help_where">De tryckte på Behöver hjälp. Tryck för att se var. Kolla läget med dem.</string>
-    <string name="crew_notif_help">De tryckte på Behöver hjälp. Kolla läget med dem.</string>
     <string name="crew_notif_tap_where">Tryck för att se var.</string>
     <string name="crew_notif_from_crew">Från din grupp</string>
 

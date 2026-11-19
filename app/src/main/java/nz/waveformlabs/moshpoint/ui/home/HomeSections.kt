@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -32,16 +31,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.moments.Moments
@@ -55,38 +51,17 @@ import nz.waveformlabs.moshpoint.ui.qrBitmap
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 
 // The home screen's crew sections, top to bottom (docs/design/home-redesign): the header, the
-// one thing to fix first, the crew's header and activity, the Story strip, the check-in banner
-// and the crew QR. The rest of the home: HomeHeroes, HomeGigLists, HomePanels and HomeBar.
+// one thing to fix first, the crew's header and activity, the Story strip and the crew QR. The
+// rest of the home: HomeHeroes, HomeGigLists, HomePanels and HomeBar.
 
-/** The header: the wordmark, and Need help (which only opens the help dialog). */
+/**
+ * The header: the wordmark alone, on a band as tall as the Live row's under it, so the two read
+ * as a balanced pair. (Need help shared this band until it was removed, 16 November 2026.)
+ */
 @Composable
-internal fun HomeHeader(onHelp: () -> Unit, modifier: Modifier = Modifier) {
-    val label = stringResource(R.string.home_ping_need_help)
-    val measurer = rememberTextMeasurer()
-    // Need help sits beside the wordmark when its longest word fits there at its smallest size;
-    // otherwise (a small phone with a large font) it gets a row of its own, at the end.
-    val mark: @Composable () -> Unit = { Wordmark() }
-    val pill: @Composable () -> Unit = { HelpPill(onHelp) }
-    Layout(contents = listOf(mark, pill), modifier = modifier.fillMaxWidth().padding(horizontal = HomeSide)) { m, constraints ->
-        val width = constraints.maxWidth
-        val markP = m[0].first().measure(Constraints())
-        val room = width - markP.width - 12.dp.roundToPx()
-        val longest = label.split(' ').maxOf { w -> measurer.measure(w, HomeType.Label.copy(fontSize = 12.sp), softWrap = false, maxLines = 1).size.width }
-        if (longest + HelpPillChrome.roundToPx() + 2 <= room) {
-            val pillP = m[1].first().measure(Constraints(maxWidth = room))
-            val h = maxOf(markP.height, pillP.height)
-            layout(width, h) {
-                markP.placeRelative(0, (h - markP.height) / 2)
-                pillP.placeRelative(width - pillP.width, (h - pillP.height) / 2)
-            }
-        } else {
-            val pillP = m[1].first().measure(Constraints(maxWidth = width))
-            val gap = 4.dp.roundToPx()
-            layout(width, markP.height + gap + pillP.height) {
-                markP.placeRelative(0, 0)
-                pillP.placeRelative(width - pillP.width, markP.height + gap)
-            }
-        }
+internal fun HomeHeader(modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxWidth().padding(horizontal = HomeSide).heightIn(min = 48.dp), contentAlignment = Alignment.CenterStart) {
+        Wordmark()
     }
 }
 
@@ -170,26 +145,18 @@ internal fun ActivityBlock(
     onPlan: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val lines = pings.map { p ->
-        Pair(dotLine(listOf(stringResource(R.string.home_ping_line, p.from, describe(p.kind)), ago(nowSec - p.timeSec))), p.kind == GigGroup.Ping.NEED_HELP)
-    }
+    val lines = pings.map { p -> dotLine(listOf(stringResource(R.string.home_ping_line, p.from, describe(p.kind)), ago(nowSec - p.timeSec))) }
     if (meetUp == null && lines.isEmpty() && plan == null) return
     Column(modifier.fillMaxWidth().padding(horizontal = HomeSide)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Hairline))
         Spacer(Modifier.height(6.dp))
         val rest = if (meetUp != null) {
-            val first = lines.firstOrNull()
-            ActivityRow(
-                HomeIcons.Pin, Mosh.Pink, stringResource(R.string.home_meetup, meetUp), first?.first, onMap,
-                subColour = if (first?.second == true) Mosh.Danger else Mosh.TextDim,
-            )
+            ActivityRow(HomeIcons.Pin, Mosh.Pink, stringResource(R.string.home_meetup, meetUp), lines.firstOrNull(), onMap, subColour = Mosh.TextDim)
             lines.drop(1)
         } else {
             lines
         }
-        rest.forEach { (text, help) ->
-            ActivityRow(HomeIcons.Pulse, if (help) Mosh.Danger else Mosh.Cyan, text, null, onMap, titleColour = if (help) Mosh.Danger else Mosh.Text, strong = false)
-        }
+        rest.forEach { text -> ActivityRow(HomeIcons.Pulse, Mosh.Cyan, text, null, onMap, titleColour = Mosh.Text, strong = false) }
         if (plan != null) ActivityRow(HomeIcons.Plan, Mosh.Lime, plan, stringResource(R.string.home_plan_pinned), onPlan)
     }
 }
@@ -234,26 +201,6 @@ internal fun StoryStrip(photos: List<Moments.Item>, onOpen: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         items(photos.take(8), key = { it.key }) { m -> Polaroid(m, 112.dp, Modifier.clickable(role = Role.Button, onClick = onOpen)) }
-    }
-}
-
-/** While you're checking in: when you're due, and the "I'm home safe" button. */
-@Composable
-internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(16.dp)
-    Row(
-        modifier.fillMaxWidth().clip(shape)
-            .background(Mosh.Violet.copy(alpha = 0.14f))
-            .border(1.dp, Mosh.Violet.copy(alpha = 0.5f), shape)
-            .heightIn(min = 56.dp)
-            .padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // The time stays on one line ("2:15 am", "02:15 SA").
-        Text(stringResource(R.string.home_check_in_by, byClock.replace(' ', '\u00A0')), style = HomeType.RowTitle.copy(color = Mosh.Lilac), modifier = Modifier.weight(1f))
-        TextButton(onClick = onHomeSafe) {
-            Text(stringResource(R.string.home_home_safe), style = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Lime), textAlign = TextAlign.Center)
-        }
     }
 }
 

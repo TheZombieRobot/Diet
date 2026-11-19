@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). -->
+<resources>
+
+    <string name="live_channel_notices">लाइव और स्टोरेज की सूचनाएँ</string>
+    <string name="live_off_title">आप अब लाइव नहीं हैं</string>
+    <string name="live_off_text">Android ने बैकग्राउंड में Moshpoint को रोक दिया, इसलिए दोस्त आपको नहीं ढूँढ सकते। फिर से लाइव होने के लिए टैप करें।</string>
+    <string name="live_cant_start_text">Android ने Moshpoint को लाइव नहीं रहने दिया, इसलिए दोस्त आपको नहीं ढूँढ सकते। देख लें कि इसकी अनुमतियाँ ऑन हैं, फिर दोबारा लाइव हों।</string>
+    <string name="live_crew_not_on_text">आपका मेन ग्रुप अभी चालू नहीं है, इसलिए आपकी बैटरी बचाने के लिए लाइव बंद हो गया।</string>
+    <string name="live_long_title">अभी भी शो में हैं?</string>
+    <string name="live_long_text">आप 12 घंटे लाइव रहे, इसलिए आपकी बैटरी बचाने के लिए लाइव बंद हो गया।</string>
+    <string name="live_long_notif">आप 12 घंटे लाइव रहे, इसलिए आपकी बैटरी बचाने के लिए लाइव बंद हो गया। अगर आप अभी भी वहीं हैं, तो टैप करें।</string>
+    <string name="live_go_live">लाइव हों</string>
+    <string name="live_bluetooth_off">Bluetooth बंद है: दोस्त आपको पास से नहीं ढूँढ सकते</string>
+    <string name="storage_full_title">आपके फ़ोन का स्टोरेज भर गया है</string>
+    <string name="storage_full_text">Moshpoint तब तक नए मैसेज या फ़ोटो सेव नहीं कर सकता, जब तक आप थोड़ी जगह खाली नहीं करते।</string>
+
+</resources>

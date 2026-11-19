@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish: "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">Konumumu SMS ile gönder</string>
+    <string name="spot_text_setting">Mesajlar uygulaman konumunla, gönderilmeye hazır açılır. Uydu üzerinden SMS bazı tarifelerde ek ücretli olabilir.</string>
+    <string name="spot_text_line">Buradayım:</string>
+    <string name="spot_text_no_fix">Telefonum şu an nerede olduğumu bulamıyor.</string>
+    <string name="spot_text_no_app">Bu telefonda mesaj uygulaması yok.</string>
+</resources>

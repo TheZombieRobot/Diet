@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- German: Live going off by itself, and a full phone (docs/WAVE2_SAFETY.md, items 3 and 5). -->
+<resources>
+
+    <string name="live_channel_notices">Hinweise zu Live und Speicher</string>
+    <string name="live_off_title">Du bist nicht mehr live</string>
+    <string name="live_off_text">Android hat Moshpoint im Hintergrund beendet, deshalb können deine Freunde dich nicht finden. Tippe, um wieder live zu gehen.</string>
+    <string name="live_cant_start_text">Android hat Moshpoint nicht live bleiben lassen, deshalb können deine Freunde dich nicht finden. Prüf, ob die Berechtigungen von Moshpoint an sind, und geh dann wieder live.</string>
+    <string name="live_crew_not_on_text">Deine Haupt-Crew ist gerade nicht aktiv, deshalb hat sich Live ausgeschaltet, um Akku zu sparen.</string>
+    <string name="live_long_title">Noch auf dem Konzert?</string>
+    <string name="live_long_text">Du warst 12 Stunden lang live, deshalb hat sich Live ausgeschaltet, um Akku zu sparen.</string>
+    <string name="live_long_notif">Du warst 12 Stunden lang live, deshalb hat sich Live ausgeschaltet, um Akku zu sparen. Tippe, wenn du noch da bist.</string>
+    <string name="live_go_live">Live gehen</string>
+    <string name="live_bluetooth_off">Bluetooth ist aus: deine Freunde können dich nicht aus der Nähe finden</string>
+    <string name="storage_full_title">Dein Handyspeicher ist voll</string>
+    <string name="storage_full_text">Moshpoint kann keine neuen Nachrichten oder Fotos speichern, bis du etwas Speicherplatz freigibst.</string>
+
+</resources>

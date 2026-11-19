@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: "Use satellite when there's no signal" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 4). -->
+<resources>
+    <string name="satellite_data">신호가 없을 때 위성 사용</string>
+    <string name="satellite_data_setting">위성 데이터가 포함된 요금제에서만 돼요. 통신사에서 요금을 청구할 수 있고, 하늘이 탁 트인 곳이어야 해요.</string>
+</resources>

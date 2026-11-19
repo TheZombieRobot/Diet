@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">1 uur spookmodus</string>
     <string name="setup_data_saver">Databesparing</string>
     <string name="setup_data_saver_desc">Deel lichtere foto\'s en clips (sneller bij slecht bereik). Uit: hoge kwaliteit, zodat ieders kopieën scherp zijn. Je eigen originelen blijven altijd in volle kwaliteit.</string>
-    <string name="setup_emergency_contact">Noodcontact</string>
-    <string name="setup_emergency_contact_desc">\"Hulp nodig\" kan je locatie als gewone sms naar ze sturen (werkt zonder data). Blijft op deze telefoon.</string>
-    <string name="setup_contact_name">Naam</string>
-    <string name="setup_contact_mobile">Mobiel</string>
-    <string name="setup_contact_saved">Opgeslagen</string>
-    <string name="setup_contact_need_number">Voeg een mobiel nummer toe</string>
-    <string name="setup_contact_removed">Verwijderd</string>
-    <string name="setup_save">Opslaan</string>
-    <string name="setup_remove">Verwijderen</string>
     <string name="setup_about">OVER</string>
     <string name="setup_about_text">Moshpoint %1$s. Geen account, wisselende codes, end-to-end versleutelde locaties. Je bent alleen vindbaar als je live bent.</string>
     <string name="setup_open_source_licences">Licenties van derden</string>

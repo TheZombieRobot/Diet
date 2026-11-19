@@ -19,7 +19,7 @@ class RelayHoldsTest {
         assertEquals(7_000L, all.ms)
         assertEquals(5_000L, assertIs<RelayHolds.Hold.All>(h.limited("Address", null, Traffic.RECORDS, chat, 0L)).ms, "the relay's own 5 s when it doesn't say")
         // That pause is the budget's (whole client), not a per-mailbox hold here.
-        assertEquals(0L, h.heldUntil(Traffic.RECORDS, chat, RelayUse.MESSAGE, 1L))
+        assertEquals(0L, h.heldUntil(Traffic.RECORDS, chat, 1L))
         // Never longer than 15 minutes, never under a second, junk = the default.
         assertEquals(900_000L, assertIs<RelayHolds.Hold.All>(h.limited("client", "99999999", Traffic.READS, null, 0L)).ms)
         assertEquals(1_000L, assertIs<RelayHolds.Hold.All>(h.limited("client", "0", Traffic.READS, null, 0L)).ms)
@@ -31,10 +31,10 @@ class RelayHoldsTest {
     @Test fun mailboxHoldsOnlyThatMailbox() {
         val h = holds()
         assertIs<RelayHolds.Hold.Some>(h.limited("mailbox", "10", Traffic.RECORDS, chat, 1_000L))
-        assertEquals(11_000L, h.heldUntil(Traffic.RECORDS, chat, RelayUse.MESSAGE, 2_000L))
-        assertEquals(0L, h.heldUntil(Traffic.RECORDS, pings, RelayUse.MESSAGE, 2_000L), "another mailbox carries on")
-        assertEquals(0L, h.heldUntil(Traffic.READS, null, RelayUse.MESSAGE, 2_000L), "lookups carry on")
-        assertEquals(0L, h.heldUntil(Traffic.RECORDS, chat, RelayUse.MESSAGE, 11_000L), "and it ends")
+        assertEquals(11_000L, h.heldUntil(Traffic.RECORDS, chat, 2_000L))
+        assertEquals(0L, h.heldUntil(Traffic.RECORDS, pings, 2_000L), "another mailbox carries on")
+        assertEquals(0L, h.heldUntil(Traffic.READS, null, 2_000L), "lookups carry on")
+        assertEquals(0L, h.heldUntil(Traffic.RECORDS, chat, 11_000L), "and it ends")
         // A mailbox answer with no mailbox to hold is treated as an older relay's 429.
         assertIs<RelayHolds.Hold.Unknown>(h.limited("mailbox", "10", Traffic.READS, null, 0L))
     }
@@ -42,50 +42,48 @@ class RelayHoldsTest {
     @Test fun bytesHoldOnlyThatKindOfTraffic() {
         val h = holds()
         assertIs<RelayHolds.Hold.Some>(h.limited("bytes", "60", Traffic.UPLOADS, chat, 0L))
-        assertEquals(60_000L, h.heldUntil(Traffic.UPLOADS, "cc".repeat(16), RelayUse.BACKGROUND, 1L), "every upload waits")
-        assertEquals(0L, h.heldUntil(Traffic.RECORDS, chat, RelayUse.MESSAGE, 1L), "messages carry on")
-        assertEquals(0L, h.heldUntil(Traffic.READS, null, RelayUse.MESSAGE, 1L), "lookups carry on")
-        assertEquals(0L, h.heldUntil(Traffic.DOWNLOADS, null, RelayUse.BACKGROUND, 1L), "downloads have their own budget")
+        assertEquals(60_000L, h.heldUntil(Traffic.UPLOADS, "cc".repeat(16), 1L), "every upload waits")
+        assertEquals(0L, h.heldUntil(Traffic.RECORDS, chat, 1L), "messages carry on")
+        assertEquals(0L, h.heldUntil(Traffic.READS, null, 1L), "lookups carry on")
+        assertEquals(0L, h.heldUntil(Traffic.DOWNLOADS, null, 1L), "downloads have their own budget")
         assertIs<RelayHolds.Hold.Some>(h.limited("bytes", null, Traffic.DOWNLOADS, null, 0L))
-        assertEquals(60_000L, h.heldUntil(Traffic.DOWNLOADS, null, RelayUse.BACKGROUND, 1L))
+        assertEquals(60_000L, h.heldUntil(Traffic.DOWNLOADS, null, 1L))
     }
 
     @Test fun anOlderRelayOrAnUnknownLimitMeansTheOldPause() {
         val h = holds()
         assertIs<RelayHolds.Hold.Unknown>(h.limited(null, null, Traffic.RECORDS, chat, 0L))
         assertIs<RelayHolds.Hold.Unknown>(h.limited("reports", "60", Traffic.RECORDS, chat, 0L))
-        assertEquals(0L, h.heldUntil(Traffic.RECORDS, chat, RelayUse.BACKGROUND, 1L), "nothing held here: the budget pauses as before")
+        assertEquals(0L, h.heldUntil(Traffic.RECORDS, chat, 1L), "nothing held here: the budget pauses as before")
     }
 
-    @Test fun safetyIsNeverHeld() {
+    @Test fun aPingWaitsOutBothHolds() {
         val h = holds()
         h.limited("mailbox", "600", Traffic.RECORDS, pings, 0L)
         h.limited("bytes", "600", Traffic.RECORDS, pings, 0L)
-        assertTrue(h.heldUntil(Traffic.RECORDS, pings, RelayUse.MESSAGE, 1L) > 1L)
-        assertEquals(0L, h.heldUntil(Traffic.RECORDS, pings, RelayUse.SAFETY, 1L), "Need help always tries")
+        assertTrue(h.heldUntil(Traffic.RECORDS, pings, 1L) > 1L)
     }
 
     @Test fun batchStatusesHoldLikeTheirHeaders() {
         val h = holds()
         h.mailboxBusy(chat, 0L)
-        assertEquals(10_000L, h.heldUntil(Traffic.RECORDS, chat, RelayUse.MESSAGE, 1L))
-        assertEquals(0L, h.heldUntil(Traffic.RECORDS, pings, RelayUse.MESSAGE, 1L))
+        assertEquals(10_000L, h.heldUntil(Traffic.RECORDS, chat, 1L))
+        assertEquals(0L, h.heldUntil(Traffic.RECORDS, pings, 1L))
         h.recordsOverBudget(0L)
-        assertEquals(60_000L, h.heldUntil(Traffic.RECORDS, pings, RelayUse.BACKGROUND, 1L))
-        assertEquals(0L, h.heldUntil(Traffic.RECORDS, pings, RelayUse.SAFETY, 1L))
+        assertEquals(60_000L, h.heldUntil(Traffic.RECORDS, pings, 1L))
     }
 
     @Test fun manyBusyMailboxesStaySmall() {
         val h = holds()
         repeat(1_000) { h.limited("mailbox", "600", Traffic.RECORDS, "%032x".format(it), 0L) }
-        val held = (0 until 1_000).count { h.heldUntil(Traffic.RECORDS, "%032x".format(it), RelayUse.MESSAGE, 1L) > 0 }
+        val held = (0 until 1_000).count { h.heldUntil(Traffic.RECORDS, "%032x".format(it), 1L) > 0 }
         assertTrue(held in 1..256, "kept $held")
     }
 
     /** The budget takes the relay's pause as it is: no growing back-off on top. */
     @Test fun theBudgetPausesForExactlyWhatTheRelayAsked() {
         val b = RelayBudget(
-            messagesPerDay = 1_000_000, requestsPerMinute = 600, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
+            messagesPerDay = 1_000_000, requestsPerMinute = 600, messageReserve = 0, requestReserve = 0,
             throttleBaseMs = 5_000L, throttleMaxMs = 30_000L, random = { 0.0 },
         )
         repeat(3) { i ->

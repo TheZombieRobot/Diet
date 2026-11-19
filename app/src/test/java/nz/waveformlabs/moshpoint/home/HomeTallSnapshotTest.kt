@@ -46,7 +46,7 @@ open class HomeTallSnapshotTest {
         java.util.Locale.setDefault(java.util.Locale.forLanguageTag(tag))
     }
 
-    /** Every section: setup card, tonight's crew (check-in, meet-up, alert, plan, photos), Up next, memories, Past gigs, Friends. */
+    /** Every section: setup card, tonight's crew (meet-up, alert, plan, photos), Up next, memories, Past gigs, Friends. */
     @Test fun homeWhole() = snap {
         MoshTheme {
             HomeUnderTest(
@@ -55,7 +55,6 @@ open class HomeTallSnapshotTest {
                 ),
                 pinnedPlan = "Sound desk after the encore",
                 moments = HomeFixtures.moments(),
-                checkInBy = "2:15 am",
                 privateUnread = mapOf("sam" to 1),
                 flareNotes = mapOf("sam" to "🔥 " + stringResource(R.string.crew_vibe_bar)),
                 pastGigs = HomeFixtures.pastGigs + HomeFixtures.lastYear,

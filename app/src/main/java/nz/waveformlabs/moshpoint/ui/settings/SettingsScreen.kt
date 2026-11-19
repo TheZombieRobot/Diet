@@ -72,6 +72,7 @@ internal fun SettingsSheet(
     onAlwaysOn: (Boolean) -> Unit,
     phoneSummary: String,
     onClose: () -> Unit,
+    plus: Boolean = false,
 ) {
     androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onClose,
@@ -79,7 +80,7 @@ internal fun SettingsSheet(
         // Open all the way: half-open hid options below the fold with nothing saying they're there.
         sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
-        SettingsContent(myName, onMyName, onSelfie, onPickMyPhoto, onRemoveMyPhoto, onFacebook, alwaysOn, onAlwaysOn, phoneSummary)
+        SettingsContent(myName, onMyName, onSelfie, onPickMyPhoto, onRemoveMyPhoto, onFacebook, alwaysOn, onAlwaysOn, phoneSummary, plus)
     }
 }
 
@@ -95,6 +96,8 @@ internal fun SettingsContent(
     alwaysOn: Boolean,
     onAlwaysOn: (Boolean) -> Unit,
     phoneSummary: String,
+    /** A Moshpoint+ member: the Moshpoint+ switches (Text my spot, satellite data) show. */
+    plus: Boolean = false,
 ) {
     var showLicences by remember { mutableStateOf(false) }
     run {
@@ -178,42 +181,8 @@ internal fun SettingsContent(
                     Switch(nz.waveformlabs.moshpoint.moments.ShareQuality.dataSaver.value, { nz.waveformlabs.moshpoint.moments.ShareQuality.setDataSaver(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Cyan, checkedThumbColor = Color(0xFF07050F), uncheckedTrackColor = Color(0xFF1C1630)))
                 }
             }
-            run {
-                // Who "Need help" can text, outside the crew.
-                val context = androidx.compose.ui.platform.LocalContext.current
-                val saved = remember { nz.waveformlabs.moshpoint.safety.Safety.contact(context) }
-                var name by remember { mutableStateOf(saved?.name.orEmpty()) }
-                var number by remember { mutableStateOf(saved?.number.orEmpty()) }
-                var note by remember { mutableStateOf<String?>(null) }
-                val savedText = stringResource(R.string.setup_contact_saved)
-                val needNumberText = stringResource(R.string.setup_contact_need_number)
-                val removedText = stringResource(R.string.setup_contact_removed)
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(stringResource(R.string.setup_emergency_contact), style = Mosh.Label)
-                    Text(
-                        stringResource(R.string.setup_emergency_contact_desc),
-                        style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(name, { name = it; note = null }, singleLine = true, placeholder = { Text(stringResource(R.string.setup_contact_name)) }, shape = RoundedCornerShape(16.dp), modifier = Modifier.weight(1f))
-                        OutlinedTextField(
-                            number, { number = it; note = null }, singleLine = true, placeholder = { Text(stringResource(R.string.setup_contact_mobile)) }, shape = RoundedCornerShape(16.dp), modifier = Modifier.weight(1.2f),
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone),
-                        )
-                    }
-                    Row {
-                        TextButton(onClick = {
-                            note = if (number.count { it.isDigit() } >= 6) {
-                                nz.waveformlabs.moshpoint.safety.Safety.setContact(context, name, number); savedText
-                            } else needNumberText
-                        }) { Text(stringResource(R.string.setup_save), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
-                        if (saved != null || number.isNotEmpty()) TextButton(onClick = {
-                            nz.waveformlabs.moshpoint.safety.Safety.clearContact(context); name = ""; number = ""; note = removedText
-                        }) { Text(stringResource(R.string.setup_remove), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextDim)) }
-                    }
-                    note?.let { Text(it, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.Lime)) }
-                }
-            }
+            // Moshpoint+ (members only; free users don't see these): Text my spot, satellite data.
+            if (plus) PlusSettings()
             // Test builds only: everyone else uses the app's own server, built in. Nothing to set up.
             if (BuildConfig.TEST_BUILD) run {
                 // Your own relay server (Fly.io, docs/SERVER_PRODUCTION.md): faster updates and no daily message cap.
@@ -306,7 +275,7 @@ internal fun SettingsContent(
                     }
                     // Messages without signal: a "no internet" switch and which way each message went.
                     OfflineDebugTools()
-                    // The watch app: Moshpoint+ off and on, to check Need help from the wrist stays free.
+                    // The watch app: Moshpoint+ off and on, to see the watch as someone who hasn't paid.
                     nz.waveformlabs.moshpoint.watch.WatchDebugTools()
                 }
             }

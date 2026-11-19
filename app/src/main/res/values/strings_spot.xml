@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3): a button by the crew pings that opens the phone's own
+     texting app with a message already written: spot_text_line, then a maps link and the plain coordinates on lines of
+     their own. The person picks who to send it to. "Spot" = where you are right now. -->
+<resources>
+    <!-- The button by the crew pings, and the Settings switch's title. Short -->
+    <string name="spot_text">Text my spot</string>
+    <!-- Under the Settings switch, one line. Satellite texts: phones that text by satellite when there's no signal -->
+    <string name="spot_text_setting">Opens your texting app with your spot, ready to send. Satellite texts may cost extra on some plans.</string>
+    <!-- The text's first line. A maps link and the coordinates follow on their own lines -->
+    <string name="spot_text_line">Here\'s my spot:</string>
+    <!-- The whole text when the phone has no location fix: the person can still add where they are in their own words -->
+    <string name="spot_text_no_fix">My phone can\'t tell where I am right now.</string>
+    <!-- Shown for a moment when the phone (a tablet, say) has no app that can send a text -->
+    <string name="spot_text_no_app">This phone has no texting app.</string>
+</resources>

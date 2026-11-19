@@ -11,15 +11,6 @@
     <string name="home_ping_meet_at_pin">Treffen am Pin</string>
     <string name="home_ping_all_good">Alles gut</string>
     <string name="home_ping_sent">Gesendet ✓</string>
-    <string name="home_ping_heading_home">Auf dem Heimweg</string>
-    <string name="home_ping_need_help">Brauche Hilfe</string>
-    <string name="home_heading_home_title">Gehst du heim?</string>
-    <string name="home_heading_home_text">Melde dich, wenn du da bist. Sonst bekommt deine Crew eine Warnung mit deinem letzten Standort (auch wenn dein Akku leer ist).</string>
-    <plurals name="home_checkin_minutes">
-        <item quantity="one">%d Min.</item>
-        <item quantity="other">%d Min.</item>
-    </plurals>
-    <string name="home_just_tell_them">Nur Bescheid sagen</string>
     <string name="home_cancel">Abbrechen</string>
     <string name="home_ping_line">%1$s %2$s</string>
     <string name="home_ping_default">hat die Crew angepingt</string>
@@ -43,8 +34,6 @@
     <string name="home_my_friend_qr">Mein Freundes-QR</string>
     <string name="home_enter_code">Code eingeben</string>
 
-    <string name="home_check_in_by">Melde dich bis %1$s</string>
-    <string name="home_home_safe">Bin gut zu Hause</string>
 
     <string name="home_message_crew">Nachricht an die Crew</string>
     <string name="home_message_crew_text">Einmal tippen: alle in der Crew bekommen es, mit deinem Standort.</string>

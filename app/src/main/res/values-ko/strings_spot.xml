@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">내 위치 문자로 보내기</string>
+    <string name="spot_text_setting">내 위치가 담긴 채로 메시지 앱이 열려 바로 보낼 수 있어요. 위성으로 보내는 문자는 요금제에 따라 추가 요금이 들 수 있어요.</string>
+    <string name="spot_text_line">여기 있어요:</string>
+    <string name="spot_text_no_fix">지금은 폰이 내 위치를 찾지 못하고 있어요.</string>
+    <string name="spot_text_no_app">이 폰에는 메시지 앱이 없어요.</string>
+</resources>

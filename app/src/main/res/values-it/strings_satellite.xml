@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Italian: "Use satellite when there's no signal" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 4). -->
+<resources>
+    <string name="satellite_data">Usa il satellite quando non c\'è campo</string>
+    <string name="satellite_data_setting">Solo con piani che includono dati via satellite. Il tuo operatore potrebbe farlo pagare, e serve una vista libera sul cielo.</string>
+</resources>

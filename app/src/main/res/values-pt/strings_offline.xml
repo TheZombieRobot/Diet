@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">Esta galera está trocando de chave. As mensagens serão enviadas quando você tiver sinal.</string>
     <string name="offline_note_rekey_offline">A galera recebe a chave nova quando os celulares tiverem sinal de novo. Até lá, as mensagens por Bluetooth ficam em pausa.</string>
     <string name="offline_notif_late">Enviada %1$s. Só chegou agora.</string>
-    <string name="offline_notif_help_late">Tocou em Preciso de ajuda %1$s. Só chegou agora. Veja se está tudo bem.</string>
     <string name="offline_meet_pin_named">Encontro no pin 📍 %1$s</string>
     <string name="offline_need_nearby_why">pra achar amigos por Bluetooth, Wi-Fi e UWB, e passar mensagens sem sinal</string>
 

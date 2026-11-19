@@ -33,8 +33,6 @@
     <!-- ===== Notifications for a message that took a long time to arrive ===== -->
     <!-- %1$s = how long ago it was sent, already worded ("40 min ago", "2 h ago") -->
     <string name="offline_notif_late">Sent %1$s. It only just got through.</string>
-    <!-- Same, for the Need help button (crew_quick_need_help). %1$s = "40 min ago" -->
-    <string name="offline_notif_help_late">They hit Need help %1$s. It only just got through. Check on them.</string>
 
     <!-- ===== Quick message ===== -->
     <!-- "Meet at the pin" (crew_quick_meet_pin) that also says which pin. %1$s = the pin's name, e.g. "Sound desk" -->

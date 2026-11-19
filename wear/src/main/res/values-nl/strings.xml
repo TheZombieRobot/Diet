@@ -20,7 +20,6 @@
     </plurals>
     <string name="ping_on_my_way">Ik kom eraan</string>
     <string name="ping_all_good">Alles goed</string>
-    <string name="need_help">Hulp nodig</string>
     <string name="ping_sent">Verstuurd</string>
     <string name="ping_nearby">Verstuurd in de buurt</string>
     <string name="ping_waiting">Wacht op bereik</string>
@@ -57,19 +56,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">Hou vast</string>
-    <string name="sos_hint">Hou vast om je crew te waarschuwen</string>
-    <string name="sos_sending">Versturen…</string>
-    <string name="sos_sent">Verstuurd naar je crew</string>
-    <string name="sos_not_sent">Niet verstuurd</string>
-    <string name="sos_out_of_reach">Geen verbinding met je telefoon</string>
-    <string name="sos_nearby_detail">Alleen crew in de buurt heeft het nu</string>
-    <string name="sos_unconfirmed">Niet bevestigd</string>
-    <string name="sos_no_answer">Je telefoon gaf geen antwoord</string>
-    <string name="sos_no_crew">Je zit niet in een crew, dus er is niemand om te waarschuwen</string>
-    <string name="sos_retry">Probeer opnieuw</string>
-    <string name="sos_im_ok">Het gaat weer goed</string>
-    <string name="sos_ok_sent">Je crew weet dat het goed gaat</string>
+    <string name="ping_sending">Versturen…</string>
+    <string name="ping_out_of_reach">Geen verbinding met je telefoon</string>
+    <string name="ping_nearby_detail">Alleen crew in de buurt heeft het nu</string>
+    <string name="ping_unconfirmed">Niet bevestigd</string>
+    <string name="ping_no_answer">Je telefoon gaf geen antwoord</string>
+    <string name="ping_no_crew">Je zit niet in een crew, dus er is niemand om te waarschuwen</string>
 
     <string name="plus_text">Ontgrendel de horloge-app op je telefoon</string>
 

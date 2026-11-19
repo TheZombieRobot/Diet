@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">Geng ini sedang ganti kunci baru. Pesan dikirim saat kamu dapat sinyal.</string>
     <string name="offline_note_rekey_offline">Geng mendapat kunci barunya saat HP kalian dapat sinyal lagi. Sampai saat itu, pesan Bluetooth ditahan dulu.</string>
     <string name="offline_notif_late">Dikirim %1$s. Baru saja sampai.</string>
-    <string name="offline_notif_help_late">Dia menekan Perlu bantuan %1$s. Baru saja sampai. Cek keadaannya.</string>
     <string name="offline_meet_pin_named">Ketemu di pin 📍 %1$s</string>
     <string name="offline_need_nearby_why">untuk mencari teman lewat Bluetooth, Wi-Fi, dan UWB, serta meneruskan pesan tanpa sinyal</string>
 

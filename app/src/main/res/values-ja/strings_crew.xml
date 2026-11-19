@@ -8,7 +8,6 @@
     <string name="crew_someone">誰か</string>
     <string name="crew_name_numbered">%1$s（%2$d）</string>
     <string name="crew_cancel">キャンセル</string>
-    <string name="crew_close">閉じる</string>
 
     <string name="crew_chat_subtitle">クルーチャット · クルーだけが読めます</string>
     <string name="crew_chat_invite">＋ 招待</string>
@@ -87,26 +86,8 @@
     <string name="crew_flare_own_hint">または自分で入力…</string>
     <string name="crew_flare_send">送信</string>
 
-    <string name="crew_help_title">助けを呼ぶ</string>
-    <string name="crew_help_alert">クルーに知らせる</string>
-    <string name="crew_help_alert_sub">居場所付きの緊急通知</string>
-    <string name="crew_help_text_contact">%1$sにSMS</string>
-    <string name="crew_help_text_contact_sub">位置情報入りでメッセージアプリが開きます。データ通信なしでもOK。</string>
-    <string name="crew_help_add_contact">緊急連絡先を追加</string>
-    <string name="crew_help_add_contact_sub">いざというときに連絡する、クルー以外の人</string>
-    <string name="crew_help_contact_name">名前（例：お母さん）</string>
-    <string name="crew_help_contact_number">携帯番号</string>
-    <string name="crew_help_save_contact">連絡先を保存</string>
-    <string name="crew_help_call">%1$sに電話</string>
-    <string name="crew_help_call_sub">警察・消防・救急</string>
-    <string name="crew_help_call_police">警察</string>
-    <string name="crew_help_call_ambulance">救急・消防</string>
-    <string name="crew_help_no_signal">まったく電波がない？最近のスマホの多くは衛星経由で緊急通報できます：%1$sに電話して案内に従ってください。フェスなら警備スタッフや救護テントがすぐに助けてくれます。</string>
-    <string name="crew_help_sms">助けが必要です。（Moshpointから送信）</string>
-    <string name="crew_help_sms_where">助けが必要です。今ここにいます：%1$s（Moshpointから送信）</string>
 
     <string name="crew_channel_messages">クルーのメッセージ</string>
-    <string name="crew_channel_help">クルーのヘルプ要請</string>
     <string name="crew_channel_requests">あなたを探している仲間</string>
     <string name="crew_notif_line">%1$s：%2$s</string>
     <plurals name="crew_new_messages">
@@ -120,10 +101,6 @@
     <string name="crew_notif_done_title">%1$sが終了しました</string>
     <string name="crew_notif_done_saved">写真と動画は「過去のライブ」に保存されています。</string>
     <string name="crew_notif_done_text">いい夜だったかな？新しいクルーはいつでも作れます。</string>
-    <string name="crew_notif_overdue_title">%1$sから到着確認がありません</string>
-    <string name="crew_notif_overdue_text">帰宅中で、もう着いているはずです。電話してみて。タップで最後にいた場所を表示。</string>
-    <string name="crew_notif_help_where">「助けて」が押されました。タップで場所を確認して、様子を見てあげて。</string>
-    <string name="crew_notif_help">「助けて」が押されました。様子を見てあげて。</string>
     <string name="crew_notif_tap_where">タップで場所を表示。</string>
     <string name="crew_notif_from_crew">クルーから</string>
 

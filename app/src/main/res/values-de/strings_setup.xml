@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">1 Stunde Geistmodus</string>
     <string name="setup_data_saver">Datensparmodus</string>
     <string name="setup_data_saver_desc">Teilt leichtere Fotos und Clips (schneller bei schwachem Empfang). Aus: hohe Qualität, damit alle gestochen scharfe Kopien haben. Deine eigenen Originale bleiben immer in voller Qualität.</string>
-    <string name="setup_emergency_contact">Notfallkontakt</string>
-    <string name="setup_emergency_contact_desc">\"Brauche Hilfe\" kann ihm deinen Standort per normaler SMS schicken (klappt ohne mobile Daten). Bleibt auf diesem Handy.</string>
-    <string name="setup_contact_name">Name</string>
-    <string name="setup_contact_mobile">Handynummer</string>
-    <string name="setup_contact_saved">Gespeichert</string>
-    <string name="setup_contact_need_number">Gib eine Handynummer ein</string>
-    <string name="setup_contact_removed">Entfernt</string>
-    <string name="setup_save">Speichern</string>
-    <string name="setup_remove">Entfernen</string>
     <string name="setup_about">INFO</string>
     <string name="setup_about_text">Moshpoint %1$s. Kein Konto, wechselnde Codes, Ende-zu-Ende-verschlüsselte Standorte. Du bist nur auffindbar, solange du live bist.</string>
     <string name="setup_open_source_licences">Lizenzen Dritter</string>

@@ -15,15 +15,6 @@
     <string name="setup_ghost_one_hour">幽灵 1 小时</string>
     <string name="setup_data_saver">省流量</string>
     <string name="setup_data_saver_desc">分享更小的照片和视频（信号差时更快）。关闭：高画质，大家保存的都很清晰。你自己的原图始终保留原画质。</string>
-    <string name="setup_emergency_contact">紧急联系人</string>
-    <string name="setup_emergency_contact_desc">“需要帮助”可以用普通短信把你的位置发给对方（不用流量）。只保存在这台手机上。</string>
-    <string name="setup_contact_name">名字</string>
-    <string name="setup_contact_mobile">手机号</string>
-    <string name="setup_contact_saved">已保存</string>
-    <string name="setup_contact_need_number">请填写手机号</string>
-    <string name="setup_contact_removed">已移除</string>
-    <string name="setup_save">保存</string>
-    <string name="setup_remove">移除</string>
     <string name="setup_about">关于</string>
     <string name="setup_about_text">Moshpoint %1$s。无需账号，代码定期轮换，位置端到端加密。只有在线时才能被找到。</string>
     <string name="setup_open_source_licences">第三方许可</string>

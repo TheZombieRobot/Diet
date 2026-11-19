@@ -18,7 +18,6 @@
     </plurals>
     <string name="ping_on_my_way">가는 중</string>
     <string name="ping_all_good">괜찮아</string>
-    <string name="need_help">도움 요청</string>
     <string name="ping_sent">보냄</string>
     <string name="ping_nearby">근처에 보냄</string>
     <string name="ping_waiting">신호 기다리는 중</string>
@@ -55,19 +54,12 @@
     <string name="unit_mi">mi</string>
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <string name="sos_hold">길게 누르기</string>
-    <string name="sos_hint">길게 누르면 크루에 알려요</string>
-    <string name="sos_sending">보내는 중…</string>
-    <string name="sos_sent">크루에 보냈어요</string>
-    <string name="sos_not_sent">전송 안 됨</string>
-    <string name="sos_out_of_reach">폰과 연결이 안 돼요</string>
-    <string name="sos_nearby_detail">지금은 근처 크루에게만 전달됐어요</string>
-    <string name="sos_unconfirmed">확인 안 됨</string>
-    <string name="sos_no_answer">폰이 응답하지 않았어요</string>
-    <string name="sos_no_crew">크루에 속해 있지 않아서 알릴 사람이 없어요</string>
-    <string name="sos_retry">다시 시도</string>
-    <string name="sos_im_ok">이제 괜찮아요</string>
-    <string name="sos_ok_sent">크루에 괜찮다고 알렸어요</string>
+    <string name="ping_sending">보내는 중…</string>
+    <string name="ping_out_of_reach">폰과 연결이 안 돼요</string>
+    <string name="ping_nearby_detail">지금은 근처 크루에게만 전달됐어요</string>
+    <string name="ping_unconfirmed">확인 안 됨</string>
+    <string name="ping_no_answer">폰이 응답하지 않았어요</string>
+    <string name="ping_no_crew">크루에 속해 있지 않아서 알릴 사람이 없어요</string>
 
     <string name="plus_text">폰에서 워치 앱 잠금을 풀어요</string>
 

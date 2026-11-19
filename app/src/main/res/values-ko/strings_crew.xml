@@ -8,7 +8,6 @@
     <string name="crew_someone">누군가</string>
     <string name="crew_name_numbered">%1$s(%2$d)</string>
     <string name="crew_cancel">취소</string>
-    <string name="crew_close">닫기</string>
 
     <string name="crew_chat_subtitle">크루 채팅 · 크루만 읽을 수 있어요</string>
     <string name="crew_chat_invite">＋ 초대</string>
@@ -87,26 +86,8 @@
     <string name="crew_flare_own_hint">또는 직접 입력…</string>
     <string name="crew_flare_send">보내기</string>
 
-    <string name="crew_help_title">도움 요청</string>
-    <string name="crew_help_alert">크루에 알리기</string>
-    <string name="crew_help_alert_sub">내 위치와 함께 긴급 알림</string>
-    <string name="crew_help_text_contact">%1$s에게 문자</string>
-    <string name="crew_help_text_contact_sub">내 위치가 담긴 채로 메시지 앱이 열려요. 데이터 없이도 돼요.</string>
-    <string name="crew_help_add_contact">비상 연락처 추가</string>
-    <string name="crew_help_add_contact_sub">위급할 때 문자 보낼 크루 밖의 사람</string>
-    <string name="crew_help_contact_name">이름(예: 엄마)</string>
-    <string name="crew_help_contact_number">휴대폰 번호</string>
-    <string name="crew_help_save_contact">연락처 저장</string>
-    <string name="crew_help_call">%1$s에 전화</string>
-    <string name="crew_help_call_sub">경찰, 소방, 구급</string>
-    <string name="crew_help_call_police">경찰</string>
-    <string name="crew_help_call_ambulance">구급·소방</string>
-    <string name="crew_help_no_signal">신호가 전혀 없나요? 최신 폰은 대부분 위성으로 긴급 신고를 할 수 있어요: %1$s에 전화하고 안내를 따르세요. 페스티벌에서는 안전 요원과 의무실이 빠르게 도와줄 수 있어요.</string>
-    <string name="crew_help_sms">도움이 필요해요. (Moshpoint에서 보냄)</string>
-    <string name="crew_help_sms_where">도움이 필요해요. 여기 있어요: %1$s (Moshpoint에서 보냄)</string>
 
     <string name="crew_channel_messages">크루 메시지</string>
-    <string name="crew_channel_help">크루 도움 요청</string>
     <string name="crew_channel_requests">나를 찾는 친구</string>
     <string name="crew_notif_line">%1$s: %2$s</string>
     <plurals name="crew_new_messages">
@@ -120,10 +101,6 @@
     <string name="crew_notif_done_title">%1$s 종료</string>
     <string name="crew_notif_done_saved">사진과 영상은 ‘지난 공연’에 저장돼 있어요.</string>
     <string name="crew_notif_done_text">즐거운 시간이었길 바라요. 언제든 새 크루를 만들 수 있어요.</string>
-    <string name="crew_notif_overdue_title">%1$s님이 체크인하지 않았어요</string>
-    <string name="crew_notif_overdue_text">집에 가는 중이었고 지금쯤 도착했어야 해요. 전화해 보세요. 탭하면 마지막 위치를 볼 수 있어요.</string>
-    <string name="crew_notif_help_where">‘도움 요청’을 눌렀어요. 탭해서 위치를 보고 상태를 확인해 주세요.</string>
-    <string name="crew_notif_help">‘도움 요청’을 눌렀어요. 상태를 확인해 주세요.</string>
     <string name="crew_notif_tap_where">탭해서 위치 보기.</string>
     <string name="crew_notif_from_crew">크루에서</string>
 

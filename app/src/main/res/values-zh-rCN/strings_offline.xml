@@ -14,7 +14,6 @@
     <string name="offline_hint_paused">这个小队正在换新密钥。等你有信号时消息会发送。</string>
     <string name="offline_note_rekey_offline">等手机恢复信号后，小队就会拿到新密钥。在那之前，Bluetooth 消息会先暂停。</string>
     <string name="offline_notif_late">%1$s发送，刚刚才送达。</string>
-    <string name="offline_notif_help_late">对方%1$s按了“需要帮助”，刚刚才送达。去看看情况。</string>
     <string name="offline_meet_pin_named">集合点见 📍 %1$s</string>
     <string name="offline_need_nearby_why">通过 Bluetooth、Wi-Fi 和 UWB 找朋友，并在没信号时传递消息</string>
 

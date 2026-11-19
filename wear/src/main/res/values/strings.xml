@@ -33,8 +33,6 @@
     <!-- Quick messages to the whole crew -->
     <string name="ping_on_my_way">On my way</string>
     <string name="ping_all_good">All good</string>
-    <!-- The help button. Always there, free for everyone -->
-    <string name="need_help">Need help</string>
     <!-- What became of a quick message. The same four states the phone shows under a message in the crew chat
          (app: offline_state_sent, offline_state_nearby, offline_state_waiting, offline_state_not_sent): use the same words. -->
     <!-- The message reached the server, so the whole crew gets it -->
@@ -92,24 +90,15 @@
     <!-- %1$s = number, %2$s = unit ("4.5 m"). Reorder if your language puts the unit first -->
     <string name="dist_number_unit">%1$s %2$s</string>
 
-    <!-- ===== Need help ===== -->
-    <!-- On the big round button: one short word, or two very short ones (it is about 8 letters wide) -->
-    <string name="sos_hold">Hold</string>
-    <string name="sos_hint">Hold to tell your crew</string>
-    <string name="sos_sending">Sending…</string>
-    <string name="sos_sent">Sent to your crew</string>
-    <string name="sos_not_sent">Not sent</string>
-    <string name="sos_out_of_reach">Your phone is out of reach</string>
+    <!-- ===== What became of a quick message: the rest, shown big for a moment over the crew list ===== -->
+    <string name="ping_sending">Sending…</string>
+    <string name="ping_out_of_reach">Your phone is out of reach</string>
     <!-- Under "Sent nearby": crew members close by have it, the rest of the crew don't yet -->
-    <string name="sos_nearby_detail">Only crew nearby have it so far</string>
+    <string name="ping_nearby_detail">Only crew nearby have it so far</string>
     <!-- Handed to the phone, but the phone never said what became of it -->
-    <string name="sos_unconfirmed">Not confirmed</string>
-    <string name="sos_no_answer">Your phone didn\'t answer</string>
-    <string name="sos_no_crew">You\'re not in a crew, so there\'s no one to tell</string>
-    <string name="sos_retry">Try again</string>
-    <!-- Sends "all good" to the crew after a Need help -->
-    <string name="sos_im_ok">I\'m OK now</string>
-    <string name="sos_ok_sent">Told your crew you\'re OK</string>
+    <string name="ping_unconfirmed">Not confirmed</string>
+    <string name="ping_no_answer">Your phone didn\'t answer</string>
+    <string name="ping_no_crew">You\'re not in a crew, so there\'s no one to tell</string>
 
     <!-- ===== Not Moshpoint+ ===== -->
     <!-- The mark after the plus keeps it on the right of the name in right-to-left languages -->

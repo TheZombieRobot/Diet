@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3). -->
+<resources>
+    <string name="spot_text">現在地をSMSで送る</string>
+    <string name="spot_text_setting">現在地入りでメッセージアプリが開き、すぐ送れます。衛星経由のSMSはプランによって追加料金がかかることがあります。</string>
+    <string name="spot_text_line">今ここにいます：</string>
+    <string name="spot_text_no_fix">スマホが今いる場所をつかめていません。</string>
+    <string name="spot_text_no_app">このスマホにはメッセージアプリがありません。</string>
+</resources>

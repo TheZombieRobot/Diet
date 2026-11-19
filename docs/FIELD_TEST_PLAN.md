@@ -247,7 +247,7 @@ Set up, on both phones:
 - [ ] B replies. Same again the other way. The reply sits below the message it answers on both phones.
 - [ ] A long message (fill the box, 140 characters): it arrives whole.
 - [ ] A taps a quick message (**On my way**): it shows the same states, and arrives on B.
-- [ ] B puts the app in the background. A taps **Need help**: B gets the loud alert.
+- [ ] B puts the app in the background. A taps **Where are you?**: B gets the crew notification.
 - [ ] A drops a meet-up pin on the map: it shows on B's map and plan card. A taps **Meet at the pin**: B's chat names the pin.
 - [ ] Send five messages quickly from A. All five arrive on B, once each, in order (about one every 8 seconds).
 - [ ] Walk apart until messages stop arriving. Mark the distance and what's in between. Send two
@@ -306,7 +306,7 @@ A makes a **new** crew (crews made before this build keep the old rule); B and C
 
 ## 4c. On the wrist (Wear OS watch, 45 min)
 
-The watch app puts the arrow, the buzzes and Need help on your wrist while the phone stays in
+The watch app puts the arrow, the buzzes and quick messages on your wrist while the phone stays in
 your pocket. How it works and why: `docs/WATCH.md`. Nothing here has run on a real watch
 before this test, so expect surprises and write them down.
 
@@ -386,38 +386,33 @@ Set up:
   on the watch. Expected: "Open Moshpoint on your phone". If it just works instead, good: note
   the phone model and Android version either way.
 
-### F. Need help and quick messages
+### F. Quick messages
 
-- [ ] Crew list → **Need help** → hold. It ticks every half second for two seconds. Let go
-  early once: nothing should be sent.
-- [ ] Hold all the way. A's phone gets the Need help alert; the watch says "Sent to your crew"
-  with one long buzz. How long from letting go to A's alert?
-- [ ] Tap **I'm OK now**. A sees "All good".
-- [ ] Swipe Moshpoint away on phone B (app closed), then send Need help from the wrist again.
+(Need help and "I'm OK now" were removed on 16 November 2026: docs/REMOVE_SAFETY.md.)
+
+- [ ] **On my way** and **All good** from the crew list: A sees each one; the watch flashes "Sent".
+  How long from the tap to A's phone?
+- [ ] Swipe Moshpoint away on phone B (app closed), then **On my way** from the wrist again.
   It must still arrive.
 - [ ] The sleepy phone: phone B not live, Moshpoint closed, screen off and untouched in your
-  pocket for 20 minutes (long enough for Android to start saving battery). Then Need help from
-  the wrist. Did it say "Sent to your crew", or "Not sent yet"? If "Not sent yet", how long
-  until it went, and did the wrist change by itself? Note whether Moshpoint's battery setting
-  on that phone is Unrestricted.
+  pocket for 20 minutes (long enough for Android to start saving battery). Then **All good**
+  from the wrist. Did it say "Sent", or "Not sent yet"? If "Not sent yet", how long until A got
+  it? Note whether Moshpoint's battery setting on that phone is Unrestricted.
 - [ ] Phone B in airplane mode with Bluetooth turned back on, A standing next to you and
-  live: hold Need help. Expected within a few seconds: "Sent nearby", and A's phone alerts.
-- [ ] Same, but A far away: "Not sent yet · Waiting for signal" with the stutter buzz. Now
-  turn airplane mode off while that screen is still showing. It should change to "Sent to your
-  crew" with the long buzz, by itself. Did it? How long did it take?
-- [ ] Leave phone B behind (out of Bluetooth range) or switch it off: hold Need help → "Not
+  live: **On my way**. Expected within a few seconds: "Sent nearby", and A gets it.
+- [ ] Leave phone B behind (out of Bluetooth range) or switch it off: **On my way** → "Not
   sent · Your phone is out of reach".
-- [ ] **On my way** and **All good** from the crew list: A sees each one; the watch flashes "Sent".
-- [ ] Free means free. On phone B: Settings → TESTING → **Moshpoint+ (watch app)** off. The
-  watch should show its Moshpoint+ screen instead of the crew, and tapping a mate or a quick
-  message should do nothing useful. **Need help must still be there and must still arrive on
-  A's phone.** Turn Moshpoint+ back on afterwards.
+- [ ] Not a member: on phone B, Settings → TESTING → **Moshpoint+ (watch app)** off. The watch
+  shows its Moshpoint+ screen instead of the crew, and tapping a mate or a quick message does
+  nothing useful. Turn Moshpoint+ back on afterwards.
+- [ ] If you still have an older watch build with Need help: hold it. The watch should say it
+  wasn't sent, and nothing reaches A.
 
 ### G. Tile and watch face
 
 - [ ] Add the **Crew status** tile and the **Nearest mate** complication (install steps, step 10).
 - [ ] With A live and near: the complication shows A's name and distance, or "1/1"-style
-  counts on a small slot. The tile lists the crew with Need help at the bottom.
+  counts on a small slot. The tile lists the crew.
 - [ ] A goes hidden. How long until the tile and the watch face catch up? (The watch face may
   lag a few minutes: it is only redrawn when the phone sends news, and not more than once
   every five minutes.)
@@ -559,37 +554,26 @@ Message routes** open on the phones you're watching.
   Message routes on all three phones during the no-signal tests.
 - For each test: worked or not, how long each message took, and anything confusing in the words.
 
-## 4f. Safety and the Live state (two phones, about 1 hour, plus one overnight check)
+## 4f. The Live state, and a mate on an older build (two phones, about 45 min, plus one overnight check)
 
-What wave 2a changed (docs/WAVE2_SAFETY.md). Each step says what you should see. **A** and
+What wave 2a changed (docs/WAVE2_SAFETY.md), less Need help and check-ins, which were removed
+on 16 November 2026 (docs/REMOVE_SAFETY.md). Each step says what you should see. **A** and
 **B** are in one crew tonight. Note the time of every alert.
 
-### A. Need help with no signal (10 min)
+### A. A mate on an older build (10 min; needs a phone with build 312 or earlier)
 
-- [ ] Both phones: airplane mode **on**, then Bluetooth back **on**. **A: Live off.**
-- [ ] A: Need help → **Alert my crew**. It must say **Not sent yet**, the reason (no signal,
-  go live), a **Go live** button, and "Text or call below…". It must never say sent.
-- [ ] A: tap **Go live**. Within about a minute (B live, within 10 m) it changes to **Sent
-  nearby**. B gets the alert.
-- [ ] A: airplane mode **off**. Within about a minute: **Sent to your crew**.
-- [ ] Close the dialog and open Need help again: it shows the same alert's state, not a new
-  "Alert my crew" (for 30 minutes).
-- [ ] Optional, a tablet or phone with no SIM and no messages app: **Text …** says the phone
-  has no messages app; **Call 111** says it can't make calls. Nothing fails silently.
+- [ ] **O** (the older build) is in A's crew. O sends **Need help**, then **Heading home** with
+  a timer, then **I'm home safe**.
+- [ ] On A, each arrives as an ordinary crew ping in O's words ("🚨 I need help", "Heading
+  home 🏠 Will check in within 30 min", "Home safe ✅"): in the chat, on the crew card, and as
+  the ordinary **Crew messages** notification. No loud alarm, no separate help channel.
+- [ ] O doesn't tap I'm home safe this time: A gets **no** overdue alert, ever.
+- [ ] A, Settings → Apps → Moshpoint → Notifications: there is no "Crew help requests"
+  channel any more (an update from an older build deletes it).
+- [ ] If A ran an older build with an emergency contact saved: after the update the contact is
+  gone (Settings has no emergency contact any more).
 
-### B. An overdue check-in with the app closed (45 min, partly waiting)
-
-- [ ] B: mute **Crew messages** in Android's notification settings for Moshpoint (leave
-  **Crew help requests** on). Swipe Moshpoint away from recents (don't force-stop it:
-  Android then blocks its alarms). Screen off, unplugged, untouched.
-- [ ] A: Heading home → **30 min**. Then swipe Moshpoint away too.
-- [ ] A, at about 25 min: **Home yet?** notification with **I'm home safe**. Leave it.
-- [ ] B, at about 32 min (up to 15 min later if the phone is dozing): **"A hasn't checked in"**,
-  loud, although chat is muted and the app is closed. Tap: the map with A's last spot.
-- [ ] Again, but A taps **I'm home safe** on the reminder: the reminder goes (or says "Not
-  sent yet" with no signal), and B never alarms.
-
-### C. Live after an update, a force-stop, and Bluetooth off (15 min)
+### B. Live after an update, a force-stop, and Bluetooth off (15 min)
 
 - [ ] A: Live on (crew tonight). Install a newer test build over this one (or the same APK
   again with `adb install -r`). Without opening the app: within a minute or so the live
@@ -602,15 +586,15 @@ What wave 2a changed (docs/WAVE2_SAFETY.md). Each step says what you should see.
   Samsung background kill). If Android won't start Live again in the background you get
   **You're no longer live** (tap opens the app, which goes live again). Never a silent stop.
 
-### D. Doze (needs adb, 20 min)
+### C. Doze (needs adb, 20 min)
 
 - [ ] B follows A's crew from home (family invite). Screen off, unplugged.
   `adb shell dumpsys deviceidle force-idle` on B.
-- [ ] A: Need help. B gets it within about 15 minutes (the followers' check now wakes the phone
+- [ ] A: **Where are you?** B gets it within about 15 minutes (the followers' check now wakes the phone
   in Doze; it used to wait for the next maintenance window, hours at night).
 - [ ] `adb shell dumpsys deviceidle unforce` afterwards.
 
-### E. Live switches itself off (10 min, plus overnight)
+### D. Live switches itself off (10 min, plus overnight)
 
 - [ ] A: **End night** while live: Live goes off with it (quietly).
 - [ ] A: no crew, Live on by hand. Automatic time off, clock forward 12 hours, wait a minute:
@@ -619,7 +603,7 @@ What wave 2a changed (docs/WAVE2_SAFETY.md). Each step says what you should see.
 - [ ] Overnight: go to a gig, don't touch Live. The next morning Live is off and the battery
   graph shows Moshpoint stopped when the crew ended.
 
-### F. Nothing closes the finder (5 min)
+### E. Nothing closes the finder (5 min)
 
 - [ ] Start finding a mate. Switch dark mode (or let Bedtime start), change the font size,
   open split screen, rotate a tablet or foldable. The finder stays open and keeps going.
@@ -628,7 +612,7 @@ What wave 2a changed (docs/WAVE2_SAFETY.md). Each step says what you should see.
 
 ### What to send back for this part
 
-- For each step: the time, worked or not, and a screenshot of each Need help state.
+- For each step: the time, worked or not, and a screenshot of how an older build's pings look.
 - The phones (make, model, Android version), and which steps used adb.
 
 ## 4g. Play Store readiness and Android 16 (wave 2b, two phones, 60 min)
@@ -886,7 +870,8 @@ community rules haven't been agreed to yet.
 - [ ] B sends a chat line, a private message to A and a photo: on A nothing shows, nothing
   notifies, and no unread count appears (B's face, the chat button). C sees all of B's posts as
   usual. B's phone shows its messages as sent, as normal.
-- [ ] B presses **Need help**: A still gets the alert, and its chat line shows.
+- [ ] If B has an older build: B presses **Need help**. On A it's hidden like everything else B
+  sends (since 16 November 2026 an older build's Need help is an ordinary ping).
 - [ ] A opens B's private thread (B's options → Message B): "You blocked B…" at the top, only A's
   own messages. Tap the note: B is unblocked; B's earlier chat lines and photos come back, but
   the private messages sent while blocked never arrive (they were dropped).
@@ -1006,14 +991,10 @@ courier's route log).
 - [ ] A moment (a photo) from each phone shows on the other's Story.
 - [ ] Private messages both ways.
 
-### B. Need help never waits (10 min)
+### B. Removed: Need help never waits
 
-- [ ] On A, with the chat closed and the phone idle for a minute (a batch is pending), tap
-  **Need help**: B's alert arrives as quickly as with build 312 on both phones (a few seconds
-  with signal), not up to a minute later. Repeat with **Check in** (set a time) and
-  **Home safe**. Repeat with B as the sender.
-- [ ] Let a check-in run overdue on A: the overdue alert on B comes as before.
-- [ ] With the finder open on A (it polls every 4 s), send Need help from A: it still goes at once.
+Need help, Check in and Home safe were removed on 16 November 2026 (docs/REMOVE_SAFETY.md).
+B on build 312 can still send them: A shows each as an ordinary ping (section 4f A).
 
 ### C. A mate looking for you, and the radio idling (15 min)
 
@@ -1043,15 +1024,55 @@ courier's route log).
   asked of ntfy.sh that it doesn't have (if you can watch the traffic: no `/v1/install`,
   `/v1/batch` or `/v1/heldsince`).
 - [ ] Over Bluetooth with no signal (airplane mode, Bluetooth on, both live, side by side):
-  chat, pings and Need help still pass between A and B (build 312 and this one), as before.
+  chat and pings still pass between A and B (build 312 and this one), as before.
 - [ ] If you have an older relay (one without the new endpoints): A still works on it, with the
   old requests (it asks for the new ones again after an hour).
 
 ### What to send back for this part
 
 For each tick that failed: what you did, what you saw, and roughly when (so it can be found in
-the debug log); the Need help timings (sent on one phone, alerted on the other); and Moshpoint's
+the debug log); and Moshpoint's
 mobile data use for parts C and D on A and B.
+
+## 4m. Text my spot (Moshpoint+; one phone in a crew, a mate's number, 10 min)
+
+New on 18 November 2026 (docs/REMOVE_SAFETY.md, stage 3). Moshpoint+ is on for everyone until
+billing exists, so any test build shows it.
+
+- [ ] Settings: under the small amber **Moshpoint+** mark, **Text my spot** is off. Message crew
+  and the crew chat show the five pings only.
+- [ ] Switch it on. Message crew: after **All good** (scroll the row) there's a violet **Text my
+  spot**. The crew chat shows it in the same place.
+- [ ] Outdoors with a fix: tap it. The phone's texting app opens with no one chosen and the text
+  ready: "Here's my spot:", a Google Maps link, then the coordinates (5 decimals, with a dot even
+  in German or French). Pick a mate and send: the link opens the spot in their maps; the
+  coordinates paste into any map.
+- [ ] Indoors, location off (or no fix for 10 minutes): tap it. The text is "My phone can't tell
+  where I am right now." and nothing else.
+- [ ] A tablet with no texting app (if you have one): tap it. "This phone has no texting app."
+- [ ] Android, Settings → Apps → Moshpoint → Permissions: still no SMS permission.
+- [ ] Switch it off: the button is gone from both places. Restart the app: it stays off.
+- [ ] Optional, a phone with satellite texting (Android 15+ on a carrier that offers it) and no
+  signal: the texting app offers to send it by satellite. Note the carrier and what it says.
+
+## 4n. Satellite data (Moshpoint+; an Android 16 phone with satellite data, 30 min)
+
+New on 18 November 2026 (docs/REMOVE_SAFETY.md, stage 4). Needs a carrier that offers satellite
+data to apps and lists Moshpoint (owner to-do, docs/PRODUCTION_AUDIT.md), an Android 16 phone that
+supports it, a build with our own relay (`MOSHPOINT_SERVER`), and open sky away from any mobile
+signal. **A** is that phone; **B** is a mate with normal signal, in A's crew.
+
+- [ ] Settings on A: **Use satellite when there's no signal** is off, under the Moshpoint+ mark.
+- [ ] Switch off, only satellite: A sends a ping and a chat line. They wait ("Waiting for
+  signal"); the chat says "No signal". Nothing reaches B except by Bluetooth. With adb, `adb shell
+  dumpsys netstats` (or the carrier's usage page) shows no satellite data used by Moshpoint.
+- [ ] Switch on: within about two minutes B gets the ping and the chat line, and A's spot on B's
+  map moves. B sends a ping and drops a pin: A gets both within about two minutes. A doesn't get
+  B's chat lines until it has normal signal (or B is close enough for Bluetooth).
+- [ ] Still on satellite: a photo or clip from A waits, the map shows only what's saved, and
+  Plan a gig's search says it can't search right now. Nothing big downloads.
+- [ ] Back to normal signal: everything that waited goes, as usual, within a minute.
+- [ ] Note how long each message took, and what the carrier charged, if it shows.
 
 ## 5. What to send back
 
@@ -1083,8 +1104,7 @@ mobile data use for parts C and D on A and B.
   = 30 m beyond the GPS accuracy after 10 s of footsteps, a floor change = 0.3 hPa, and the
   weather allowance for the pinned spot's floor (3 m an hour). Its walk-away check only runs
   while the app is open or you're live.
-- The safety changes (docs/WAVE2_SAFETY.md) have never run on a phone: Doze may hold a
-  check-in alarm back by up to about 15 minutes, and whether Android lets Live start again after
-  an update or a background kill differs by phone maker.
+- The Live changes (docs/WAVE2_SAFETY.md) have never run on a phone: whether Android lets Live
+  start again after an update or a background kill differs by phone maker.
 - Private messages have never run on a phone. Each is two Bluetooth packets (about 11 seconds on
   air), only crew phones carry them, and a crew mate on an older build never sees them.
