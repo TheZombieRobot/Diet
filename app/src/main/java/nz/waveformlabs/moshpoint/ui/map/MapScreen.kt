@@ -27,10 +27,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.friends.Friend
@@ -285,18 +288,17 @@ fun MapScreen(
                     // A spot a mate texted wears the meet-up pin's pink, like its pin on the map.
                     val pink = p.meetUp || p.texted
                     val texted = stringResource(R.string.spot_link_texted)
-                    Row(
+                    ListRow(
                         Modifier.fillMaxWidth().clickable { focus(listOf(LatLng(p.lat, p.lon))) }.padding(horizontal = 14.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            Modifier.width(40.dp).heightIn(min = 40.dp).background(
-                                if (pink) Mosh.Pink.copy(alpha = 0.25f) else Mosh.Cyan.copy(alpha = 0.2f), RoundedCornerShape(12.dp),
-                            ),
-                            contentAlignment = Alignment.Center,
-                        ) { Text(if (p.meetUp) "★" else "●", style = Mosh.Label.copy(color = if (pink) Mosh.Pink else Mosh.Cyan)) }
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
+                        lead = {
+                            Box(
+                                Modifier.width(40.dp).heightIn(min = 40.dp).background(
+                                    if (pink) Mosh.Pink.copy(alpha = 0.25f) else Mosh.Cyan.copy(alpha = 0.2f), RoundedCornerShape(12.dp),
+                                ),
+                                contentAlignment = Alignment.Center,
+                            ) { Text(if (p.meetUp) "★" else "●", style = Mosh.Label.copy(color = if (pink) Mosh.Pink else Mosh.Cyan)) }
+                        },
+                        text = {
                             Text(if (p.meetUp) stringResource(R.string.find_meet_label, p.name) else p.name, style = Mosh.Label.copy(fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
                                 listOfNotNull(
@@ -310,16 +312,18 @@ fun MapScreen(
                                 ).joinToString(" · "),
                                 style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 16.sp, color = Mosh.TextFaint),
                             )
-                        }
-                        TextButton(onClick = { onDirections(p.lat, p.lon) }) { Text(stringResource(R.string.find_walk), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-                        if (p.texted && onFindPlace != null) {
-                            // Its arrow needs no data: GPS and the compass (Walk opens directions, which do).
-                            TextButton(onClick = { onFindPlace(p) }) { Text(stringResource(R.string.find_find), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink)) }
-                        } else if (onRide != null && !p.meetUp) {
-                            TextButton(onClick = { onRide(p.lat, p.lon) }) { Text(stringResource(R.string.find_ride), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
-                        }
-                        TextButton(onClick = { onRemovePlace(p) }) { Text("✕", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextFaint)) }
-                    }
+                        },
+                        actions = {
+                            TextButton(onClick = { onDirections(p.lat, p.lon) }) { Text(stringResource(R.string.find_walk), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                            if (p.texted && onFindPlace != null) {
+                                // Its arrow needs no data: GPS and the compass (Walk opens directions, which do).
+                                TextButton(onClick = { onFindPlace(p) }) { Text(stringResource(R.string.find_find), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink)) }
+                            } else if (onRide != null && !p.meetUp) {
+                                TextButton(onClick = { onRide(p.lat, p.lon) }) { Text(stringResource(R.string.find_ride), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
+                            }
+                            TextButton(onClick = { onRemovePlace(p) }) { Text("✕", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextFaint)) }
+                        },
+                    )
                 }
                 items(listed, key = { it.id }) { f ->
                     val s = seen[f.id]
@@ -416,6 +420,62 @@ fun MapScreen(
                 }
             },
         )
+    }
+}
+
+/**
+ * A saved place's row in the map's list: [lead] (its round icon), [text] (name and the line under it)
+ * and [actions] (its buttons) side by side, exactly as a Row with the text weighted lays them out.
+ * When the buttons would leave the text narrower than its longest word (a small phone with large
+ * text, in a language with long words: German's three buttons left Sam's spot a letter-wide
+ * column), the buttons go on a line of their own under the text, at the end, and the text gets
+ * the row's whole width.
+ */
+@Composable
+private fun ListRow(
+    modifier: Modifier,
+    lead: @Composable () -> Unit,
+    text: @Composable () -> Unit,
+    actions: @Composable () -> Unit,
+) = Layout(
+    content = {
+        Box(Modifier.layoutId("lead")) { lead() }
+        Column(Modifier.layoutId("text")) { text() }
+        Row(Modifier.layoutId("actions"), verticalAlignment = Alignment.CenterVertically) { actions() }
+    },
+    modifier = modifier,
+) { parts, constraints ->
+    val gap = 12.dp.roundToPx() // the Spacer a Row would have between icon and text
+    val leadPart = parts.first { it.layoutId == "lead" }
+    val textPart = parts.first { it.layoutId == "text" }
+    val actionsPart = parts.first { it.layoutId == "actions" }
+    val tall = constraints.maxHeight
+    val width = if (constraints.hasBoundedWidth) constraints.maxWidth else
+        leadPart.maxIntrinsicWidth(Constraints.Infinity) + gap + textPart.maxIntrinsicWidth(Constraints.Infinity) +
+            actionsPart.maxIntrinsicWidth(Constraints.Infinity)
+    val icon = leadPart.measure(Constraints(maxWidth = width, maxHeight = tall))
+    val buttons = actionsPart.measure(Constraints(maxWidth = width, maxHeight = tall))
+    val room = width - icon.width - gap - buttons.width
+    val mid = Alignment.CenterVertically
+    if (room >= textPart.minIntrinsicWidth(Constraints.Infinity)) {
+        // Side by side, every part centred on the row's height.
+        val words = textPart.measure(Constraints(minWidth = room, maxWidth = room, maxHeight = tall))
+        val h = maxOf(icon.height, words.height, buttons.height, constraints.minHeight)
+        layout(width, h) {
+            icon.placeRelative(0, mid.align(icon.height, h))
+            words.placeRelative(icon.width + gap, mid.align(words.height, h))
+            buttons.placeRelative(width - buttons.width, mid.align(buttons.height, h))
+        }
+    } else {
+        val wide = (width - icon.width - gap).coerceAtLeast(0)
+        val words = textPart.measure(Constraints(minWidth = wide, maxWidth = wide, maxHeight = tall))
+        val top = maxOf(icon.height, words.height)
+        val h = maxOf(top + buttons.height, constraints.minHeight)
+        layout(width, h) {
+            icon.placeRelative(0, mid.align(icon.height, top))
+            words.placeRelative(icon.width + gap, mid.align(words.height, top))
+            buttons.placeRelative(width - buttons.width, top)
+        }
     }
 }
 
