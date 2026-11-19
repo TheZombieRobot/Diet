@@ -9,13 +9,14 @@ items, in order, each green in CI before the next.
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
-2026._
+2026, 05:40 UTC._
 
 - **Now:** item 3 (the spot links' App Link checked in the release manifest), pushed for its CI
   check.
 - **Done:** item 1, green in run 363 (493fd3b); item 2, green in run 364 (d88c2bf). Screenshots
   unchanged after each (phone 2,320 and watch 546 identical to e2d5384's by blob hash).
-- **Last green run:** 364 (d88c2bf, item 2).
+- **Last green run:** 364 (d88c2bf, item 2; 05:37 UTC). Item 3 was committed as 43267e9 with
+  `[skip ci]` while 364 ran, and is checked by the run after it.
 - **Baseline:** core 658 and server 108 tests pass locally at e2d5384 (scratch Gradle build of
   only `:core` and `:server`, Maven Central only).
 
