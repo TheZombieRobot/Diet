@@ -64,4 +64,45 @@ class SatelliteRuleTest {
         assertEquals(130_000L, SatelliteRule.nextBatchAt(70_000, 10_000), "due a minute after the last: waits two")
         assertEquals(300_000L, SatelliteRule.nextBatchAt(300_000, 10_000), "due after the gap: as planned")
     }
+
+    // ---- The crew chat over satellite (docs/SPOT_LINKS.md, item 4) ----
+
+    @Test fun theChatIsReadInTheBatchOnlyOverSatellite() {
+        assertTrue(SatelliteRule.chatInBatch(constrained = true, allowed = true))
+        assertFalse(SatelliteRule.chatInBatch(constrained = true, allowed = false), "the switch off, or not a member: nothing at all")
+        assertFalse(SatelliteRule.chatInBatch(constrained = false, allowed = true), "a normal network: the chat's own poll, as before")
+        assertFalse(SatelliteRule.chatInBatch(constrained = false, allowed = false))
+    }
+
+    /** The chat's own poll never goes over satellite: only the batch does, every two minutes, with the chat in it. */
+    @Test fun neverAsARequestOfItsOwn() {
+        assertFalse(SatelliteRule.mayGo(constrained = true, allowed = true, SatelliteRule.Request.OTHER, nowMs = 1_000_000, lastBatchMs = null))
+        assertTrue(SatelliteRule.mayGo(constrained = true, allowed = true, SatelliteRule.Request.BATCH, nowMs = 1_000_000, lastBatchMs = null))
+        assertFalse(SatelliteRule.mayGo(constrained = true, allowed = true, SatelliteRule.Request.BATCH, nowMs = 1_000_000, lastBatchMs = 1_000_000 - 60_000), "a minute after the last: not yet")
+        assertTrue(SatelliteRule.mayGo(constrained = true, allowed = true, SatelliteRule.Request.BATCH, nowMs = 1_000_000, lastBatchMs = 1_000_000 - SatelliteRule.GAP_MS))
+        assertTrue(SatelliteRule.mayGo(constrained = false, allowed = false, SatelliteRule.Request.OTHER, nowMs = 1_000_000, lastBatchMs = null), "normal networks unchanged")
+    }
+
+    @Test fun everyCrewsChatWhenItFits() {
+        assertEquals(listOf(0, 1, 2), SatelliteRule.chatCrews(listOf(4, 2, 2), room = 100, turn = 0))
+        assertEquals(listOf(0), SatelliteRule.chatCrews(listOf(4), room = 4, turn = 7))
+        assertEquals(emptyList(), SatelliteRule.chatCrews(emptyList(), room = 100, turn = 0))
+        assertEquals(emptyList(), SatelliteRule.chatCrews(listOf(4, 2), room = 0, turn = 0), "no room left in the batch")
+    }
+
+    /** A big night: tonight's crew always, the others take turns, and none is ever left out for long. */
+    @Test fun whenTheyDontFitTheOthersTakeTurns() {
+        val sizes = listOf(4, 2, 2, 2, 2)
+        val batches = (0 until 4).map { SatelliteRule.chatCrews(sizes, room = 8, turn = it) }
+        batches.forEach { assertTrue(0 in it, "tonight's crew in every batch: $it") }
+        batches.forEach { b -> assertTrue(b.sumOf { sizes[it] } <= 8, "never more than the room: $b") }
+        assertEquals((0 until 5).toSet(), batches.flatten().toSet(), "every crew within a few batches")
+        assertEquals(listOf(0, 1, 2), batches[0])
+        assertEquals(listOf(0, 2, 3), batches[1])
+        assertEquals(listOf(0, 1, 4), batches[3], "round again: the turn wraps")
+        // A crew too big for what's left is skipped (never half a crew), and a smaller one goes instead.
+        assertEquals(listOf(0, 2), SatelliteRule.chatCrews(listOf(4, 6, 2), room = 8, turn = 0))
+        // Even tonight's crew is skipped if it can't fit; the rest still go.
+        assertEquals(listOf(1), SatelliteRule.chatCrews(listOf(10, 2), room = 4, turn = 0))
+    }
 }

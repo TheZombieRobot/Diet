@@ -141,7 +141,8 @@ _Keep this section current: whoever picks this up next starts here. Last updated
     locally; the script was also run in Node against good and bad links.
   - Docs: RELAY_API.md section 13, SERVER_PRODUCTION.md (adding Play's signing key to
     `MOSHPOINT_APP_CERTS` in fly.toml's `[env]`), PRODUCTION_AUDIT owner to-do.
-- **Stage 5, part 2 (the app; not started).** The plan, from what's there now:
+- **Stage 5, part 2 (the app): carried on in docs/SPOT_LINKS.md** (branch `claude/spot-links`,
+  19 November 2026), with the open questions below. The plan as it stood:
   1. **The link in the text:** `TextMySpot` uses `SpotLink.build(BuildConfig.MOSHPOINT_SERVER,
      ...)` with the sender's first name, keeping the coordinates line; Google Maps link without
      a server. Switch only once the production relay with `/spot` is deployed (an older relay
@@ -158,8 +159,8 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   4. **The finder's arrow to it:** the finder only targets mates today (`engine.track(ids)`).
      A place target (GPS and compass only) is the one real piece of new work.
   5. Screenshot tests (the map with a texted spot), FEATURES, PRIVACY, FIELD_TEST_PLAN.
-- **Exact next step:** stage 5 part 2, the app side, as planned above (start with steps 2 and 3:
-  the App Link filter and opening a link as a saved place; then the finder's place target).
+- **Exact next step:** none here; see docs/SPOT_LINKS.md, which took stage 5 part 2 and the open
+  questions on.
 - **Last green run:** 352 (7964207). Branch head after it: docs only ([skip ci]).
 
 ### Stages (each must be green in CI before the next)
@@ -170,7 +171,7 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 4. Satellite switch. **Done, green: run 351.**
 5. **Added 18 November 2026 (relayed by the session that started this one, as the owner's):**
    the receiving end of Text my spot. (Part 1, the core link and the relay's routes: **green, run
-   352.** Part 2, the app: next.)
+   352.** Part 2, the app: docs/SPOT_LINKS.md, item 1.)
    - **The link,** built in core with tests: `https://<relay host>/spot#<lat>,<lon>[,<name>]`.
      The spot rides after `#`, so browsers never send it to the server. The plain coordinates
      stay in the text too. With no server built in (`MOSHPOINT_SERVER` blank), a Google Maps
@@ -246,20 +247,24 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 
 ## Open questions
 
+_All five answered by the owner on 19 November 2026 and done on `claude/spot-links`
+(docs/SPOT_LINKS.md, the item named after each)._
+
 1. **"Heading home" without a timer** (`GOING_HOME`, "Just tell them" in the Heading home
    dialog) went with that dialog. Older builds' ones still show. Bring it back as a plain crew
-   ping chip?
+   ping chip? **Yes: item 2, "Heading home 🏠" as a plain quick ping, kind `GOING_HOME`.**
 2. **An older build's check-in shows its own words, "Heading home 🏠 Will check in within
    30 min"**, but this build never alerts if they don't check in. Reword how it's shown here (for
    example "Heading home 🏠 (30 min)")? That needs new wording in 20 languages, so it wasn't done
-   without asking.
+   without asking. **Item 3: shown as "<name> is heading home", the minutes left out.**
 3. **The phone still tells the watch when a wrist ping gets further** after its first answer
    (`WatchPings.followUp`, `PingOutcome.improvesOn`), but only the removed Need help screen ever
    showed that. It's generic wrist-ping code, so it stayed. Remove it, or let the quick-ping
-   flash show it?
+   flash show it? **Item 6: removed (nothing else listened); `improvesOn` stays for retries.**
 4. **"What's in Moshpoint+"** (the list free users can open from Plan a gig) doesn't mention
    Text my spot or satellite data, because free users aren't meant to see them. Add a row for
-   each?
+   each? **Item 5: both added.**
 5. **Reading the crew chat over satellite.** Sending works (chat lines go in the batch), but
    reading is the chat's own poll, which stays off satellite. Move the chat poll into the
-   two-minute batch too? That's more data over satellite each time.
+   two-minute batch too? That's more data over satellite each time. **Item 4: yes, text only,
+   in the same exchange, at most every two minutes.**

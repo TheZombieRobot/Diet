@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">Bouge pas</string>
     <string name="home_ping_meet_at_pin">RDV au repère</string>
     <string name="home_ping_all_good">Tout va bien</string>
+    <string name="home_ping_heading_home">Je rentre</string>
     <string name="home_ping_sent">Envoyé ✓</string>
     <string name="home_cancel">Annuler</string>
     <string name="home_ping_line">%1$s %2$s</string>

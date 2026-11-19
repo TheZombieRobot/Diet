@@ -19,7 +19,10 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **Finding each other's details:** crew members pass each other's details on over Bluetooth
   (gossip) and through an internet relay. (partly tested)
 - **Plan a gig ahead:** search upcoming gigs ("Iron…" lists Iron Maiden, venue, date), or type
-  the gig in. Search needs a Ticketmaster key; typing it in works now.
+  the gig in. Search needs a Ticketmaster key; typing it in works now. Free users get a quiet
+  Moshpoint+ card with "What's in Moshpoint+": smart search, Coming up near you, venue maps
+  offline, the watch, Text my spot and satellite data (the last two since 19 November 2026,
+  [SPOT_LINKS.md](SPOT_LINKS.md) item 5).
 - **Sleeping crews:** a crew for a later date sleeps until the day, with no Bluetooth, GPS or
   battery use. Mates can join any time.
   - On the day, 3 h before the start: "Iron Maiden tonight! Tap to go live".
@@ -95,21 +98,37 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **Flares:** "Bar time 🍺", "At the rail 🎶", "Lost 😅" and more. Your spot shows for 30
   minutes, and the vibe shows under your tile. (untested)
 - **Plan card:** the gig, the plan, the meet-up and who's coming, as a shareable picture.
-- **Crew pings:** On my way, Where are you?, Stay put, Meet at the pin, All good.
+- **Crew pings:** On my way, Where are you?, Stay put, Meet at the pin, All good, Heading home.
+  Heading home 🏠 is a plain ping like the others (back on 19 November 2026): no timer, no alert,
+  nothing follows. Mates on older builds (build 312) see it the same way, as "Heading home 🏠"
+  with the ordinary crew notification ([SPOT_LINKS.md](SPOT_LINKS.md), item 2).
 - **Text my spot (Moshpoint+):** for members who switch it on in Settings (it's off until they
   do), a violet button after the pings, in Message crew and in the crew chat. It opens the
-  phone's own texting app with a text already written: "Here's my spot:", a Google Maps link and
-  the plain coordinates (5 decimals), which still make sense with no data. You pick who gets it
-  and press Send: Moshpoint never sends or reads a text itself and asks for no SMS permission.
-  With no location fix the text says so plainly; on a phone with no texting app (a tablet) the
-  button says so. With no signal, a phone whose carrier texts by satellite sends it that way
-  (some plans charge for it). (untested)
+  phone's own texting app with a text already written: "Here's my spot:", a link and the plain
+  coordinates (5 decimals), which still make sense with no data. The link is our own
+  (`https://<relay>/spot#…`, with your first name) when the build has a relay of its own, and a
+  Google Maps link otherwise. You pick who gets it and press Send: Moshpoint never sends or reads
+  a text itself and asks for no SMS permission. With no location fix the text says so plainly; on
+  a phone with no texting app (a tablet) the button says so. With no signal, a phone whose
+  carrier texts by satellite sends it that way (some plans charge for it). (untested)
+- **Texted spots open in Moshpoint (free):** a mate taps the link in that text and Moshpoint opens
+  it (an App Link; without the app, the relay's page opens Google Maps). The spot is kept as a
+  saved place on the map: the meet-up pin, named after the sender ("Texted spot" if the link has
+  no name), with Walk, **Find** and ✕ in the map's list. Find points the finder's arrow at it,
+  with the distance, from the phone's own GPS and compass: no data or signal needed, and no
+  Bluetooth, UWB or Wi-Fi started (no mate's phone hears that anyone is looking). A link can't do
+  anything else: no setting changes, no crew is joined, Live isn't touched. Only valid coordinates
+  are taken, and the name is cut to 24 plain letters. The same link opened twice is kept once; at
+  most 20 texted spots are kept, the oldest go first. Details: [SPOT_LINKS.md](SPOT_LINKS.md).
+  (untested)
 - **Removed (owner's decision, 16 November 2026):** Need help (the crew alert, the text to an
   emergency contact, the Call 111 button, the satellite SOS hint) and Check In ("Heading home"
   with a timer, "I'm home safe", the overdue alert). A gig app doesn't need its own emergency
   system; people ring emergency services themselves. A mate on an older build can still send
-  them: they show as ordinary crew pings in their own words, with no alarm. The phone also
-  deletes an emergency contact an older build stored. Details: [REMOVE_SAFETY.md](REMOVE_SAFETY.md).
+  them: they show as ordinary crew pings in their own words, with no alarm. An older build's
+  check-in reads as plain Heading home ("Jo is heading home", no minutes), since nothing follows
+  it now ([SPOT_LINKS.md](SPOT_LINKS.md), item 3). The phone also deletes an emergency contact an
+  older build stored. Details: [REMOVE_SAFETY.md](REMOVE_SAFETY.md).
 - **"Bevan is on the move":** fires when a mate moves 200 m or more away from where they
   were, at most once every 20 minutes per person.
 - **Ghost mode:** hidden from the map but findable up close, optionally for 1 hour.
@@ -170,10 +189,11 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **Use satellite when there's no signal (Moshpoint+):** a Settings switch, off until a member
   turns it on. On Android 16, where the carrier offers satellite data and lists Moshpoint, crew
   messages and locations still go when the only network is a satellite one: the small things
-  (locations, pings, chat text, pins, and reading the crew's pings, pins and locations) in one
-  request to our relay at most every two minutes. Photos, clips, faces, Discover, venue maps and
-  the map's tiles wait for a normal network. With the switch off, or for free users, a satellite
-  network counts as no signal, and Bluetooth passes messages on as usual. (untested)
+  (locations, pings, chat text, pins, and reading the crew's pings, pins, locations and, since 19
+  November 2026, the crew chat's text) in one request to our relay at most every two minutes.
+  Photos, clips, faces, Discover, venue maps and the map's tiles wait for a normal network. With
+  the switch off, or for free users, a satellite network counts as no signal, and Bluetooth
+  passes messages on as usual. (untested)
 - **Test builds:** scrambled (R8), about 27 MB, from a public download link. The repo is
   public; there's a proprietary licence.
 

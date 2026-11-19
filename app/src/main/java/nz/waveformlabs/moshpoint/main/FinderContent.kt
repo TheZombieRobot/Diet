@@ -11,17 +11,20 @@ import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.BeaconColour
 import nz.waveformlabs.moshpoint.core.HereRule
+import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.debug.FieldRecorder
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.gigs.NightStats
+import nz.waveformlabs.moshpoint.locate.FinderPlace
 import nz.waveformlabs.moshpoint.map.HerePins
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.ui.beaconColourName
 import nz.waveformlabs.moshpoint.ui.finder.DebugPanel
 import nz.waveformlabs.moshpoint.ui.finder.FinderScreen
+import nz.waveformlabs.moshpoint.ui.finder.PlaceFinderScreen
 import nz.waveformlabs.moshpoint.ui.map.PinNote
 import nz.waveformlabs.moshpoint.venue.Floors
 
@@ -29,6 +32,12 @@ import nz.waveformlabs.moshpoint.venue.Floors
 @Composable
 @NonRestartableComposable
 internal fun FinderContent(a: MainActivity) {
+    // A place instead of mates (a spot a mate texted): its own screen, GPS and compass only.
+    val place = a.finder.place
+    if (place != null) {
+        PlaceContent(a, place)
+        return
+    }
     val engine = a.finder.engine
     val arrows by engine.arrows.collectAsState()
     val scan by engine.scan.collectAsState()
@@ -114,5 +123,31 @@ internal fun FinderContent(a: MainActivity) {
         } else {
             null
         },
+    )
+}
+
+/**
+ * The finder on a place (docs/SPOT_LINKS.md): the arrow from this phone's GPS and compass, with
+ * no data or signal. Back lets the place go; "Show on map" shows it there.
+ */
+@Composable
+private fun PlaceContent(a: MainActivity, place: FinderPlace) {
+    val arrows by a.finder.placeArrows.collectAsState()
+    val texted = stringResource(R.string.spot_link_texted)
+    // Only "Location is off" matters here: no other radio finds a place.
+    val locationOff = stringResource(R.string.main_setup_location_off)
+    FinderScreenOn(a, arrows)
+    PlaceFinderScreen(
+        id = place.id,
+        title = place.name,
+        caption = texted.takeIf { it != place.name },
+        visible = a.home.visibleToMates,
+        arrows = arrows,
+        onOpenMap = { a.map.openMapOn(LatLon(place.lat, place.lon)) },
+        onBack = {
+            a.finder.endPlace()
+            a.finder.finding = false
+        },
+        warning = a.permissions.setupIssues.firstOrNull { it.text == locationOff },
     )
 }

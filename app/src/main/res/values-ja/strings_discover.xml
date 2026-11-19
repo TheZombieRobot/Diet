@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">会場の衛星マップをスマホに保存。電波がなくても使えます。</string>
     <string name="plus_info_watch_title">手首で仲間を探す</string>
     <string name="plus_info_watch_text">ウォッチの矢印が、近づくと振動で知らせます。</string>
+    <string name="plus_info_spot_text">現在地をSMSで送れます。Moshpointを使っている仲間には、データ通信がなくてもそこへの矢印が出ます。</string>
+    <string name="plus_info_satellite_text">圏外でも、クルーのメッセージと現在地を衛星経由で送れます（対応プランのみ）。</string>
     <string name="plus_info_soon_title">近日公開</string>
     <string name="plus_info_soon_text">Moshpoint+はまだ購入できません。ライブの入力、クルー、チャット、仲間探しは無料のままです。</string>
     <string name="plus_info_back">プランに戻る</string>

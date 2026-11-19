@@ -129,6 +129,8 @@ sleeps and you're not following from home; followers keep the old view):
   Moshpoint+ switch off (`WatchDebugTools`).
 - **"What's in Moshpoint+"** lists smart search, Coming up, offline venue maps and the watch
   (ROADMAP.md, Moshpoint+), then "COMING SOON: Moshpoint+ isn't on sale yet", and what stays free.
+  Text my spot and satellite data were added to the list on 19 November 2026 (SPOT_LINKS.md,
+  item 5).
 - The sheet is now the home's own `MoshSheet` (the design's colour and handle) instead of a
   plain Material sheet; no existing screenshot showed it.
 

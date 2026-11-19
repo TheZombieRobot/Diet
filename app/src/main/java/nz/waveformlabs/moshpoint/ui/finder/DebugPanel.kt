@@ -143,7 +143,7 @@ fun DebugPanel(
         }
 
         Heading("Methods  (tap = on/off, solo = only this one)")
-        Method.entries.forEach { m ->
+        MATE_METHODS.forEach { m ->
             val on = m in enabled
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 1.dp)) {
                 Chip(if (on) "ON " else "off", if (on) Color(0xFFB6FF3B) else Color(0xFF757575)) { onToggle(m, !on) }
@@ -156,7 +156,7 @@ fun DebugPanel(
 
         rows.forEach { (friendId, list) ->
             Heading("${friendOf(friendId)?.name ?: friendId}: method  dist  bearing  age  score")
-            list.forEach { r ->
+            list.filter { it.method in MATE_METHODS }.forEach { r ->
                 val f = r.fix
                 val colour = when {
                     r.drivingDirection -> Color(0xFFB6FF3B)
@@ -203,7 +203,11 @@ private fun label(m: Method) = when (m) {
     Method.CROWD_RELAY -> "Crowd"
     Method.BLE_RSSI -> "BT"
     Method.HERE_PIN -> "I'm here"
+    Method.PLACE -> "Place"
 }
+
+/** The mate finder's methods: a place's own (a texted spot, docs/SPOT_LINKS.md) is never one of them. */
+private val MATE_METHODS = Method.entries - Method.PLACE
 
 private fun ageText(ms: Long) = when {
     ms < 1_000 -> "${ms}ms"

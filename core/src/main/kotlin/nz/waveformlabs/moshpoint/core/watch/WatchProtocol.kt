@@ -237,6 +237,10 @@ object WatchProtocol {
         Method.BLE_RSSI -> 7
         // An older watch reads this as "no method", which it only uses for display.
         Method.HERE_PIN -> 8
+        // A place's arrow (a texted spot, docs/SPOT_LINKS.md) is the phone's own finder's only:
+        // the watch asks for mates, never a place, so this is never sent today. Like HERE_PIN, an
+        // older watch would read it as "no method".
+        Method.PLACE -> 9
     }
 
     private fun methodOf(code: Int): Method? = when (code) {
@@ -248,6 +252,7 @@ object WatchProtocol {
         6 -> Method.WIFI_AWARE
         7 -> Method.BLE_RSSI
         8 -> Method.HERE_PIN
+        9 -> Method.PLACE
         else -> null
     }
 

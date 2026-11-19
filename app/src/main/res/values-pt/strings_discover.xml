@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">O mapa de satélite do local, salvo no seu celular pra quando o sinal cair.</string>
     <string name="plus_info_watch_title">Ache a galera pelo pulso</string>
     <string name="plus_info_watch_text">Uma seta no relógio que vibra mais quente ou mais frio.</string>
+    <string name="plus_info_spot_text">Mande seu local por SMS. Amigos com Moshpoint recebem uma seta até lá, mesmo sem dados.</string>
+    <string name="plus_info_satellite_text">Sem sinal, as mensagens da galera e seu local vão por satélite, nos planos que têm isso.</string>
     <string name="plus_info_soon_title">EM BREVE</string>
     <string name="plus_info_soon_text">O Moshpoint+ ainda não está à venda. Digitar seu show, a galera, o chat e achar seus amigos continuam de graça.</string>
     <string name="plus_info_back">Voltar ao plano</string>

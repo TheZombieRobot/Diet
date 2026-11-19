@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">Satelitarna mapa miejsca zapisana w telefonie na wypadek braku zasięgu.</string>
     <string name="plus_info_watch_title">Znajdź ich z nadgarstka</string>
     <string name="plus_info_watch_text">Strzałka na zegarku, która wibruje cieplej i zimniej.</string>
+    <string name="plus_info_spot_text">Wyślij swoją lokalizację SMS-em. Znajomi z Moshpoint dostaną do niej strzałkę, nawet bez danych.</string>
+    <string name="plus_info_satellite_text">Bez zasięgu wiadomości od ekipy i twoja lokalizacja idą przez satelitę, w planach, które to obsługują.</string>
     <string name="plus_info_soon_title">JUŻ WKRÓTCE</string>
     <string name="plus_info_soon_text">Moshpoint+ nie jest jeszcze w sprzedaży. Wpisywanie koncertu, ekipy, czat i szukanie znajomych pozostają za darmo.</string>
     <string name="plus_info_back">Wróć do planu</string>

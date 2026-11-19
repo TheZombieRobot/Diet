@@ -6,4 +6,10 @@
     <string name="spot_text_line">Ik ben hier:</string>
     <string name="spot_text_no_fix">Mijn telefoon weet nu niet waar ik ben.</string>
     <string name="spot_text_no_app">Deze telefoon heeft geen berichtenapp.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">Locatie via sms</string>
+    <string name="spot_link_broken">Moshpoint kan geen locatie uit deze link halen.</string>
+    <string name="spot_finder_waiting">Wachten op GPS…</string>
+    <string name="spot_finder_waiting_help">De pijl verschijnt zodra je telefoon weet waar hij is. Buiten werkt GPS zonder data of bereik.</string>
 </resources>

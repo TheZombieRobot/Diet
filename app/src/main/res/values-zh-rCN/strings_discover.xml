@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">场馆的卫星地图存在手机里，没信号也能看。</string>
     <string name="plus_info_watch_title">从手腕找人</string>
     <string name="plus_info_watch_text">手表上的箭头，靠近或远离时会震动提示。</string>
+    <string name="plus_info_spot_text">用短信发出你的位置。装了 Moshpoint 的朋友不用流量，也能看到指向那里的箭头。</string>
+    <string name="plus_info_satellite_text">没有信号时，小队消息和你的位置会通过卫星发送（仅限支持的套餐）。</string>
     <string name="plus_info_soon_title">即将推出</string>
     <string name="plus_info_soon_text">Moshpoint+ 暂未开售。手动输入演出、小队、聊天和找朋友都继续免费。</string>
     <string name="plus_info_back">返回计划</string>

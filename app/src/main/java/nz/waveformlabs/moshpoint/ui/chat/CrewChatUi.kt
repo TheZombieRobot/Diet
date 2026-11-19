@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.core.PingPolicy
 import nz.waveformlabs.moshpoint.ui.DefaultAvatar
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.ago
@@ -355,9 +356,13 @@ internal fun ChatLine(
 /** Shown as a speech bubble: typed messages, and the one-tap pings ("On my way"). */
 private fun isBubble(kind: Int) = kind == GigGroup.Ping.CHAT || CrewChat.isQuick(kind)
 
-/** A one-tap ping's words, in the current language ([CrewChat.Line.text] holds a check-in's minutes). */
+/**
+ * A one-tap ping's words, in the current language. An older build's check-in reads as Heading
+ * home (core PingPolicy.shownAs): nothing follows it now, so its minutes ([CrewChat.Line.text])
+ * aren't shown.
+ */
 @Composable
-private fun quickLine(l: CrewChat.Line): String = when (l.kind) {
+private fun quickLine(l: CrewChat.Line): String = when (PingPolicy.shownAs(l.kind)) {
     GigGroup.Ping.COMING -> stringResource(R.string.crew_quick_coming)
     GigGroup.Ping.WHERE_ARE_YOU -> stringResource(R.string.crew_quick_where)
     GigGroup.Ping.STAY_PUT -> stringResource(R.string.crew_quick_stay_put)
@@ -366,7 +371,6 @@ private fun quickLine(l: CrewChat.Line): String = when (l.kind) {
     GigGroup.Ping.ALL_GOOD -> stringResource(R.string.crew_quick_all_good)
     GigGroup.Ping.GOING_HOME -> stringResource(R.string.crew_quick_going_home)
     GigGroup.Ping.NEED_HELP -> stringResource(R.string.crew_quick_need_help)
-    GigGroup.Ping.CHECK_IN -> (l.text.toIntOrNull() ?: 0).let { pluralStringResource(R.plurals.crew_quick_check_in, it, it) }
     GigGroup.Ping.HOME_SAFE -> stringResource(R.string.crew_quick_home_safe)
     else -> l.text
 }

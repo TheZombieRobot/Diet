@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">แผนที่ดาวเทียมของสถานที่ เก็บไว้ในมือถือเผื่อสัญญาณหาย</string>
     <string name="plus_info_watch_title">หาเพื่อนจากข้อมือ</string>
     <string name="plus_info_watch_text">ลูกศรบนนาฬิกาที่สั่นบอกว่าใกล้หรือไกล</string>
+    <string name="plus_info_spot_text">ส่งตำแหน่งของคุณทาง SMS เพื่อนที่มี Moshpoint จะเห็นลูกศรชี้ไปที่นั่น แม้ไม่มีเน็ต</string>
+    <string name="plus_info_satellite_text">เมื่อไม่มีสัญญาณ ข้อความแก๊งและตำแหน่งของคุณจะส่งผ่านดาวเทียม สำหรับแพ็กเกจที่รองรับ</string>
     <string name="plus_info_soon_title">เร็ว ๆ นี้</string>
     <string name="plus_info_soon_text">ยังซื้อ Moshpoint+ ไม่ได้ การพิมพ์คอน แก๊ง แชท และการหาเพื่อนยังฟรีเหมือนเดิม</string>
     <string name="plus_info_back">กลับไปที่แผน</string>

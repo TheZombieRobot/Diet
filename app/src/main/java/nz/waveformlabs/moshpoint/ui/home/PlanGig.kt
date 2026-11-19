@@ -585,6 +585,9 @@ internal fun ColumnScope.PlusInfoContent(onBack: () -> Unit) {
         PlusRow(HomeIcons.Calendar, R.string.plus_info_coming_title, R.string.plus_info_coming_text)
         PlusRow(HomeIcons.MapPin, R.string.plus_info_map_title, R.string.plus_info_map_text)
         PlusRow(HomeIcons.Navigate, R.string.plus_info_watch_title, R.string.plus_info_watch_text)
+        // Text my spot and satellite data (docs/SPOT_LINKS.md, item 5): their own names as titles.
+        PlusRow(HomeIcons.Chat, R.string.spot_text, R.string.plus_info_spot_text)
+        PlusRow(HomeIcons.Satellite, R.string.satellite_data, R.string.plus_info_satellite_text)
         Spacer(Modifier.height(8.dp))
         val shape = RoundedCornerShape(20.dp)
         Column(

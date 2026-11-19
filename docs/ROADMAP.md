@@ -223,18 +223,32 @@ Moshpoint opens weeks before the gig, not only on the night.
   permissions). With no signal, phones on carriers with satellite texting send it by satellite.
   Members only, behind a Settings switch that's off by default. **Status: built** (stage 3 of
   [REMOVE_SAFETY.md](REMOVE_SAFETY.md)); not yet tried on a phone (FIELD_TEST_PLAN.md, 4m).
+  **The receiving end (owner's decision, 19 November 2026; built, [SPOT_LINKS.md](SPOT_LINKS.md)
+  item 1):** with a relay built in, the text's link is our own and opens in Moshpoint on a mate's
+  phone (an App Link) as a saved place on the map, with the finder's arrow to it from GPS and the
+  compass, no data needed. Opening is free for everyone; only sending is Moshpoint+. Not yet tried
+  on a phone (FIELD_TEST_PLAN.md, 4o). Owner to-do: deploy the relay with `/spot` and
+  `/.well-known/assetlinks.json` before a build with that relay goes out (an older relay answers
+  404 there), with Play's signing key in `MOSHPOINT_APP_CERTS` (SERVER_PRODUCTION.md).
 - **Satellite data (owner's decision, 16 November 2026).** "Use satellite when there's no
   signal": on Android 16, where the carrier allows it, the small things (locations, pings, chat
   text, pins) go over a satellite network when it's the only one, in the relay's batch at most
-  every two minutes. Members only, behind a Settings switch that's off by default; with it off,
+  every two minutes. Both it and Text my spot are listed on "What's in Moshpoint+" (19 November
+  2026, SPOT_LINKS.md item 5). Members only, behind a Settings switch that's off by default; with it off,
   nothing goes over satellite at all. **Owner to-do after launch:** carriers decide which apps may
   use satellite data (Spark and One NZ keep app lists): ask to have Moshpoint added
   (PRODUCTION_AUDIT.md, Owner to-do). **Status: built** (stage 4 of REMOVE_SAFETY.md); not yet
-  tried on a satellite network (FIELD_TEST_PLAN.md, 4n).
+  tried on a satellite network (FIELD_TEST_PLAN.md, 4n). **Crew chat read over satellite too
+  (owner's decision, 19 November 2026; built, [SPOT_LINKS.md](SPOT_LINKS.md) item 4):** the chat's
+  text mailboxes ride in the same two-minute batch, from the chat's cursors. No media, ever.
 - **Need help, check-ins and the watch's SOS are removed (owner's decision, 16 November 2026).**
   A gig app doesn't need its own emergency system; people ring emergency services themselves.
   Mates on older builds can still send them: they show as ordinary crew pings
-  ([REMOVE_SAFETY.md](REMOVE_SAFETY.md)). The owner never set rules for those features (such as
+  ([REMOVE_SAFETY.md](REMOVE_SAFETY.md)). **Heading home 🏠 is back (owner's decision, 19 November
+  2026) as a plain crew ping**, like On my way: no timer, no alert, nothing follows. It's the kind
+  older builds also show as a plain ping, so a mate on build 312 never gets an overdue alarm from
+  it ([SPOT_LINKS.md](SPOT_LINKS.md), item 2). An older build's check-in now reads as "Jo is
+  heading home", without its minutes, since nothing follows it (item 3). The owner never set rules for those features (such as
   "never paywalled" or "never limited"); earlier notes stated such rules as the owner's by
   mistake.
 

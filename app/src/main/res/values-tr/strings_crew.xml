@@ -41,10 +41,6 @@
     <string name="crew_quick_all_good">Her şey yolunda 👍</string>
     <string name="crew_quick_going_home">Eve dönüyorum 🏠</string>
     <string name="crew_quick_need_help">🚨 Yardım lazım</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="one">Eve dönüyorum 🏠 %d dk içinde haber vereceğim</item>
-        <item quantity="other">Eve dönüyorum 🏠 %d dk içinde haber vereceğim</item>
-    </plurals>
     <string name="crew_quick_home_safe">Evdeyim, her şey yolunda ✅</string>
 
     <string name="crew_plan_eyebrow">📌 PLAN</string>
@@ -118,7 +114,6 @@
     <string name="crew_ping_all_good">iyi, her şey yolunda</string>
     <string name="crew_ping_going_home">eve dönüyor</string>
     <string name="crew_ping_need_help">YARDIM İSTİYOR</string>
-    <string name="crew_ping_check_in">eve dönüyor, varınca haber verecek</string>
     <string name="crew_ping_home_safe">evde, her şey yolunda</string>
     <string name="crew_ping_chat">mesaj gönderdi</string>
     <string name="crew_ping_flare">işaret gönderdi</string>
@@ -132,7 +127,6 @@
     <string name="crew_ping_title_all_good">%1$s iyi, her şey yolunda</string>
     <string name="crew_ping_title_going_home">%1$s eve dönüyor</string>
     <string name="crew_ping_title_need_help">%1$s YARDIM İSTİYOR</string>
-    <string name="crew_ping_title_check_in">%1$s eve dönüyor, varınca haber verecek</string>
     <string name="crew_ping_title_home_safe">%1$s evde, her şey yolunda</string>
     <string name="crew_ping_title_chat">%1$s mesaj gönderdi</string>
     <string name="crew_ping_title_flare">%1$s işaret gönderdi</string>

@@ -41,7 +41,9 @@ nz/waveformlabs/moshpoint/
   (root)       Only the classes Android knows by name (AndroidManifest.xml); they never move:
                MoshpointApp (+ Txt), MainActivity, ShareInviteActivity, ShareMomentActivity,
                CrewWidget, MediaFileProvider, GigWakeReceiver, ChatCheckReceiver,
-               FollowCheckReceiver, MemoryReceiver
+               FollowCheckReceiver, MemoryReceiver; SpotLinkActivity (texted spots' App Link,
+               declared in src/spotLinks/AndroidManifest.xml only for builds with a relay,
+               docs/SPOT_LINKS.md)
   main/        MainActivity's helpers: HomeState, PermissionsState, FinderState, MapState,
                StoryState, ChatState, InviteState, CameraState (state holders); MainLaunchers
                (every activity result); MainScreen and the pieces it draws (CrewDialogs,
@@ -64,7 +66,8 @@ nz/waveformlabs/moshpoint/
   ui/home/     FriendsScreen (+ FriendsScreenState: its grouped inputs), HomeSections (crew
                sections), HomeHeroes, HomeGigLists, HomePanels, HomeBar, HomeKit (type, text,
                icons), HomeButtons, HomeFaces, HomeSheets, BumpUi, PlanGig
-  ui/finder/   FinderScreen, FinderStates, FinderArrows, CrewRadar, DebugPanel
+  ui/finder/   FinderScreen, FinderStates, FinderArrows, CrewRadar, DebugPanel, PlaceFinderScreen
+               (the finder on a texted spot, docs/SPOT_LINKS.md)
   ui/map/      MapScreen, FriendMap, VenueUi, HereUi
   ui/chat/     CrewChatUi, PrivateChatUi
   ui/moments/  StoryScreen, MomentsUi, CaptureScreen, CameraRollUi

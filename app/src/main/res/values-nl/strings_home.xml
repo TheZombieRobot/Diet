@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">Blijf staan</string>
     <string name="home_ping_meet_at_pin">Zie je bij de pin</string>
     <string name="home_ping_all_good">Alles goed</string>
+    <string name="home_ping_heading_home">Ik ga naar huis</string>
     <string name="home_ping_sent">Verstuurd ✓</string>
     <string name="home_cancel">Annuleren</string>
     <string name="home_ping_line">%1$s %2$s</string>

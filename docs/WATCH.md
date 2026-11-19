@@ -359,9 +359,11 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   or not in a crew).
 - **Never twice.** A retry reuses the same request number. If the phone already has that ping in
   its outbox it does not send another: it asks the outbox to try now and reports again.
-- **Later news** still goes from the phone to the watch when a ping gets further after the watch
-  was answered (`PingOutcome.improvesOn`), but no watch screen shows it any more: only the
-  Need help screen did. See the open questions in REMOVE_SAFETY.md.
+- **One answer per try.** The phone answers each try once; there's no later news when a ping
+  gets further after that (the phone's follow-up went on 19 November 2026: only the removed Need
+  help screen ever showed it, docs/SPOT_LINKS.md, item 6). "Try again" asks the outbox again
+  and answers with how far the ping has got (`PingOutcome.improvesOn` keeps that from going
+  backwards).
 - **A limit to know about:** while the phone has no signal and you aren't live, Android may put
   the phone app to sleep once the watch has been answered. The ping stays in the outbox and goes
   when the app next runs (when you open it or go live, or at its hourly chat check). So the

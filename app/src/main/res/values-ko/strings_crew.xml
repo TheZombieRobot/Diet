@@ -40,9 +40,6 @@
     <string name="crew_quick_all_good">괜찮아 👍</string>
     <string name="crew_quick_going_home">집에 가는 중 🏠</string>
     <string name="crew_quick_need_help">🚨 도와줘</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="other">집에 가는 중 🏠 %d분 안에 체크인할게</item>
-    </plurals>
     <string name="crew_quick_home_safe">집에 잘 도착 ✅</string>
 
     <string name="crew_plan_eyebrow">📌 계획</string>
@@ -111,7 +108,6 @@
     <string name="crew_ping_all_good">괜찮대요</string>
     <string name="crew_ping_going_home">집에 가는 중이에요</string>
     <string name="crew_ping_need_help">도움이 필요해요!</string>
-    <string name="crew_ping_check_in">집에 가는 중, 도착하면 체크인한대요</string>
     <string name="crew_ping_home_safe">집에 잘 도착했어요</string>
     <string name="crew_ping_chat">메시지를 보냈어요</string>
     <string name="crew_ping_flare">플레어를 보냈어요</string>
@@ -125,7 +121,6 @@
     <string name="crew_ping_title_all_good">%1$s님은 괜찮대요</string>
     <string name="crew_ping_title_going_home">%1$s님이 집에 가는 중이에요</string>
     <string name="crew_ping_title_need_help">%1$s님이 도움이 필요해요!</string>
-    <string name="crew_ping_title_check_in">%1$s님이 집에 가는 중, 도착하면 체크인한대요</string>
     <string name="crew_ping_title_home_safe">%1$s님이 집에 잘 도착했어요</string>
     <string name="crew_ping_title_chat">%1$s님이 메시지를 보냈어요</string>
     <string name="crew_ping_title_flare">%1$s님이 플레어를 보냈어요</string>

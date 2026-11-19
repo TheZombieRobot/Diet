@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">そこにいて</string>
     <string name="home_ping_meet_at_pin">ピンで集合</string>
     <string name="home_ping_all_good">大丈夫</string>
+    <string name="home_ping_heading_home">帰るね</string>
     <string name="home_ping_sent">送信済み ✓</string>
     <string name="home_cancel">キャンセル</string>
     <string name="home_ping_line">%1$s%2$s</string>

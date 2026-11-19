@@ -64,6 +64,7 @@ method runs at once, and a single arbiter decides what to draw.
 | `RecordLine.kt` | Debug: CSV format for field recordings (`tools/analyze_recording.py` reads it). |
 | `QrPayload.kt` | What's in a Moshpoint QR code. |
 | `Geo.kt` | Distance and bearing between GPS points. Absolute bearing → arrow angle using the compass. |
+| `Place.kt` | `PlaceRule`: the finder's reading for a place (a texted spot) from our own GPS fix: bearing, distance, a GPS confidence and the fix's own age (docs/SPOT_LINKS.md). |
 | `FinderRules.kt` | The finder module's small rules, moved out of its Android code to be tested: `ScanStarts` (Android's 5 scan starts in 30 s, one spare), `WalkingTest` (walking or not from the accelerometer), `CompassHeading` (heading from the rotation matrix, flat or upright), `LocationPick` (which of this phone's GPS fixes to keep), `GpsFixRule` (GPS bearing confidence and age limit), `HeadingLog` (the heading at the moment a reading arrived). |
 
 ## finder (Android library, package `locate`)
@@ -83,6 +84,7 @@ method runs at once, and a single arbiter decides what to draw.
 | `Capabilities.kt` | Detects BLE / UWB / Wi-Fi Aware / compass / GPS. Phones will exchange this so both sides use a method they share. |
 | `Findable.kt` | Being findable: the advert with our rotating code (swapped every rotation, fast while someone looks), Wi-Fi Aware publish, the UWB responder, the low-power listen for lookers. Run from a foreground service. |
 | `PocketFinder.kt` | The watch's finder with the phone in a pocket (docs/WATCH.md). |
+| `PlaceFinder.kt`, `FinderPlace.kt` | Finding a place instead of a person (a spot a mate texted, docs/SPOT_LINKS.md): the arrow and distance from this phone's GPS and compass only (core `PlaceRule`), no radio started and nothing broadcast. Kept apart from `LocatorEngine`, so finding mates is unchanged. |
 | `FinderMate.kt`, `FinderPlugins.kt`, `FinderLog.kt` | What the app plugs in; the test-build gate for status lines and recordings. |
 
 ## app (Android)

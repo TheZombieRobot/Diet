@@ -85,10 +85,7 @@ internal fun MapOverlay(a: MainActivity) {
             nowMs = now,
             onFind = { id ->
                 a.map.closeMap()
-                a.finder.engine.track(setOf(id))
-                a.finder.finding = true
-                a.finder.pendingStop?.cancel()
-                a.finder.engine.start()
+                a.finder.lookFor(setOf(id))
             },
             onDirections = { lat, lon ->
                 runCatching {
@@ -104,7 +101,12 @@ internal fun MapOverlay(a: MainActivity) {
             onBack = { a.map.closeMap() },
             places = listOfNotNull(
                 GroupSync.rally.value?.let { MapPlace("rally", it.name, it.lat, it.lon, meetUp = true) },
-            ) + Spots.spots.map { MapPlace(it.id, it.name, it.lat, it.lon, meetUp = false) },
+            ) + Spots.spots.map { MapPlace(it.id, Spots.label(it), it.lat, it.lon, meetUp = false, texted = it.texted) },
+            // A spot a mate texted: the finder's arrow to it, from GPS and the compass (docs/SPOT_LINKS.md).
+            onFindPlace = { p -> a.finder.findPlace(p) },
+            // Opened from a texted spot's link, or "Show on map" while finding one: look there first.
+            focusOn = a.map.focus?.at,
+            focusKey = a.map.focus?.n ?: 0,
             inCrew = GroupSync.group.value != null,
             onDropPin = { name, lat, lon, meetUp ->
                 if (meetUp) {

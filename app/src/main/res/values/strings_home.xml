@@ -12,6 +12,7 @@
     <string name="home_ping_stay_put">Stay put</string>
     <string name="home_ping_meet_at_pin">Meet at the pin</string>
     <string name="home_ping_all_good">All good</string>
+    <string name="home_ping_heading_home">Heading home</string>
     <string name="home_ping_sent">Sent ✓</string>
     <string name="home_cancel">Cancel</string>
     <!-- A line in the ping feed. %1$s = mate's name, %2$s = what they said, e.g. "is on their way" -->

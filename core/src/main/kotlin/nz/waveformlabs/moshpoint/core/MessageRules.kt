@@ -102,6 +102,15 @@ object PingPolicy {
         else -> Group.UNKNOWN
     }
 
+    /**
+     * The kind a ping is shown as. An older build's Check in ("heading home, worry if I haven't
+     * checked in within 45 min") is shown as Heading home: "Jo is heading home", "Heading home
+     * 🏠". Nothing follows a check-in any more, so its minutes would promise a check-in nobody
+     * waits for (owner's decision, 19 November 2026; docs/SPOT_LINKS.md, item 3). Every other kind
+     * is shown as itself. Only the words change: the message is kept and passed on as it came.
+     */
+    fun shownAs(kind: Int): Int = if (kind == GigGroup.Ping.CHECK_IN) GigGroup.Ping.GOING_HOME else kind
+
     /** How long phones carry it for crew mates who haven't had it. */
     fun carrySec(kind: Int): Long = when (group(kind)) {
         Group.QUICK, Group.OLDER_BUILDS, Group.FLARE -> 2 * 3600L

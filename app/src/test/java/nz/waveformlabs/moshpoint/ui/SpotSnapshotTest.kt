@@ -15,8 +15,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
+import androidx.compose.ui.res.stringResource
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.core.ArrowState
+import nz.waveformlabs.moshpoint.core.FriendRecord
+import nz.waveformlabs.moshpoint.core.LatLon
+import nz.waveformlabs.moshpoint.core.Method
+import nz.waveformlabs.moshpoint.friends.Friend
+import nz.waveformlabs.moshpoint.map.LocationBook
+import nz.waveformlabs.moshpoint.ui.finder.PlaceFinderScreen
 import nz.waveformlabs.moshpoint.ui.home.MessageSheetContent
 import nz.waveformlabs.moshpoint.ui.home.SheetFrame
+import nz.waveformlabs.moshpoint.ui.map.MapPlace
+import nz.waveformlabs.moshpoint.ui.map.MapScreen
 import nz.waveformlabs.moshpoint.ui.settings.PlusSettings
 import nz.waveformlabs.moshpoint.ui.settings.SettingsContent
 import org.junit.Rule
@@ -24,7 +35,9 @@ import org.junit.Test
 
 /**
  * Text my spot (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3): the button after the crew pings,
- * and Settings' Moshpoint+ switch that turns it on (members only, off until they do).
+ * and Settings' Moshpoint+ switch that turns it on (members only, off until they do). And the
+ * receiving end (docs/SPOT_LINKS.md): a texted spot as a saved place in the map's list, and the
+ * finder pointing at it (free for everyone).
  *
  * In its own class (and file) rather than in ScreensSnapshotTest, so it merges cleanly with
  * other work on that file. Rendered like the rest:
@@ -99,6 +112,67 @@ open class SpotSnapshotTest {
             }
         }
     }
+
+    // ---- Texted spots open in Moshpoint (docs/SPOT_LINKS.md) ----
+
+    private val nowMs = 1_000_000_000L
+    private val me = LatLon(-36.84850, 174.76330)
+    private val jo = Friend(FriendRecord("jo", "Jo", 0xFFFFB020.toInt(), ByteArray(32) { it.toByte() }, true, 0L))
+
+    /**
+     * The map's list after opening two texted spots: Sam's (named after Sam, "Texted spot"
+     * under it) and one whose link had no name. Each has Find (the finder's arrow, no data
+     * needed) where your own spots have Ride; your own spot and a mate are there to compare.
+     * The map itself can't be drawn here (it needs the phone's native map library).
+     */
+    private fun snapTextedMap() = snap {
+        MoshTheme {
+            val texted = stringResource(R.string.spot_link_texted)
+            MapScreen(
+                people = listOf(jo),
+                seen = mapOf("jo" to LocationBook.Seen(-36.8466, 174.7770, nowMs / 1000 - 30, 10, batteryPct = 64)),
+                me = me,
+                status = "Updated just now",
+                nowMs = nowMs,
+                onFind = {}, onDirections = { _, _ -> }, onNudge = {}, onBack = {},
+                places = listOf(
+                    MapPlace("t1", "Sam", -36.85210, 174.76020, meetUp = false, texted = true),
+                    MapPlace("t2", texted, -36.84400, 174.77150, meetUp = false, texted = true),
+                    MapPlace("s1", "Tent", -36.84900, 174.76400, meetUp = false),
+                ),
+                onRide = { _, _ -> },
+                liveMap = false,
+                onFindPlace = {},
+            )
+        }
+    }
+
+    @Test fun textedSpotMap() = snapTextedMap()
+
+    @Test fun smallPhoneLargeFontTextedSpotMap() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        snapTextedMap()
+    }
+
+    /** The finder on Sam's texted spot: the meet-up pin at the arrow's tip, 240 m, from GPS and the compass. */
+    private fun snapTextedFinder(arrow: ArrowState) = snap {
+        MoshTheme {
+            PlaceFinderScreen(
+                id = "t1", title = "Sam", caption = stringResource(R.string.spot_link_texted), visible = true,
+                arrows = listOf(arrow), onOpenMap = {}, onBack = {},
+            )
+        }
+    }
+
+    @Test fun textedSpotFinder() = snapTextedFinder(ArrowState.Pointing("t1", 35.0, 240.0, Method.PLACE, unsure = false))
+
+    @Test fun smallPhoneLargeFontTextedSpotFinder() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        snapTextedFinder(ArrowState.Pointing("t1", 35.0, 240.0, Method.PLACE, unsure = false))
+    }
+
+    /** Before the phone has a fix: waiting for GPS, which needs no data or signal outside. */
+    @Test fun textedSpotFinderWaiting() = snapTextedFinder(ArrowState.NoSignal("t1"))
 
     /** Right-to-left set on Compose itself: the renderer's own setting doesn't reach every screen. */
     private fun snap(content: @Composable () -> Unit) = paparazzi.snapshot {

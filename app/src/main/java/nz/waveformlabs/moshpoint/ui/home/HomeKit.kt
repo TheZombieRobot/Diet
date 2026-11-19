@@ -167,6 +167,16 @@ internal object HomeIcons {
 
     val More by lazy { solid("more", circle(5f, 12f, 2f), circle(12f, 12f, 2f), circle(19f, 12f, 2f)) }
     val Navigate by lazy { line("navigate", 2.4f, "M4 11l16-7-7 16-2-7z") }
+    /** A satellite sending: its body and two panels on the diagonal, two arcs of signal (Moshpoint+'s satellite data). */
+    val Satellite by lazy {
+        line(
+            "satellite", 1.8f,
+            "M8.5 12L12 8.5 15.5 12 12 15.5z",
+            "M3.4 17.5L7.3 13.6 10.4 16.7 6.5 20.6z", "M10.2 13.8L8.8 15.2",
+            "M13.6 7.3L17.5 3.4 20.6 6.5 16.7 10.4z", "M13.8 10.2L15.2 8.8",
+            "M16.8 13.8a3 3 0 0 1-3 3", "M19.8 13.8a6 6 0 0 1-6 6",
+        )
+    }
     val Chat by lazy { line("chat", 2f, "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z") }
     val Camera by lazy { line("camera", 2f, "M4 8h3l2-3h6l2 3h3v11H4z", circle(12f, 13f, 3.5f)) }
     val Pin by lazy { line("pin", 2.2f, "M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z", circle(12f, 9.5f, 2.5f)) }

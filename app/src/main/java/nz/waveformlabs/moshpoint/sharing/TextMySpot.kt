@@ -5,20 +5,26 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
+import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.SpotText
 import nz.waveformlabs.moshpoint.crew.CrewStatus
+import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.watch.Entitlements
 
 /**
  * "Text my spot" (Moshpoint+, docs/REMOVE_SAFETY.md, stage 3): one tap in the crew area opens
  * the phone's own texting app with a message already written (core [SpotText]): a short line, a
- * maps link and the plain coordinates. The person picks a mate and presses Send. Moshpoint never
+ * link and the plain coordinates. The person picks a mate and presses Send. Moshpoint never
  * sends or reads a text itself, so it asks for no SMS permission (Play allows those only for the
  * default texting app). With no signal, a phone whose carrier texts by satellite sends it that way.
  *
  * Members only, behind a Settings switch that's off by default. Free users don't see it.
+ *
+ * The link: with a relay of our own built in, our own (core SpotLink), which opens straight in
+ * Moshpoint on a mate's phone, with the sender's first name on the pin (docs/SPOT_LINKS.md), and
+ * in Google Maps through the relay's page anywhere else; with none, a Google Maps link.
  */
 object TextMySpot {
     /** The Settings switch (Compose state). Off until someone turns it on. */
@@ -44,7 +50,10 @@ object TextMySpot {
     /** The text, from this phone's last fix (none in the last 10 minutes: it says so plainly). */
     fun message(c: Context): String {
         val here = CrewStatus.myLocation(c)
-        return SpotText.message(Txt.s(R.string.spot_text_line), Txt.s(R.string.spot_text_no_fix), here?.latitude, here?.longitude)
+        return SpotText.message(
+            Txt.s(R.string.spot_text_line), Txt.s(R.string.spot_text_no_fix), here?.latitude, here?.longitude,
+            server = BuildConfig.MOSHPOINT_SERVER, name = VisibilityPrefs.myName(c),
+        )
     }
 
     /**

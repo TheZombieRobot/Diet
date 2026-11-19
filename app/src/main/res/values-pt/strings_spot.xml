@@ -6,4 +6,10 @@
     <string name="spot_text_line">Estou aqui:</string>
     <string name="spot_text_no_fix">Meu celular não sabe onde estou agora.</string>
     <string name="spot_text_no_app">Este celular não tem app de mensagens.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">Local por SMS</string>
+    <string name="spot_link_broken">O Moshpoint não consegue ler um local neste link.</string>
+    <string name="spot_finder_waiting">Aguardando o GPS…</string>
+    <string name="spot_finder_waiting_help">A seta aparece assim que seu celular souber onde está. Ao ar livre, o GPS funciona sem dados nem sinal.</string>
 </resources>

@@ -6,4 +6,10 @@
     <string name="spot_text_line">여기 있어요:</string>
     <string name="spot_text_no_fix">지금은 폰이 내 위치를 찾지 못하고 있어요.</string>
     <string name="spot_text_no_app">이 폰에는 메시지 앱이 없어요.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">문자로 받은 위치</string>
+    <string name="spot_link_broken">Moshpoint가 이 링크에서 위치를 읽을 수 없어요.</string>
+    <string name="spot_finder_waiting">GPS 기다리는 중…</string>
+    <string name="spot_finder_waiting_help">폰이 위치를 찾으면 화살표가 나타나요. 실외에서는 GPS가 데이터나 신호 없이도 작동해요.</string>
 </resources>

@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">Die Satellitenkarte der Location, auf deinem Handy gespeichert, falls der Empfang weg ist.</string>
     <string name="plus_info_watch_title">Finde sie vom Handgelenk aus</string>
     <string name="plus_info_watch_text">Ein Pfeil auf deiner Uhr, der wärmer und kälter vibriert.</string>
+    <string name="plus_info_spot_text">Schick deinen Standort per SMS. Freunde mit Moshpoint bekommen einen Pfeil dorthin, auch ohne mobile Daten.</string>
+    <string name="plus_info_satellite_text">Ohne Empfang gehen Crew-Nachrichten und dein Standort per Satellit, bei Tarifen mit Satellitendaten.</string>
     <string name="plus_info_soon_title">BALD VERFÜGBAR</string>
     <string name="plus_info_soon_text">Moshpoint+ gibt es noch nicht zu kaufen. Konzert eingeben, Crews, Chat und Freunde finden bleiben kostenlos.</string>
     <string name="plus_info_back">Zurück zum Plan</string>

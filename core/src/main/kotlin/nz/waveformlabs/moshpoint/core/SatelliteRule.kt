@@ -14,6 +14,8 @@ package nz.waveformlabs.moshpoint.core
  *    locations, pings, chat text and pins going up, the crew's mailboxes coming down), at most
  *    one every [GAP_MS]. No photos, clips, faces, Discover, venue maps, map tiles or anything
  *    else. The free public relay takes no batches, so nothing goes over satellite there.
+ *  - The crew chat is read in that same batch ([chatInBatch], docs/SPOT_LINKS.md item 4): its
+ *    text mailboxes, from the chat's own cursors, so one exchange carries the chat both ways.
  *  - Any other network: exactly as before.
  */
 object SatelliteRule {
@@ -61,4 +63,39 @@ object SatelliteRule {
 
     /** When the next batch may go over satellite: [dueMs] or the end of the gap, whichever is later. */
     fun nextBatchAt(dueMs: Long, lastBatchMs: Long?): Long = if (lastBatchMs == null) dueMs else maxOf(dueMs, lastBatchMs + GAP_MS)
+
+    /**
+     * Is the crew chat read in the batch (docs/SPOT_LINKS.md, item 4)? Over satellite, for a member
+     * who switched it on: the chat's own poll is a request of its own, which never goes over
+     * satellite, so its text mailboxes ride in the crew sync's batch instead, read from the same
+     * cursors (`/v1/heldsince`'s), at most every [GAP_MS] like everything in it. Only text: chat
+     * lines, plans, history copies and private messages are records in those mailboxes; photos and
+     * clips are files of their own and never go over satellite. Any other network: never, the
+     * chat's own poll reads it as before.
+     */
+    fun chatInBatch(constrained: Boolean, allowed: Boolean): Boolean = constrained && allowed
+
+    /**
+     * Whose chats a satellite batch reads, when they don't all fit. [sizes]: each crew's chat
+     * mailboxes, in the chat poll's order (tonight's crew first); [room]: the reads the batch has
+     * left after the crew sync's own. Tonight's crew first, then the others in turn, starting one
+     * further on with each batch ([turn] counts them), so a crew left out this time is read in a
+     * later batch. A crew that doesn't fit is skipped, never cut in half. The indexes, in order.
+     */
+    fun chatCrews(sizes: List<Int>, room: Int, turn: Int): List<Int> {
+        if (sizes.isEmpty() || room <= 0) return emptyList()
+        val order = listOf(0) + (1 until sizes.size).let { rest ->
+            if (rest.isEmpty()) emptyList() else rest.map { 1 + Math.floorMod(it - 1 + turn, rest.count()) }
+        }
+        var left = room
+        val picked = ArrayList<Int>()
+        for (i in order) {
+            val n = sizes[i]
+            if (n in 1..left) {
+                picked += i
+                left -= n
+            }
+        }
+        return picked.sorted()
+    }
 }

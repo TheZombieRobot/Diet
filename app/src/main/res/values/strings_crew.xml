@@ -60,15 +60,11 @@
     <string name="crew_quick_stay_put">Stay put ✋</string>
     <string name="crew_quick_meet_pin">Meet at the pin 📍</string>
     <string name="crew_quick_all_good">All good 👍</string>
-    <!-- Heading home, Need help, the check-in and Home safe: older builds still send them (the features were
-         removed on 16 November 2026), and they're shown as ordinary pings, in the sender's words. -->
+    <!-- Heading home is a plain ping again (19 November 2026). Need help, the check-in and Home safe: older
+         builds still send them (the features were removed on 16 November 2026), and they're shown as ordinary
+         pings, in the sender's words; an older build's check-in reads as Heading home (nothing follows it now). -->
     <string name="crew_quick_going_home">Heading home 🏠</string>
     <string name="crew_quick_need_help">🚨 I need help</string>
-    <!-- %d = minutes until they'll check in -->
-    <plurals name="crew_quick_check_in">
-        <item quantity="one">Heading home 🏠 Will check in within %d min</item>
-        <item quantity="other">Heading home 🏠 Will check in within %d min</item>
-    </plurals>
     <string name="crew_quick_home_safe">Home safe ✅</string>
 
     <!-- ===== Pinned plan ===== -->
@@ -163,7 +159,6 @@
     <string name="crew_ping_all_good">is all good</string>
     <string name="crew_ping_going_home">is heading home</string>
     <string name="crew_ping_need_help">NEEDS HELP</string>
-    <string name="crew_ping_check_in">is heading home and will check in</string>
     <string name="crew_ping_home_safe">is home safe</string>
     <string name="crew_ping_chat">sent a message</string>
     <string name="crew_ping_flare">sent a flare</string>
@@ -178,7 +173,6 @@
     <string name="crew_ping_title_all_good">%1$s is all good</string>
     <string name="crew_ping_title_going_home">%1$s is heading home</string>
     <string name="crew_ping_title_need_help">%1$s NEEDS HELP</string>
-    <string name="crew_ping_title_check_in">%1$s is heading home and will check in</string>
     <string name="crew_ping_title_home_safe">%1$s is home safe</string>
     <string name="crew_ping_title_chat">%1$s sent a message</string>
     <string name="crew_ping_title_flare">%1$s sent a flare</string>

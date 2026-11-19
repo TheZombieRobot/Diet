@@ -40,9 +40,6 @@
     <string name="crew_quick_all_good">大丈夫 👍</string>
     <string name="crew_quick_going_home">帰るね 🏠</string>
     <string name="crew_quick_need_help">🚨 助けて</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="other">帰るね 🏠 %d分以内に到着確認するね</item>
-    </plurals>
     <string name="crew_quick_home_safe">無事に帰ったよ ✅</string>
 
     <string name="crew_plan_eyebrow">📌 予定</string>
@@ -111,7 +108,6 @@
     <string name="crew_ping_all_good">は大丈夫です</string>
     <string name="crew_ping_going_home">が帰宅中です</string>
     <string name="crew_ping_need_help">が助けを求めています</string>
-    <string name="crew_ping_check_in">が帰宅中です。着いたら到着確認します</string>
     <string name="crew_ping_home_safe">が無事に帰宅しました</string>
     <string name="crew_ping_chat">がメッセージを送りました</string>
     <string name="crew_ping_flare">がフレアを送りました</string>
@@ -125,7 +121,6 @@
     <string name="crew_ping_title_all_good">%1$sは大丈夫です</string>
     <string name="crew_ping_title_going_home">%1$sが帰宅中です</string>
     <string name="crew_ping_title_need_help">%1$sが助けを求めています！</string>
-    <string name="crew_ping_title_check_in">%1$sが帰宅中です。着いたら到着確認します</string>
     <string name="crew_ping_title_home_safe">%1$sが無事に帰宅しました</string>
     <string name="crew_ping_title_chat">%1$sがメッセージを送りました</string>
     <string name="crew_ping_title_flare">%1$sがフレアを送りました</string>

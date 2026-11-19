@@ -41,10 +41,6 @@
     <string name="crew_quick_all_good">Allt lugnt 👍</string>
     <string name="crew_quick_going_home">På väg hem 🏠</string>
     <string name="crew_quick_need_help">🚨 Jag behöver hjälp</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="one">På väg hem 🏠 Checkar in inom %d min</item>
-        <item quantity="other">På väg hem 🏠 Checkar in inom %d min</item>
-    </plurals>
     <string name="crew_quick_home_safe">Hemma ✅</string>
 
     <string name="crew_plan_eyebrow">📌 PLANEN</string>
@@ -118,7 +114,6 @@
     <string name="crew_ping_all_good">har det lugnt</string>
     <string name="crew_ping_going_home">är på väg hem</string>
     <string name="crew_ping_need_help">BEHÖVER HJÄLP</string>
-    <string name="crew_ping_check_in">är på väg hem och checkar in</string>
     <string name="crew_ping_home_safe">är hemma</string>
     <string name="crew_ping_chat">skickade ett meddelande</string>
     <string name="crew_ping_flare">skickade en lysraket</string>
@@ -132,7 +127,6 @@
     <string name="crew_ping_title_all_good">%1$s har det lugnt</string>
     <string name="crew_ping_title_going_home">%1$s är på väg hem</string>
     <string name="crew_ping_title_need_help">%1$s BEHÖVER HJÄLP</string>
-    <string name="crew_ping_title_check_in">%1$s är på väg hem och checkar in</string>
     <string name="crew_ping_title_home_safe">%1$s är hemma</string>
     <string name="crew_ping_title_chat">%1$s skickade ett meddelande</string>
     <string name="crew_ping_title_flare">%1$s skickade en lysraket</string>

@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">待在原地</string>
     <string name="home_ping_meet_at_pin">集合點見</string>
     <string name="home_ping_all_good">一切OK</string>
+    <string name="home_ping_heading_home">要回家了</string>
     <string name="home_ping_sent">已傳送 ✓</string>
     <string name="home_cancel">取消</string>
     <string name="home_ping_line">%1$s%2$s</string>

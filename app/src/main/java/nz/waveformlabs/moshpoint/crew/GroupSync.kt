@@ -583,10 +583,20 @@ object GroupSync {
         AvatarSync.publishMine(c) // our face on the crew's tiles (re-shared every couple of hours)
         AvatarSync.fetchFriends(c)
         CrewChat.tick()
-        ChatSync.pollAll(c, minGapMs = 120_000)
+        // Over satellite the chat's own poll can't go (only this batch may, every two minutes), so
+        // the chat's text mailboxes ride in this batch, from its own cursors (docs/SPOT_LINKS.md,
+        // item 4; core SatelliteRule.chatInBatch). Any other network: the chat's own poll, as before.
+        val chat = ChatSync.satelliteMailboxes(c, room = RelayClient.chatRoom(ids.size))
+        if (chat == null) ChatSync.pollAll(c, minGapMs = 120_000)
         // With our own relay, one batch: these lookups plus every location, floor, crowd-relay
         // packet, intro and crew message waiting to go up (RelayClient.sync). Else a lookup, as before.
-        val found = RelayClient.sync(ids) ?: return
+        val found = if (chat == null) {
+            RelayClient.sync(ids) ?: return
+        } else {
+            val (boxes, chatFound) = RelayClient.syncWithChat(ids, chat.ids) ?: return
+            ChatSync.readFromBatch(c, chat, chatFound)
+            boxes
+        }
         found.subList(0, 2).flatten().forEach { received(c, g, it) }
         // The courier notes what's on the relay, so nothing it carries is uploaded twice, and
         // says which pings this phone has never had before.
@@ -717,9 +727,12 @@ object GroupSync {
     private fun android.content.SharedPreferences.boolOf(key: String): Boolean =
         runCatching { getBoolean(key, false) }.getOrElse { runCatching { getString(key, null)?.toBoolean() }.getOrNull() ?: false }
 
-    /** What a ping says, e.g. "is coming to you" (shown after the sender's name). */
+    /**
+     * What a ping says, e.g. "is coming to you" (shown after the sender's name). An older build's
+     * check-in says "is heading home" (core PingPolicy.shownAs): nothing follows it now.
+     */
     fun pingText(kind: Int): String = Txt.s(
-        when (kind) {
+        when (PingPolicy.shownAs(kind)) {
             GigGroup.Ping.COMING -> R.string.crew_ping_coming
             GigGroup.Ping.STAY_PUT -> R.string.crew_ping_stay_put
             GigGroup.Ping.WHERE_ARE_YOU -> R.string.crew_ping_where
@@ -727,7 +740,6 @@ object GroupSync {
             GigGroup.Ping.ALL_GOOD -> R.string.crew_ping_all_good
             GigGroup.Ping.GOING_HOME -> R.string.crew_ping_going_home
             GigGroup.Ping.NEED_HELP -> R.string.crew_ping_need_help
-            GigGroup.Ping.CHECK_IN -> R.string.crew_ping_check_in
             GigGroup.Ping.HOME_SAFE -> R.string.crew_ping_home_safe
             GigGroup.Ping.CHAT -> R.string.crew_ping_chat
             GigGroup.Ping.FLARE -> R.string.crew_ping_flare
@@ -736,9 +748,9 @@ object GroupSync {
         },
     )
 
-    /** A whole notification title for a ping from [name] ("Jo is on their way"). */
+    /** A whole notification title for a ping from [name] ("Jo is on their way"; an older build's check-in, "Jo is heading home"). */
     fun pingTitle(kind: Int, name: String): String = Txt.s(
-        when (kind) {
+        when (PingPolicy.shownAs(kind)) {
             GigGroup.Ping.COMING -> R.string.crew_ping_title_coming
             GigGroup.Ping.STAY_PUT -> R.string.crew_ping_title_stay_put
             GigGroup.Ping.WHERE_ARE_YOU -> R.string.crew_ping_title_where
@@ -746,7 +758,6 @@ object GroupSync {
             GigGroup.Ping.ALL_GOOD -> R.string.crew_ping_title_all_good
             GigGroup.Ping.GOING_HOME -> R.string.crew_ping_title_going_home
             GigGroup.Ping.NEED_HELP -> R.string.crew_ping_title_need_help
-            GigGroup.Ping.CHECK_IN -> R.string.crew_ping_title_check_in
             GigGroup.Ping.HOME_SAFE -> R.string.crew_ping_title_home_safe
             GigGroup.Ping.CHAT -> R.string.crew_ping_title_chat
             GigGroup.Ping.FLARE -> R.string.crew_ping_title_flare

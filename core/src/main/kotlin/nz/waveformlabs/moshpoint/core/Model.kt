@@ -38,6 +38,13 @@ enum class Method(val precision: Double, val maxAgeMs: Long, val givesDirection:
      * long as the pin stands; UWB up close still wins. Re-made every few seconds while it stands.
      */
     HERE_PIN(precision = 0.65, maxAgeMs = 40_000, givesDirection = true),
+
+    /**
+     * A place, not a person: a spot a mate texted (docs/SPOT_LINKS.md), from our own GPS
+     * position and the compass, so it needs no data or signal ([PlaceRule]). The only method a
+     * place ever has. Ages with our own GPS fix: with none in [maxAgeMs], no arrow.
+     */
+    PLACE(precision = 0.65, maxAgeMs = 40_000, givesDirection = true),
 }
 
 /**

@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">ابقَ مكانك</string>
     <string name="home_ping_meet_at_pin">نلتقي عند الدبوس</string>
     <string name="home_ping_all_good">كل شيء تمام</string>
+    <string name="home_ping_heading_home">في طريقي إلى البيت</string>
     <string name="home_ping_sent">أُرسل ✓</string>
     <string name="home_cancel">إلغاء</string>
     <string name="home_ping_line">%1$s: %2$s</string>

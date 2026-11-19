@@ -86,6 +86,8 @@ class WatchProtocolTest {
         assertFalse(0 in codes)
         assertEquals(1, codes[Method.entries.indexOf(Method.UWB)])
         assertEquals(7, codes[Method.entries.indexOf(Method.BLE_RSSI)])
+        assertEquals(8, codes[Method.entries.indexOf(Method.HERE_PIN)])
+        assertEquals(9, codes[Method.entries.indexOf(Method.PLACE)])
     }
 
     @Test fun aNewerSenderMayAddFieldsAtTheEnd() {

@@ -40,9 +40,6 @@
     <string name="crew_quick_all_good">Ổn cả 👍</string>
     <string name="crew_quick_going_home">Đang về nhà 🏠</string>
     <string name="crew_quick_need_help">🚨 Mình cần giúp đỡ</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="other">Đang về nhà 🏠 Sẽ check-in trong %d phút</item>
-    </plurals>
     <string name="crew_quick_home_safe">Về nhà an toàn ✅</string>
 
     <string name="crew_plan_eyebrow">📌 KẾ HOẠCH</string>
@@ -111,7 +108,6 @@
     <string name="crew_ping_all_good">vẫn ổn</string>
     <string name="crew_ping_going_home">đang về nhà</string>
     <string name="crew_ping_need_help">CẦN GIÚP ĐỠ</string>
-    <string name="crew_ping_check_in">đang về nhà và sẽ check-in</string>
     <string name="crew_ping_home_safe">đã về nhà an toàn</string>
     <string name="crew_ping_chat">đã gửi tin nhắn</string>
     <string name="crew_ping_flare">đã phát tín hiệu</string>
@@ -125,7 +121,6 @@
     <string name="crew_ping_title_all_good">%1$s vẫn ổn</string>
     <string name="crew_ping_title_going_home">%1$s đang về nhà</string>
     <string name="crew_ping_title_need_help">%1$s CẦN GIÚP ĐỠ</string>
-    <string name="crew_ping_title_check_in">%1$s đang về nhà và sẽ check-in</string>
     <string name="crew_ping_title_home_safe">%1$s đã về nhà an toàn</string>
     <string name="crew_ping_title_chat">%1$s đã gửi tin nhắn</string>
     <string name="crew_ping_title_flare">%1$s đã phát tín hiệu</string>

@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">공연장 위성 지도를 폰에 저장해 신호가 끊겨도 볼 수 있어요.</string>
     <string name="plus_info_watch_title">손목으로 친구 찾기</string>
     <string name="plus_info_watch_text">가까워지면 진동으로 알려 주는 워치의 화살표.</string>
+    <string name="plus_info_spot_text">내 위치를 문자로 보내요. Moshpoint가 있는 친구는 데이터 없이도 그곳을 가리키는 화살표를 받아요.</string>
+    <string name="plus_info_satellite_text">신호가 없을 때 크루 메시지와 내 위치가 위성으로 가요. 지원하는 요금제에서만 돼요.</string>
     <string name="plus_info_soon_title">곧 출시</string>
     <string name="plus_info_soon_text">Moshpoint+는 아직 구매할 수 없어요. 공연 입력, 크루, 채팅, 친구 찾기는 계속 무료예요.</string>
     <string name="plus_info_back">계획으로 돌아가기</string>

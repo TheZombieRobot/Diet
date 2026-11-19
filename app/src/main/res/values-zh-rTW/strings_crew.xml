@@ -40,9 +40,6 @@
     <string name="crew_quick_all_good">一切OK 👍</string>
     <string name="crew_quick_going_home">要回家了 🏠</string>
     <string name="crew_quick_need_help">🚨 我需要幫忙</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="other">要回家了 🏠 %d 分鐘內報平安</item>
-    </plurals>
     <string name="crew_quick_home_safe">平安到家 ✅</string>
 
     <string name="crew_plan_eyebrow">📌 計畫</string>
@@ -111,7 +108,6 @@
     <string name="crew_ping_all_good">一切OK</string>
     <string name="crew_ping_going_home">要回家了</string>
     <string name="crew_ping_need_help">需要幫忙！</string>
-    <string name="crew_ping_check_in">要回家了，到家會報平安</string>
     <string name="crew_ping_home_safe">已平安到家</string>
     <string name="crew_ping_chat">傳了一則訊息</string>
     <string name="crew_ping_flare">發了信號彈</string>
@@ -125,7 +121,6 @@
     <string name="crew_ping_title_all_good">%1$s 一切OK</string>
     <string name="crew_ping_title_going_home">%1$s 要回家了</string>
     <string name="crew_ping_title_need_help">%1$s 需要幫忙！</string>
-    <string name="crew_ping_title_check_in">%1$s 要回家了，到家會報平安</string>
     <string name="crew_ping_title_home_safe">%1$s 已平安到家</string>
     <string name="crew_ping_title_chat">%1$s 傳了一則訊息</string>
     <string name="crew_ping_title_flare">%1$s 發了信號彈</string>

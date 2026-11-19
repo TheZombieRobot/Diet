@@ -191,6 +191,10 @@ internal fun PingBar(onPing: (Int) -> Unit, onTextSpot: (() -> Unit)? = null, sc
         GigGroup.Ping.STAY_PUT to stringResource(R.string.home_ping_stay_put),
         GigGroup.Ping.MEET_AT_PIN to stringResource(R.string.home_ping_meet_at_pin),
         GigGroup.Ping.ALL_GOOD to stringResource(R.string.home_ping_all_good),
+        // A plain ping, like On my way: no timer, no alert, nothing follows. Kind 6, which every
+        // build shows as "Heading home 🏠"; never Check in's 8, which build 312 times and alarms on
+        // (docs/SPOT_LINKS.md, item 2).
+        GigGroup.Ping.GOING_HOME to stringResource(R.string.home_ping_heading_home),
     )
     val sentLabel = stringResource(R.string.home_ping_sent)
     Row(Modifier.horizontalScroll(scroll), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

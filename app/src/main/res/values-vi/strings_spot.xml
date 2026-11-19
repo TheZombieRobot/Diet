@@ -6,4 +6,10 @@
     <string name="spot_text_line">Mình đang ở đây:</string>
     <string name="spot_text_no_fix">Điện thoại chưa xác định được mình đang ở đâu.</string>
     <string name="spot_text_no_app">Máy này không có app tin nhắn.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">Vị trí qua tin nhắn</string>
+    <string name="spot_link_broken">Moshpoint không đọc được vị trí từ liên kết này.</string>
+    <string name="spot_finder_waiting">Đang chờ GPS…</string>
+    <string name="spot_finder_waiting_help">Mũi tên sẽ hiện khi điện thoại biết mình đang ở đâu. Ở ngoài trời, GPS chạy được mà không cần dữ liệu hay sóng.</string>
 </resources>

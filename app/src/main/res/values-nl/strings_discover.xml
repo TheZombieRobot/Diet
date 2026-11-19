@@ -25,6 +25,8 @@
     <string name="plus_info_map_text">De satellietkaart van de locatie, op je telefoon bewaard voor als het bereik wegvalt.</string>
     <string name="plus_info_watch_title">Vind ze vanaf je pols</string>
     <string name="plus_info_watch_text">Een pijl op je horloge die warmer en kouder trilt.</string>
+    <string name="plus_info_spot_text">Sms je locatie. Vrienden met Moshpoint krijgen een pijl ernaartoe, zelfs zonder data.</string>
+    <string name="plus_info_satellite_text">Zonder bereik gaan crewberichten en je locatie via de satelliet, bij abonnementen die dat bieden.</string>
     <string name="plus_info_soon_title">BINNENKORT</string>
     <string name="plus_info_soon_text">Moshpoint+ is nog niet te koop. Je concert intypen, crews, chat en je vrienden vinden blijven gratis.</string>
     <string name="plus_info_back">Terug naar het plan</string>

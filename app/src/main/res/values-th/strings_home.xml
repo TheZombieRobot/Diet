@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">รออยู่ตรงนั้น</string>
     <string name="home_ping_meet_at_pin">เจอกันที่หมุด</string>
     <string name="home_ping_all_good">โอเคดี</string>
+    <string name="home_ping_heading_home">กำลังกลับบ้าน</string>
     <string name="home_ping_sent">ส่งแล้ว ✓</string>
     <string name="home_cancel">ยกเลิก</string>
     <string name="home_ping_line">%1$s %2$s</string>

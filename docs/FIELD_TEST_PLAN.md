@@ -564,9 +564,11 @@ on 16 November 2026 (docs/REMOVE_SAFETY.md). Each step says what you should see.
 
 - [ ] **O** (the older build) is in A's crew. O sends **Need help**, then **Heading home** with
   a timer, then **I'm home safe**.
-- [ ] On A, each arrives as an ordinary crew ping in O's words ("🚨 I need help", "Heading
-  home 🏠 Will check in within 30 min", "Home safe ✅"): in the chat, on the crew card, and as
-  the ordinary **Crew messages** notification. No loud alarm, no separate help channel.
+- [ ] On A, each arrives as an ordinary crew ping ("🚨 I need help", "Heading home 🏠", "Home
+  safe ✅"): in the chat, on the crew card ("O is heading home"), and as the ordinary **Crew
+  messages** notification. The check-in reads as plain Heading home, with no minutes: nothing
+  follows it (since 19 November 2026, docs/SPOT_LINKS.md item 3). No loud alarm, no separate
+  help channel.
 - [ ] O doesn't tap I'm home safe this time: A gets **no** overdue alert, ever.
 - [ ] A, Settings → Apps → Moshpoint → Notifications: there is no "Crew help requests"
   channel any more (an update from an older build deletes it).
@@ -934,8 +936,10 @@ joins. Use a date at least a week away so the crew sleeps.
 2. The sheet asks, in order: **Who's playing**, the **date** and **time** buttons, **Where
    (optional)** with "Venue and town" greyed in. No search box.
 3. Under Start the crew: the small amber **Moshpoint+** card, no price, no Upgrade button.
-4. Type a name, tap **What's in Moshpoint+**: the list, "COMING SOON", **Back to the plan**. Back:
-   the name you typed is still there.
+4. Type a name, tap **What's in Moshpoint+**: the list (smart search, Coming up near you, venue
+   maps offline, the watch, **Text my spot** and **Use satellite when there's no signal**; the last
+   two since 19 November 2026, docs/SPOT_LINKS.md item 5), "COMING SOON", **Back to the plan**.
+   Back: the name you typed is still there.
 5. Start the crew: the crew is made as before, its invite shows.
 
 ### C. Smart search (stage 3; a member on a test relay with `MOSHPOINT_DISCOVER_OPEN=1`)
@@ -1040,12 +1044,13 @@ New on 18 November 2026 (docs/REMOVE_SAFETY.md, stage 3). Moshpoint+ is on for e
 billing exists, so any test build shows it.
 
 - [ ] Settings: under the small amber **Moshpoint+** mark, **Text my spot** is off. Message crew
-  and the crew chat show the five pings only.
-- [ ] Switch it on. Message crew: after **All good** (scroll the row) there's a violet **Text my
+  and the crew chat show the six pings only.
+- [ ] Switch it on. Message crew: after **Heading home** (scroll the row) there's a violet **Text my
   spot**. The crew chat shows it in the same place.
 - [ ] Outdoors with a fix: tap it. The phone's texting app opens with no one chosen and the text
-  ready: "Here's my spot:", a Google Maps link, then the coordinates (5 decimals, with a dot even
-  in German or French). Pick a mate and send: the link opens the spot in their maps; the
+  ready: "Here's my spot:", a link, then the coordinates (5 decimals, with a dot even in German
+  or French). With a relay of our own built in, the link is `https://<relay>/spot#…` and opens
+  the spot in Moshpoint (4o); without one, it's a Google Maps link that opens in their maps. The
   coordinates paste into any map.
 - [ ] Indoors, location off (or no fix for 10 minutes): tap it. The text is "My phone can't tell
   where I am right now." and nothing else.
@@ -1067,12 +1072,58 @@ signal. **A** is that phone; **B** is a mate with normal signal, in A's crew.
   signal"); the chat says "No signal". Nothing reaches B except by Bluetooth. With adb, `adb shell
   dumpsys netstats` (or the carrier's usage page) shows no satellite data used by Moshpoint.
 - [ ] Switch on: within about two minutes B gets the ping and the chat line, and A's spot on B's
-  map moves. B sends a ping and drops a pin: A gets both within about two minutes. A doesn't get
-  B's chat lines until it has normal signal (or B is close enough for Bluetooth).
+  map moves. B sends a ping and drops a pin: A gets both within about two minutes. B sends a chat
+  line: A gets it within about two minutes too, in the same exchange (since 19 November 2026,
+  docs/SPOT_LINKS.md item 4), with the usual notification. A private message from B to A arrives
+  the same way.
+- [ ] Still on satellite, B posts a photo to the crew: A sees nothing of it until normal signal
+  (no media over satellite, ever).
 - [ ] Still on satellite: a photo or clip from A waits, the map shows only what's saved, and
   Plan a gig's search says it can't search right now. Nothing big downloads.
 - [ ] Back to normal signal: everything that waited goes, as usual, within a minute.
 - [ ] Note how long each message took, and what the carrier charged, if it shows.
+
+## 4o. Texted spots open in Moshpoint (two phones, 20 min)
+
+New on 19 November 2026 (docs/SPOT_LINKS.md, item 1). Needs a test build with our own relay
+(`MOSHPOINT_SERVER`), and that relay deployed with `/spot` and `/.well-known/assetlinks.json`.
+**A** sends (Moshpoint+, Text my spot on); **B** has Moshpoint (free is fine); **C** is a phone
+without Moshpoint (or a laptop's browser).
+
+- [ ] On A, Text my spot outdoors: the link in the text is `https://<relay>/spot#…` with A's first
+  name at the end, then the coordinates. Send it to B and to C.
+- [ ] On B, tap the link: Moshpoint opens straight away (no "Open with" question, no browser), on
+  the map, looking at the spot and at B. The pin is the pink meet-up pin, labelled with A's name.
+  If Android asks which app to use instead, App Link verification failed: note it, and check
+  `https://<relay>/.well-known/assetlinks.json` in a browser.
+- [ ] B's map list: A's name, "Texted spot" and the distance under it, with **Walk**, **Find** and
+  **✕**. Nothing else changed: same crew, Live as it was, no setting moved.
+- [ ] Tap **Find**: the finder shows A's name, "Texted spot", the pink pin at the arrow's tip and
+  the distance. Walk towards it: the arrow follows the compass and the distance drops. Within
+  about 30 m it says **Rough** ("From GPS: firms up as you walk"), as for a mate's GPS.
+- [ ] Turn on flight mode (no data, no signal) and keep walking: the arrow and distance keep
+  working. Back: the finder closes. **Show on map** shows the spot.
+- [ ] Indoors with no fix yet: the finder says "Waiting for GPS…" until a fix comes.
+- [ ] Tap the same link again: still one entry in the list. ✕ removes it; restarting the app
+  keeps the others.
+- [ ] Edit the link so it's cut short (`…/spot#-36.84`) and tap it on B: "Moshpoint can't read a
+  spot from this link." and nothing else happens.
+- [ ] On C, tap the link: the relay's page opens Google Maps at the spot, with "Get Moshpoint".
+- [ ] A build without a relay (if you have one): the text has a Google Maps link, and B's phone
+  offers no Moshpoint for `/spot` links.
+
+## 4p. Heading home, a plain ping (two phones, one on build 312 if you can; 10 min)
+
+New on 19 November 2026 (docs/SPOT_LINKS.md, item 2). **A** has this build; **B** is in A's crew,
+on this build or (better) on an older one such as build 312.
+
+- [ ] On A, Message crew (and the crew chat): the ping row is On my way, Where are you?, Stay put,
+  Meet at the pin, All good, **Heading home**, then Text my spot if it's on. Tap **Heading home**:
+  it turns into "Sent ✓", no dialog, no timer, no reminder later.
+- [ ] On B: "A is heading home" with the ordinary crew notification, and "Heading home 🏠" in the
+  chat, like On my way.
+- [ ] B on build 312: the same, and **no** "hasn't checked in" alarm later (wait out an hour, or
+  set B's clock an hour ahead, and open the app).
 
 ## 5. What to send back
 

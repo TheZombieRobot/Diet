@@ -6,4 +6,10 @@
     <string name="spot_text_line">मैं यहाँ हूँ:</string>
     <string name="spot_text_no_fix">मेरा फ़ोन अभी पता नहीं लगा पा रहा कि मैं कहाँ हूँ।</string>
     <string name="spot_text_no_app">इस फ़ोन में कोई मैसेज ऐप नहीं है।</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">SMS से मिली लोकेशन</string>
+    <string name="spot_link_broken">Moshpoint इस लिंक से लोकेशन नहीं पढ़ पा रहा।</string>
+    <string name="spot_finder_waiting">GPS का इंतज़ार…</string>
+    <string name="spot_finder_waiting_help">फ़ोन को अपनी जगह पता चलते ही तीर दिखेगा। बाहर खुले में GPS बिना डेटा या सिग्नल के भी चलता है।</string>
 </resources>
