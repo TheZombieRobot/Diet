@@ -26,7 +26,7 @@
 - [x] Relay server: encrypted location mailbox (`server/`, tested)
 - [x] GPS + compass arrow with magnetic declination (written, untested)
 - [x] Crowd relay: BLE extended adverts, sealed boxes, multi-hop (written, untested)
-- [ ] Deploy the relay server (`fly deploy`, see README) and set the `MOSHPOINT_SERVER` repo variable
+- [ ] Deploy the relay server (the Deploy server workflow, docs/SERVER_PRODUCTION.md) and set the `MOSHPOINT_SERVER` repo variable
 - [x] Add friends by QR code (show mine / scan theirs), name suggested from the QR
 - [x] One-QR gig groups: members introduce themselves over BT5 adverts (and the server); no accounts needed
 - [ ] Accounts / usernames; syncing photos

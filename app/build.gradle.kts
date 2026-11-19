@@ -29,6 +29,23 @@ val spotLinkHost: String? = runCatching { URI(server.trim().trimEnd('/')) }.getO
     ?.takeIf { "https".equals(it.scheme, ignoreCase = true) && it.rawUserInfo == null && (it.port == -1 || it.port == 443) }
     ?.host?.lowercase(Locale.ROOT)?.takeIf { it.isNotBlank() }
 
+// The privacy policy the app links to (the welcome, the location disclosure, Settings): with a
+// relay of our own built in, its page (GET /privacy, built from docs/PRIVACY.md), the same address
+// Play Console lists; with none, moshpoint.privacyUrl in gradle.properties.
+// -Pmoshpoint.privacyPolicyUrl wins over both. Builds never need a relay for it.
+val privacyUrl: String = (project.findProperty("moshpoint.privacyPolicyUrl") as String?)?.takeIf { it.isNotBlank() }
+    ?: spotLinkHost?.let { "https://$it/privacy" }
+    ?: (project.findProperty("moshpoint.privacyUrl") as String?).orEmpty()
+
+// "Continue with Facebook" (name + photo): only with a Meta app, set with
+// -Pmoshpoint.facebookAppId=... -Pmoshpoint.facebookClientToken=... (see docs/FACEBOOK.md); a
+// blank -P value (unset CI variable) falls back to gradle.properties. Without both, the button is
+// hidden (BuildConfig.FACEBOOK_ENABLED) and none of the Facebook SDK's components are in the
+// manifest (src/noFacebook/AndroidManifest.xml, below), so nothing of it can start.
+val facebookAppId = prop("moshpoint.facebookAppId", "moshpoint.fb.appId")
+val facebookClientToken = prop("moshpoint.facebookClientToken", "moshpoint.fb.clientToken")
+val facebookEnabled = facebookAppId.isNotBlank() && facebookClientToken.isNotBlank()
+
 android {
     namespace = "nz.waveformlabs.moshpoint"
     // Android 16 (API 36): what Google Play requires since 31 August 2026 (docs/ANDROID_16.md).
@@ -52,17 +69,13 @@ android {
         // The host texted spots' links open from (empty with no relay: then it's unused).
         manifestPlaceholders["spotLinkHost"] = spotLinkHost.orEmpty()
 
-        // Log in with Facebook (name + photo). Off unless a Meta app is configured:
-        // -Pmoshpoint.facebookAppId=... -Pmoshpoint.facebookClientToken=... (see docs/FACEBOOK.md).
-        // A blank -P value (unset CI variable) falls back to the values in gradle.properties.
-        val fbAppId = prop("moshpoint.facebookAppId", "moshpoint.fb.appId")
-        val fbToken = prop("moshpoint.facebookClientToken", "moshpoint.fb.clientToken")
-        resValue("string", "facebook_app_id", fbAppId)
-        resValue("string", "facebook_client_token", fbToken)
-        resValue("string", "fb_login_protocol_scheme", "fb$fbAppId")
-        buildConfigField("boolean", "FACEBOOK_ENABLED", (fbAppId.isNotBlank() && fbToken.isNotBlank()).toString())
-        // The privacy policy the app links to (moshpoint.privacyUrl in gradle.properties).
-        buildConfigField("String", "PRIVACY_POLICY_URL", "\"${prop("moshpoint.privacyPolicyUrl", "moshpoint.privacyUrl")}\"")
+        // Log in with Facebook (name + photo), only with a Meta app (see facebookEnabled above).
+        resValue("string", "facebook_app_id", facebookAppId)
+        resValue("string", "facebook_client_token", facebookClientToken)
+        resValue("string", "fb_login_protocol_scheme", "fb$facebookAppId")
+        buildConfigField("boolean", "FACEBOOK_ENABLED", facebookEnabled.toString())
+        // The privacy policy the app links to (see privacyUrl above).
+        buildConfigField("String", "PRIVACY_POLICY_URL", "\"$privacyUrl\"")
         // No API keys are ever built into the app (anyone can pull them out of an APK): gig search
         // keys are the relay server's secrets (docs/SECRETS.md).
     }
@@ -147,10 +160,13 @@ android {
     }
 }
 
-// The App Link for texted spots (see spotLinkHost above), in every build type, only with a relay.
+// What the build's settings change in the manifest, in every build type: the App Link for texted
+// spots is there only with a relay (see spotLinkHost above), and without a Meta app none of the
+// Facebook SDK's components are (see facebookEnabled above). CI checks both ways (android.yml).
 androidComponents {
     onVariants { variant ->
         if (spotLinkHost != null) variant.sources.manifests.addStaticManifestFile("src/spotLinks/AndroidManifest.xml")
+        if (!facebookEnabled) variant.sources.manifests.addStaticManifestFile("src/noFacebook/AndroidManifest.xml")
     }
 }
 

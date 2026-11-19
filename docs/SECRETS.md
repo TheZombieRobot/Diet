@@ -6,12 +6,14 @@
 
 | Secret | Lives in | Used by | How to set it |
 |---|---|---|---|
-| `TICKETMASTER_KEY`, `SEATGEEK_CLIENT_ID`, `BANDSINTOWN_APP_ID` (gig search and Discover) | The relay's secrets on Fly.io | The relay only. The app asks the relay; the app never holds a key. | From a computer: `fly secrets set TICKETMASTER_KEY=…`, or the app's Secrets page on fly.io if your account shows one. |
-| `MOSHPOINT_TOKEN_SECRET` (relay install tokens), `MOSHPOINT_CONTACT` | The relay's secrets on Fly.io | The relay | `fly secrets set …` (see SERVER_PRODUCTION.md) |
-| `MOSHPOINT_ADMIN_TOKEN` (reading and deleting reports, docs/MODERATION.md) | The relay's secrets on Fly.io, and your password manager | The relay; you, from a computer, with curl | `fly secrets set MOSHPOINT_ADMIN_TOKEN=…` (a different one per relay). Unset = the admin routes are off |
+| `TICKETMASTER_KEY`, `SEATGEEK_CLIENT_ID`, `BANDSINTOWN_APP_ID` (gig search and Discover) | The relay's secrets on Fly.io (copied there from GitHub's Actions secrets by the Deploy server workflow) | The relay only. The app asks the relay; the app never holds a key. | On the phone: a GitHub repository secret, then run Deploy server (SERVER_PRODUCTION.md). From a computer: `fly secrets set TICKETMASTER_KEY=…`. Not for the first release: keyed services stay off. |
+| `MOSHPOINT_TOKEN_SECRET` (relay install tokens), `MOSHPOINT_CONTACT` (the contact on the privacy page and for Nominatim) | The relay's secrets on Fly.io (copied there from GitHub's Actions secrets) | The relay | A GitHub repository secret, then run Deploy server; or `fly secrets set …` (see SERVER_PRODUCTION.md) |
+| `MOSHPOINT_ADMIN_TOKEN` (reading and deleting reports, docs/MODERATION.md) | The relay's secrets on Fly.io (copied from GitHub's Actions secrets), and your password manager | The relay; you, from a computer, with curl | As above (a different one per relay). Unset = the admin routes are off |
+| `FLY_API_TOKEN` (deploying the relay) | GitHub Actions secrets | The Deploy server workflow only | A Fly organization token (SERVER_PRODUCTION.md, Deploy from your phone), as a repository secret |
 | `MOSHPOINT_KEYSTORE`, `MOSHPOINT_KEYSTORE_PASSWORD`, `MOSHPOINT_KEY_ALIAS`, `MOSHPOINT_KEY_PASSWORD` (the Play upload key) | GitHub, under the repo's Settings → Secrets and variables → Actions → Secrets | CI, to sign the Play bundle | On the phone: the repo on github.com → Settings → Secrets and variables → Actions → New repository secret (desktop view helps) |
 | `RELEASES_TOKEN` (optional: test builds published to a separate repo) | GitHub Actions secrets | CI | As above |
 | `MOSHPOINT_SERVER` (the relay's address) | GitHub, on the Variables tab of that page | CI, built into the app | Not a secret, so it goes under Variables |
+| `MOSHPOINT_APP_CERTS` (fingerprints of the certificates whose builds open texted spots) | GitHub, on the Variables tab | The Deploy server workflow passes it to the relay | Not a secret (fingerprints of public certificates): Variables |
 | The Meta App Secret | Nowhere in this project | Not needed | Never paste it anywhere |
 
 Two values that look like keys but are meant to be public:
@@ -38,9 +40,9 @@ Every key the project will need, with a one-word placeholder.
 
 | Name | Placeholder | Get it from | Paste the real value into |
 |---|---|---|---|
-| `MOSHPOINT_TOKEN_SECRET` | INSERTTOKENSECRETHERE | Generate: `openssl rand -hex 32` | That relay's Fly secrets (a different one per relay) |
-| `MOSHPOINT_CONTACT` | INSERTCONTACTEMAILHERE | Your support email | That relay's Fly secrets |
-| `MOSHPOINT_ADMIN_TOKEN` | INSERTADMINTOKENHERE | Generate: `openssl rand -hex 32` | That relay's Fly secrets (a different one per relay), and your password manager |
+| `MOSHPOINT_TOKEN_SECRET` | INSERTTOKENSECRETHERE | Generate: `openssl rand -hex 32` (or 64 letters and digits from your password manager) | Secrets tab (the Deploy server workflow copies it to the relay), or that relay's Fly secrets from a computer; a different one per relay |
+| `MOSHPOINT_CONTACT` | INSERTCONTACTEMAILHERE | Your support email (shown on the privacy page) | Secrets tab (copied to the relay as above), or that relay's Fly secrets |
+| `MOSHPOINT_ADMIN_TOKEN` | INSERTADMINTOKENHERE | Generate as above | Secrets tab (copied to the relay as above), or that relay's Fly secrets; a different one per relay, and keep it in your password manager |
 
 **Building and publishing the app (GitHub → repo → Settings → Secrets and variables → Actions):**
 
@@ -51,7 +53,9 @@ Every key the project will need, with a one-word placeholder.
 | `MOSHPOINT_KEY_ALIAS` | INSERTKEYALIASHERE | Chosen when you create the keystore | Secrets tab |
 | `MOSHPOINT_KEY_PASSWORD` | INSERTKEYPASSWORDHERE | Chosen when you create the keystore | Secrets tab |
 | `RELEASES_TOKEN` (optional) | INSERTRELEASESTOKENHERE | A GitHub fine-grained token for the builds repo | Secrets tab |
-| `MOSHPOINT_SERVER` | INSERTRELAYADDRESSHERE | e.g. https://moshpoint-relay.fly.dev (not a secret) | Variables tab |
+| `FLY_API_TOKEN` | INSERTFLYAPITOKENHERE | Fly dashboard → Tokens → an organization token (SERVER_PRODUCTION.md, Deploy from your phone) | Secrets tab |
+| `MOSHPOINT_SERVER` | INSERTRELAYADDRESSHERE | The Deploy server run's summary, e.g. https://moshpoint-relay.fly.dev (not a secret) | Variables tab |
+| `MOSHPOINT_APP_CERTS` | INSERTPLAYSHA256HERE, then the debug key's fingerprint | Play Console → Test and release → App integrity → App signing key certificate → SHA-256 (not a secret; the debug one is in SERVER_PRODUCTION.md) | Variables tab, then run Deploy server |
 
 **Later, with billing:**
 - A Google Play service account, for checking purchases on the paid relay: its JSON goes in that relay's Fly secrets.

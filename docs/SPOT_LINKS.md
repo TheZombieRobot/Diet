@@ -244,17 +244,23 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 2. **The relay must be deployed with `/spot` and `/.well-known/assetlinks.json` before a build
    with that relay ships** (owner to-do; an older relay answers 404, though the text's plain
    coordinates still work). Play's signing key's fingerprint goes in `MOSHPOINT_APP_CERTS`.
-3. **The App Link's manifest hasn't been built with a relay yet.** CI builds with the
+3. **Answered (docs/LAUNCH_PREP.md, item 3):** CI now merges the release manifest with a made-up
+   relay and without one on every push, and checks the activity and its filter are there exactly
+   with a relay. The original question: **The App Link's manifest hasn't been built with a relay yet.** CI builds with the
    repository variable `MOSHPOINT_SERVER`, which is empty here, so its merged-manifest report
    (run 355) shows no `SpotLinkActivity`: the no-relay case, as intended. The first build with a
    relay should show `SpotLinkActivity` with the `https://<relay host>/spot` filter in its merged
    manifest (`aapt2 dump xmltree --file AndroidManifest.xml`, or Android Studio's Merged Manifest
    tab); field test 4o checks the link opens the app.
-4. **The map's top bar on a small phone with large text** can squeeze its own title to nothing
+4. **Answered (docs/LAUNCH_PREP.md, item 5):** yes, the place rows' rule; only that screenshot
+   changed, in the 8 languages it cut. The original question: **The map's top bar on a small
+   phone with large text** can squeeze its own title to nothing
    (seen in Polish in `smallPhoneLargeFontTextedSpotMap`: Pinezka, Wszyscy and Ja take the
    width). It was like that before these items (no earlier test drew that case) and isn't
    changed here; fix it the same way as the place rows?
-5. **A flaky server test:** `ReportTest.aReportIsStoredAndTheOwnerCanListAndDeleteIt` posts two
+5. **Answered (docs/LAUNCH_PREP.md, item 4):** the relay now gives each report a later time part
+   than the last (`ReportStore.add`), so the list is always in the order they came; the test is
+   unchanged. The original question: **A flaky server test:** `ReportTest.aReportIsStoredAndTheOwnerCanListAndDeleteIt` posts two
    reports and expects the newer first, but a report's id is its arrival millisecond and a
    random part (`ReportStore.add`), and the list is sorted by id: two reports in the same
    millisecond come back in either order. It failed once here (run 358's first attempt) with

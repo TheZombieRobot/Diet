@@ -1,0 +1,260 @@
+# Deploys the relay (server/) to Fly.io, with fly.toml and server/Dockerfile.
+#
+# Run by hand only, never on push: Actions -> Deploy server -> Run workflow, on the branch
+# ccr-5839ed7c-1q0ztj (any other branch stops at once). The owner's steps, phone-friendly, are
+# in docs/SERVER_PRODUCTION.md ("Deploy from your phone").
+#
+# What it does: creates the Fly app and its volume on the first run; copies the relay's secrets
+# that are set in GitHub into Fly (fly secrets set --stage, each value on standard input, so no
+# value is ever in a log, an input, a file or a command line); deploys one Machine; checks the
+# relay from outside (tools/check_relay.py); prints the address for MOSHPOINT_SERVER and the
+# privacy policy's address for Play Console.
+name: Deploy server
+
+on:
+  workflow_dispatch:
+
+# One deploy at a time: a second tap waits for the first instead of racing it.
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Started from another branch: say so, and touch nothing (no secrets reach this job).
+  wrong-branch:
+    if: github.ref != 'refs/heads/ccr-5839ed7c-1q0ztj'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy only from ccr-5839ed7c-1q0ztj
+        run: |
+          echo "::error::The relay is deployed only from the main branch. Tap Run workflow again and pick ccr-5839ed7c-1q0ztj under 'Use workflow from'."
+          exit 1
+
+  deploy:
+    if: github.ref == 'refs/heads/ccr-5839ed7c-1q0ztj'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Optional repository variables (Settings -> Secrets and variables -> Actions -> Variables).
+      # None is a secret. FLY_APP: another app name if moshpoint-relay is taken on Fly (default:
+      # fly.toml's). FLY_ORG: the Fly organization for a new app (default: personal).
+      # MOSHPOINT_APP_CERTS: the signing certificates whose builds open texted spots in the app.
+      FLY_APP: ${{ vars.FLY_APP }}
+      FLY_ORG: ${{ vars.FLY_ORG }}
+      APP_CERTS: ${{ vars.MOSHPOINT_APP_CERTS }}
+      APP_SERVER: ${{ vars.MOSHPOINT_SERVER }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # 1.6
+
+      - name: Settings (fly.toml and the optional variables)
+        shell: bash
+        run: |
+          set -euo pipefail
+          flyctl version
+          python3 - <<'PY' >> "$GITHUB_ENV"
+          import os, re, sys, tomllib
+          def stop(msg):
+              print(f"::error::{msg}", file=sys.stderr)
+              sys.exit(1)
+          cfg = tomllib.load(open("fly.toml", "rb"))
+          app = os.environ.get("FLY_APP", "").strip() or cfg["app"]
+          org = os.environ.get("FLY_ORG", "").strip() or "personal"
+          region = cfg["primary_region"]
+          mount = cfg["mounts"]
+          volume = mount["source"]
+          size = re.fullmatch(r"(\d+)\s*gb", str(mount.get("initial_size", "20gb")).strip().lower())
+          if not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,61}[a-z0-9]", app):
+              stop(f"FLY_APP '{app}' isn't a Fly app name (lower-case letters, digits and dashes)")
+          if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", org):
+              stop("FLY_ORG isn't an organization's short name (personal, or the one in the dashboard's address)")
+          if not re.fullmatch(r"[a-z]{3}", region) or not re.fullmatch(r"[a-z0-9_]+", volume) or not size:
+              stop("fly.toml's primary_region or [mounts] isn't as expected")
+          # The certificates: comma-separated SHA-256 fingerprints, as the relay reads them.
+          certs = []
+          for c in os.environ.get("APP_CERTS", "").replace(" ", "").split(","):
+              if c and c.upper() not in certs:
+                  certs.append(c.upper())
+          bad = [c for c in certs if not re.fullmatch(r"([0-9A-F]{2}:){31}[0-9A-F]{2}", c)]
+          if bad:
+              stop("MOSHPOINT_APP_CERTS must be SHA-256 fingerprints (32 pairs like 89:B4:...), comma-separated; this isn't: " + bad[0])
+          print(f"APP={app}")
+          print(f"ORG={org}")
+          print(f"REGION={region}")
+          print(f"VOLUME={volume}")
+          print(f"VOLUME_GB={size.group(1)}")
+          print(f"CERTS={','.join(certs)}")
+          PY
+          grep -E '^(APP|ORG|REGION|VOLUME|VOLUME_GB|CERTS)=' "$GITHUB_ENV" | sed 's/^/  /'
+
+      - name: The app (created on the first run)
+        shell: bash
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "::error::Add the FLY_API_TOKEN repository secret first (docs/SERVER_PRODUCTION.md, Deploy from your phone)."
+            exit 1
+          fi
+          if flyctl apps list --json > "$RUNNER_TEMP/apps.json"; then
+            # An organization token (the one the steps make): it sees the organization's apps.
+            if python3 -c 'import json, os, sys; apps = json.load(open(sys.argv[1])) or []; sys.exit(0 if any((a.get("Name") or a.get("name")) == os.environ["APP"] for a in apps) else 1)' "$RUNNER_TEMP/apps.json"; then
+              echo "The app $APP is there."
+            else
+              echo "First run: creating the app $APP in the organization $ORG."
+              if ! flyctl apps create "$APP" --org "$ORG"; then
+                echo "::error::Couldn't create the app $APP. If Fly says the name is taken, add a repository variable FLY_APP with another name (e.g. moshpoint-relay-nz) and run again. If it's about the organization, set FLY_ORG."
+                exit 1
+              fi
+            fi
+          elif flyctl status --app "$APP" > /dev/null; then
+            # An app's own deploy token: it can't list or create apps, but this one is there.
+            echo "The app $APP is there."
+          else
+            echo "::error::Fly didn't accept FLY_API_TOKEN, or it can't see the app $APP. Paste the whole token, starting with FlyV1 and the space after it (docs/SERVER_PRODUCTION.md)."
+            exit 1
+          fi
+
+      - name: The volume (created on the first run)
+        shell: bash
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          count() {
+            flyctl volumes list --app "$APP" --json | python3 -c 'import json, os, sys; v = json.load(sys.stdin) or []; print(sum(1 for x in v if (x.get("name") or x.get("Name")) == os.environ["VOLUME"] and str(x.get("state") or x.get("State") or "").lower() not in ("destroyed", "destroying", "pending_destroy")))'
+          }
+          n=$(count)
+          if [ "$n" = 0 ]; then
+            echo "First run: creating the volume $VOLUME ($VOLUME_GB GB) in $REGION."
+            # One volume, one Machine (docs/SERVER_PRODUCTION.md). Fly keeps a daily snapshot for a day.
+            if ! flyctl volumes create "$VOLUME" --app "$APP" --region "$REGION" --size "$VOLUME_GB" --snapshot-retention 1 --yes; then
+              echo "::error::Couldn't create the volume. If Fly says the region needs a paid plan, change primary_region in fly.toml (e.g. to another region near your users) and run again."
+              exit 1
+            fi
+            n=$(count)
+          fi
+          echo "Volumes named $VOLUME: $n"
+          if [ "$n" -gt 1 ]; then
+            echo "::warning::$n volumes named $VOLUME. The relay uses one: see docs/SERVER_PRODUCTION.md (Two Machines?) before deleting any."
+          fi
+
+      - name: Relay secrets from GitHub to Fly (staged; values never shown)
+        shell: bash
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          MOSHPOINT_TOKEN_SECRET: ${{ secrets.MOSHPOINT_TOKEN_SECRET }}
+          MOSHPOINT_ADMIN_TOKEN: ${{ secrets.MOSHPOINT_ADMIN_TOKEN }}
+          MOSHPOINT_CONTACT: ${{ secrets.MOSHPOINT_CONTACT }}
+          TICKETMASTER_KEY: ${{ secrets.TICKETMASTER_KEY }}
+          SEATGEEK_CLIENT_ID: ${{ secrets.SEATGEEK_CLIENT_ID }}
+          BANDSINTOWN_APP_ID: ${{ secrets.BANDSINTOWN_APP_ID }}
+        run: |
+          set -euo pipefail
+          # Only the ones set in GitHub; anything else on Fly is left as it is. The gig search
+          # keys are optional (and stay unset for v1: keyed services are off).
+          for name in MOSHPOINT_TOKEN_SECRET MOSHPOINT_ADMIN_TOKEN MOSHPOINT_CONTACT TICKETMASTER_KEY SEATGEEK_CLIENT_ID BANDSINTOWN_APP_ID; do
+            value="${!name:-}"
+            # Spaces or a newline pasted around a value aren't part of it.
+            value="${value#"${value%%[![:space:]]*}"}"
+            value="${value%"${value##*[![:space:]]}"}"
+            if [ -z "$value" ]; then
+              echo "$name: not set in GitHub (left as it is on Fly)"
+              continue
+            fi
+            # Only the length is looked at: the relay ignores a token secret under 32 characters.
+            case "$name" in
+              MOSHPOINT_TOKEN_SECRET|MOSHPOINT_ADMIN_TOKEN)
+                if [ "${#value}" -lt 32 ]; then echo "::warning::$name is shorter than 32 characters: use a long random one (a password manager's generator, 64 letters and digits)."; fi ;;
+            esac
+            # NAME=- makes flyctl read the value from standard input: it's never on a command line.
+            printf '%s' "$value" | flyctl secrets set --stage --app "$APP" "$name=-" > /dev/null
+            echo "$name: copied to Fly (takes effect with this deploy)"
+          done
+          value=""
+
+      - name: Deploy (one Machine)
+        shell: bash
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          args=(--app "$APP" --ha=false --remote-only --yes)
+          # Not a secret: fingerprints of the signing certificates (RELAY_API.md section 13).
+          # Unset, the relay lists only the public debug key's, which signs test builds.
+          if [ -n "$CERTS" ]; then args+=(--env "MOSHPOINT_APP_CERTS=$CERTS"); fi
+          flyctl deploy "${args[@]}"
+
+      - name: One Machine, and which relay secrets Fly has (names only)
+        shell: bash
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          machines=$(flyctl machines list --app "$APP" --json | python3 -c 'import json, sys; print(len(json.load(sys.stdin) or []))')
+          echo "Machines: $machines"
+          if [ "$machines" != 1 ]; then
+            echo "::error::$machines Machines: the relay must run on exactly one (each would have its own mailboxes). See docs/SERVER_PRODUCTION.md, Two Machines?"
+            exit 1
+          fi
+          flyctl secrets list --app "$APP" --json > "$RUNNER_TEMP/secrets.json"
+          python3 - "$RUNNER_TEMP/secrets.json" <<'PY'
+          import json, os, sys
+          names = {str(s.get("Name") or s.get("name")) for s in (json.load(open(sys.argv[1])) or [])}
+          # The privacy page shows the contact when it's set: the check below then expects it.
+          if "MOSHPOINT_CONTACT" in names:
+              with open(os.environ["GITHUB_ENV"], "a") as env:
+                  env.write("CONTACT_ON_FLY=1\n")
+          why = {
+              "MOSHPOINT_TOKEN_SECRET": "install tokens are signed with a secret the relay made and kept on the volume",
+              "MOSHPOINT_ADMIN_TOKEN": "nobody can read reports (docs/MODERATION.md)",
+              "MOSHPOINT_CONTACT": "the privacy page shows a placeholder for the contact",
+          }
+          for name, effect in why.items():
+              if name in names:
+                  print(f"{name}: set on Fly")
+              else:
+                  print(f"::warning::{name} isn't set on Fly, so {effect}. Add it as a repository secret and run again.")
+          if "MOSHPOINT_DISCOVER_OPEN" in names:
+              print("::error::MOSHPOINT_DISCOVER_OPEN is set on this relay: it opens Discover to everyone. Remove it (Fly dashboard -> the app -> Secrets).")
+              sys.exit(1)
+          PY
+
+      - name: Check the relay from outside
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECT_CERTS="$CERTS" EXPECT_CONTACT="${CONTACT_ON_FLY:-}" WAIT_SECONDS=240 python3 tools/check_relay.py "https://$APP.fly.dev"
+
+      - name: The relay's address (for MOSHPOINT_SERVER) and its privacy policy (for Play Console)
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://$APP.fly.dev"
+          server="${APP_SERVER%/}"
+          echo "The relay is at $url"
+          echo "Set the repository variable MOSHPOINT_SERVER to: $url"
+          echo "The privacy policy (Play Console, App content, Privacy policy): $url/privacy"
+          {
+            echo "## The relay is up"
+            echo ""
+            echo "Its address: **$url**"
+            echo ""
+            if [ "$server" = "$url" ]; then
+              echo "MOSHPOINT_SERVER is already set to it: app builds use this relay."
+            else
+              echo "Next: Settings → Secrets and variables → Actions → Variables → **MOSHPOINT_SERVER** = \`$url\`. The next app build uses it."
+            fi
+            echo ""
+            echo "Privacy policy, for Play Console (App content → Privacy policy): **$url/privacy**"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$server" ] && [ "$server" != "$url" ]; then
+            echo "::warning::MOSHPOINT_SERVER is $server, but this relay is at $url."
+          fi

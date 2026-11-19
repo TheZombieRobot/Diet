@@ -79,6 +79,10 @@ jobs:
         shell: bash
         run: python3 tools/check_secrets.py
 
+      - name: The privacy policy pages are built from docs/PRIVACY.md (the relay's /privacy, docs/site)
+        shell: bash
+        run: python3 tools/privacy_page.py --check
+
       - name: Translations match English (every language)
         run: |
           # Same strings, placeholders and plurals as English, and valid XML, in every language.
@@ -94,6 +98,19 @@ jobs:
 
       - name: Core + server tests
         run: ./gradlew :core:test :server:test --continue
+
+      - name: Upload key works (the four signing secrets; it decodes, its alias is in it, both passwords open it; nothing printed)
+        # tools/check_upload_key.sh, before anything is signed with the key (the builds below are,
+        # once MOSHPOINT_KEYSTORE is set): names a secret that's missing or wrong, never a value.
+        # docs/LAUNCH_PREP.md item 6.
+        if: success() && env.HAS_KEYSTORE == 'true'
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.MOSHPOINT_KEYSTORE }}
+          MOSHPOINT_KEYSTORE_PASSWORD: ${{ secrets.MOSHPOINT_KEYSTORE_PASSWORD }}
+          MOSHPOINT_KEY_ALIAS: ${{ secrets.MOSHPOINT_KEY_ALIAS }}
+          MOSHPOINT_KEY_PASSWORD: ${{ secrets.MOSHPOINT_KEY_PASSWORD }}
+        run: bash tools/check_upload_key.sh
 
       - name: Build debug APK
         if: success() || failure()
@@ -134,6 +151,70 @@ jobs:
           done
           exit $leaked
 
+      - name: Texted spots open in the app only with a relay (release manifest with a made-up relay, and without one)
+        # The App Link (SpotLinkActivity and its autoVerify filter, app/src/spotLinks) is added only
+        # when a relay is built in (app/build.gradle.kts, docs/SPOT_LINKS.md). CI's own builds follow
+        # the MOSHPOINT_SERVER variable, so both cases are checked here on the release manifest:
+        # merged once with a made-up relay (the activity, with one filter for exactly its host) and
+        # once with none (neither), each with the build's own Facebook setting
+        # (tools/release_manifest.sh). Then the release APK built above must match its own setting.
+        # Builds never need MOSHPOINT_SERVER.
+        if: success()
+        shell: bash
+        env:
+          SERVER_URL: ${{ vars.MOSHPOINT_SERVER }}
+          FB_APP_ID: ${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}
+          FB_TOKEN: ${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}
+        run: |
+          set -euo pipefail
+          fb=(-Pmoshpoint.facebookAppId="$FB_APP_ID" -Pmoshpoint.facebookClientToken="$FB_TOKEN")
+          bash tools/release_manifest.sh "$RUNNER_TEMP/manifest-relay.xml" -Pmoshpoint.server=https://relay.example.invalid "${fb[@]}"
+          bash tools/release_manifest.sh "$RUNNER_TEMP/manifest-none.xml" -Pmoshpoint.server= -Pmoshpoint.serverUrl= "${fb[@]}"
+          python3 tools/check_spot_link.py "$RUNNER_TEMP/manifest-relay.xml" relay.example.invalid
+          python3 tools/check_spot_link.py "$RUNNER_TEMP/manifest-none.xml" ""
+          # The release APK built above, with this repository's MOSHPOINT_SERVER (blank: none).
+          host=$(python3 tools/check_spot_link.py --host "$SERVER_URL")
+          AAPT=$(find "$ANDROID_HOME"/build-tools -name aapt2 | sort -V | tail -1)
+          APK=$(find app/build/outputs/apk/release -name '*.apk' | head -1)
+          n=$("$AAPT" dump xmltree --file AndroidManifest.xml "$APK" | grep -c 'SpotLinkActivity' || true)
+          if [ -n "$host" ] && [ "$n" -gt 0 ]; then echo "OK: the release APK has SpotLinkActivity (its relay: $host)"
+          elif [ -z "$host" ] && [ "$n" = 0 ]; then echo "OK: the release APK has no SpotLinkActivity (no relay of its own)"
+          else echo "::error::the release APK has $n SpotLinkActivity entries, but its relay is '${host:-none}'"; exit 1; fi
+
+      - name: Continue with Facebook only with a Meta app; nothing of its SDK starts by itself (release manifests and APK)
+        # docs/FACEBOOK.md, docs/LAUNCH_PREP.md item 6. Without a Facebook app id and client token
+        # (the MOSHPOINT_FACEBOOK_* variables, else gradle.properties), BuildConfig.FACEBOOK_ENABLED
+        # is false, so the button is hidden, and app/src/noFacebook takes every Facebook component
+        # out of the manifest, so nothing of the SDK can start. In every build its start-up provider
+        # is gone and its auto-init, automatic events and advertising-ID collection are off
+        # (tools/check_facebook.py). Checked on the two release manifests merged in the step before
+        # (this repository's own Facebook setting), on one merged with a made-up Meta app (the
+        # login comes back), and on the release APK built above.
+        if: success()
+        shell: bash
+        env:
+          FB_APP_ID: ${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}
+          FB_TOKEN: ${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}
+        run: |
+          set -euo pipefail
+          # The build script's own rule: a blank variable falls back to gradle.properties.
+          id=$(printf '%s' "${FB_APP_ID:-$(sed -n 's/^moshpoint\.fb\.appId=//p' gradle.properties)}" | tr -d '[:space:]')
+          token=$(printf '%s' "${FB_TOKEN:-$(sed -n 's/^moshpoint\.fb\.clientToken=//p' gradle.properties)}" | tr -d '[:space:]')
+          configured=no
+          if [ -n "$id" ] && [ -n "$token" ]; then configured=yes; fi
+          echo "A Meta app is configured for this repository's builds: $configured"
+          python3 tools/check_facebook.py "$RUNNER_TEMP/manifest-relay.xml" "$configured"
+          python3 tools/check_facebook.py "$RUNNER_TEMP/manifest-none.xml" "$configured"
+          # The other way round, with a made-up Meta app (not a real one): the login is back.
+          bash tools/release_manifest.sh "$RUNNER_TEMP/manifest-facebook.xml" -Pmoshpoint.server= -Pmoshpoint.serverUrl= \
+            -Pmoshpoint.facebookAppId=1234567890 -Pmoshpoint.facebookClientToken=made-up-for-ci
+          python3 tools/check_facebook.py "$RUNNER_TEMP/manifest-facebook.xml" yes
+          # The release APK built above, with this repository's own setting.
+          AAPT=$(find "$ANDROID_HOME"/build-tools -name aapt2 | sort -V | tail -1)
+          APK=$(find app/build/outputs/apk/release -name '*.apk' | head -1)
+          "$AAPT" dump xmltree --file AndroidManifest.xml "$APK" > "$RUNNER_TEMP/release-apk-manifest.txt"
+          python3 tools/check_facebook.py --aapt "$RUNNER_TEMP/release-apk-manifest.txt" "$configured"
+
       - name: Licences of every library in the app (shown in Settings)
         if: success()
         shell: bash
@@ -170,6 +251,50 @@ jobs:
           printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
           MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew :app:bundleRelease -Pmoshpoint.server="$SERVER_URL" -Pmoshpoint.facebookAppId="${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}" -Pmoshpoint.facebookClientToken="${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}"
           rm -f "$RUNNER_TEMP/upload.jks"
+
+      - name: Signed bundle rehearsal with a throwaway upload key (until the four signing secrets are set)
+        # docs/LAUNCH_PREP.md item 6. Until the secrets exist, the path they switch on runs here with
+        # a key made for this run and thrown away (random passwords, never printed): the key check
+        # passes for it and fails for a wrong key password or a missing secret, and the bundle is
+        # built by the step above's own command and must come out signed with that key. Nothing is
+        # uploaded (the upload needs the real secrets). Once they're set, this step skips itself.
+        if: success() && env.HAS_KEYSTORE != 'true'
+        shell: bash
+        env:
+          SERVER_URL: ${{ vars.MOSHPOINT_SERVER }}
+          FB_APP_ID: ${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}
+          FB_TOKEN: ${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/throwaway-key"
+          mkdir -p "$dir"
+          trap 'rm -rf "$dir"' EXIT
+          MOSHPOINT_KEYSTORE_PASSWORD=$(openssl rand -hex 16)
+          MOSHPOINT_KEY_PASSWORD="$MOSHPOINT_KEYSTORE_PASSWORD"
+          MOSHPOINT_KEY_ALIAS=upload
+          export MOSHPOINT_KEYSTORE_PASSWORD MOSHPOINT_KEY_PASSWORD MOSHPOINT_KEY_ALIAS
+          keytool -genkeypair -keystore "$dir/upload.jks" -storepass:env MOSHPOINT_KEYSTORE_PASSWORD -keypass:env MOSHPOINT_KEY_PASSWORD \
+            -alias upload -keyalg RSA -keysize 2048 -validity 2 -dname "CN=Moshpoint CI throwaway" > /dev/null 2>&1 \
+            || { echo "::error::couldn't make the throwaway key"; exit 1; }
+          KEYSTORE_B64=$(base64 -w0 "$dir/upload.jks")
+          export KEYSTORE_B64
+          bash tools/check_upload_key.sh
+          if MOSHPOINT_KEY_PASSWORD=not-the-password bash tools/check_upload_key.sh > /dev/null; then echo "::error::the key check passed a wrong key password"; exit 1; fi
+          if MOSHPOINT_KEY_ALIAS='' bash tools/check_upload_key.sh > /dev/null; then echo "::error::the key check passed a missing secret"; exit 1; fi
+          echo "OK: the key check refuses a wrong key password and a missing secret"
+          # The signed bundle step's own command, with this key.
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$dir/decoded.jks"
+          MOSHPOINT_KEYSTORE_FILE="$dir/decoded.jks" ./gradlew -q :app:bundleRelease -Pmoshpoint.server="$SERVER_URL" -Pmoshpoint.facebookAppId="$FB_APP_ID" -Pmoshpoint.facebookClientToken="$FB_TOKEN"
+          AAB=$(find app/build/outputs/bundle/release -name '*.aab' | head -1)
+          [ -n "$AAB" ] || { echo "::error::no bundle was built"; exit 1; }
+          want=$(keytool -list -v -keystore "$dir/upload.jks" -storepass:env MOSHPOINT_KEYSTORE_PASSWORD -alias upload 2> /dev/null | sed -n 's/^[[:space:]]*SHA256: //p' | head -1)
+          got=$(keytool -printcert -jarfile "$AAB" 2> /dev/null | sed -n 's/^[[:space:]]*SHA256: //p' | head -1)
+          if [ -n "$want" ] && [ "$want" = "$got" ]; then
+            echo "OK: $(basename "$AAB") ($(du -h "$AAB" | cut -f1)) is signed with the upload key it was given"
+          else
+            echo "::error::the bundle isn't signed with the upload key it was given"
+            exit 1
+          fi
 
       - name: Upload Play Store bundle
         if: success() && env.HAS_KEYSTORE == 'true'
@@ -623,3 +748,60 @@ jobs:
           path: |
             wear/build/reports
             wear/build/test-results
+
+  # ---- The relay's Docker image (server/), built the way the Deploy server workflow's
+  # `fly deploy` builds it, then started with a volume and checked from outside with the same
+  # checks the deploy runs (tools/check_relay.py). A broken image or check shows up here, on every
+  # push, before anyone taps Deploy server. Its own job, so the phone build isn't slowed down. ----
+  relay-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy server runs by hand only, from the main branch, with pinned actions
+        shell: bash
+        run: |
+          f=.github/workflows/deploy-server.yml
+          fail=0
+          # The only trigger is workflow_dispatch: never on push (or anything else).
+          triggers=$(awk '/^on:/{on=1; next} on && /^[^ #]/{exit} on && /^  [a-z_]+:/{print $1}' "$f")
+          if [ "$triggers" != "workflow_dispatch:" ]; then echo "::error::$f must only run by hand (workflow_dispatch); its triggers: $triggers"; fail=1; fi
+          # The deploy job runs only on ccr-5839ed7c-1q0ztj.
+          grep -q "^    if: github.ref == 'refs/heads/ccr-5839ed7c-1q0ztj'$" "$f" || { echo "::error::$f must deploy only from ccr-5839ed7c-1q0ztj"; fail=1; }
+          # Every action pinned to a full commit SHA.
+          if grep -nE '^\s*(- )?uses:' "$f" | grep -vE 'uses: [^ ]+@[0-9a-f]{40}( |$)'; then echo "::error::pin every action in $f to a commit SHA"; fail=1; fi
+          [ "$fail" = 0 ] && echo "OK: by hand only, main branch only, every action pinned"
+          exit $fail
+
+      - name: Build the relay's image as Fly does
+        shell: bash
+        run: |
+          # flyctl sends the repo root as the build context, filtered by the root .dockerignore
+          # (it never reads server/Dockerfile.dockerignore, which only Docker's own CLI uses). Build
+          # from a copy of the Dockerfile outside the repo, so Docker uses the root .dockerignore too.
+          cp server/Dockerfile "$RUNNER_TEMP/Dockerfile"
+          docker build -q -f "$RUNNER_TEMP/Dockerfile" -t moshpoint-relay .
+
+      - name: Start it on a volume and check it from outside (the deploy's checks)
+        shell: bash
+        env:
+          # MOSHPOINT_APP_CERTS as the deploy passes it: a made-up Play key and the public debug key.
+          # Certificate fingerprints, not secrets. And a made-up contact for the privacy page.
+          CERTS: "AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99,89:B4:37:7F:73:AB:77:7E:46:EF:31:37:6F:55:ED:E5:3E:CB:EA:D9:9A:33:18:64:C7:35:A7:17:40:26:1A:8D"
+          CONTACT: help@example.org
+        run: |
+          docker volume create relay-data > /dev/null
+          docker run -d --name relay -p 8080:8080 -v relay-data:/data -e MOSHPOINT_APP_CERTS="$CERTS" -e MOSHPOINT_CONTACT="$CONTACT" moshpoint-relay > /dev/null
+          ok=1
+          EXPECT_CERTS="$CERTS" EXPECT_CONTACT=1 WAIT_SECONDS=120 python3 tools/check_relay.py http://localhost:8080 || ok=0
+          # The contact the relay was given is the one on its privacy page, as a link.
+          if curl -fsS http://localhost:8080/privacy | grep -q "href=\"mailto:$CONTACT\""; then echo "OK    the privacy page links to MOSHPOINT_CONTACT"; else echo "::error::the privacy page doesn't show MOSHPOINT_CONTACT"; ok=0; fi
+          # The relay runs as its own user (uid 10001), not root, with its database on the volume.
+          uid=$(docker exec relay awk '/^Uid:/{print $2}' /proc/1/status)
+          if [ "$uid" = 10001 ]; then echo "OK    runs as uid 10001"; else echo "::error::the relay runs as uid $uid, not 10001"; ok=0; fi
+          if docker exec relay test -f /data/relay.db; then echo "OK    its database is on the volume (/data/relay.db)"; else echo "::error::no /data/relay.db"; ok=0; fi
+          docker stop -t 30 relay > /dev/null
+          [ "$ok" = 1 ] || { echo "=== relay log ==="; docker logs relay 2>&1 | tail -60; exit 1; }

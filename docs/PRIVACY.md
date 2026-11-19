@@ -1,7 +1,7 @@
 # Moshpoint privacy policy
 
-_Draft for review before Play Store release. Last updated: 18 November 2026. Contact: [EMAIL].
-Moshpoint is provided by [LEGAL ENTITY]._
+_Last updated: 19 November 2026. Moshpoint is made by the developer named on its Google Play
+page. Questions about this policy or your information: INSERTCONTACTEMAILHERE._
 
 Moshpoint helps you find your friends at gigs and other crowded places. It was built so
 that it can do this **without knowing who you are or where you are**. This page explains
@@ -9,11 +9,13 @@ exactly what happens to your information.
 
 ## The short version
 
-- No account, no phone number, no email, no contacts upload.
+- No account, no phone number, no email, no contacts upload. Nothing to sign up for.
 - You're only findable while **you** switch on "Go live". You can switch it off at any time,
   from the app, the notification or the Quick Settings tile.
 - Your location never leaves your phone in a form anyone else can read except the friends
-  you've added.
+  and crew you've added.
+- What goes through our server is encrypted on your phone first: we can't read your
+  locations, messages or photos. The one exception is a report you choose to send us.
 - We don't sell, share or use your data for advertising. There are no ads, trackers or
   analytics in the app, and it doesn't use your phone's advertising ID.
 - Moshpoint is for people aged 18 and over.
@@ -23,8 +25,10 @@ exactly what happens to your information.
 Stored only in the app's private storage on your device, never backed up to the cloud:
 
 - your display name, your optional photo, and photos of friends (the ones they shared, or ones you picked for them),
-- your friends list and tonight's gig group (gig groups expire after 18 hours),
-- a random secret key that lets your friends recognise your phone.
+- your friends list, your crews (each ends by itself the morning after its gig) and their chat,
+- a random secret key that lets your friends recognise your phone,
+- places you saved on the map, and spots mates texted you (see "Text my spot"),
+- the photos and clips of your gigs (see "Your gigs"), and the people you've blocked.
 
 Deleting the app deletes all of it.
 
@@ -33,21 +37,28 @@ that contact's name and phone number on your phone for it. That feature has been
 app deletes a contact saved that way the first time it opens after updating, and never sends a
 text itself.
 
-Text my spot (Moshpoint+, only if you switch it on in Settings) opens your own texting app with
-your location already written in: a map link and the coordinates. You choose who gets it and
-press Send yourself. Moshpoint doesn't see the text or who it goes to, keeps no copy, and needs
-no SMS permission. The link carries your first name and your spot after a `#`, which browsers
-never send anywhere: our server only ever sees that someone opened the page, never where.
+## Text my spot (only if you switch it on)
+
+Text my spot (off until you switch it on in Settings) opens your own texting app with your
+location already written in: a map link and the coordinates. You choose who gets it and press
+Send yourself. Moshpoint doesn't see the text or who it goes to, keeps no copy, and needs no SMS
+permission. The link carries your first name and your spot after a `#`, which browsers never
+send anywhere: our server only ever sees that someone opened the page, never where.
 
 When a mate's link opens in your Moshpoint, the spot (and their first name) is read on your
-phone and kept there as a saved place until you remove it; nothing is sent anywhere, and the
-finder's arrow to it uses only your phone's own GPS and compass.
+phone and kept there as a saved place until you remove it (at most 20 are kept); nothing is
+sent anywhere, and the finder's arrow to it uses only your phone's own GPS and compass. So that
+these links open in the app, Android checks a small file on our server when Moshpoint is
+installed; that check carries nothing about you.
 
-"Use satellite when there's no signal" (Moshpoint+, off until you switch it on) lets crew
-messages and your shared location go over your phone's satellite connection when there's no
-other network. They are the same end-to-end encrypted messages that otherwise go over mobile
-data, to the same server; your carrier carries them and may charge for it. With the switch off,
-the app sends nothing over a satellite connection.
+## Satellite (only if you switch it on)
+
+"Use satellite when there's no signal" (off until you switch it on in Settings) lets crew
+messages, your shared location and reading the crew chat go over your phone's satellite
+connection when there's no other network. They are the same end-to-end encrypted messages that
+otherwise go over mobile data, to the same server, at most every two minutes; photos, clips and
+maps never do. Your carrier carries them and may charge for it. With the switch off, the app
+sends nothing over a satellite connection.
 
 ## What goes to your watch (only if you install the watch app)
 
@@ -104,20 +115,32 @@ crew members' phones recognise each other. Only the crew can open it. Earlier ve
 4 bytes in it that stayed the same all night. This version only sends a form with nothing
 constant in it.
 
-## What goes to our server (only if GPS sharing is enabled)
+## What goes to our server
 
-When you're live and have mobile data, your phone uploads your GPS position, **encrypted on
-your phone** with a key only your friends have, filed under your current rotating code.
-Friends' phones fetch and decrypt it. The server:
+Our server (the relay) passes encrypted messages between phones. It has no accounts and can't
+tell who anyone is: everything below is sealed on your phone before it's sent, filed under codes
+that change every few minutes or every day, and deleted when it expires.
+
+**Your location:** when you're live and have mobile data, your phone uploads your GPS position
+and battery level (so mates know when your phone is about to die), **encrypted on your phone**
+with a key only your friends have, filed under your current rotating code. Friends' phones
+fetch and decrypt it. The server:
 
 - only ever sees rotating codes and encrypted bytes,
 - can't read locations and can't tell who anyone is,
-- deletes everything after 15 minutes,
-- doesn't log request contents, codes or IP addresses (it keeps short-lived per-connection
-  rate-limit counters in memory to stop abuse).
+- deletes locations after 15 minutes,
+- doesn't log request contents, codes or internet (IP) addresses. To stop abuse it keeps
+  short-lived counters of how many requests come from each internet address and install code
+  (below), in memory only, and forgets them when they go quiet.
 
 Gig-group introductions (your finding key and name, encrypted with the group's key) may
 also be posted there briefly so group members can find each other.
+
+**Your install code:** the first time the app talks to our server, the server gives it a
+random code (random bytes and a time, signed by the server) that the app sends with its
+requests, so your phone gets its own fair share of the server instead of sharing one with
+everyone at the venue. It says nothing about you, the server doesn't store it, and the app
+only ever sends it to the server that issued it.
 
 **Your floor:** the air-pressure reading described above is uploaded the same way as your
 location (encrypted on your phone for your friends only, filed under a rotating code, deleted
@@ -130,13 +153,14 @@ under a code that changes every 5 minutes. It can't read them or tell who you ar
 any website it sees your phone's internet address when it connects. ntfy.sh keeps messages
 for up to 12 hours (see its own privacy policy).
 
-**Crew pings, meet-up pins and moments (optional):** messages you send your crew ("On my
-way", "Where are you?"), a meet-up pin you drop, and photos and short clips (with their sound) you
-choose to share as moments (with where you took them) are encrypted on your phone with your
-crew's key, so only people who scanned your crew's QR can open them. They pass through the same
-relay under codes that change daily or every 5 minutes. Our relay deletes moments within 24
-hours, and crew chat, pings and pins within 3 days; the public relay deletes everything within
-12 hours. Nothing is shared unless you tap to send it.
+**Crew chat, pings, meet-up pins and moments (optional):** messages you send your crew (chat,
+"On my way", "Where are you?"), a meet-up pin you drop, and photos and short clips (with their
+sound) you choose to share as moments (with where you took them) are encrypted on your phone
+with your crew's key, so only people who scanned your crew's QR can open them. They pass
+through the same relay under codes that change daily or every 5 minutes. Our relay deletes
+pings and pins after 15 minutes, moments after 24 hours, and crew chat after 72 hours (3 days);
+the public relay deletes everything within 12 hours. Nothing is shared unless you tap to send
+it.
 
 **"I'm here" (optional):** when you pin your spot with **I'm here**, the spot you chose, the
 air-pressure reading there (for upstairs/downstairs) and the time go to your crew the same
@@ -151,12 +175,17 @@ encrypted on your phone so that only that person's phone can open it: not the re
 crew, not our server, not the public relay and not any phone that passes it on. Your name and
 your signature are inside the encrypted part, so nobody but them can tell who sent it or who it
 is for, and every private message is the same size. It goes through the same relay as crew chat
-(in a mailbox shared by the whole crew, kept for up to 3 days, 12 hours on the public relay)
+(in a mailbox shared by the whole crew, kept for up to 72 hours, 12 hours on the public relay)
 and, with no signal, through your crew's phones nearby over Bluetooth, never strangers' phones.
 The relay can see that your crew sent a private message, when, and the internet address it came
 from, but not who it was for. The conversation is kept on your two phones only and is deleted
 when the crew ends. Muting someone happens on your phone only; they aren't told. People
 following your crew from home can't send or receive private messages.
+
+**Your photo (optional):** if you set one, it's encrypted on your phone with a key only your
+friends have and stored under an id that changes weekly, for up to 8 days, so friends'
+phones can show your face. The server can't see it. Removing your photo shares an empty one,
+so friends' copies are cleared the next time they refresh.
 
 **Your gigs (on your phone only):** photos and clips your crew shares are kept on your
 phone, in the app's private storage, so you can look back at the night. They never leave
@@ -167,10 +196,17 @@ your phone from there. You can delete a gig any time, uninstalling removes them 
 photos; only the ones you pick are copied into the gig, on your phone. Moshpoint has no access
 to the rest of your photos and never looks through them.
 
-**Gig search (optional):** when you search for a gig, the words you type (and your phone's
-country, for nearby shows) go to our server, which asks Ticketmaster, Bandsintown and SeatGeek
-for matching shows. Builds without our server ask Ticketmaster directly. Nothing
-about you or your crew is sent with it. Typing a gig in by hand sends nothing.
+## Finding gigs and venues
+
+**Smart search and "Coming up near you":** when you plan a gig, the app can suggest acts and
+shows as you type, and the home screen can list shows coming up near you. To ask, your phone
+sends our server what you've typed (from the first letter), your phone's country (from the
+mobile network, the SIM or your language setting) and at most a region: in New Zealand, the
+island, worked out on your phone; elsewhere, a region from the server's own list, picked on your
+phone. Never your position, and nothing about you or your crew. The server answers from lists
+of shows it builds itself from Ticketmaster, SeatGeek and Bandsintown, so nothing you type goes
+to them. These are Moshpoint+ features: until Moshpoint+ is on sale, our server says no and the
+app hides them for a day, so you type your gig in by hand.
 
 **Finding a venue you typed (optional):** if you type a gig in with a venue, the venue's name
 is looked up once, when you start the crew, so the crew's map knows where it is. (Joining a
@@ -186,11 +222,6 @@ around the venue. That copy is kept on your phone so the map still works with no
 is deleted a few days after the gig. Like any website, OpenFreeMap sees your phone's internet
 address and which area of the map was asked for. Nothing about you, your friends or your
 crew is sent.
-
-**Your photo (optional):** if you set one, it's encrypted on your phone with a key only your
-friends have and stored under an id that changes weekly, for up to 8 days, so friends'
-phones can show your face. The server can't see it. Removing your photo shares an empty one,
-so friends' copies are cleared the next time they refresh.
 
 ## Reporting and blocking
 
@@ -211,42 +242,53 @@ goes:
 - the reason you picked, your note if you wrote one, and the app's version.
 
 Nothing about you goes with it: not your name, your key, your phone's address or an install id.
-The person you report isn't told who reported them. Reports are stored on our relay server and
-kept for **90 days**, then deleted; only the app's owner can read them, with a secret key, to deal
-with them (see docs/MODERATION.md). A report about a serious crime may be passed to the police.
+The person you report isn't told who reported them. Reports are stored on our server and
+kept for **90 days**, then deleted; only the app's developer can read them, with a secret key,
+to deal with them. A report about a serious crime may be passed to the police.
 
 Before your first crew chat message, photo, clip or private message, the app shows the community
 rules once and asks you to agree.
 
-## Continue with Facebook (optional)
+## Continue with Facebook (optional, only in versions that offer it)
 
 Nothing reaches Meta unless you tap "Continue with Facebook": Facebook's login library in the
-app only starts then. When you do, Meta's library talks to Meta to log you in (Meta's own
-privacy policy covers what it receives, such as your Facebook session and basic information
-about the app and your phone), and Facebook tells the app your name and profile photo (nothing
-else: no friends list, email or posts). Your first name fills in your Moshpoint name and the
-photo becomes your Moshpoint photo, shared with your friends as described above. The library's
-analytics, advertising-ID collection and automatic start are switched off. You can stop using
-it any time; it doesn't post anything on your behalf.
+app only starts then, and versions of the app without a Facebook login don't show the button.
+When you do, Meta's library talks to Meta to log you in (Meta's own privacy policy covers what
+it receives, such as your Facebook session and basic information about the app and your phone),
+and Facebook tells the app your name and profile photo (nothing else: no friends list, email or
+posts). Your first name fills in your Moshpoint name and the photo becomes your Moshpoint photo,
+shared with your friends as described above. The library's analytics, advertising-ID collection
+and automatic start are switched off. You can stop using it any time; it doesn't post anything
+on your behalf.
 
-## Where our server is
+## Where our server is, and how long it keeps things
 
 Our relay server runs in Sydney, Australia (on Fly.io). What it holds is encrypted on your phone
-before it's sent: locations for 15 minutes, moments for 24 hours, crew chat, pings and pins for
-up to 3 days, profile photos for up to 8 days, each deleted when it expires. Reports (see
-"Reporting and blocking") are the one thing it holds that it can read, and are kept 90 days. Fly keeps one daily
-snapshot of the server's storage for one day, so a copy of that encrypted data can outlive its
-deletion by up to a day; it's as unreadable there as on the server. Map tiles come from OpenFreeMap, venue
-lookups from OpenStreetMap's Nominatim, and gig searches from Ticketmaster, Bandsintown and
-SeatGeek (asked by our server), each under its own privacy policy. Builds without our server
-(such as test builds) use the public relay ntfy.sh instead. If you have a Wear OS watch, the phone-to-watch link is
-Google's (see "What goes to your watch").
+before it's sent, and deleted when it expires:
+
+| What | Kept for |
+|---|---|
+| Locations, floor readings, pings and the meet-up pin | 15 minutes |
+| Moments (photos and clips) | 24 hours |
+| Crew chat and private messages | 72 hours (3 days) |
+| Profile photos | 8 days |
+| Reports (the one thing it can read) | 90 days |
+
+Fly keeps one daily snapshot of the server's storage for one day, so a copy of that encrypted
+data can outlive its deletion by up to a day; it's as unreadable there as on the server. Map
+tiles come from OpenFreeMap, venue lookups from OpenStreetMap's Nominatim, and the show lists
+for smart search from Ticketmaster, Bandsintown and SeatGeek (asked by our server, never with
+anything about you), each under its own privacy policy. Builds without our server (such as
+test builds) use the public relay ntfy.sh instead. If you have a Wear OS watch, the
+phone-to-watch link is Google's (see "What goes to your watch").
 
 ## Deleting your data
 
-Delete the app: everything on your phone is gone. Anything on our server (encrypted
-locations, intros and photos) expires on its own within 8 days. If you used Facebook
-login you can also remove Moshpoint at facebook.com → Settings → Apps and websites.
+There's no account to delete. Delete the app: everything on your phone is gone. Anything on our
+server (encrypted locations, messages, moments and photos) expires on its own within 8 days, and
+a report within 90 days. To ask about a report, or anything else on this page, write to
+INSERTCONTACTEMAILHERE. If you used Facebook login you can also remove Moshpoint at facebook.com
+→ Settings → Apps and websites.
 
 ## Permissions and why
 
@@ -255,10 +297,11 @@ login you can also remove Moshpoint at facebook.com → Settings → Apps and we
 | Nearby devices (Bluetooth, Wi-Fi) | Find friends and be found nearby; precise distance; pass crew messages on when there's no signal. |
 | Location | GPS arrow when you're far apart; Android requires it for Bluetooth/Wi-Fi distance on some versions. Used only while finding or while you're live. |
 | UWB | The precise arrow on phones that support it. |
-| Notifications | Shows when you're live, so it's never on without you knowing. |
+| Notifications | Shows when you're live, so it's never on without you knowing; crew messages. |
 | Camera | Scanning a friend's or group's QR code (those images aren't stored or sent); taking your own photo; taking the photos and clips you choose to share with your crew as moments (encrypted, see above). |
 | Microphone | Sound on the short clips you record for your crew (asked the first time you hold to record). |
 | Photos and videos | No permission: "Add your photos from that night" uses Android's photo picker, which hands the app only what you pick. |
+| SMS and contacts | No permission: Text my spot opens your own texting app, and you pick who gets it. |
 | Run in background / start at boot | Keep you findable with the app closed, only while you're live (and after a restart only if you chose "always on"). |
 | View network connections | Know when the phone has no signal, so messages wait (or go by Bluetooth) instead of failing. Android grants this without asking; nothing about your network is sent anywhere. |
 

@@ -27,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.AlignmentLine
+import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.stringResource
@@ -204,43 +206,43 @@ fun MapScreen(
             trails = located.mapNotNull { f -> trails[f.id]?.let { t -> MapTrail(f.color, t.map { it.lat to it.lon }) } },
         )
 
-        // Top bar
-        Row(
-            Modifier.fillMaxWidth().padding(12.dp).background(Mosh.Deep.copy(alpha = 0.88f), RoundedCornerShape(16.dp))
-                .border(1.dp, Mosh.Line, RoundedCornerShape(16.dp)).padding(horizontal = 6.dp, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Back as a compact chevron: the title and status get the room (long in some languages).
-            val back = stringResource(R.string.find_back)
-            TextButton(onClick = onBack, modifier = Modifier.semantics { contentDescription = back }) {
-                Text("‹", style = Mosh.Label.copy(fontSize = 24.sp))
+        // Top bar, and the map style under it at the end (MapTopArea). On a small phone with large
+        // text the bar puts its buttons on a line of their own (MapTopBar), and the style moves down.
+        MapTopArea {
+            MapTopBar(
+                Modifier.layoutId("bar").fillMaxWidth().padding(12.dp).background(Mosh.Deep.copy(alpha = 0.88f), RoundedCornerShape(16.dp))
+                    .border(1.dp, Mosh.Line, RoundedCornerShape(16.dp)).padding(horizontal = 6.dp, vertical = 2.dp),
+            ) {
+                // Back as a compact chevron: the title and status get the room (long in some languages).
+                val back = stringResource(R.string.find_back)
+                TextButton(onClick = onBack, modifier = Modifier.layoutId("back").semantics { contentDescription = back }) {
+                    Text("‹", style = Mosh.Label.copy(fontSize = 24.sp))
+                }
+                Text(stringResource(R.string.find_map_title), Modifier.layoutId("title"), style = Mosh.Label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(status, Modifier.layoutId("status"), style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                TextButton(onClick = { me?.let { dropAt = it.lat to it.lon } }, enabled = me != null, modifier = Modifier.layoutId("action")) {
+                    Text(stringResource(R.string.find_map_pin), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
+                }
+                TextButton(onClick = { focus(everyone) }, modifier = Modifier.layoutId("action")) { Text(stringResource(R.string.find_map_all), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+                TextButton(onClick = { me?.let { focus(listOf(LatLng(it.lat, it.lon))) } }, modifier = Modifier.layoutId("action")) {
+                    Text(stringResource(R.string.find_map_me), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
+                }
             }
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.find_map_title), style = Mosh.Label, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(status, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-            TextButton(onClick = { me?.let { dropAt = it.lat to it.lon } }, enabled = me != null) {
-                Text(stringResource(R.string.find_map_pin), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
-            }
-            TextButton(onClick = { focus(everyone) }) { Text(stringResource(R.string.find_map_all), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
-            TextButton(onClick = { me?.let { focus(listOf(LatLng(it.lat, it.lon))) } }) {
-                Text(stringResource(R.string.find_map_me), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
-            }
-        }
 
-        // Map style: Bright / Night / Dark.
-        Box(Modifier.align(Alignment.TopEnd).padding(top = 84.dp, end = 16.dp)) {
-            Text(
-                stringResource(MAP_STYLES[styleIx].first),
-                style = Mosh.Label.copy(fontSize = 13.sp, color = Mosh.Text),
-                modifier = Modifier.background(Mosh.Deep.copy(alpha = 0.88f), RoundedCornerShape(14.dp))
-                    .border(1.dp, Mosh.Line, RoundedCornerShape(14.dp))
-                    .clickable {
-                        styleIx = (styleIx + 1) % MAP_STYLES.size
-                        runCatching { ctx.getSharedPreferences("map", android.content.Context.MODE_PRIVATE).edit().putInt("style", styleIx).apply() }
-                    }
-                    .padding(horizontal = 12.dp, vertical = 7.dp),
-            )
+            // Map style: Bright / Night / Dark.
+            Box(Modifier.layoutId("style").padding(top = 84.dp, end = 16.dp)) {
+                Text(
+                    stringResource(MAP_STYLES[styleIx].first),
+                    style = Mosh.Label.copy(fontSize = 13.sp, color = Mosh.Text),
+                    modifier = Modifier.background(Mosh.Deep.copy(alpha = 0.88f), RoundedCornerShape(14.dp))
+                        .border(1.dp, Mosh.Line, RoundedCornerShape(14.dp))
+                        .clickable {
+                            styleIx = (styleIx + 1) % MAP_STYLES.size
+                            runCatching { ctx.getSharedPreferences("map", android.content.Context.MODE_PRIVATE).edit().putInt("style", styleIx).apply() }
+                        }
+                        .padding(horizontal = 12.dp, vertical = 7.dp),
+                )
+            }
         }
 
         // People list
@@ -420,6 +422,100 @@ fun MapScreen(
                 }
             },
         )
+    }
+}
+
+/** Given by [MapTopBar] (its height) when it has put its buttons on a line of their own. */
+private val BarStacked = HorizontalAlignmentLine { a, b -> maxOf(a, b) }
+
+/**
+ * The map's top bar ([MapTopBar], layout id "bar") and the map style's button ("style", a box
+ * carrying its own 84 dp top and 16 dp end padding) at the end under it, placed exactly as when
+ * they were two children of the map's Box. When the bar has put its buttons on a line of their
+ * own it's taller, so the style moves down with it, the same 20 dp under the bar's edge as
+ * always, instead of sitting on the buttons.
+ */
+@Composable
+private fun MapTopArea(content: @Composable () -> Unit) = Layout(content) { parts, constraints ->
+    val loose = constraints.copy(minWidth = 0, minHeight = 0)
+    val bar = parts.first { it.layoutId == "bar" }.measure(loose)
+    val style = parts.first { it.layoutId == "style" }.measure(loose)
+    val down = if (bar[BarStacked] == AlignmentLine.Unspecified) 0 else (bar.height + 8.dp.roundToPx() - 84.dp.roundToPx()).coerceAtLeast(0)
+    val height = maxOf(bar.height, down + style.height).coerceIn(constraints.minHeight, constraints.maxHeight)
+    layout(constraints.maxWidth, height) {
+        bar.placeRelative(0, 0)
+        style.placeRelative(constraints.maxWidth - style.width, down)
+    }
+}
+
+/**
+ * The map's top bar: back ("back"), the title ("title") over the status ("status"), then the
+ * buttons ("action": Pin, All, Me). The same rule as the place rows ([ListRow]): wherever the
+ * longest word of the title and status fits between the back chevron and the buttons, it's laid
+ * out exactly as the Row it was (`verticalAlignment = CenterVertically`, the title and status in
+ * a Column given the room the buttons leave), so nothing changes there. Below that (a small phone
+ * with large text: Polish's Pinezka, Wszyscy and Ja left the title a dot), the buttons go on a
+ * line of their own under the title, at the end, the title and status get the bar's whole width,
+ * and the bar says so with [BarStacked].
+ */
+@Composable
+private fun MapTopBar(modifier: Modifier, content: @Composable () -> Unit) = Layout(content, modifier) { parts, constraints ->
+    val back = parts.first { it.layoutId == "back" }
+    val title = parts.first { it.layoutId == "title" }
+    val status = parts.first { it.layoutId == "status" }
+    val actions = parts.filter { it.layoutId == "action" }
+    val maxW = constraints.maxWidth
+    val maxH = constraints.maxHeight
+    val mid = Alignment.CenterVertically
+    fun below(used: Int) = if (maxH == Constraints.Infinity) maxH else (maxH - used).coerceAtLeast(0)
+    // The width the Row gives the buttons (each the width it wants), and the longest word to fit beside them.
+    val buttons = back.maxIntrinsicWidth(Constraints.Infinity) + actions.sumOf { it.maxIntrinsicWidth(Constraints.Infinity) }
+    val word = maxOf(title.minIntrinsicWidth(Constraints.Infinity), status.minIntrinsicWidth(Constraints.Infinity))
+    if (maxW - buttons >= word) {
+        // The Row: the buttons first, in order, each in the room left; then the column in the rest.
+        var used = 0
+        val b = back.measure(Constraints(maxWidth = maxW, maxHeight = maxH))
+        used += b.width
+        val acts = actions.map { a -> a.measure(Constraints(maxWidth = (maxW - used).coerceAtLeast(0), maxHeight = maxH)).also { used += it.width } }
+        val columnW = (maxW - used).coerceAtLeast(0)
+        val t = title.measure(Constraints(maxWidth = columnW, maxHeight = maxH))
+        val s = status.measure(Constraints(maxWidth = columnW, maxHeight = below(t.height)))
+        val columnH = t.height + s.height
+        val h = maxOf(b.height, columnH, acts.maxOfOrNull { it.height } ?: 0, constraints.minHeight)
+        layout(maxOf(used + columnW, constraints.minWidth), h) {
+            b.placeRelative(0, mid.align(b.height, h))
+            val columnY = mid.align(columnH, h)
+            t.placeRelative(b.width, columnY)
+            s.placeRelative(b.width, columnY + t.height)
+            var x = b.width + columnW
+            acts.forEach {
+                it.placeRelative(x, mid.align(it.height, h))
+                x += it.width
+            }
+        }
+    } else {
+        // Two lines: back with the title over the status, then the buttons at the end.
+        val b = back.measure(Constraints(maxWidth = maxW, maxHeight = maxH))
+        val columnW = (maxW - b.width).coerceAtLeast(0)
+        val t = title.measure(Constraints(maxWidth = columnW, maxHeight = maxH))
+        val s = status.measure(Constraints(maxWidth = columnW, maxHeight = below(t.height)))
+        var room = maxW
+        val acts = actions.map { a -> a.measure(Constraints(maxWidth = room.coerceAtLeast(0), maxHeight = maxH)).also { room -= it.width } }
+        val columnH = t.height + s.height
+        val top = maxOf(b.height, columnH)
+        val second = acts.maxOfOrNull { it.height } ?: 0
+        val h = maxOf(top + second, constraints.minHeight)
+        layout(maxW, h, mapOf(BarStacked to h)) {
+            b.placeRelative(0, mid.align(b.height, top))
+            val columnY = mid.align(columnH, top)
+            t.placeRelative(b.width, columnY)
+            s.placeRelative(b.width, columnY + t.height)
+            var x = maxW - acts.sumOf { it.width }
+            acts.forEach {
+                it.placeRelative(x, top + mid.align(it.height, second))
+                x += it.width
+            }
+        }
     }
 }
 
