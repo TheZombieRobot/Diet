@@ -11,9 +11,10 @@ items, in order, each green in CI before the next.
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
 2026._
 
-- **Now:** item 1 (the Deploy server workflow), pushed for its CI check.
-- **Done:** nothing green in CI yet.
-- **Last green run:** none on this branch yet.
+- **Now:** item 2 (the privacy policy as a page), pushed for its CI check.
+- **Done:** item 1, green in run 363 (493fd3b); screenshots unchanged (phone 2,320 and watch 546
+  identical to e2d5384's by blob hash).
+- **Last green run:** 363 (493fd3b, item 1).
 - **Baseline:** core 658 and server 108 tests pass locally at e2d5384 (scratch Gradle build of
   only `:core` and `:server`, Maven Central only).
 
@@ -102,6 +103,48 @@ workflow's error says what to change). The workflow itself can't run here or in 
 `FLY_API_TOKEN`, and deploying is the owner's step): its YAML and every `run:` script were
 checked with PyYAML and shellcheck locally, and CI checks its triggers and pins.
 
+## Item 2: the privacy policy as a page
+
+**Built:**
+
+- **`docs/PRIVACY.md`, brought up to date with the app** (checked against the code, not the old
+  docs): no account and 18+ up front; Need help's removal kept (the app still deletes an old
+  emergency contact); Text my spot and texted spot links (what the relay sees, the 20 kept spots,
+  Android's assetlinks check at install); satellite (off until switched on; chat reads included,
+  never media); smart search and Coming up near you (the typed letters, the country and at most
+  a region, never the position; the relay says no until Moshpoint+ is on sale and the app hides
+  them for a day); Report and Block; the install code; the battery level in location shares;
+  Facebook only in versions that offer it. **Fixed:** pings and pins are kept 15 minutes, not 3
+  days (the courier keeps only chat and private messages in the 72-hour store,
+  `Courier.held(box)`); the old gig search (straight to Ticketmaster) is gone from the app. The
+  relay's retention is a table: locations, floor, pings and pin 15 minutes; moments 24 hours;
+  chat and private messages 72 hours; profile photos 8 days; reports 90 days.
+- **The contact** is `INSERTCONTACTEMAILHERE` (docs/SECRETS.md) in the header and under
+  "Deleting your data"; **the developer** is "the developer named on its Google Play page" (no
+  legal entity to fill in; open question 2).
+- **`tools/privacy_page.py`** builds the page (stdlib only: the Markdown PRIVACY.md uses,
+  everything escaped first, no script, light and dark, phone-width tables scroll) into
+  `server/src/main/resources/privacy.html` and `docs/site/index.html`. `--check` (a new CI step)
+  fails when either is out of date; the Pages copy may have the contact filled in by hand.
+- **The relay:** `PrivacyPage.kt` and `GET /privacy` (CSP with no script at all, no referrer,
+  cached an hour). `MOSHPOINT_CONTACT` replaces the placeholder at start: an email becomes a
+  mailto link, an https address a link, anything else plain text, always escaped; unset, the
+  placeholder shows. RELAY_API.md section 14.
+- **`PrivacyPageTest`** (5): served with the contact (and its headers, no script, nothing
+  loaded); the placeholder without one; links, plain text and escaping; every heading and the
+  date of PRIVACY.md on the page; and the policy's retention table against the relay's own
+  `RelayConfig` (15 min, 24 h, 72 h, 8 days, 90 days), plus the topics the brief lists.
+- **The deploy and CI:** `check_relay.py` checks `/privacy` (fails if the placeholder shows
+  while Fly has `MOSHPOINT_CONTACT`, else warns); the deploy's summary prints the policy's
+  address for Play Console; the `relay-image` job runs the image with a contact and checks the
+  page links to it.
+- **The app:** builds with a relay link to `https://<relay>/privacy` (`app/build.gradle.kts`,
+  the same host test as the spot links); without one, `moshpoint.privacyUrl`, now a permalink to
+  this policy (9773f19). `-Pmoshpoint.privacyPolicyUrl` still wins. No screen shows the address.
+- **Docs:** PLAY_STORE (the privacy item, hosting on GitHub Pages with `docs/.nojekyll`),
+  FACEBOOK (Meta's privacy URL), SECRETS (where each relay secret is set now, `FLY_API_TOKEN`,
+  `MOSHPOINT_APP_CERTS`), SERVER_PRODUCTION (its PRIVACY.md to-do done), README.
+
 ## Open questions
 
 1. **The Run workflow button and the default branch.** The repository's default branch is
@@ -111,3 +154,7 @@ checked with PyYAML and shellcheck locally, and CI checks its triggers and pins.
    owner can't see Deploy server or its Run workflow button, the fix is one setting: make
    `ccr-5839ed7c-1q0ztj` the default branch (SERVER_PRODUCTION.md says how). That's the owner's
    call; nothing here changes it.
+2. **Who the developer is.** The policy names "the developer named on its Google Play page"
+   rather than a legal entity, so nothing is left to fill in. If the owner wants their legal name
+   or company there, it's one line at the top of docs/PRIVACY.md (then
+   `python3 tools/privacy_page.py`).
