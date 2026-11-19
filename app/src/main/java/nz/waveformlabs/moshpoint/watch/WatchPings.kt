@@ -2,13 +2,8 @@ package nz.waveformlabs.moshpoint.watch
 
 import android.content.Context
 import android.os.SystemClock
-import androidx.compose.runtime.snapshotFlow
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -34,8 +29,10 @@ import nz.waveformlabs.moshpoint.locate.RelayClient
  * crew message: the relay when there's signal, crew phones nearby over Bluetooth when there isn't.
  *
  * The watch is told what the outbox says and nothing kinder: "sent" only once the relay has
- * the ping, "sent nearby" once a crew phone has it, and otherwise that it is still waiting.
- * If it gets further after the watch has been answered, the watch hears that too.
+ * the ping, "sent nearby" once a crew phone has it, and otherwise that it is still waiting. It
+ * hears once, for each try: the watch's quick-ping flash shows that one answer. (Later news
+ * when a ping got further went to the Need help screen, the only one that showed it, and went
+ * with it: docs/SPOT_LINKS.md, item 6.)
  *
  * Every wrist ping is Moshpoint+. An older watch's Need help or "I'm OK now" (removed on
  * 16 November 2026) reads as a kind this build doesn't know: nothing is sent, and the watch is
@@ -48,10 +45,7 @@ internal object WatchPings {
      */
     private class Taken(val kind: Int, val sinceSec: Long, val lineId: String) {
         var outcome = PingOutcome.UNCONFIRMED
-        var following = false
     }
-
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("WatchPings"))
 
     /** Recent requests by number, so a retry of one the phone already has is never sent twice. */
     private val recent = object : LinkedHashMap<Int, Taken>() {
@@ -73,7 +67,6 @@ internal object WatchPings {
         }
         DebugStatus.log("Wrist ping ${m.kind}: $outcome")
         WatchLink.send(app, watch, WatchMessage.PingResult(m.requestId, outcome))
-        taken(m.requestId)?.let { followUp(app, watch, m.requestId, it) }
     }
 
     private suspend fun process(app: Context, m: WatchMessage.Ping): PingOutcome {
@@ -174,37 +167,6 @@ internal object WatchPings {
         t.outcome
     }
 
-    /**
-     * After the watch has its answer: if the outbox gets the ping further while this process is
-     * still running, tell the watch, which may still be showing "Not sent yet". Nothing is
-     * polled: the chat line is Compose state, so this wakes only when it changes.
-     */
-    private fun followUp(app: Context, watch: String, requestId: Int, t: Taken) {
-        synchronized(t) {
-            if (t.lineId.isEmpty() || t.following || t.outcome == PingOutcome.SENT || t.outcome == PingOutcome.FAILED) return
-            t.following = true
-        }
-        WatchSync.start(app) // makes Compose state changes visible with no screen up
-        scope.launch {
-            withTimeoutOrNull(FOLLOW_FOR_MS) {
-                snapshotFlow { lineState(t.lineId) }.first { state ->
-                    val news = when (state) {
-                        CrewChat.SENT -> PingOutcome.SENT
-                        CrewChat.NEARBY -> PingOutcome.SENT_NEARBY
-                        else -> null
-                    }
-                    val better = news != null && synchronized(t) { news.improvesOn(t.outcome).also { if (it) t.outcome = news } }
-                    if (news != null && better) {
-                        DebugStatus.log("Wrist ping: now $news")
-                        WatchLink.send(app, watch, WatchMessage.PingResult(requestId, news))
-                    }
-                    state == CrewChat.SENT || state == CrewChat.FAILED
-                }
-            }
-            synchronized(t) { t.following = false }
-        }
-    }
-
     /** Is our own signed ping of this [kind], sent since [sinceSec], in the crew's ping box on the relay? */
     private suspend fun onRelay(app: Context, kind: Int, sinceSec: Long, tries: Int): Boolean {
         val g = withContext(Dispatchers.Main) { GroupSync.group.value } ?: return false
@@ -227,7 +189,4 @@ internal object WatchPings {
     private const val OFFLINE_PATIENCE_MS = 5_000L
     private const val RETRY_PATIENCE_MS = 6_000L
     private const val NEARBY_GRACE_MS = 2_500L
-
-    /** How long to keep an ear on a ping that hadn't reached the relay when the watch was answered. */
-    private const val FOLLOW_FOR_MS = 30 * 60_000L
 }

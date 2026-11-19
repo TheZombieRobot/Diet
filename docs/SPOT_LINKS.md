@@ -34,12 +34,16 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   open question 5); only the failed job was run again, on the same commit.
 - **Item 4 (crew chat read over satellite): done, green in CI** (run 359, b39bc3d). No
   screenshot changed, as expected (nothing on screen is new).
-- **Item 5 (Text my spot and satellite in "What's in Moshpoint+"): built, pushed for CI.** Core
-  tests green locally (658; server 108), translations (both checks) and secrets pass.
-- **Exact next step:** read item 5's run. Screenshots expected to change: `plusInfo` and
-  `smallPhoneLargeFontPlusInfo` (the two new rows), in all 21 languages, nothing else. Then push
-  item 6, committed locally on top of item 5.
-- **Last green run:** 359 (b39bc3d, item 4). Baseline for screenshot comparisons: dad5a3f's
+- **Item 5 (Text my spot and satellite in "What's in Moshpoint+"): done, green in CI** (run 360,
+  9a9e279). Screenshots: `plusInfo` changed in all 21 languages (the two new rows after the
+  watch's), and `smallPhoneLargeFontPlusInfo` only in Arabic (the rows are below the fold there;
+  in Arabic the top of the next one shows at the bottom edge), nothing else; reviewed in en, de,
+  ar (right to left) and ja.
+- **Item 6 (`WatchPings.followUp` removed): built, pushed for CI.** Core tests green locally
+  (658; server 108), translations (both checks) and secrets pass.
+- **Exact next step:** read item 6's run (no screenshot should change, phone or watch). Then
+  the six items are done: send the report to the session that started this one.
+- **Last green run:** 360 (9a9e279, item 5). Baseline for screenshot comparisons: dad5a3f's
   `ui-screenshots` and `ui-screenshots-watch`.
 
 ### The six items
@@ -48,8 +52,8 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 2. "Heading home 🏠" back as a plain quick ping. **Done: green in run 357.**
 3. An older build's check-in shown as "<name> is heading home". **Done: green in run 358.**
 4. Crew chat read over satellite. **Done: green in run 359.**
-5. Text my spot and satellite in "What's in Moshpoint+". **Built; CI pending.**
-6. `WatchPings.followUp`: removed, as only Need help used it. Built (local commit).
+5. Text my spot and satellite in "What's in Moshpoint+". **Done: green in run 360.**
+6. `WatchPings.followUp`: removed, as only Need help used it. **Built; CI pending.**
 
 ### Item 1: what was built
 
@@ -158,7 +162,26 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   language's own words for crew and mates.
 - **Docs:** FEATURES (Plan a gig), ROADMAP, FIELD_TEST_PLAN (Plan a gig, step 4), DISCOVER_APP.
 
+### Item 6: what was done
+
+- **`WatchPings.followUp` removed,** with what only it used: `Taken.following`, the coroutine
+  scope, `FOLLOW_FOR_MS` and its call to `WatchSync.start` (which it needed to see Compose state
+  with no screen up). The phone now answers each wrist ping once per try, as the watch's quick
+  pings have always used it. `PingOutcome.improvesOn` stays: `WatchPings.note` uses it so a
+  retry's answer never goes backwards (sent, then "not sent yet").
+- **Docs:** WATCH.md (problem 8: one answer per try), REMOVE_SAFETY.md (its open questions,
+  each marked with the item that answered it).
+
 ## Decisions (with reasons)
+
+### Item 6
+
+- **Removed, because only Need help used it.** On the watch, only Need help's screen
+  (`SosActivity.onLater`, removed with it) ever listened for a later answer: in build 312
+  (75fe2fb) and in this build, `Pings.send` takes the first answer for its request and stops
+  listening, and `FindSession` ignores ping answers. An older watch's Need help can't start a
+  follow-up either: this phone refuses that kind before taking it. So the later messages went
+  to no one.
 
 ### Item 5
 
