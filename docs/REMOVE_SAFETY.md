@@ -8,7 +8,7 @@ features (Text my spot, satellite data). Branch: `claude/remove-safety` (from
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
-2026, 00:02 UTC._
+2026, 00:26 UTC._
 
 - **Done, stage 1 core (52c876a):** core tests green locally (622; server 103), using a scratch
   Gradle build of only `:core` and `:server` (docs/WATCH.md, "Working notes").
@@ -126,7 +126,9 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   - **Merged manifest:** the report lists only permissions, features and components, so the
     satellite meta-data doesn't show; the same one line as before (the removed
     `CheckInAlarmReceiver`).
-- **Stage 5, part 1 (27e7e90, pushed for CI with the handover):**
+- **Stage 5, part 1 (27e7e90): green, CI run 352 on 7964207** (core and server tests in CI; phone
+  screenshots: only the Japanese `settingsPlus` and `smallPhoneLargeFontPlusSettings` changed,
+  the shorter satellite title now on one line; watch identical).
   - Core: `SpotLink`: builds `https://<relay host>/spot#<lat>,<lon>[,<first name>]` (null with
     no relay of our own: the text keeps the Google Maps link) and parses a texted one: our host
     exactly, `https`, the path `/spot`, no query, plain decimals in range and not 0,0, and a name
@@ -156,10 +158,9 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   4. **The finder's arrow to it:** the finder only targets mates today (`engine.track(ids)`).
      A place target (GPS and compass only) is the one real piece of new work.
   5. Screenshot tests (the map with a texted spot), FEATURES, PRIVACY, FIELD_TEST_PLAN.
-- **Exact next step:** when the stage 5 part 1 run is green (expected screenshots: only the
-  Japanese `settingsPlus` and `smallPhoneLargeFontPlusSettings` change), stage 5 part 2, the
-  app side, as planned above.
-- **Last green run:** 351 (7a64f7e).
+- **Exact next step:** stage 5 part 2, the app side, as planned above (start with steps 2 and 3:
+  the App Link filter and opening a link as a saved place; then the finder's place target).
+- **Last green run:** 352 (7964207). Branch head after it: docs only ([skip ci]).
 
 ### Stages (each must be green in CI before the next)
 
@@ -168,8 +169,8 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 3. Text my spot. **Done, green: run 350.**
 4. Satellite switch. **Done, green: run 351.**
 5. **Added 18 November 2026 (relayed by the session that started this one, as the owner's):**
-   the receiving end of Text my spot. (Part 1, the core link and the relay's routes: pushed for
-   CI. Part 2, the app: next.)
+   the receiving end of Text my spot. (Part 1, the core link and the relay's routes: **green, run
+   352.** Part 2, the app: next.)
    - **The link,** built in core with tests: `https://<relay host>/spot#<lat>,<lon>[,<name>]`.
      The spot rides after `#`, so browsers never send it to the server. The plain coordinates
      stay in the text too. With no server built in (`MOSHPOINT_SERVER` blank), a Google Maps
