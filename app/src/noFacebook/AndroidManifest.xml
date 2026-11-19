@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Builds without a Meta app (no Facebook app id and client token: app/build.gradle.kts) get none
+     of the Facebook SDK's own components, so nothing of it can start: no "Continue with Facebook"
+     (FacebookLogin.available is false), and no activity or receiver another app could open. Its
+     start-up provider is removed in every build (src/main/AndroidManifest.xml). Added to the
+     manifest only when Facebook isn't configured; CI checks the release manifest has no
+     com.facebook component then (docs/LAUNCH_PREP.md, item 6). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application>
+        <activity android:name="com.facebook.FacebookActivity" tools:node="remove" />
+        <activity android:name="com.facebook.CustomTabMainActivity" tools:node="remove" />
+        <activity android:name="com.facebook.CustomTabActivity" tools:node="remove" />
+        <receiver android:name="com.facebook.CurrentAccessTokenExpirationBroadcastReceiver" tools:node="remove" />
+        <receiver android:name="com.facebook.AuthenticationTokenManager$CurrentAuthenticationTokenChangedBroadcastReceiver" tools:node="remove" />
+    </application>
+</manifest>

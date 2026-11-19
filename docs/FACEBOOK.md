@@ -2,7 +2,19 @@
 
 The app can fill in each person's name and profile photo from Facebook (then share the
 photo with their friends, encrypted). It's built in but **hidden until you connect a Meta
-app**. About 15 minutes:
+app**. The first release has none (the owner's scope, 19 November 2026).
+
+**Without a Meta app** (no app id and client token below): the button isn't shown anywhere
+(`BuildConfig.FACEBOOK_ENABLED`), and none of the Facebook SDK's own parts are in the app's
+manifest (`app/src/noFacebook`), so nothing of it can start and no other app can open one of its
+screens. **In every build** the SDK's start-up provider is removed and its analytics, advertising
+ID and auto-initialisation are off, so even with a Meta app nothing reaches Meta until someone
+taps "Continue with Facebook". CI checks all of this on every build (`tools/check_facebook.py`:
+this repository's release manifests and APK, and a build with a made-up Meta app). When you
+switch it on, add Facebook's rows to the Data safety form (PLAY_STORE.md); the privacy policy
+already covers it ("Continue with Facebook", only in versions that offer it).
+
+To connect one, about 15 minutes:
 
 1. Go to **developers.facebook.com** → My Apps → **Create app** → use case
    "Authenticate and request data from users with Facebook Login" → app type Consumer.

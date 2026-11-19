@@ -99,6 +99,19 @@ jobs:
       - name: Core + server tests
         run: ./gradlew :core:test :server:test --continue
 
+      - name: Upload key works (the four signing secrets; it decodes, its alias is in it, both passwords open it; nothing printed)
+        # tools/check_upload_key.sh, before anything is signed with the key (the builds below are,
+        # once MOSHPOINT_KEYSTORE is set): names a secret that's missing or wrong, never a value.
+        # docs/LAUNCH_PREP.md item 6.
+        if: success() && env.HAS_KEYSTORE == 'true'
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.MOSHPOINT_KEYSTORE }}
+          MOSHPOINT_KEYSTORE_PASSWORD: ${{ secrets.MOSHPOINT_KEYSTORE_PASSWORD }}
+          MOSHPOINT_KEY_ALIAS: ${{ secrets.MOSHPOINT_KEY_ALIAS }}
+          MOSHPOINT_KEY_PASSWORD: ${{ secrets.MOSHPOINT_KEY_PASSWORD }}
+        run: bash tools/check_upload_key.sh
+
       - name: Build debug APK
         if: success() || failure()
         shell: bash
@@ -143,26 +156,20 @@ jobs:
         # when a relay is built in (app/build.gradle.kts, docs/SPOT_LINKS.md). CI's own builds follow
         # the MOSHPOINT_SERVER variable, so both cases are checked here on the release manifest:
         # merged once with a made-up relay (the activity, with one filter for exactly its host) and
-        # once with none (neither). Then the release APK built above must match its own setting.
+        # once with none (neither), each with the build's own Facebook setting
+        # (tools/release_manifest.sh). Then the release APK built above must match its own setting.
         # Builds never need MOSHPOINT_SERVER.
         if: success()
         shell: bash
         env:
           SERVER_URL: ${{ vars.MOSHPOINT_SERVER }}
+          FB_APP_ID: ${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}
+          FB_TOKEN: ${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}
         run: |
           set -euo pipefail
-          merged() { # $1: where to keep the release manifest; then the Gradle -P options
-            out="$1"; shift
-            touch "$RUNNER_TEMP/marker"
-            sleep 1
-            ./gradlew -q :app:processReleaseManifest "$@"
-            m=$(find app/build/intermediates -path '*release*' -name AndroidManifest.xml -newer "$RUNNER_TEMP/marker" | sort | tail -1)
-            [ -n "$m" ] || { echo "::error::no release manifest was written"; find app/build/intermediates -path '*release*' -name AndroidManifest.xml; exit 1; }
-            echo "Release manifest: $m"
-            cp "$m" "$out"
-          }
-          merged "$RUNNER_TEMP/manifest-relay.xml" -Pmoshpoint.server=https://relay.example.invalid
-          merged "$RUNNER_TEMP/manifest-none.xml" -Pmoshpoint.server= -Pmoshpoint.serverUrl=
+          fb=(-Pmoshpoint.facebookAppId="$FB_APP_ID" -Pmoshpoint.facebookClientToken="$FB_TOKEN")
+          bash tools/release_manifest.sh "$RUNNER_TEMP/manifest-relay.xml" -Pmoshpoint.server=https://relay.example.invalid "${fb[@]}"
+          bash tools/release_manifest.sh "$RUNNER_TEMP/manifest-none.xml" -Pmoshpoint.server= -Pmoshpoint.serverUrl= "${fb[@]}"
           python3 tools/check_spot_link.py "$RUNNER_TEMP/manifest-relay.xml" relay.example.invalid
           python3 tools/check_spot_link.py "$RUNNER_TEMP/manifest-none.xml" ""
           # The release APK built above, with this repository's MOSHPOINT_SERVER (blank: none).
@@ -173,6 +180,40 @@ jobs:
           if [ -n "$host" ] && [ "$n" -gt 0 ]; then echo "OK: the release APK has SpotLinkActivity (its relay: $host)"
           elif [ -z "$host" ] && [ "$n" = 0 ]; then echo "OK: the release APK has no SpotLinkActivity (no relay of its own)"
           else echo "::error::the release APK has $n SpotLinkActivity entries, but its relay is '${host:-none}'"; exit 1; fi
+
+      - name: Continue with Facebook only with a Meta app; nothing of its SDK starts by itself (release manifests and APK)
+        # docs/FACEBOOK.md, docs/LAUNCH_PREP.md item 6. Without a Facebook app id and client token
+        # (the MOSHPOINT_FACEBOOK_* variables, else gradle.properties), BuildConfig.FACEBOOK_ENABLED
+        # is false, so the button is hidden, and app/src/noFacebook takes every Facebook component
+        # out of the manifest, so nothing of the SDK can start. In every build its start-up provider
+        # is gone and its auto-init, automatic events and advertising-ID collection are off
+        # (tools/check_facebook.py). Checked on the two release manifests merged in the step before
+        # (this repository's own Facebook setting), on one merged with a made-up Meta app (the
+        # login comes back), and on the release APK built above.
+        if: success()
+        shell: bash
+        env:
+          FB_APP_ID: ${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}
+          FB_TOKEN: ${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}
+        run: |
+          set -euo pipefail
+          # The build script's own rule: a blank variable falls back to gradle.properties.
+          id=$(printf '%s' "${FB_APP_ID:-$(sed -n 's/^moshpoint\.fb\.appId=//p' gradle.properties)}" | tr -d '[:space:]')
+          token=$(printf '%s' "${FB_TOKEN:-$(sed -n 's/^moshpoint\.fb\.clientToken=//p' gradle.properties)}" | tr -d '[:space:]')
+          configured=no
+          if [ -n "$id" ] && [ -n "$token" ]; then configured=yes; fi
+          echo "A Meta app is configured for this repository's builds: $configured"
+          python3 tools/check_facebook.py "$RUNNER_TEMP/manifest-relay.xml" "$configured"
+          python3 tools/check_facebook.py "$RUNNER_TEMP/manifest-none.xml" "$configured"
+          # The other way round, with a made-up Meta app (not a real one): the login is back.
+          bash tools/release_manifest.sh "$RUNNER_TEMP/manifest-facebook.xml" -Pmoshpoint.server= -Pmoshpoint.serverUrl= \
+            -Pmoshpoint.facebookAppId=1234567890 -Pmoshpoint.facebookClientToken=made-up-for-ci
+          python3 tools/check_facebook.py "$RUNNER_TEMP/manifest-facebook.xml" yes
+          # The release APK built above, with this repository's own setting.
+          AAPT=$(find "$ANDROID_HOME"/build-tools -name aapt2 | sort -V | tail -1)
+          APK=$(find app/build/outputs/apk/release -name '*.apk' | head -1)
+          "$AAPT" dump xmltree --file AndroidManifest.xml "$APK" > "$RUNNER_TEMP/release-apk-manifest.txt"
+          python3 tools/check_facebook.py --aapt "$RUNNER_TEMP/release-apk-manifest.txt" "$configured"
 
       - name: Licences of every library in the app (shown in Settings)
         if: success()
@@ -210,6 +251,50 @@ jobs:
           printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
           MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew :app:bundleRelease -Pmoshpoint.server="$SERVER_URL" -Pmoshpoint.facebookAppId="${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}" -Pmoshpoint.facebookClientToken="${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}"
           rm -f "$RUNNER_TEMP/upload.jks"
+
+      - name: Signed bundle rehearsal with a throwaway upload key (until the four signing secrets are set)
+        # docs/LAUNCH_PREP.md item 6. Until the secrets exist, the path they switch on runs here with
+        # a key made for this run and thrown away (random passwords, never printed): the key check
+        # passes for it and fails for a wrong key password or a missing secret, and the bundle is
+        # built by the step above's own command and must come out signed with that key. Nothing is
+        # uploaded (the upload needs the real secrets). Once they're set, this step skips itself.
+        if: success() && env.HAS_KEYSTORE != 'true'
+        shell: bash
+        env:
+          SERVER_URL: ${{ vars.MOSHPOINT_SERVER }}
+          FB_APP_ID: ${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}
+          FB_TOKEN: ${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/throwaway-key"
+          mkdir -p "$dir"
+          trap 'rm -rf "$dir"' EXIT
+          MOSHPOINT_KEYSTORE_PASSWORD=$(openssl rand -hex 16)
+          MOSHPOINT_KEY_PASSWORD="$MOSHPOINT_KEYSTORE_PASSWORD"
+          MOSHPOINT_KEY_ALIAS=upload
+          export MOSHPOINT_KEYSTORE_PASSWORD MOSHPOINT_KEY_PASSWORD MOSHPOINT_KEY_ALIAS
+          keytool -genkeypair -keystore "$dir/upload.jks" -storepass:env MOSHPOINT_KEYSTORE_PASSWORD -keypass:env MOSHPOINT_KEY_PASSWORD \
+            -alias upload -keyalg RSA -keysize 2048 -validity 2 -dname "CN=Moshpoint CI throwaway" > /dev/null 2>&1 \
+            || { echo "::error::couldn't make the throwaway key"; exit 1; }
+          KEYSTORE_B64=$(base64 -w0 "$dir/upload.jks")
+          export KEYSTORE_B64
+          bash tools/check_upload_key.sh
+          if MOSHPOINT_KEY_PASSWORD=not-the-password bash tools/check_upload_key.sh > /dev/null; then echo "::error::the key check passed a wrong key password"; exit 1; fi
+          if MOSHPOINT_KEY_ALIAS='' bash tools/check_upload_key.sh > /dev/null; then echo "::error::the key check passed a missing secret"; exit 1; fi
+          echo "OK: the key check refuses a wrong key password and a missing secret"
+          # The signed bundle step's own command, with this key.
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$dir/decoded.jks"
+          MOSHPOINT_KEYSTORE_FILE="$dir/decoded.jks" ./gradlew -q :app:bundleRelease -Pmoshpoint.server="$SERVER_URL" -Pmoshpoint.facebookAppId="$FB_APP_ID" -Pmoshpoint.facebookClientToken="$FB_TOKEN"
+          AAB=$(find app/build/outputs/bundle/release -name '*.aab' | head -1)
+          [ -n "$AAB" ] || { echo "::error::no bundle was built"; exit 1; }
+          want=$(keytool -list -v -keystore "$dir/upload.jks" -storepass:env MOSHPOINT_KEYSTORE_PASSWORD -alias upload 2> /dev/null | sed -n 's/^[[:space:]]*SHA256: //p' | head -1)
+          got=$(keytool -printcert -jarfile "$AAB" 2> /dev/null | sed -n 's/^[[:space:]]*SHA256: //p' | head -1)
+          if [ -n "$want" ] && [ "$want" = "$got" ]; then
+            echo "OK: $(basename "$AAB") ($(du -h "$AAB" | cut -f1)) is signed with the upload key it was given"
+          else
+            echo "::error::the bundle isn't signed with the upload key it was given"
+            exit 1
+          fi
 
       - name: Upload Play Store bundle
         if: success() && env.HAS_KEYSTORE == 'true'

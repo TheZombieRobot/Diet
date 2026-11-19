@@ -11,7 +11,10 @@ accounts or decisions; the rest can be done in the repo.
       then add repository secrets `MOSHPOINT_KEYSTORE` (`base64 -w0 upload.jks`),
       `MOSHPOINT_KEYSTORE_PASSWORD`, `MOSHPOINT_KEY_ALIAS` (`upload`), `MOSHPOINT_KEY_PASSWORD`.
       Every CI run then also produces a signed `moshpoint-release-aab` artifact to upload to Play.
-      Keep `upload.jks` and its passwords somewhere safe and never commit them.
+      Keep `upload.jks` and its passwords somewhere safe and never commit them. CI checks the four
+      secrets before it signs anything ("Upload key works", `tools/check_upload_key.sh`: it names
+      a missing or wrong one and never prints a value); until they're set, every run rehearses the
+      signed bundle with a throwaway key instead.
 - [ ] **(you)** Deploy the relay server (GitHub → Actions → **Deploy server**, see
       SERVER_PRODUCTION.md, "Deploy from your phone") and set `MOSHPOINT_SERVER`.
 - [x] Bluetooth UUIDs: the three extended adverts (crowd relay and crew messages, crew intros,
@@ -49,7 +52,8 @@ accounts or decisions; the rest can be done in the repo.
       (`FIELD_TEST_PLAN.md`, section 4c). See `WATCH.md`.
 - [ ] Before the watch app is public: confirm what Google states about how the Wear OS link
       between a phone and its watch is protected, so `PRIVACY.md` can say it in Google's words.
-      Moshpoint+ is on for everyone until Play Billing exists (`Entitlements.BILLING`), so the
+      Moshpoint+ is on for everyone until Play Billing exists (`Membership.BILLING` in core,
+      tested; store builds ignore any saved "no"), so the
       watch never shows "Unlock" with nothing to buy. CI builds a signed watch bundle
       (`moshpoint-watch-release-aab`) whenever the signing secrets are set.
 

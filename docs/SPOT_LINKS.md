@@ -252,7 +252,9 @@ _Keep this section current: whoever picks this up next starts here. Last updated
    relay should show `SpotLinkActivity` with the `https://<relay host>/spot` filter in its merged
    manifest (`aapt2 dump xmltree --file AndroidManifest.xml`, or Android Studio's Merged Manifest
    tab); field test 4o checks the link opens the app.
-4. **The map's top bar on a small phone with large text** can squeeze its own title to nothing
+4. **Answered (docs/LAUNCH_PREP.md, item 5):** yes, the place rows' rule; only that screenshot
+   changed, in the 8 languages it cut. The original question: **The map's top bar on a small
+   phone with large text** can squeeze its own title to nothing
    (seen in Polish in `smallPhoneLargeFontTextedSpotMap`: Pinezka, Wszyscy and Ja take the
    width). It was like that before these items (no earlier test drew that case) and isn't
    changed here; fix it the same way as the place rows?

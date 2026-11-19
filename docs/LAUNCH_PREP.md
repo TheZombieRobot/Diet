@@ -9,20 +9,25 @@ items, in order, each green in CI before the next.
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
-2026, 06:20 UTC._
+2026, 06:42 UTC._
 
-- **Now:** item 5 (the map's top bar on a small phone with large text), pushed for its CI check.
-  Expected screenshot change: `smallPhoneLargeFontTextedSpotMap` only, in the languages whose
-  title was cut. Next: item 6 (drafted), then item 7 (drafted).
+- **Now:** item 6 (release readiness: Facebook switched off without a Meta app, Moshpoint+ for
+  everyone, the upload key check and a signed-bundle rehearsal), pushed for its CI check. Next:
+  item 7 (drafted).
 - **Done:** item 1, green in run 363 (493fd3b); item 2, green in run 364 (d88c2bf); item 3,
   green in run 365 (838f941: its step printed "OK: SpotLinkActivity with one autoVerify filter
   for https://relay.example.invalid/spot", "OK: no SpotLinkActivity and no verified link" and
   "OK: the release APK has no SpotLinkActivity (no relay of its own)"); item 4, green in run 366
-  (da28245; core and server tests passed in CI with the fix). Screenshots unchanged after each
-  (phone 2,320 and watch 546 identical to e2d5384's by blob hash).
-- **Last green run:** 366 (da28245, item 4; 06:17 UTC).
+  (da28245; core and server tests passed in CI with the fix); item 5, green in run 367 (de83af6).
+- **Screenshots:** unchanged after items 1 to 4 (phone 2,320 and watch 546 identical to
+  e2d5384's by blob hash). After item 5: phone 2,312 identical, 8 changed, all
+  `smallPhoneLargeFontTextedSpotMap` (fr, in, nl, pl, sv, th, tr, vi: the languages whose title
+  was cut to a dot or a few letters; looked at: Polish now shows "Mapa" and its status, the
+  buttons on a line under them); watch 546 identical.
+- **Last green run:** 367 (de83af6, item 5; 06:35 UTC).
 - **Baseline:** core 658 and server 108 tests pass locally at e2d5384 (scratch Gradle build of
-  only `:core` and `:server`, Maven Central only); server 115 with items 2 and 4.
+  only `:core` and `:server`, Maven Central only); server 115 with items 2 and 4, core 660 with
+  item 6.
 
 ### The seven items
 
@@ -204,6 +209,64 @@ there). Below that, the buttons go on a line of their own under the title, at th
 title and status get the bar's whole width. The map style's button under the bar (Bright, Night,
 Dark) moves down with it then, 20 dp under the bar as before (`MapTopArea`); otherwise it stays
 where it was. No new strings; RTL mirrors as before (`placeRelative`).
+
+**Result (run 367):** only `smallPhoneLargeFontTextedSpotMap` changed, in 8 languages (fr, in,
+nl, pl, sv, th, tr, vi); every other map screenshot, the normal phone's included, is identical by
+blob hash. In Spanish and Portuguese the title's first word already fitted, so it stays a Row
+(ellipsised after a word, as on any phone).
+
+## Item 6: release readiness
+
+**Continue with Facebook only with a Meta app; nothing of its SDK starts by itself:**
+
+- The button was already hidden without a Meta app (`FacebookLogin.available` is
+  `BuildConfig.FACEBOOK_ENABLED`, which needs both the app id and the client token; Settings and
+  the welcome show it only then), and the SDK is only ever started by that button
+  (`FacebookLogin.start`; its start-up provider is removed in every build, auto-init, automatic
+  events and advertising-ID collection are off in the manifest). Nothing else in the app calls
+  Facebook (checked: only `profile/FacebookLogin.kt` imports `com.facebook`).
+- New: a build without a Meta app also has **none of the SDK's components** in its manifest
+  (`app/src/noFacebook/AndroidManifest.xml`, added by the build script when `facebookEnabled` is
+  false; the list is the SDK 17.0.2 AARs' own: FacebookActivity, CustomTabMainActivity,
+  CustomTabActivity, which any app could open with `fbconnect://cct.nz.waveformlabs.moshpoint`,
+  and the two token broadcast receivers). So nothing of it can start, from inside the app or
+  outside.
+- CI, after the texted-spots step: `tools/check_facebook.py` on the release manifests merged
+  there (with a relay and without one, this repository's own Facebook setting), on one merged
+  with a made-up Meta app (`-Pmoshpoint.facebookAppId=1234567890`, the login's activity comes
+  back), and on the release APK (aapt2). The merges now go through `tools/release_manifest.sh`,
+  shared with item 3's step, and pass the build's Facebook variables.
+- The report-only "Merged manifest … compared with the published main build" step will list the
+  five Facebook components as gone from this branch's test build (expected).
+
+**Moshpoint+ for everyone while billing doesn't exist:** the rule moved into core,
+`Membership.plus(stored, testBuild, billing = Membership.BILLING)`, with `MembershipTest`.
+`BILLING` is false, so every store build answers yes **whatever is saved** (before, a saved
+"no" would have won; only a test build's debug panel can save one). Test builds keep the debug
+panel's switch. `Entitlements.plus` calls it; nothing else changed.
+
+**The relay refuses Discover by default:** confirmed, no change. `EntitlementCheck.fromEnv`
+opens it only for `MOSHPOINT_DISCOVER_OPEN=1` (DiscoverTest checks blank, 0, true, yes and on
+stay closed), the relay-image job checks `/v1/discover/suggest` answers 403 from the real
+container, and the Deploy server workflow fails if `MOSHPOINT_DISCOVER_OPEN` is set on Fly. The
+app takes a 403 quietly (DiscoverClient: hand entry only, asked again a day later).
+
+**The signed Play bundle:**
+
+- **Upload key works** (new, right after the tests, before anything is signed): runs when
+  `MOSHPOINT_KEYSTORE` is set; `tools/check_upload_key.sh` checks all four secrets are there,
+  the keystore decodes (base64) and opens with its password, the alias is in it, and the key
+  password opens the key (by signing a throwaway file with jarsigner: keytool alone accepts a
+  wrong key password for PKCS12). It names the secret that's missing or wrong and prints no
+  value.
+- **Signed Play Store bundle** (unchanged) runs on the same condition, so with all four secrets
+  set it runs after the check passes. Its upload step is unchanged.
+- **Signed bundle rehearsal with a throwaway upload key** (new, until the secrets exist): makes
+  a key for the run (random passwords, never printed), runs the key check (passes, and fails
+  for a wrong key password and for a missing secret), builds the bundle with the real step's
+  command, and checks the bundle's certificate is that key's (SHA-256). Nothing is uploaded; the
+  16 KB check then covers the bundle too. Once the secrets are set it skips itself.
+- The release debug-text check is unchanged.
 
 ## Open questions
 
