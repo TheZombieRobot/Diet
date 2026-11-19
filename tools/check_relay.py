@@ -10,9 +10,11 @@ themselves checked on every push.
   /.well-known/assetlinks.json    lets exactly the expected signing certificates open texted
                                   spots in the app (RELAY_API.md section 13)
   /spot and /spot.js              the page for phones without the app
+  /privacy                        the privacy policy, with the owner's contact filled in
   /v1/discover/suggest            refused (403 "members only"): Discover stays off until billing
 
-Only what was checked and whether it passed is printed: never an answer's body.
+Only what was checked and whether it passed is printed: never an answer's body (the privacy
+page holds the contact address).
 
 Usage: python3 tools/check_relay.py <relay address, e.g. https://moshpoint-relay.fly.dev>
 Environment (optional):
@@ -20,6 +22,8 @@ Environment (optional):
                  MOSHPOINT_APP_CERTS the relay was given). Default: the public debug key's
                  alone, which is what the relay serves when MOSHPOINT_APP_CERTS isn't set.
   WAIT_SECONDS   how long to wait for /healthz at first (default 180)
+  EXPECT_CONTACT 1: the privacy page must show a contact (MOSHPOINT_CONTACT is set on the relay),
+                 not the placeholder. Otherwise a page still showing the placeholder is a warning.
 """
 import json
 import os
@@ -34,6 +38,8 @@ APP_ID = "nz.waveformlabs.moshpoint"
 # default (server AppLinks.DEBUG_CERT). A fingerprint of a public certificate, not a secret.
 DEBUG_CERT = "89:B4:37:7F:73:AB:77:7E:46:EF:31:37:6F:55:ED:E5:3E:CB:EA:D9:9A:33:18:64:C7:35:A7:17:40:26:1A:8D"
 CERT = re.compile(r"^([0-9A-F]{2}:){31}[0-9A-F]{2}$")
+# Where the privacy page shows the owner's contact until MOSHPOINT_CONTACT is set (docs/SECRETS.md).
+PLACEHOLDER = "INSERTCONTACTEMAILHERE"
 
 
 class Answer:
@@ -138,6 +144,24 @@ def check_spot_page(base: str, c: Checks):
     c.ok("/spot.js is served")
 
 
+def check_privacy(base: str, contact_expected: bool, c: Checks):
+    what = "/privacy"
+    a = get(base, what)
+    if a.status != 200 or "text/html" not in a.header("Content-Type"):
+        return c.fail(what, f"HTTP {a.status}, {a.header('Content-Type') or 'no type'}")
+    if not a.header("Content-Security-Policy").startswith("default-src 'none'"):
+        return c.fail(what, "no Content-Security-Policy")
+    page = a.text()
+    if "<title>Moshpoint privacy policy</title>" not in page or "<script" in page:
+        return c.fail(what, "not the privacy policy page")
+    if PLACEHOLDER in page:
+        if contact_expected:
+            return c.fail(what, "still shows the contact placeholder, though MOSHPOINT_CONTACT is set")
+        print(f"::warning::The privacy page shows the placeholder {PLACEHOLDER}: set MOSHPOINT_CONTACT on the relay (docs/SERVER_PRODUCTION.md).")
+        return c.ok(f"{what} is the privacy policy (contact not set yet)")
+    c.ok(f"{what} is the privacy policy, with the contact filled in")
+
+
 def check_discover_refused(base: str, c: Checks):
     what = "/v1/discover/suggest"
     a = get(base, what + "?country=NZ&q=a")
@@ -161,6 +185,7 @@ def main() -> int:
     if wait_for_health(base, int(os.environ.get("WAIT_SECONDS", "180")), c):
         check_asset_links(base, expected, c)
         check_spot_page(base, c)
+        check_privacy(base, os.environ.get("EXPECT_CONTACT", "") == "1", c)
         check_discover_refused(base, c)
     if c.failed:
         print(f"{c.failed} check(s) failed")

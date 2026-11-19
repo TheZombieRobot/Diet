@@ -431,9 +431,12 @@ What the relay holds: encrypted records under rotating ids (15 min / 72 h), encr
 for one day. In memory only: rate-limit buckets keyed by address and install token, forgotten when
 idle. Never logged: bodies, URLs, ids, tokens, addresses, search words.
 
-Owner to-do for docs/PRIVACY.md (not changed here): "deletes everything after 15 minutes" is true
+~~Owner to-do for docs/PRIVACY.md (not changed here): "deletes everything after 15 minutes" is true
 of the live store; add that encrypted backups of the relay's disk are kept one day; moments stay
-24 h (the app says "a few hours"); optional install tokens are random and only used for limits.
+24 h (the app says "a few hours"); optional install tokens are random and only used for limits.~~
+Done (docs/LAUNCH_PREP.md, item 2): PRIVACY.md has the relay's retention as a table (and a server
+test checks it against the relay's settings), the one-day snapshot and the install code, and the
+relay serves it at `GET /privacy` (RELAY_API.md section 14).
 
 ## App-side follow-ups (wave 2)
 

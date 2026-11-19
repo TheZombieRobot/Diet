@@ -420,3 +420,22 @@ referrer and nothing back to us. Any query is ignored.
   read from the link on the phone. Only a phone *without* the app asks the relay, for `/spot`
   and `/spot.js`, and the spot after `#` never leaves that browser.
 
+
+## 14. The privacy policy (new)
+
+### `GET /privacy`
+
+The privacy policy as a web page: the address the app links to (builds with this relay built in)
+and the one Play Console lists. `200`, `text/html`.
+
+- **Built from `docs/PRIVACY.md`** by `tools/privacy_page.py` into the relay's resources
+  (`privacy.html`); CI fails when the page is out of date. The same page is in `docs/site/` for
+  GitHub Pages.
+- **The contact** is the relay's `MOSHPOINT_CONTACT` (a Fly secret, also its contact for
+  Nominatim), put in at start where the page says `INSERTCONTACTEMAILHERE`: an email address
+  becomes a `mailto:` link, an https address a link, anything else plain text, always escaped.
+  Unset, the placeholder shows (and the Deploy server workflow warns).
+- **Static:** no script (`Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'`),
+  nothing loaded from anywhere else, no referrer, cached an hour. Nothing about the reader is kept.
+- `#deleting-your-data` (and every other section, by its heading) links straight to a section,
+  for Meta's data deletion instructions URL.

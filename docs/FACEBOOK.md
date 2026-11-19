@@ -17,8 +17,8 @@ app**. About 15 minutes:
        converted the same way).
 3. **App settings → Basic:** copy the **App ID**; **App settings → Advanced → Security:**
    copy the **Client token**. Also on Basic:
-   - Privacy policy URL: the address in `moshpoint.privacyUrl` (`gradle.properties`), the same
-     one the app links to; once the policy is hosted, change both
+   - Privacy policy URL: the relay's page, `https://<relay>/privacy` (the same one the app links
+     to in builds with that relay, and Play Console lists)
    - User data deletion → instructions URL: the same link with `#deleting-your-data` on the end
    - App icon: `docs/store/icon-1024.png`; category: Social
 4. Put them in `gradle.properties` (`moshpoint.fb.appId`, `moshpoint.fb.clientToken`), or as

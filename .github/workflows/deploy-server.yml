@@ -7,7 +7,8 @@
 # What it does: creates the Fly app and its volume on the first run; copies the relay's secrets
 # that are set in GitHub into Fly (fly secrets set --stage, each value on standard input, so no
 # value is ever in a log, an input, a file or a command line); deploys one Machine; checks the
-# relay from outside (tools/check_relay.py); prints the address for MOSHPOINT_SERVER.
+# relay from outside (tools/check_relay.py); prints the address for MOSHPOINT_SERVER and the
+# privacy policy's address for Play Console.
 name: Deploy server
 
 on:
@@ -205,8 +206,12 @@ jobs:
           fi
           flyctl secrets list --app "$APP" --json > "$RUNNER_TEMP/secrets.json"
           python3 - "$RUNNER_TEMP/secrets.json" <<'PY'
-          import json, sys
+          import json, os, sys
           names = {str(s.get("Name") or s.get("name")) for s in (json.load(open(sys.argv[1])) or [])}
+          # The privacy page shows the contact when it's set: the check below then expects it.
+          if "MOSHPOINT_CONTACT" in names:
+              with open(os.environ["GITHUB_ENV"], "a") as env:
+                  env.write("CONTACT_ON_FLY=1\n")
           why = {
               "MOSHPOINT_TOKEN_SECRET": "install tokens are signed with a secret the relay made and kept on the volume",
               "MOSHPOINT_ADMIN_TOKEN": "nobody can read reports (docs/MODERATION.md)",
@@ -226,9 +231,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          EXPECT_CERTS="$CERTS" WAIT_SECONDS=240 python3 tools/check_relay.py "https://$APP.fly.dev"
+          EXPECT_CERTS="$CERTS" EXPECT_CONTACT="${CONTACT_ON_FLY:-}" WAIT_SECONDS=240 python3 tools/check_relay.py "https://$APP.fly.dev"
 
-      - name: The relay's address (for MOSHPOINT_SERVER)
+      - name: The relay's address (for MOSHPOINT_SERVER) and its privacy policy (for Play Console)
         shell: bash
         run: |
           set -euo pipefail
@@ -236,6 +241,7 @@ jobs:
           server="${APP_SERVER%/}"
           echo "The relay is at $url"
           echo "Set the repository variable MOSHPOINT_SERVER to: $url"
+          echo "The privacy policy (Play Console, App content, Privacy policy): $url/privacy"
           {
             echo "## The relay is up"
             echo ""
@@ -246,6 +252,8 @@ jobs:
             else
               echo "Next: Settings → Secrets and variables → Actions → Variables → **MOSHPOINT_SERVER** = \`$url\`. The next app build uses it."
             fi
+            echo ""
+            echo "Privacy policy, for Play Console (App content → Privacy policy): **$url/privacy**"
           } >> "$GITHUB_STEP_SUMMARY"
           if [ -n "$server" ] && [ "$server" != "$url" ]; then
             echo "::warning::MOSHPOINT_SERVER is $server, but this relay is at $url."

@@ -29,6 +29,14 @@ val spotLinkHost: String? = runCatching { URI(server.trim().trimEnd('/')) }.getO
     ?.takeIf { "https".equals(it.scheme, ignoreCase = true) && it.rawUserInfo == null && (it.port == -1 || it.port == 443) }
     ?.host?.lowercase(Locale.ROOT)?.takeIf { it.isNotBlank() }
 
+// The privacy policy the app links to (the welcome, the location disclosure, Settings): with a
+// relay of our own built in, its page (GET /privacy, built from docs/PRIVACY.md), the same address
+// Play Console lists; with none, moshpoint.privacyUrl in gradle.properties.
+// -Pmoshpoint.privacyPolicyUrl wins over both. Builds never need a relay for it.
+val privacyUrl: String = (project.findProperty("moshpoint.privacyPolicyUrl") as String?)?.takeIf { it.isNotBlank() }
+    ?: spotLinkHost?.let { "https://$it/privacy" }
+    ?: (project.findProperty("moshpoint.privacyUrl") as String?).orEmpty()
+
 android {
     namespace = "nz.waveformlabs.moshpoint"
     // Android 16 (API 36): what Google Play requires since 31 August 2026 (docs/ANDROID_16.md).
@@ -61,8 +69,8 @@ android {
         resValue("string", "facebook_client_token", fbToken)
         resValue("string", "fb_login_protocol_scheme", "fb$fbAppId")
         buildConfigField("boolean", "FACEBOOK_ENABLED", (fbAppId.isNotBlank() && fbToken.isNotBlank()).toString())
-        // The privacy policy the app links to (moshpoint.privacyUrl in gradle.properties).
-        buildConfigField("String", "PRIVACY_POLICY_URL", "\"${prop("moshpoint.privacyPolicyUrl", "moshpoint.privacyUrl")}\"")
+        // The privacy policy the app links to (see privacyUrl above).
+        buildConfigField("String", "PRIVACY_POLICY_URL", "\"$privacyUrl\"")
         // No API keys are ever built into the app (anyone can pull them out of an APK): gig search
         // keys are the relay server's secrets (docs/SECRETS.md).
     }

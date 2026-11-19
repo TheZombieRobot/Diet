@@ -30,9 +30,17 @@ accounts or decisions; the rest can be done in the repo.
       Moshpoint+ feature, owner's decision of 15 November). Without it a build uses the public
       ntfy.sh; the free tier's relay and the routing between them come with billing (wave 2e).
 - [x] Launcher icon: neon arrow + radar rings (adaptive, with monochrome for themed icons). Swap for a pro logo later if wanted.
-- [ ] **(you)** Host `docs/PRIVACY.md` at a stable public URL (fill in the date, contact email
-      and legal entity), then set `moshpoint.privacyUrl` in `gradle.properties` to it: the app's
-      links follow on the next build. Until then they open the copy on GitHub.
+- [x] The privacy policy is a page: the relay serves it at `https://<relay>/privacy`, built from
+      `docs/PRIVACY.md` (`tools/privacy_page.py`; CI fails if the page is out of date), with the
+      contact filled in at runtime from `MOSHPOINT_CONTACT`. Builds with a relay link to it
+      (`app/build.gradle.kts`); builds without one open `moshpoint.privacyUrl` (`gradle.properties`).
+- [ ] **(you)** Once the relay is deployed with `MOSHPOINT_CONTACT` set, put
+      `https://<relay>/privacy` in Play Console (App content → Privacy policy); the Deploy server
+      run's summary shows the address. Prefer GitHub Pages? `docs/site/index.html` is the same
+      page: replace `INSERTCONTACTEMAILHERE` in it with the support email, then Settings → Pages →
+      Deploy from a branch → `ccr-5839ed7c-1q0ztj`, folder `/docs` → Save; the policy is then at
+      `https://thezombierobot.github.io/Diet/site/` (`docs/.nojekyll` keeps the other docs as they
+      are).
 - [ ] Real-world test session done and tuned (see `FIELD_TEST_PLAN.md`).
 - [ ] **(you)** Watch app (optional at launch): in Play Console add the **Wear OS** form factor
       and upload the `wear` build to its own track, with round watch screenshots

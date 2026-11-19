@@ -64,6 +64,8 @@ import kotlin.system.exitProcess
  * - `POST /v1/report`     a report of objectionable content (Reports.kt), kept 90 days.
  * - `GET /v1/admin/reports`, `DELETE /v1/admin/reports/{id}`  the owner's, with MOSHPOINT_ADMIN_TOKEN.
  * - `GET /v1/discover/suggest`, `GET /v1/discover/coming`  Moshpoint+ only ([EntitlementCheck], Discover.kt).
+ * - `GET /.well-known/assetlinks.json`, `GET /spot`, `GET /spot.js`  texted spots' links (SpotPage.kt).
+ * - `GET /privacy`        the privacy policy page ([PrivacyPage]).
  */
 fun Application.moshpoint(
     relay: Relay,
@@ -72,6 +74,7 @@ fun Application.moshpoint(
     discover: Discover = Discover(DiscoverConfig.fromEnv(relay.config.dataDir), clock = relay.clock),
     entitlements: EntitlementCheck = EntitlementCheck.fromEnv(),
     appLinks: AppLinks = AppLinks.fromEnv(),
+    privacy: PrivacyPage = PrivacyPage.fromEnv(),
 ) {
     val log = LoggerFactory.getLogger("nz.waveformlabs.moshpoint.server")
     if (entitlements === EntitlementCheck.EVERYONE) log.warn("MOSHPOINT_DISCOVER_OPEN=1: Discover is open to everyone. Internal testing only, never on the production relay.")
@@ -228,6 +231,16 @@ fun Application.moshpoint(
             call.response.header("X-Content-Type-Options", "nosniff")
             call.response.header("Cache-Control", "public, max-age=86400")
             call.respondText(SpotPage.SCRIPT, ContentType.Application.JavaScript)
+        }
+
+        // The privacy policy (PrivacyPage.kt): docs/PRIVACY.md as a page, with the owner's contact.
+        // The address the app links to and Play Console lists.
+        get("/privacy") {
+            call.response.header("Content-Security-Policy", PrivacyPage.SECURITY)
+            call.response.header("Referrer-Policy", "no-referrer")
+            call.response.header("X-Content-Type-Options", "nosniff")
+            call.response.header("Cache-Control", "public, max-age=3600")
+            call.respondText(privacy.html, ContentType.Text.Html)
         }
 
         // A report of objectionable content: what the reporter's phone could see (Reports.kt).
