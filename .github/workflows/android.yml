@@ -138,6 +138,42 @@ jobs:
           done
           exit $leaked
 
+      - name: Texted spots open in the app only with a relay (release manifest with a made-up relay, and without one)
+        # The App Link (SpotLinkActivity and its autoVerify filter, app/src/spotLinks) is added only
+        # when a relay is built in (app/build.gradle.kts, docs/SPOT_LINKS.md). CI's own builds follow
+        # the MOSHPOINT_SERVER variable, so both cases are checked here on the release manifest:
+        # merged once with a made-up relay (the activity, with one filter for exactly its host) and
+        # once with none (neither). Then the release APK built above must match its own setting.
+        # Builds never need MOSHPOINT_SERVER.
+        if: success()
+        shell: bash
+        env:
+          SERVER_URL: ${{ vars.MOSHPOINT_SERVER }}
+        run: |
+          set -euo pipefail
+          merged() { # $1: where to keep the release manifest; then the Gradle -P options
+            out="$1"; shift
+            touch "$RUNNER_TEMP/marker"
+            sleep 1
+            ./gradlew -q :app:processReleaseManifest "$@"
+            m=$(find app/build/intermediates -path '*release*' -name AndroidManifest.xml -newer "$RUNNER_TEMP/marker" | sort | tail -1)
+            [ -n "$m" ] || { echo "::error::no release manifest was written"; find app/build/intermediates -path '*release*' -name AndroidManifest.xml; exit 1; }
+            echo "Release manifest: $m"
+            cp "$m" "$out"
+          }
+          merged "$RUNNER_TEMP/manifest-relay.xml" -Pmoshpoint.server=https://relay.example.invalid
+          merged "$RUNNER_TEMP/manifest-none.xml" -Pmoshpoint.server= -Pmoshpoint.serverUrl=
+          python3 tools/check_spot_link.py "$RUNNER_TEMP/manifest-relay.xml" relay.example.invalid
+          python3 tools/check_spot_link.py "$RUNNER_TEMP/manifest-none.xml" ""
+          # The release APK built above, with this repository's MOSHPOINT_SERVER (blank: none).
+          host=$(python3 tools/check_spot_link.py --host "$SERVER_URL")
+          AAPT=$(find "$ANDROID_HOME"/build-tools -name aapt2 | sort -V | tail -1)
+          APK=$(find app/build/outputs/apk/release -name '*.apk' | head -1)
+          n=$("$AAPT" dump xmltree --file AndroidManifest.xml "$APK" | grep -c 'SpotLinkActivity' || true)
+          if [ -n "$host" ] && [ "$n" -gt 0 ]; then echo "OK: the release APK has SpotLinkActivity (its relay: $host)"
+          elif [ -z "$host" ] && [ "$n" = 0 ]; then echo "OK: the release APK has no SpotLinkActivity (no relay of its own)"
+          else echo "::error::the release APK has $n SpotLinkActivity entries, but its relay is '${host:-none}'"; exit 1; fi
+
       - name: Licences of every library in the app (shown in Settings)
         if: success()
         shell: bash

@@ -244,7 +244,9 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 2. **The relay must be deployed with `/spot` and `/.well-known/assetlinks.json` before a build
    with that relay ships** (owner to-do; an older relay answers 404, though the text's plain
    coordinates still work). Play's signing key's fingerprint goes in `MOSHPOINT_APP_CERTS`.
-3. **The App Link's manifest hasn't been built with a relay yet.** CI builds with the
+3. **Answered (docs/LAUNCH_PREP.md, item 3):** CI now merges the release manifest with a made-up
+   relay and without one on every push, and checks the activity and its filter are there exactly
+   with a relay. The original question: **The App Link's manifest hasn't been built with a relay yet.** CI builds with the
    repository variable `MOSHPOINT_SERVER`, which is empty here, so its merged-manifest report
    (run 355) shows no `SpotLinkActivity`: the no-relay case, as intended. The first build with a
    relay should show `SpotLinkActivity` with the `https://<relay host>/spot` filter in its merged

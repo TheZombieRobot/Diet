@@ -11,10 +11,11 @@ items, in order, each green in CI before the next.
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
 2026._
 
-- **Now:** item 2 (the privacy policy as a page), pushed for its CI check.
-- **Done:** item 1, green in run 363 (493fd3b); screenshots unchanged (phone 2,320 and watch 546
-  identical to e2d5384's by blob hash).
-- **Last green run:** 363 (493fd3b, item 1).
+- **Now:** item 3 (the spot links' App Link checked in the release manifest), pushed for its CI
+  check.
+- **Done:** item 1, green in run 363 (493fd3b); item 2, green in run 364 (d88c2bf). Screenshots
+  unchanged after each (phone 2,320 and watch 546 identical to e2d5384's by blob hash).
+- **Last green run:** 364 (d88c2bf, item 2).
 - **Baseline:** core 658 and server 108 tests pass locally at e2d5384 (scratch Gradle build of
   only `:core` and `:server`, Maven Central only).
 
@@ -144,6 +145,23 @@ checked with PyYAML and shellcheck locally, and CI checks its triggers and pins.
 - **Docs:** PLAY_STORE (the privacy item, hosting on GitHub Pages with `docs/.nojekyll`),
   FACEBOOK (Meta's privacy URL), SECRETS (where each relay secret is set now, `FLY_API_TOKEN`,
   `MOSHPOINT_APP_CERTS`), SERVER_PRODUCTION (its PRIVACY.md to-do done), README.
+
+## Item 3: the spot links' App Link, checked with and without a relay
+
+**Built:**
+
+- A CI step after the release build, **Texted spots open in the app only with a relay**: it merges
+  the release manifest twice (`:app:processReleaseManifest`), once with a made-up relay
+  (`-Pmoshpoint.server=https://relay.example.invalid`) and once with none (`-Pmoshpoint.server=
+  -Pmoshpoint.serverUrl=`, blank, so `gradle.properties` can't fill one in), whatever the
+  `MOSHPOINT_SERVER` variable is. `tools/check_spot_link.py` then checks the first has exactly one
+  `SpotLinkActivity`, exported, with exactly one `android:autoVerify="true"` filter (VIEW,
+  DEFAULT and BROWSABLE, `https://relay.example.invalid/spot` and nothing else) and no other
+  verified link, and the second has neither the activity nor any verified link, and that no
+  manifest placeholder was left unfilled. Last, the release APK CI built with the repository's
+  own setting must match it (aapt2): the activity is there exactly when `MOSHPOINT_SERVER` is a
+  plain https address (`check_spot_link.py --host`, the build script's own rule).
+- Builds still never need `MOSHPOINT_SERVER`: the step sets the relay itself.
 
 ## Open questions
 
