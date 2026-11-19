@@ -7,8 +7,8 @@ features (Text my spot, satellite data). Branch: `claude/remove-safety` (from
 
 ## Status and next steps (handover)
 
-_Keep this section current: whoever picks this up next starts here. Last updated 18 November
-2026, 23:45 UTC._
+_Keep this section current: whoever picks this up next starts here. Last updated 19 November
+2026, 00:02 UTC._
 
 - **Done, stage 1 core (52c876a):** core tests green locally (622; server 103), using a scratch
   Gradle build of only `:core` and `:server` (docs/WATCH.md, "Working notes").
@@ -92,7 +92,7 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   - **Screenshots, watch:** identical to run 349's.
   - Noticed, not changed: in Arabic the Moshpoint+ mark reads "+Moshpoint" (the plus moves to
     the other end in right-to-left text). The main branch's Plan a gig does the same.
-- **Done, stage 4 (satellite data), pushed for CI:**
+- **Done, stage 4 (satellite data), 7a64f7e:**
   - Core: `SatelliteRule` (with `SatelliteRuleTest`): a satellite network is one without
     `NET_CAPABILITY_NOT_BANDWIDTH_CONSTRAINED` on Android 16 (every other network has it), or
     with `TRANSPORT_SATELLITE` from Android 15; older phones never. Allowed = the switch on and
@@ -115,7 +115,18 @@ _Keep this section current: whoever picks this up next starts here. Last updated
     FEATURES, PRIVACY, FIELD_TEST_PLAN 4n, ARCHITECTURE, CODE_STRUCTURE.
   - Checked before pushing: translations (both checks), secrets, the type-check against stage 3
     (nothing new about our own code).
-- **Stage 5, part 1 (written, not yet pushed for CI; waits for stage 4 to be green):**
+- **Stage 4 is green: CI run 351 on 7a64f7e.**
+  - **Screenshots, phone:** against run 350's set, 41 changed and nothing else: the two
+    Moshpoint+ Settings tests gain the satellite switch (`smallPhoneLargeFontPlusSettings` × 21,
+    `settingsPlus` × 20; in French the new row is below the fold, so that one is identical).
+    Looked at in en, de, ar and ja. The Japanese title wrapped one character onto a second line
+    on a small phone with large text: shortened to 「圏外のときは衛星を使う」 (pushed with stage 5
+    part 1).
+  - **Screenshots, watch:** identical to run 350's.
+  - **Merged manifest:** the report lists only permissions, features and components, so the
+    satellite meta-data doesn't show; the same one line as before (the removed
+    `CheckInAlarmReceiver`).
+- **Stage 5, part 1 (27e7e90, pushed for CI with the handover):**
   - Core: `SpotLink`: builds `https://<relay host>/spot#<lat>,<lon>[,<first name>]` (null with
     no relay of our own: the text keeps the Google Maps link) and parses a texted one: our host
     exactly, `https`, the path `/spot`, no query, plain decimals in range and not 0,0, and a name
@@ -145,20 +156,20 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   4. **The finder's arrow to it:** the finder only targets mates today (`engine.track(ids)`).
      A place target (GPS and compass only) is the one real piece of new work.
   5. Screenshot tests (the map with a texted spot), FEATURES, PRIVACY, FIELD_TEST_PLAN.
-- **Exact next step:** when the stage 4 run is green: check screenshots (expected: phone all
-  identical to run 350's except the two Moshpoint+ Settings tests, which gain the satellite
-  switch, × 21; watch identical) and the merged manifest (the meta-data isn't in the report's
-  list, so the same one line as before); then push stage 5 part 1 for CI, then part 2.
-- **Last green run:** 350 (7d2f3aa).
+- **Exact next step:** when the stage 5 part 1 run is green (expected screenshots: only the
+  Japanese `settingsPlus` and `smallPhoneLargeFontPlusSettings` change), stage 5 part 2, the
+  app side, as planned above.
+- **Last green run:** 351 (7a64f7e).
 
 ### Stages (each must be green in CI before the next)
 
 1. Phone removal and interop. **Done, green: run 348.**
 2. Watch removal. **Done, green: run 349.**
 3. Text my spot. **Done, green: run 350.**
-4. Satellite switch. (pushed, CI running: run 351)
+4. Satellite switch. **Done, green: run 351.**
 5. **Added 18 November 2026 (relayed by the session that started this one, as the owner's):**
-   the receiving end of Text my spot.
+   the receiving end of Text my spot. (Part 1, the core link and the relay's routes: pushed for
+   CI. Part 2, the app: next.)
    - **The link,** built in core with tests: `https://<relay host>/spot#<lat>,<lon>[,<name>]`.
      The spot rides after `#`, so browsers never send it to the server. The plain coordinates
      stay in the text too. With no server built in (`MOSHPOINT_SERVER` blank), a Google Maps
