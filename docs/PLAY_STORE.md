@@ -12,7 +12,8 @@ accounts or decisions; the rest can be done in the repo.
       `MOSHPOINT_KEYSTORE_PASSWORD`, `MOSHPOINT_KEY_ALIAS` (`upload`), `MOSHPOINT_KEY_PASSWORD`.
       Every CI run then also produces a signed `moshpoint-release-aab` artifact to upload to Play.
       Keep `upload.jks` and its passwords somewhere safe and never commit them.
-- [ ] **(you)** Deploy the relay server (`fly deploy`, see README) and set `MOSHPOINT_SERVER`.
+- [ ] **(you)** Deploy the relay server (GitHub → Actions → **Deploy server**, see
+      SERVER_PRODUCTION.md, "Deploy from your phone") and set `MOSHPOINT_SERVER`.
 - [x] Bluetooth UUIDs: the three extended adverts (crowd relay and crew messages, crew intros,
       bump) use Moshpoint's own 128-bit UUIDs (wave 2b). The finder's own advert must stay a
       31-byte legacy advert, where a 128-bit UUID doesn't fit: **(you)** join the Bluetooth SIG

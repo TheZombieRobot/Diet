@@ -70,13 +70,16 @@ Variables). Every build after that has GPS mode on.
 
 **Fly.io** (one always-on Machine with a volume, about US$10 a month; full steps, sizes and
 costs in [docs/SERVER_PRODUCTION.md](docs/SERVER_PRODUCTION.md), the API in
-[docs/RELAY_API.md](docs/RELAY_API.md)), from the repo root:
+[docs/RELAY_API.md](docs/RELAY_API.md)). From a phone: add the `FLY_API_TOKEN` secret, then
+GitHub → **Actions** → **Deploy server** → **Run workflow** on `ccr-5839ed7c-1q0ztj`
+(`.github/workflows/deploy-server.yml`: it creates the app and volume, copies the relay's secrets
+from GitHub, deploys, checks and prints the address). From a computer, from the repo root:
 
 ```sh
 fly apps create moshpoint-relay
-fly secrets set --stage MOSHPOINT_TOKEN_SECRET=$(openssl rand -hex 32) MOSHPOINT_CONTACT=you@example.org
+fly secrets set --stage MOSHPOINT_TOKEN_SECRET=$(openssl rand -hex 32) MOSHPOINT_CONTACT=INSERTCONTACTEMAILHERE
 fly deploy --ha=false     # ONE Machine: a second would get its own, empty volume
-curl https://<your-app>.fly.dev/healthz                          # -> ok
+python3 tools/check_relay.py https://<your-app>.fly.dev           # the deploy's own checks
 ```
 
 Running the server elsewhere (any host that runs Docker and keeps a disk):

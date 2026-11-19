@@ -34,7 +34,8 @@ first full version); the branch's latest run checks the review fixes on top.
 
 1. Merge this branch (it touches only `server/`, `fly.toml`, `render.yaml` (deleted), server
    docs, and a few lines of README and ARCHITECTURE pointing here).
-2. Owner: deploy with the steps under "Deploy (owner)" below, then set `MOSHPOINT_SERVER`.
+2. Owner: deploy with the steps under "Deploy (owner)" below (from a phone: the Deploy server
+   workflow, docs/LAUNCH_PREP.md item 1), then set `MOSHPOINT_SERVER`.
 3. Wave 2 (app): adopt the token, batch and cursors (RELAY_API.md section 11) and the app-side
    items at the end of this file. Nothing in the app has to change for the hardened relay to
    work with today's test builds.
@@ -218,24 +219,130 @@ and ran experiments on the built server. What it found, and what changed:
 
 ## Deploy (owner)
 
-Everything runs from the repo root on a computer with `flyctl` (`fly auth login` first). A payment
-method is needed. **Never** put secrets in `fly.toml` or the repo: `fly secrets set` only.
+Two ways: **from your phone**, with the Deploy server workflow (one tap in GitHub, below), or
+from a computer with `flyctl` (after it). Either way, **never** put a secret in `fly.toml`, the
+repo or a chat: secrets go in GitHub's or Fly's own secret boxes only (docs/SECRETS.md).
 
-**First deploy**
+### Deploy from your phone (the Deploy server workflow)
+
+One tap in GitHub deploys the relay to Fly.io. The workflow (`.github/workflows/deploy-server.yml`)
+creates the Fly app and its volume the first time, copies the relay's secrets from GitHub into
+Fly, deploys one Machine, checks it from outside (`/healthz`, `/.well-known/assetlinks.json`,
+`/spot`, and that Discover is refused) and shows the relay's address. It never runs by itself,
+only when you tap it, and only from the main branch (`ccr-5839ed7c-1q0ztj`). No value of a
+secret is ever shown in its log.
+
+Use the phone's browser on github.com and fly.io. If a GitHub page looks cut down (no Settings
+tab, no Run workflow button), tap the browser's ⋮ menu → **Desktop site**.
+
+**Once: set it up (about 15 minutes)**
+
+1. **Fly.io account.** Sign up at **fly.io** and add a payment method (dashboard → **Billing**).
+   The relay costs about US$10 a month (Size and cost, below).
+2. **A token for GitHub.** In the Fly dashboard, open your organization (**Personal**) → **Tokens**
+   → create a token for the **organization** (not for one app: the first run has to create the
+   app), named `GitHub deploy`, with an expiry you'll remember to renew (e.g. a year). Copy the
+   whole token: it starts with `FlyV1` and a space, and the space is part of it. (From a computer
+   instead: `fly tokens create org --name "GitHub deploy"`.)
+3. **Put it in GitHub.** github.com/TheZombieRobot/Diet → **Settings** → **Secrets and
+   variables** → **Actions** → **Secrets** tab → **New repository secret**. Name:
+   `FLY_API_TOKEN`. Secret: paste the token. **Add secret**.
+4. **The relay's secrets**, the same way (**New repository secret**, one each). Make each random
+   one with your password manager's generator (64 letters and digits), and keep
+   `MOSHPOINT_ADMIN_TOKEN` in the password manager too: you need it to read reports
+   (docs/MODERATION.md).
+
+   | Name | What to paste (the placeholder stands for it) |
+   |---|---|
+   | `MOSHPOINT_TOKEN_SECRET` | INSERTTOKENSECRETHERE: a long random string (at least 32 characters) |
+   | `MOSHPOINT_ADMIN_TOKEN` | INSERTADMINTOKENHERE: another long random string |
+   | `MOSHPOINT_CONTACT` | INSERTCONTACTEMAILHERE: the support email. It's shown on the relay's privacy page, and given to OpenStreetMap's Nominatim as the relay's contact |
+
+   Leave `TICKETMASTER_KEY`, `SEATGEEK_CLIENT_ID` and `BANDSINTOWN_APP_ID` unset for the first
+   release: keyed services stay off. (Set later, the workflow copies them to Fly too.)
+5. **Which app builds open texted spots** (not a secret, so a variable): the **Variables** tab →
+   **New repository variable**. Name: `MOSHPOINT_APP_CERTS`. Value, for now: the public debug
+   key's fingerprint, which signs test builds:
+   `89:B4:37:7F:73:AB:77:7E:46:EF:31:37:6F:55:ED:E5:3E:CB:EA:D9:9A:33:18:64:C7:35:A7:17:40:26:1A:8D`
+   (Later, once Play App Signing is on: see "Store builds", below.)
+
+**Each deploy: one tap**
+
+1. github.com/TheZombieRobot/Diet → **Actions** → **Deploy server** (in the list of workflows;
+   on a narrow screen it's behind the ☰ or "All workflows" menu).
+2. **Run workflow** → **Use workflow from**: pick the branch **ccr-5839ed7c-1q0ztj** → the green
+   **Run workflow**.
+3. Wait about 5 minutes (pull down to refresh). A green tick means it's deployed and checked.
+   Tap the run: its **Summary** shows the relay's address.
+4. **First time only:** **Settings** → **Secrets and variables** → **Actions** → **Variables** →
+   **New repository variable**. Name: `MOSHPOINT_SERVER`. Value: the address from the summary
+   (`https://moshpoint-relay.fly.dev` unless you set `FLY_APP`). The next app build uses it, and
+   test builds stop falling back to ntfy.sh.
+
+Deploy when no gig is on: the one Machine restarts (about 20 seconds; phones retry and nothing is
+lost). Running it again with nothing changed is harmless.
+
+**Store builds (after Play App Signing is set up).** Play Console → the app → **Test and
+release** → **App integrity** → **App signing** → **App signing key certificate** → copy its
+**SHA-256 certificate fingerprint**. Edit the `MOSHPOINT_APP_CERTS` variable (Variables tab → the
+pencil) to Play's fingerprint, a comma, then the debug one:
+`<Play's SHA-256>,89:B4:37:7F:73:AB:77:7E:46:EF:31:37:6F:55:ED:E5:3E:CB:EA:D9:9A:33:18:64:C7:35:A7:17:40:26:1A:8D`.
+Run Deploy server again: its checks confirm `/.well-known/assetlinks.json` lists both, which
+Android needs before a store build opens texted spots in the app (RELAY_API.md section 13).
+
+**Optional variables** (Variables tab; none is a secret):
+
+| Name | When |
+|---|---|
+| `FLY_APP` | Fly says the name `moshpoint-relay` is taken: another name (e.g. `moshpoint-relay-nz`). The address becomes `https://<that name>.fly.dev`. |
+| `FLY_ORG` | The app should go in a Fly organization other than **Personal**: its short name (as in the dashboard's address). |
+
+**If the run goes red**, tap it and open the red step: its first lines say what's wrong.
+
+| It says | Do this |
+|---|---|
+| The relay is deployed only from the main branch | Run it again and pick **ccr-5839ed7c-1q0ztj** in step 2 |
+| Add the FLY_API_TOKEN repository secret first | Set-up steps 2 and 3 |
+| Fly didn't accept FLY_API_TOKEN | Make a new token (step 2), paste the whole of it (from `FlyV1`), and update the secret |
+| Couldn't create the app | If the name is taken, set `FLY_APP`; if it's about the organization, `FLY_ORG` |
+| Couldn't create the volume (the region needs a paid plan) | Change `primary_region` in fly.toml to another region near your users (or upgrade the Fly plan), then run again |
+| 2 Machines | From a computer: `fly scale count 1`, then destroy the volume with no Machine attached (step 4 of "From a computer", below) |
+| A relay check failed | The step lists which. Run it again in a few minutes (a first start can be slow); if it fails again, the relay's log is under Fly dashboard → the app → **Logs** |
+| MOSHPOINT_DISCOVER_OPEN is set on this relay | Fly dashboard → the app → **Secrets** → delete it, then run again |
+
+A yellow **warning** (for example "MOSHPOINT_CONTACT isn't set on Fly") doesn't stop the deploy,
+but fix it before real users arrive.
+
+**No Deploy server in the list, or no Run workflow button?** GitHub offers manual runs only for
+workflows it knows from the repository's default branch, and this repository's default branch is
+an older one (`claude/fitness-grocery-mvp-plan-xzbk8k`) with no workflows at all. Once:
+**Settings** → **General** → **Default branch** → the ⇄ button → **ccr-5839ed7c-1q0ztj** →
+**Update**. (The repository's front page then shows Moshpoint's README.)
+
+To stop a secret going to Fly, delete it in GitHub *and* on Fly (dashboard → the app →
+**Secrets**): the workflow only copies what's set, and never deletes anything on Fly.
+
+### From a computer instead (flyctl)
+
+From the repo root, with `flyctl` (`fly auth login` first):
 
 ```sh
 # 1. The app (the name must be unique on Fly; if it's taken, change `app` in fly.toml).
 fly apps create moshpoint-relay
 
-# 2. Secrets. The token secret signs install tokens; the contact is for Nominatim's usage policy.
-fly secrets set --stage MOSHPOINT_TOKEN_SECRET=$(openssl rand -hex 32) MOSHPOINT_CONTACT="you@example.org"
+# 2. Secrets. The token secret signs install tokens; the contact is for Nominatim's usage policy
+#    and the privacy page. The admin token reads reports (docs/MODERATION.md).
+fly secrets set --stage MOSHPOINT_TOKEN_SECRET=$(openssl rand -hex 32) MOSHPOINT_ADMIN_TOKEN=$(openssl rand -hex 32) MOSHPOINT_CONTACT="INSERTCONTACTEMAILHERE"
 #    Optional gig search keys (each one switches its source on). Production (Moshpoint+) relay
-#    only: they also switch on Discover (docs/DISCOVER_SERVER.md). The free relay gets none.
+#    only, and not for the first release (keyed services stay off). They also build Discover's
+#    lists (docs/DISCOVER_SERVER.md); Discover itself stays refused until billing.
 #    Never set MOSHPOINT_DISCOVER_OPEN here: it opens Discover to everyone (internal testing only).
 fly secrets set --stage TICKETMASTER_KEY=... BANDSINTOWN_APP_ID=... SEATGEEK_CLIENT_ID=...
 
 # 3. Deploy ONE Machine. This also creates the 20 GB volume from fly.toml's [mounts].
-fly deploy --ha=false
+#    Pass the certificates every time (the workflow does): without them the relay lists only the
+#    debug key, and store builds stop opening texted spots in the app.
+fly deploy --ha=false --env MOSHPOINT_APP_CERTS="<the MOSHPOINT_APP_CERTS variable's value>"
 
 # 4. Check: one Machine, one volume, attached to it.
 fly status
@@ -244,31 +351,15 @@ fly volumes list
 #    has no Machine attached (`fly volumes destroy <id>`), never the attached one.
 #    "No volume" error on deploy? `fly volumes create moshpoint_data --region syd --size 20`, deploy again.
 
-# 5. Smoke test.
-curl https://moshpoint-relay.fly.dev/healthz        # ok
+# 5. Check it as the workflow does, and watch the log.
+python3 tools/check_relay.py https://moshpoint-relay.fly.dev
 fly logs                                            # "Moshpoint relay listening on port 8080. Relay: box 0 records ..."
 ```
 
 Then set the GitHub repository variable `MOSHPOINT_SERVER` to `https://moshpoint-relay.fly.dev`
-(Settings → Secrets and variables → Actions → Variables). The next build uses it; test builds stop
-falling back to ntfy.sh.
+(step 4 of "Each deploy" above).
 
-**Text my spot's links open in the app** (RELAY_API.md section 13) for builds signed with a
-certificate listed in `MOSHPOINT_APP_CERTS`. Unset, that's only the public debug key, which signs
-test builds. Once Play App Signing is set up, add Play's app signing key (Play Console → Test and
-release → App integrity → App signing: the SHA-256 certificate fingerprint) and keep the debug
-one for test builds. Fingerprints aren't secret, so this is an ordinary setting in fly.toml's
-`[env]` (kept with every deploy), not a Fly secret:
-
-```toml
-[env]
-  MOSHPOINT_APP_CERTS = "<Play's SHA-256>,89:B4:37:7F:73:AB:77:7E:46:EF:31:37:6F:55:ED:E5:3E:CB:EA:D9:9A:33:18:64:C7:35:A7:17:40:26:1A:8D"
-```
-
-Then `fly deploy --ha=false`, and check:
-`curl https://moshpoint-relay.fly.dev/.well-known/assetlinks.json`.
-
-**Already deployed with the old fly.toml?** `fly scale count 1`, then `fly deploy --ha=false`.
+**Already deployed with the old fly.toml?** `fly scale count 1`, then deploy (either way).
 The old relay kept nothing on disk, so there's nothing to move.
 
 **Size and cost** (US$, checked by web search on 15 Nov 2026; Fly raised memory to $6 per GB a
@@ -298,8 +389,8 @@ stores.
 
 | Task | Command |
 |---|---|
-| Deploy a change | `fly deploy` (one Machine: about 20 s without the relay; phones retry). Not during a gig. |
-| Logs | `fly logs` (totals every 10 minutes; never ids or addresses) |
+| Deploy a change | **Deploy server** in GitHub's Actions (above), or from a computer `fly deploy --ha=false --env MOSHPOINT_APP_CERTS=…` (one Machine: about 20 s without the relay; phones retry). Not during a gig. |
+| Logs | Fly dashboard → the app → **Logs**, or `fly logs` (totals every 10 minutes; never ids or addresses) |
 | Shell on the Machine | `fly ssh console` (data in `/data`) |
 | Bigger volume | Grows by itself (80% full → +5 GB, up to 60 GB); or `fly volumes extend <id> --size 40`. Caps follow at the next start. |
 | Snapshots | `fly volumes snapshots list <id>`; restore: `fly volumes create moshpoint_data --snapshot-id <snap> --region syd`, then move the Machine to it (destroy the old Machine, `fly deploy --ha=false`). |
@@ -314,6 +405,10 @@ stores.
 | `TRUST_PROXY` | `fly` on Fly, else `none` | `fly` (Fly-Client-IP), `last-forwarded` (one proxy that appends to X-Forwarded-For), `none` |
 | `MOSHPOINT_TOKEN_SECRET` | made once, kept in `/data/install-token.key` | Secret, 32+ characters. Set it, so tokens survive a lost volume. |
 | `MOSHPOINT_CONTACT` | `nz.waveformlabs.moshpoint` | Email or web page for Nominatim. Set it before real users. |
+| `MOSHPOINT_ADMIN_TOKEN` | unset (the admin routes are off) | Secret: reading and deleting reports (docs/MODERATION.md). |
+| `MOSHPOINT_APP_CERTS` | the public debug key's fingerprint | Not secret: the signing certificates whose builds open texted spots in the app (`/.well-known/assetlinks.json`). The Deploy server workflow passes the repository variable of the same name. |
+| `MOSHPOINT_APP_ID` | `nz.waveformlabs.moshpoint` | The app id in `assetlinks.json` and the spot page's Play link |
+| `MOSHPOINT_DISCOVER_OPEN` | unset | `1` opens Discover to everyone. Internal testing only: **never** on this relay (the deploy's check fails if it is). |
 | `MOSHPOINT_GEOCODER` | Nominatim | Another `/search` address, or `off` |
 | `TICKETMASTER_KEY`, `BANDSINTOWN_APP_ID`, `SEATGEEK_CLIENT_ID` | unset | Gig search sources (secrets) |
 | `LIMIT_SCALE` | 1 | Multiplies every per-client limit |
@@ -361,5 +456,7 @@ Server support is in place for all of these; the app changes are for later sessi
 - Treat `408` from an upload as "try later" (it already does: `RelayClient` counts 408 as no answer).
 
 Outside this scope, noted for later (CI, android.yml): signing secrets reach every branch;
-actions are pinned by tag, not SHA; the finder check only reports. A CI step that builds the
-server's Docker image would catch Dockerfile mistakes before a deploy.
+actions are pinned by tag, not SHA; the finder check only reports. ~~A CI step that builds the
+server's Docker image would catch Dockerfile mistakes before a deploy.~~ Done with the Deploy
+server workflow (docs/LAUNCH_PREP.md, item 1): android.yml's `relay-image` job builds the image as
+`fly deploy` does, starts it on a volume and runs the deploy's own checks on every push.

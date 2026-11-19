@@ -623,3 +623,57 @@ jobs:
           path: |
             wear/build/reports
             wear/build/test-results
+
+  # ---- The relay's Docker image (server/), built the way the Deploy server workflow's
+  # `fly deploy` builds it, then started with a volume and checked from outside with the same
+  # checks the deploy runs (tools/check_relay.py). A broken image or check shows up here, on every
+  # push, before anyone taps Deploy server. Its own job, so the phone build isn't slowed down. ----
+  relay-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy server runs by hand only, from the main branch, with pinned actions
+        shell: bash
+        run: |
+          f=.github/workflows/deploy-server.yml
+          fail=0
+          # The only trigger is workflow_dispatch: never on push (or anything else).
+          triggers=$(awk '/^on:/{on=1; next} on && /^[^ #]/{exit} on && /^  [a-z_]+:/{print $1}' "$f")
+          if [ "$triggers" != "workflow_dispatch:" ]; then echo "::error::$f must only run by hand (workflow_dispatch); its triggers: $triggers"; fail=1; fi
+          # The deploy job runs only on ccr-5839ed7c-1q0ztj.
+          grep -q "^    if: github.ref == 'refs/heads/ccr-5839ed7c-1q0ztj'$" "$f" || { echo "::error::$f must deploy only from ccr-5839ed7c-1q0ztj"; fail=1; }
+          # Every action pinned to a full commit SHA.
+          if grep -nE '^\s*(- )?uses:' "$f" | grep -vE 'uses: [^ ]+@[0-9a-f]{40}( |$)'; then echo "::error::pin every action in $f to a commit SHA"; fail=1; fi
+          [ "$fail" = 0 ] && echo "OK: by hand only, main branch only, every action pinned"
+          exit $fail
+
+      - name: Build the relay's image as Fly does
+        shell: bash
+        run: |
+          # flyctl sends the repo root as the build context, filtered by the root .dockerignore
+          # (it never reads server/Dockerfile.dockerignore, which only Docker's own CLI uses). Build
+          # from a copy of the Dockerfile outside the repo, so Docker uses the root .dockerignore too.
+          cp server/Dockerfile "$RUNNER_TEMP/Dockerfile"
+          docker build -q -f "$RUNNER_TEMP/Dockerfile" -t moshpoint-relay .
+
+      - name: Start it on a volume and check it from outside (the deploy's checks)
+        shell: bash
+        env:
+          # MOSHPOINT_APP_CERTS as the deploy passes it: a made-up Play key and the public debug key.
+          # Certificate fingerprints, not secrets.
+          CERTS: "AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99,89:B4:37:7F:73:AB:77:7E:46:EF:31:37:6F:55:ED:E5:3E:CB:EA:D9:9A:33:18:64:C7:35:A7:17:40:26:1A:8D"
+        run: |
+          docker volume create relay-data > /dev/null
+          docker run -d --name relay -p 8080:8080 -v relay-data:/data -e MOSHPOINT_APP_CERTS="$CERTS" moshpoint-relay > /dev/null
+          ok=1
+          EXPECT_CERTS="$CERTS" WAIT_SECONDS=120 python3 tools/check_relay.py http://localhost:8080 || ok=0
+          # The relay runs as its own user (uid 10001), not root, with its database on the volume.
+          uid=$(docker exec relay awk '/^Uid:/{print $2}' /proc/1/status)
+          if [ "$uid" = 10001 ]; then echo "OK    runs as uid 10001"; else echo "::error::the relay runs as uid $uid, not 10001"; ok=0; fi
+          if docker exec relay test -f /data/relay.db; then echo "OK    its database is on the volume (/data/relay.db)"; else echo "::error::no /data/relay.db"; ok=0; fi
+          docker stop -t 30 relay > /dev/null
+          [ "$ok" = 1 ] || { echo "=== relay log ==="; docker logs relay 2>&1 | tail -60; exit 1; }

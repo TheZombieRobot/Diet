@@ -1,7 +1,9 @@
 # Fly.io config for the Moshpoint relay server.
-# Deploy steps, sizes and costs: docs/SERVER_PRODUCTION.md. In short, from the repo root:
+# Deploy steps, sizes and costs: docs/SERVER_PRODUCTION.md. From a phone: GitHub → Actions →
+# Deploy server → Run workflow (.github/workflows/deploy-server.yml does everything below).
+# From a computer, in short, from the repo root:
 #   fly apps create moshpoint-relay
-#   fly secrets set MOSHPOINT_TOKEN_SECRET=$(openssl rand -hex 32) MOSHPOINT_CONTACT=you@example.org
+#   fly secrets set MOSHPOINT_TOKEN_SECRET=$(openssl rand -hex 32) MOSHPOINT_CONTACT=INSERTCONTACTEMAILHERE
 #   fly deploy --ha=false        # ONE Machine: a second one would get its own, empty volume
 #   fly scale count 1            # if a second Machine was ever created
 # Then set the repo variable MOSHPOINT_SERVER to https://<app-name>.fly.dev
