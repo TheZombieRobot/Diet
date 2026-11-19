@@ -43,11 +43,6 @@
     <string name="crew_quick_all_good">Tout va bien 👍</string>
     <string name="crew_quick_going_home">Je rentre 🏠</string>
     <string name="crew_quick_need_help">🚨 J\'ai besoin d\'aide</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="one">Je rentre 🏠 Check-in d\'ici %d min</item>
-        <item quantity="many">Je rentre 🏠 Check-in d\'ici %d min</item>
-        <item quantity="other">Je rentre 🏠 Check-in d\'ici %d min</item>
-    </plurals>
     <string name="crew_quick_home_safe">À la maison, tout va bien ✅</string>
 
     <string name="crew_plan_eyebrow">📌 LE PLAN</string>
@@ -126,7 +121,6 @@
     <string name="crew_ping_all_good">va bien</string>
     <string name="crew_ping_going_home">rentre</string>
     <string name="crew_ping_need_help">A BESOIN D\'AIDE</string>
-    <string name="crew_ping_check_in">rentre et fera son check-in</string>
     <string name="crew_ping_home_safe">est à la maison, tout va bien</string>
     <string name="crew_ping_chat">a envoyé un message</string>
     <string name="crew_ping_flare">a envoyé une fusée</string>
@@ -140,7 +134,6 @@
     <string name="crew_ping_title_all_good">%1$s va bien</string>
     <string name="crew_ping_title_going_home">%1$s rentre</string>
     <string name="crew_ping_title_need_help">%1$s A BESOIN D\'AIDE</string>
-    <string name="crew_ping_title_check_in">%1$s rentre et fera son check-in</string>
     <string name="crew_ping_title_home_safe">%1$s est à la maison, tout va bien</string>
     <string name="crew_ping_title_chat">%1$s a envoyé un message</string>
     <string name="crew_ping_title_flare">%1$s a envoyé une fusée</string>

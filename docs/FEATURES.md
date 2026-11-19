@@ -122,8 +122,10 @@ Android app for finding your mates at gigs and festivals. No accounts.
   emergency contact, the Call 111 button, the satellite SOS hint) and Check In ("Heading home"
   with a timer, "I'm home safe", the overdue alert). A gig app doesn't need its own emergency
   system; people ring emergency services themselves. A mate on an older build can still send
-  them: they show as ordinary crew pings in their own words, with no alarm. The phone also
-  deletes an emergency contact an older build stored. Details: [REMOVE_SAFETY.md](REMOVE_SAFETY.md).
+  them: they show as ordinary crew pings in their own words, with no alarm. An older build's
+  check-in reads as plain Heading home ("Jo is heading home", no minutes), since nothing follows
+  it now ([SPOT_LINKS.md](SPOT_LINKS.md), item 3). The phone also deletes an emergency contact an
+  older build stored. Details: [REMOVE_SAFETY.md](REMOVE_SAFETY.md).
 - **"Bevan is on the move":** fires when a mate moves 200 m or more away from where they
   were, at most once every 20 minutes per person.
 - **Ghost mode:** hidden from the map but findable up close, optionally for 1 hour.

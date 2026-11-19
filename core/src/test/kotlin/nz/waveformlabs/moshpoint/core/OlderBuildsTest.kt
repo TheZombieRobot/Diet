@@ -79,6 +79,23 @@ class OlderBuildsTest {
         assertEquals(listOf(id("8c706b8d61b3b298"), id("44e137d941994c7a"), id("780a52fd96d07574"), id("fc3741fb59abb1f3")), h.lines.map { it.id })
     }
 
+    /**
+     * An older build's check-in is shown as Heading home ("Jo is heading home"), not "will check
+     * in within 45 min": nothing follows it now (docs/SPOT_LINKS.md, item 3). Only the words: the
+     * message itself, its minutes included, is kept and passed on as it came.
+     */
+    @Test fun anOlderBuildsCheckInIsShownAsHeadingHome() {
+        val p = open(CHECK_IN)
+        assertEquals(GigGroup.Ping.GOING_HOME, PingPolicy.shownAs(p.kind))
+        assertEquals(45, p.minutes, "still in the message")
+        assertEquals(PingPolicy.Group.OLDER_BUILDS, PingPolicy.group(p.kind), "and handled as before")
+        // Everything else is shown as itself, Need help and Home safe included.
+        for (kind in listOf(GigGroup.Ping.NEED_HELP, GigGroup.Ping.HOME_SAFE, GigGroup.Ping.GOING_HOME, GigGroup.Ping.COMING, GigGroup.Ping.CHAT, 15)) {
+            assertEquals(kind, PingPolicy.shownAs(kind))
+        }
+        assertEquals(GigGroup.Ping.HOME_SAFE, PingPolicy.shownAs(open(HOME_SAFE).kind))
+    }
+
     /** What this build does with them: exactly what it does with any quick ping (core PingPolicy). */
     @Test fun theyAreShownAsOrdinaryPings() {
         for (hex in listOf(HELP, CHECK_IN, HOME_SAFE)) {

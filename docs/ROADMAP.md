@@ -244,7 +244,8 @@ Moshpoint opens weeks before the gig, not only on the night.
   ([REMOVE_SAFETY.md](REMOVE_SAFETY.md)). **Heading home 🏠 is back (owner's decision, 19 November
   2026) as a plain crew ping**, like On my way: no timer, no alert, nothing follows. It's the kind
   older builds also show as a plain ping, so a mate on build 312 never gets an overdue alarm from
-  it ([SPOT_LINKS.md](SPOT_LINKS.md), item 2). The owner never set rules for those features (such as
+  it ([SPOT_LINKS.md](SPOT_LINKS.md), item 2). An older build's check-in now reads as "Jo is
+  heading home", without its minutes, since nothing follows it (item 3). The owner never set rules for those features (such as
   "never paywalled" or "never limited"); earlier notes stated such rules as the owner's by
   mistake.
 

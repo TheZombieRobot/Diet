@@ -40,9 +40,6 @@
     <string name="crew_quick_all_good">Aman 👍</string>
     <string name="crew_quick_going_home">Pulang dulu 🏠</string>
     <string name="crew_quick_need_help">🚨 Aku perlu bantuan</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="other">Pulang dulu 🏠 Kukabari dalam %d mnt</item>
-    </plurals>
     <string name="crew_quick_home_safe">Sudah sampai rumah ✅</string>
 
     <string name="crew_plan_eyebrow">📌 RENCANA</string>
@@ -111,7 +108,6 @@
     <string name="crew_ping_all_good">aman</string>
     <string name="crew_ping_going_home">lagi pulang</string>
     <string name="crew_ping_need_help">PERLU BANTUAN</string>
-    <string name="crew_ping_check_in">lagi pulang dan bakal ngabarin</string>
     <string name="crew_ping_home_safe">sudah sampai rumah</string>
     <string name="crew_ping_chat">mengirim pesan</string>
     <string name="crew_ping_flare">mengirim suar</string>
@@ -125,7 +121,6 @@
     <string name="crew_ping_title_all_good">%1$s aman</string>
     <string name="crew_ping_title_going_home">%1$s lagi pulang</string>
     <string name="crew_ping_title_need_help">%1$s PERLU BANTUAN</string>
-    <string name="crew_ping_title_check_in">%1$s lagi pulang dan bakal ngabarin</string>
     <string name="crew_ping_title_home_safe">%1$s sudah sampai rumah</string>
     <string name="crew_ping_title_chat">%1$s mengirim pesan</string>
     <string name="crew_ping_title_flare">%1$s mengirim suar</string>

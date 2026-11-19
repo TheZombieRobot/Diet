@@ -21,21 +21,26 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   (`ListRow` in `MapScreen.kt`). Run 356 changed only that shot, in 11 languages (de, en,
   en-rUS, es, es-rES, fr, in, it, nl, pl, pt), all readable now; the existing `mapScreen` shots
   stayed identical, so side by side is exactly as before wherever it fits.
-- **Item 2 ("Heading home 🏠" as a plain quick ping): built, pushed for CI.** Core tests green
-  locally (653; server 108), translations (both checks) and secrets pass.
-- **Exact next step:** read item 2's run. Screenshots expected to change: `textMySpot` and
-  `smallPhoneLargeFontTextMySpot` (the ping row scrolled to its end now shows Heading home
-  before Text my spot), and crew chat or Message crew shots only where a sixth chip fits on
-  screen. Then push item 3. Items 3 to 6 are committed locally, one commit each, on top of
-  item 2 (core 658, server 108 with all of them); each goes up after the one before is green.
-- **Last green run:** 356 (856d390, item 1). Baseline for screenshot comparisons: dad5a3f's
+- **Item 2 ("Heading home 🏠" as a plain quick ping): done, green in CI** (run 357, 12540f0).
+  Screenshots against dad5a3f's sets: `textMySpot` and `smallPhoneLargeFontTextMySpot` changed
+  in all 21 languages (the ping row scrolled to its end: Heading home now before Text my spot),
+  nothing else; watch identical. Reviewed in en, de, ar (right to left), ja, small phone and
+  large font: the chip reads in full, cyan like the other pings. Crew chat and Message crew
+  shots that show the row from its start didn't change (the sixth chip is off screen there).
+- **Item 3 (an older build's check-in reads as "<name> is heading home"): built, pushed for
+  CI.** Core tests green locally (654; server 108), translations (both checks) and secrets pass.
+- **Exact next step:** read item 3's run. No screenshot should change: no screenshot test shows
+  an older build's check-in, and the strings removed were used only for it. Then push item 4.
+  Items 4 to 6 are committed locally, one commit each, on top of item 3 (core 658, server 108
+  with all of them); each goes up after the one before is green.
+- **Last green run:** 357 (12540f0, item 2). Baseline for screenshot comparisons: dad5a3f's
   `ui-screenshots` and `ui-screenshots-watch`.
 
 ### The six items
 
 1. Texted spots open in Moshpoint (stage 5 part 2). **Done: green in runs 355 and 356.**
-2. "Heading home 🏠" back as a plain quick ping. **Built; CI pending.**
-3. An older build's check-in shown as "<name> is heading home". Built (local commit).
+2. "Heading home 🏠" back as a plain quick ping. **Done: green in run 357.**
+3. An older build's check-in shown as "<name> is heading home". **Built; CI pending.**
 4. Crew chat read over satellite. Built (local commit).
 5. Text my spot and satellite in "What's in Moshpoint+". Built (local commit).
 6. `WatchPings.followUp`: removed, as only Need help used it. Built (local commit).
@@ -104,7 +109,27 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   the chat as "Heading home 🏠" and to the ordinary crew channel (only Need help used the urgent
   one).
 
+### Item 3: what was built
+
+- **Core:** `PingPolicy.shownAs(kind)`: an older build's Check in (8) is shown as Heading home
+  (6); every other kind as itself. `OlderBuildsTest.anOlderBuildsCheckInIsShownAsHeadingHome`
+  opens build 312's own check-in (45 minutes) and checks it.
+- **App:** every place that words a ping goes through it: the notification title
+  (`GroupSync.pingTitle`: "Jo is heading home"), the crew card's line (`pingText`: "is heading
+  home"), the chat bubble (`CrewChatUi.quickLine`: "Heading home 🏠") and `CrewChat.quickText`.
+  The three strings only the check-in used (`crew_quick_check_in`, `crew_ping_check_in`,
+  `crew_ping_title_check_in`) are removed from all 20 folders; no new wording was needed.
+- **Unchanged:** the message itself. It's still kept, carried and passed on as it came (its
+  minutes included), handled as an ordinary ping (`PingPolicy.Group.OLDER_BUILDS`).
+
 ## Decisions (with reasons)
+
+### Item 3
+
+- **Build 312's own words for Heading home,** already in all 20 languages, rather than new
+  wording ("Heading home 🏠 (30 min)" was the other option in REMOVE_SAFETY.md): the minutes
+  promised a check-in that nobody waits for any more.
+- **One rule in core** (`shownAs`), so the bubble, the card and the notification can't disagree.
 
 ### Item 2
 

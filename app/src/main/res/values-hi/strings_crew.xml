@@ -41,10 +41,6 @@
     <string name="crew_quick_all_good">सब ठीक है 👍</string>
     <string name="crew_quick_going_home">घर की ओर 🏠</string>
     <string name="crew_quick_need_help">🚨 मुझे मदद चाहिए</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="one">घर की ओर 🏠 %d मिनट के अंदर चेक-इन</item>
-        <item quantity="other">घर की ओर 🏠 %d मिनट के अंदर चेक-इन</item>
-    </plurals>
     <string name="crew_quick_home_safe">घर पहुँचकर सुरक्षित ✅</string>
 
     <string name="crew_plan_eyebrow">📌 प्लान</string>
@@ -118,7 +114,6 @@
     <string name="crew_ping_all_good">ठीक हैं</string>
     <string name="crew_ping_going_home">घर जा रहे हैं</string>
     <string name="crew_ping_need_help">को मदद चाहिए!</string>
-    <string name="crew_ping_check_in">घर जा रहे हैं और चेक-इन करेंगे</string>
     <string name="crew_ping_home_safe">सुरक्षित घर पहुँच गए</string>
     <string name="crew_ping_chat">ने मैसेज भेजा</string>
     <string name="crew_ping_flare">ने फ्लेयर भेजा</string>
@@ -132,7 +127,6 @@
     <string name="crew_ping_title_all_good">%1$s ठीक हैं</string>
     <string name="crew_ping_title_going_home">%1$s घर जा रहे हैं</string>
     <string name="crew_ping_title_need_help">%1$s को मदद चाहिए!</string>
-    <string name="crew_ping_title_check_in">%1$s घर जा रहे हैं और चेक-इन करेंगे</string>
     <string name="crew_ping_title_home_safe">%1$s सुरक्षित घर पहुँच गए</string>
     <string name="crew_ping_title_chat">%1$s ने मैसेज भेजा</string>
     <string name="crew_ping_title_flare">%1$s ने फ्लेयर भेजा</string>

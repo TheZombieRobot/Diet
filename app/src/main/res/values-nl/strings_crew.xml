@@ -42,10 +42,6 @@
     <string name="crew_quick_all_good">Alles goed 👍</string>
     <string name="crew_quick_going_home">Ik ga naar huis 🏠</string>
     <string name="crew_quick_need_help">🚨 Ik heb hulp nodig</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="one">Ik ga naar huis 🏠 Check binnen %d min in</item>
-        <item quantity="other">Ik ga naar huis 🏠 Check binnen %d min in</item>
-    </plurals>
     <string name="crew_quick_home_safe">Veilig thuis ✅</string>
 
     <string name="crew_plan_eyebrow">📌 HET PLAN</string>
@@ -119,7 +115,6 @@
     <string name="crew_ping_all_good">is oké</string>
     <string name="crew_ping_going_home">gaat naar huis</string>
     <string name="crew_ping_need_help">HEEFT HULP NODIG</string>
-    <string name="crew_ping_check_in">gaat naar huis en checkt in</string>
     <string name="crew_ping_home_safe">is veilig thuis</string>
     <string name="crew_ping_chat">stuurde een bericht</string>
     <string name="crew_ping_flare">stuurde een lichtkogel</string>
@@ -133,7 +128,6 @@
     <string name="crew_ping_title_all_good">%1$s is oké</string>
     <string name="crew_ping_title_going_home">%1$s gaat naar huis</string>
     <string name="crew_ping_title_need_help">%1$s HEEFT HULP NODIG</string>
-    <string name="crew_ping_title_check_in">%1$s gaat naar huis en checkt in</string>
     <string name="crew_ping_title_home_safe">%1$s is veilig thuis</string>
     <string name="crew_ping_title_chat">%1$s stuurde een bericht</string>
     <string name="crew_ping_title_flare">%1$s stuurde een lichtkogel</string>

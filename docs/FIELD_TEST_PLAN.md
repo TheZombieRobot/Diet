@@ -564,9 +564,11 @@ on 16 November 2026 (docs/REMOVE_SAFETY.md). Each step says what you should see.
 
 - [ ] **O** (the older build) is in A's crew. O sends **Need help**, then **Heading home** with
   a timer, then **I'm home safe**.
-- [ ] On A, each arrives as an ordinary crew ping in O's words ("🚨 I need help", "Heading
-  home 🏠 Will check in within 30 min", "Home safe ✅"): in the chat, on the crew card, and as
-  the ordinary **Crew messages** notification. No loud alarm, no separate help channel.
+- [ ] On A, each arrives as an ordinary crew ping ("🚨 I need help", "Heading home 🏠", "Home
+  safe ✅"): in the chat, on the crew card ("O is heading home"), and as the ordinary **Crew
+  messages** notification. The check-in reads as plain Heading home, with no minutes: nothing
+  follows it (since 19 November 2026, docs/SPOT_LINKS.md item 3). No loud alarm, no separate
+  help channel.
 - [ ] O doesn't tap I'm home safe this time: A gets **no** overdue alert, ever.
 - [ ] A, Settings → Apps → Moshpoint → Notifications: there is no "Crew help requests"
   channel any more (an update from an older build deletes it).

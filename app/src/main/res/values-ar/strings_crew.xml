@@ -45,14 +45,6 @@
     <string name="crew_quick_all_good">كل شيء تمام 👍</string>
     <string name="crew_quick_going_home">في طريقي إلى البيت 🏠</string>
     <string name="crew_quick_need_help">🚨 أحتاج مساعدة</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="zero">في طريقي إلى البيت 🏠 سأسجّل وصولي خلال %d دقيقة</item>
-        <item quantity="one">في طريقي إلى البيت 🏠 سأسجّل وصولي خلال دقيقة</item>
-        <item quantity="two">في طريقي إلى البيت 🏠 سأسجّل وصولي خلال دقيقتين</item>
-        <item quantity="few">في طريقي إلى البيت 🏠 سأسجّل وصولي خلال %d دقائق</item>
-        <item quantity="many">في طريقي إلى البيت 🏠 سأسجّل وصولي خلال %d دقيقة</item>
-        <item quantity="other">في طريقي إلى البيت 🏠 سأسجّل وصولي خلال %d دقيقة</item>
-    </plurals>
     <string name="crew_quick_home_safe">وصلت البيت بأمان ✅</string>
 
     <string name="crew_plan_eyebrow">📌 الخطة</string>
@@ -146,7 +138,6 @@
     <string name="crew_ping_all_good">بخير</string>
     <string name="crew_ping_going_home">في طريق العودة إلى البيت</string>
     <string name="crew_ping_need_help">بحاجة إلى مساعدة!</string>
-    <string name="crew_ping_check_in">في طريق العودة إلى البيت · تسجيل الوصول لاحقًا</string>
     <string name="crew_ping_home_safe">في البيت بأمان</string>
     <string name="crew_ping_chat">رسالة جديدة</string>
     <string name="crew_ping_flare">شعلة جديدة</string>
@@ -160,7 +151,6 @@
     <string name="crew_ping_title_all_good">%1$s: كل شيء تمام</string>
     <string name="crew_ping_title_going_home">%1$s: في طريق العودة إلى البيت</string>
     <string name="crew_ping_title_need_help">%1$s بحاجة إلى مساعدة!</string>
-    <string name="crew_ping_title_check_in">%1$s: في طريق العودة إلى البيت · تسجيل الوصول لاحقًا</string>
     <string name="crew_ping_title_home_safe">%1$s: في البيت بأمان</string>
     <string name="crew_ping_title_chat">رسالة من %1$s</string>
     <string name="crew_ping_title_flare">شعلة من %1$s</string>

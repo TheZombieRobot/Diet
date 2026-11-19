@@ -15,6 +15,7 @@ import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.MessageClock
 import nz.waveformlabs.moshpoint.core.OutboxState
+import nz.waveformlabs.moshpoint.core.PingPolicy
 import nz.waveformlabs.moshpoint.core.RelayUse
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.locate.RelayClient
@@ -649,10 +650,10 @@ object CrewChat {
         else -> false
     }
 
-    fun quickText(p: GigGroup.Ping): String? = quickText(p.kind, p.minutes)
+    fun quickText(p: GigGroup.Ping): String? = quickText(p.kind)
 
-    /** The words for a one-tap ping of [kind]; [minutes] is only used by a check-in. */
-    fun quickText(kind: Int, minutes: Int): String? = when (kind) {
+    /** The words for a one-tap ping of [kind] (an older build's check-in: Heading home, core PingPolicy.shownAs). */
+    fun quickText(kind: Int): String? = when (PingPolicy.shownAs(kind)) {
         GigGroup.Ping.COMING -> Txt.s(R.string.crew_quick_coming)
         GigGroup.Ping.WHERE_ARE_YOU -> Txt.s(R.string.crew_quick_where)
         GigGroup.Ping.STAY_PUT -> Txt.s(R.string.crew_quick_stay_put)
@@ -660,7 +661,6 @@ object CrewChat {
         GigGroup.Ping.ALL_GOOD -> Txt.s(R.string.crew_quick_all_good)
         GigGroup.Ping.GOING_HOME -> Txt.s(R.string.crew_quick_going_home)
         GigGroup.Ping.NEED_HELP -> Txt.s(R.string.crew_quick_need_help)
-        GigGroup.Ping.CHECK_IN -> Txt.p(R.plurals.crew_quick_check_in, minutes)
         GigGroup.Ping.HOME_SAFE -> Txt.s(R.string.crew_quick_home_safe)
         else -> null
     }

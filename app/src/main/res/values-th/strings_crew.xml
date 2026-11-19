@@ -40,9 +40,6 @@
     <string name="crew_quick_all_good">โอเคดี 👍</string>
     <string name="crew_quick_going_home">กำลังกลับบ้าน 🏠</string>
     <string name="crew_quick_need_help">🚨 ขอความช่วยเหลือ</string>
-    <plurals name="crew_quick_check_in">
-        <item quantity="other">กำลังกลับบ้าน 🏠 จะเช็กอินภายใน %d นาที</item>
-    </plurals>
     <string name="crew_quick_home_safe">ถึงบ้านปลอดภัย ✅</string>
 
     <string name="crew_plan_eyebrow">📌 แผน</string>
@@ -111,7 +108,6 @@
     <string name="crew_ping_all_good">โอเคดี</string>
     <string name="crew_ping_going_home">กำลังกลับบ้าน</string>
     <string name="crew_ping_need_help">ขอความช่วยเหลือด่วน</string>
-    <string name="crew_ping_check_in">กำลังกลับบ้าน แล้วจะเช็กอิน</string>
     <string name="crew_ping_home_safe">ถึงบ้านปลอดภัยแล้ว</string>
     <string name="crew_ping_chat">ส่งข้อความ</string>
     <string name="crew_ping_flare">ยิงพลุ</string>
@@ -125,7 +121,6 @@
     <string name="crew_ping_title_all_good">%1$s โอเคดี</string>
     <string name="crew_ping_title_going_home">%1$s กำลังกลับบ้าน</string>
     <string name="crew_ping_title_need_help">%1$s ขอความช่วยเหลือด่วน</string>
-    <string name="crew_ping_title_check_in">%1$s กำลังกลับบ้าน แล้วจะเช็กอิน</string>
     <string name="crew_ping_title_home_safe">%1$s ถึงบ้านปลอดภัยแล้ว</string>
     <string name="crew_ping_title_chat">%1$s ส่งข้อความ</string>
     <string name="crew_ping_title_flare">%1$s ยิงพลุ</string>
