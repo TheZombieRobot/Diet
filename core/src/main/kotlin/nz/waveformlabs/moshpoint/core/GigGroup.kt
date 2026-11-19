@@ -285,6 +285,11 @@ class GigGroup(
             const val WHERE_ARE_YOU = 3
             const val MEET_AT_PIN = 4
             const val ALL_GOOD = 5
+            /**
+             * "Heading home 🏠": a plain ping, like On my way, with no timer and nothing after it.
+             * Every build shows it that way, build 312 included; never send [CHECK_IN] for it,
+             * which build 312 times and alarms on (docs/SPOT_LINKS.md, item 2; OlderBuildsTest).
+             */
             const val GOING_HOME = 6
             /**
              * Need help, Check in and Home safe: only older builds send these (the features were

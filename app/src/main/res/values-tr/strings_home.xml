@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">Olduğun yerde kal</string>
     <string name="home_ping_meet_at_pin">Pinde buluşalım</string>
     <string name="home_ping_all_good">Her şey yolunda</string>
+    <string name="home_ping_heading_home">Eve dönüyorum</string>
     <string name="home_ping_sent">Gönderildi ✓</string>
     <string name="home_cancel">İptal</string>
     <string name="home_ping_line">%1$s %2$s</string>

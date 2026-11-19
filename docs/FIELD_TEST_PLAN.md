@@ -1040,12 +1040,13 @@ New on 18 November 2026 (docs/REMOVE_SAFETY.md, stage 3). Moshpoint+ is on for e
 billing exists, so any test build shows it.
 
 - [ ] Settings: under the small amber **Moshpoint+** mark, **Text my spot** is off. Message crew
-  and the crew chat show the five pings only.
-- [ ] Switch it on. Message crew: after **All good** (scroll the row) there's a violet **Text my
+  and the crew chat show the six pings only.
+- [ ] Switch it on. Message crew: after **Heading home** (scroll the row) there's a violet **Text my
   spot**. The crew chat shows it in the same place.
 - [ ] Outdoors with a fix: tap it. The phone's texting app opens with no one chosen and the text
-  ready: "Here's my spot:", a Google Maps link, then the coordinates (5 decimals, with a dot even
-  in German or French). Pick a mate and send: the link opens the spot in their maps; the
+  ready: "Here's my spot:", a link, then the coordinates (5 decimals, with a dot even in German
+  or French). With a relay of our own built in, the link is `https://<relay>/spot#…` and opens
+  the spot in Moshpoint (4o); without one, it's a Google Maps link that opens in their maps. The
   coordinates paste into any map.
 - [ ] Indoors, location off (or no fix for 10 minutes): tap it. The text is "My phone can't tell
   where I am right now." and nothing else.
@@ -1102,6 +1103,19 @@ without Moshpoint (or a laptop's browser).
 - [ ] On C, tap the link: the relay's page opens Google Maps at the spot, with "Get Moshpoint".
 - [ ] A build without a relay (if you have one): the text has a Google Maps link, and B's phone
   offers no Moshpoint for `/spot` links.
+
+## 4p. Heading home, a plain ping (two phones, one on build 312 if you can; 10 min)
+
+New on 19 November 2026 (docs/SPOT_LINKS.md, item 2). **A** has this build; **B** is in A's crew,
+on this build or (better) on an older one such as build 312.
+
+- [ ] On A, Message crew (and the crew chat): the ping row is On my way, Where are you?, Stay put,
+  Meet at the pin, All good, **Heading home**, then Text my spot if it's on. Tap **Heading home**:
+  it turns into "Sent ✓", no dialog, no timer, no reminder later.
+- [ ] On B: "A is heading home" with the ordinary crew notification, and "Heading home 🏠" in the
+  chat, like On my way.
+- [ ] B on build 312: the same, and **no** "hasn't checked in" alarm later (wait out an hour, or
+  set B's clock an hour ahead, and open the app).
 
 ## 5. What to send back
 

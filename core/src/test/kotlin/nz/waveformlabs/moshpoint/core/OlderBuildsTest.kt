@@ -10,7 +10,8 @@ import kotlin.test.assertTrue
 /**
  * Need help, check-ins and Home safe were removed on 16 November 2026 without changing any
  * message format: a mate on an older build (build 312, say) still sends them, and this build
- * must still read them, as ordinary pings with their plain words.
+ * must still read them, as ordinary pings with their plain words. "Heading home" came back on
+ * 19 November 2026 as a plain ping, in the one kind build 312 also shows as a plain ping (below).
  *
  * Every message below was sealed by the code this branch started from (75fe2fb, before the
  * removal) with a throwaway key. This build has to open each one exactly: every field, the
@@ -93,6 +94,81 @@ class OlderBuildsTest {
         }
     }
 
+    // ---- Heading home, back as a plain ping (docs/SPOT_LINKS.md, item 2) ----
+
+    /**
+     * Build 312's own rules (the code at 75fe2fb), frozen here so the choice can't drift: the
+     * kinds its PingPolicy shows as quick pings and as safety pings, and the kinds its CheckIns
+     * tracker reacts to (any other kind returns at once: no timer, no overdue alarm).
+     *
+     * Checked by running that code (75fe2fb's core, unchanged) on pings this build sealed, on 19
+     * November 2026: kind 6 opened as a QUICK ping, shown with the ordinary crew notification,
+     * and its CheckIns ignored it (no deadline, nobody overdue six hours later); kind 8 opened as
+     * SAFETY, its CheckIns took it and called the sender overdue after its minutes; a new number
+     * (15) was UNKNOWN and not shown at all.
+     */
+    private object Build312 {
+        /** COMING, STAY_PUT, WHERE_ARE_YOU, MEET_AT_PIN, ALL_GOOD, GOING_HOME. */
+        val quick = setOf(1, 2, 3, 4, 5, 6)
+        /** NEED_HELP, CHECK_IN, HOME_SAFE. */
+        val safety = setOf(7, 8, 9)
+        /** CheckIns.onPing: CHECK_IN starts the overdue timer, HOME_SAFE ends it. */
+        val checkInTracker = setOf(8, 9)
+        /** Everything else it shows: CHAT, FLARE, PLAN, JOIN. A kind outside these is ignored. */
+        val shown = quick + safety + setOf(10, 11, 12, 14)
+    }
+
+    @Test fun headingHomeIsTheKindBuild312ShowsAsAPlainPing() {
+        // What this build's ping row sends for Heading home…
+        val kind = GigGroup.Ping.GOING_HOME
+        // …is what build 312 itself sent for "Heading home" with no timer ("Just tell them").
+        assertEquals(kind, open(GOING_HOME).kind)
+        assertEquals(6, kind, "the number on the wire never changes")
+        assertTrue(kind in Build312.quick, "build 312 shows it as a quick ping, like On my way")
+        assertFalse(kind in Build312.checkInTracker, "build 312 starts no overdue timer for it")
+        assertFalse(kind in Build312.safety, "and no help alarm")
+        // The other candidates, and why not: Check in would start build 312's timer and its alarm,
+        assertTrue(GigGroup.Ping.CHECK_IN in Build312.checkInTracker)
+        // and a number build 312 doesn't know would never show there at all.
+        assertFalse(15 in Build312.shown)
+    }
+
+    @Test fun anOlderBuildsHeadingHomeOpensWithEveryField() {
+        val p = open(GOING_HOME)
+        assertEquals(GigGroup.Ping.GOING_HOME, p.kind)
+        assertEquals("Jo", p.from)
+        assertEquals(t + 180, p.timeSec)
+        assertEquals(-36.8485, assertNotNull(p.lat), 1e-7)
+        assertEquals(174.7633, assertNotNull(p.lon), 1e-7)
+        assertEquals(0, p.minutes, "no minutes: nothing to wait for")
+        assertEquals("", p.text)
+        assertEquals(CrewKeys.tagOf(unhex(PUB_2)), p.sender, "signed: the signature checks out")
+        assertEquals(id("9cc452dd46f7d038"), p.id)
+    }
+
+    /** This build treats it exactly as On my way: shown, the ordinary notification while fresh, carried like any ping. */
+    @Test fun headingHomeIsAPlainPingHereToo() {
+        assertEquals(PingPolicy.Group.QUICK, PingPolicy.group(GigGroup.Ping.GOING_HOME))
+        for (age in listOf(60L, 3 * 3600L)) {
+            val home = PingPolicy.onArrival(GigGroup.Ping.GOING_HOME, t, 0, t + age)
+            val coming = PingPolicy.onArrival(GigGroup.Ping.COMING, t, 0, t + age)
+            assertEquals(listOf(coming.show, coming.alert, coming.late), listOf(home.show, home.alert, home.late), "after $age s")
+        }
+        assertEquals(PingPolicy.carrySec(GigGroup.Ping.COMING), PingPolicy.carrySec(GigGroup.Ping.GOING_HOME))
+        assertEquals(PingPolicy.crowd(GigGroup.Ping.COMING), PingPolicy.crowd(GigGroup.Ping.GOING_HOME))
+    }
+
+    /** Ours is build 312's own message, field for field and the same size, so build 312 reads it as its own. */
+    @Test fun thisBuildSealsHeadingHomeInBuild312sLayout() {
+        val me = CrewKeys.generate()
+        val ours = group.sealPing(GigGroup.Ping(GigGroup.Ping.GOING_HOME, "Jo", t + 180, -36.8485, 174.7633), me)
+        val theirs = open(GOING_HOME)
+        assertEquals(unhex(GOING_HOME).size, ours.size)
+        val back = assertNotNull(group.openPing(ours))
+        assertEquals(theirs, back.copy(sender = theirs.sender), "every field but who signed it")
+        assertEquals(CrewKeys.tagOf(me.pub), back.sender)
+    }
+
     /** A ping this build seals comes out the same size as the older build's, field for field. */
     @Test fun thisBuildSealsPingsInTheSameLayout() {
         val me = CrewKeys.generate()
@@ -110,6 +186,16 @@ class OlderBuildsTest {
         fun id(hex: String) = java.lang.Long.parseUnsignedLong(hex, 16)
 
         const val PUB = "02f3768e6e485a5f01647a48a0e3bc1bbc5407d4a982e629f329edda37f6120b9c"
+
+        /**
+         * "Heading home" (kind 6, no minutes), sealed by the code at 75fe2fb on 19 November 2026
+         * with a second throwaway key (this one's public half): what build 312 sent for Heading
+         * home with no timer, and what this build sends again (docs/SPOT_LINKS.md, item 2).
+         */
+        const val PUB_2 = "020b197cd2c874b4899385745df260bd9d14b9ee7975f3d24cd799ddcfd9985236"
+        const val GOING_HOME = "6afa7a3409e1af82195e2ab99a05ea06a6dc9a5012c3ff0456dbc09d0e1991fcf670929d7b9b96ef11c7a9bfa05aa476" +
+            "f8155b4c2a253bf714b9e7cee84aa7e6ae87a554a0f3dde0aacd70451fb80140c893ccc1a65929fcc130412b83ec4b82" +
+            "d8abb9ae26cce918cec39921ed278fb373c7c0407d13147e7ea3b3ba9f30c8900f0f36fa8d5998fd"
         const val HELP = "6afa7980e9787d0daa834ff072929624eea868ebd4ee0b8a1445b4ece9b7559bca316ae2d087d2896c78b2c07165c0ce" +
             "4dbacba219c279ee53e040a8892c49f9bcc16b3dc1df7c1ff2a7f8f3ee67eefbf070d4803d28c5d41b8e82fb13a0eecb" +
             "e772b0a6f1d8abb1eea3fe1cb18b4bb98c36f8ba4cdd32ba31ebbf0cdbf9b1f7738ddf2ce3a4d8c9"

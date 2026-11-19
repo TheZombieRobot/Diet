@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">거기 있어</string>
     <string name="home_ping_meet_at_pin">핀에서 만나</string>
     <string name="home_ping_all_good">괜찮아</string>
+    <string name="home_ping_heading_home">집에 가는 중</string>
     <string name="home_ping_sent">보냄 ✓</string>
     <string name="home_cancel">취소</string>
     <string name="home_ping_line">%1$s %2$s</string>

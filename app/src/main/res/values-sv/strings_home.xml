@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">Stanna där</string>
     <string name="home_ping_meet_at_pin">Ses vid nålen</string>
     <string name="home_ping_all_good">Allt lugnt</string>
+    <string name="home_ping_heading_home">På väg hem</string>
     <string name="home_ping_sent">Skickat ✓</string>
     <string name="home_cancel">Avbryt</string>
     <string name="home_ping_line">%1$s %2$s</string>

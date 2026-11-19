@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">Resta lì</string>
     <string name="home_ping_meet_at_pin">Ci vediamo al pin</string>
     <string name="home_ping_all_good">Tutto ok</string>
+    <string name="home_ping_heading_home">Torno a casa</string>
     <string name="home_ping_sent">Inviato ✓</string>
     <string name="home_cancel">Annulla</string>
     <string name="home_ping_line">%1$s %2$s</string>

@@ -10,32 +10,35 @@ handover planned stage 5 part 2 and asked the open questions answered here).
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
 2026._
 
-- **Item 1 (texted spots open in Moshpoint): green in CI** (run 355, on aaaf854; run 354
-  failed on the build script, see below). Screenshots against dad5a3f's sets, by blob hash:
-  phone 2,215 identical, none changed or gone, 105 new (the five `SpotSnapshotTest` shots of
-  item 1 in 21 languages); watch 546 identical. Reviewed in en, de, ar (right to left), ja,
-  small phone and large font: all fine but one, German on a small phone with large text, where
-  Walk, Find and ✕ left Sam's spot a column one letter wide. Fix: the map list's place rows now
-  put their buttons on a line of their own under the text when the text would otherwise break
-  mid-word (`ListRow` in `MapScreen.kt`; side by side, exactly as before, whenever the longest
-  word fits). Compiled against Compose 1.7 (desktop) in a scratch project; pushed for CI.
-- **Exact next step:** read that run (build, tests; screenshots: only the
-  `smallPhoneLargeFontTextedSpotMap` shots should differ from run 355's, and `mapScreen` should
-  stay identical to dad5a3f's unless a language's place row broke a word there too). Then push
-  item 2. Items 2 to 5 are built and committed locally, one commit each, on top of item 1
-  (they go up one at a time, each green before the next); item 6 is investigated.
-- **Last green run:** 355 (aaaf854, item 1). Baseline for screenshot comparisons: dad5a3f's
+- **Item 1 (texted spots open in Moshpoint): done, green in CI:** run 355 (aaaf854), then run
+  356 (856d390) with the place-row fix below; run 354 failed on the build script (see
+  Decisions). Screenshots against dad5a3f's sets, by blob hash, after run 356: phone 2,215
+  identical, none changed or gone, 105 new (the five `SpotSnapshotTest` shots of item 1 in 21
+  languages); watch 546 identical. Reviewed in en, de, ar (right to left), ja, small phone and
+  large font. Run 355's German small phone with large text showed Sam's spot as a column one
+  letter wide beside Walk, Find and ✕; the map list's place rows now put their buttons on a
+  line of their own under the text when the text's longest word wouldn't fit beside them
+  (`ListRow` in `MapScreen.kt`). Run 356 changed only that shot, in 11 languages (de, en,
+  en-rUS, es, es-rES, fr, in, it, nl, pl, pt), all readable now; the existing `mapScreen` shots
+  stayed identical, so side by side is exactly as before wherever it fits.
+- **Item 2 ("Heading home 🏠" as a plain quick ping): built, pushed for CI.** Core tests green
+  locally (653; server 108), translations (both checks) and secrets pass.
+- **Exact next step:** read item 2's run. Screenshots expected to change: `textMySpot` and
+  `smallPhoneLargeFontTextMySpot` (the ping row scrolled to its end now shows Heading home
+  before Text my spot), and crew chat or Message crew shots only where a sixth chip fits on
+  screen. Then push item 3. Items 3 to 6 are committed locally, one commit each, on top of
+  item 2 (core 658, server 108 with all of them); each goes up after the one before is green.
+- **Last green run:** 356 (856d390, item 1). Baseline for screenshot comparisons: dad5a3f's
   `ui-screenshots` and `ui-screenshots-watch`.
 
 ### The six items
 
-1. Texted spots open in Moshpoint (stage 5 part 2). **Done: green in run 355** (a row layout fix
-   for small phones with large text in CI now).
-2. "Heading home 🏠" back as a plain quick ping. Not started.
-3. An older build's check-in shown as "<name> is heading home". Not started.
-4. Crew chat read over satellite. Not started.
-5. Text my spot and satellite in "What's in Moshpoint+". Not started.
-6. `WatchPings.followUp`: remove if only Need help used it. Not started.
+1. Texted spots open in Moshpoint (stage 5 part 2). **Done: green in runs 355 and 356.**
+2. "Heading home 🏠" back as a plain quick ping. **Built; CI pending.**
+3. An older build's check-in shown as "<name> is heading home". Built (local commit).
+4. Crew chat read over satellite. Built (local commit).
+5. Text my spot and satellite in "What's in Moshpoint+". Built (local commit).
+6. `WatchPings.followUp`: removed, as only Need help used it. Built (local commit).
 
 ### Item 1: what was built
 
@@ -81,7 +84,36 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 - **Docs:** FEATURES, ROADMAP, RELAY_API (section 13, the app's side), FIELD_TEST_PLAN (4o),
   PRIVACY, ARCHITECTURE, CODE_STRUCTURE, FINDER_MODULE.
 
+### Item 2: what was built
+
+- **The chip:** "Heading home" is back in the ping row (`PingBar`), after All good and before
+  Text my spot, a plain cyan ping like the others: it turns into "Sent ✓" and nothing follows.
+  It sends kind 6 (`GigGroup.Ping.GOING_HOME`), which every build shows as "Heading home 🏠" with
+  the ordinary crew notification. The label is build 312's own `home_ping_heading_home`, restored
+  in all 20 languages with its reviewed translations.
+- **The proof** (`OlderBuildsTest`, 4 tests): a "Heading home" sealed by the code at 75fe2fb opens
+  here with every field; this build seals it in the same layout, field for field; this build
+  treats it exactly like On my way; and build 312's own rules, frozen in the test, show it as a
+  quick ping and never give it to its check-in tracker.
+- **How build 312 was checked:** its core (75fe2fb, unchanged) was compiled and run on pings this
+  build sealed. Kind 6: opened, QUICK, shown, the ordinary notification while fresh, carried two
+  hours, and its `CheckIns.onPing` returned false (no deadline, nobody overdue six hours later).
+  Kind 8 (Check in): SAFETY, taken by `CheckIns`, the sender called overdue after its 45 minutes.
+  A new number (15): UNKNOWN, not shown at all. Its app does the same: `GroupSync.onPing` feeds
+  every ping to `CheckIns.onPing`, which returns at once for anything but 8 and 9; kind 6 goes to
+  the chat as "Heading home 🏠" and to the ordinary crew channel (only Need help used the urgent
+  one).
+
 ## Decisions (with reasons)
+
+### Item 2
+
+- **Kind 6, not 8 or a new number.** Build 312 shows 6 as a plain ping in its own words; 8 would
+  start its overdue timer and alarm; a new number would never show there at all. 6 is also what
+  build 312 itself sent for Heading home without a timer ("Just tell them"), so nothing on the
+  wire changes.
+- **Cyan, in the row, no dialog:** it's a ping like the others now, so it looks and behaves like
+  them. Text my spot stays last (violet: it leaves the app).
 
 ### Item 1
 
@@ -124,3 +156,13 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 2. **The relay must be deployed with `/spot` and `/.well-known/assetlinks.json` before a build
    with that relay ships** (owner to-do; an older relay answers 404, though the text's plain
    coordinates still work). Play's signing key's fingerprint goes in `MOSHPOINT_APP_CERTS`.
+3. **The App Link's manifest hasn't been built with a relay yet.** CI builds with the
+   repository variable `MOSHPOINT_SERVER`, which is empty here, so its merged-manifest report
+   (run 355) shows no `SpotLinkActivity`: the no-relay case, as intended. The first build with a
+   relay should show `SpotLinkActivity` with the `https://<relay host>/spot` filter in its merged
+   manifest (`aapt2 dump xmltree --file AndroidManifest.xml`, or Android Studio's Merged Manifest
+   tab); field test 4o checks the link opens the app.
+4. **The map's top bar on a small phone with large text** can squeeze its own title to nothing
+   (seen in Polish in `smallPhoneLargeFontTextedSpotMap`: Pinezka, Wszyscy and Ja take the
+   width). It was like that before these items (no earlier test drew that case) and isn't
+   changed here; fix it the same way as the place rows?

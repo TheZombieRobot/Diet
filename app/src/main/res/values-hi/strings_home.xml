@@ -10,6 +10,7 @@
     <string name="home_ping_stay_put">वहीं रहो</string>
     <string name="home_ping_meet_at_pin">पिन पर मिलो</string>
     <string name="home_ping_all_good">सब ठीक है</string>
+    <string name="home_ping_heading_home">घर की ओर</string>
     <string name="home_ping_sent">भेज दिया ✓</string>
     <string name="home_cancel">रद्द करें</string>
     <string name="home_ping_line">%1$s %2$s</string>

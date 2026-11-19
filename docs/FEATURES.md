@@ -95,7 +95,10 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **Flares:** "Bar time 🍺", "At the rail 🎶", "Lost 😅" and more. Your spot shows for 30
   minutes, and the vibe shows under your tile. (untested)
 - **Plan card:** the gig, the plan, the meet-up and who's coming, as a shareable picture.
-- **Crew pings:** On my way, Where are you?, Stay put, Meet at the pin, All good.
+- **Crew pings:** On my way, Where are you?, Stay put, Meet at the pin, All good, Heading home.
+  Heading home 🏠 is a plain ping like the others (back on 19 November 2026): no timer, no alert,
+  nothing follows. Mates on older builds (build 312) see it the same way, as "Heading home 🏠"
+  with the ordinary crew notification ([SPOT_LINKS.md](SPOT_LINKS.md), item 2).
 - **Text my spot (Moshpoint+):** for members who switch it on in Settings (it's off until they
   do), a violet button after the pings, in Message crew and in the crew chat. It opens the
   phone's own texting app with a text already written: "Here's my spot:", a link and the plain
