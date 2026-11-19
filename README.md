@@ -14,7 +14,7 @@ Find your mates at a gig. Open the app, tap a friend, and an arrow points you to
 - **Watch app** (Wear OS: the arrow, buzzes and quick messages on your wrist): [`docs/WATCH.md`](docs/WATCH.md), the decisions, where it stands, and how to install it on a watch.
 - **Design:** neon party, premium finish, drawn on a Claude design canvas (ask Claude for the link). `ui/Theme.kt` holds the colours and type (Unbounded + Inter, bundled), `ui/Neon.kt` the motion kit (glows, radar, running neon border, shimmer, rolling numbers, confetti). In battery saver, or with animations turned off, ambient effects hold still ("calm motion"); the arrow and distance still animate.
 - **Facebook login (optional):** [`docs/FACEBOOK.md`](docs/FACEBOOK.md).
-- **Releasing:** [`docs/PLAY_STORE.md`](docs/PLAY_STORE.md) (checklist, store listing, Data safety answers) and [`docs/PRIVACY.md`](docs/PRIVACY.md) (the privacy policy; the relay serves it at `/privacy`).
+- **Releasing:** [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) (your launch steps, in order, from a phone), [`docs/PLAY_STORE.md`](docs/PLAY_STORE.md) (every Play Console answer: store listing, Data safety, content rating) and [`docs/PRIVACY.md`](docs/PRIVACY.md) (the privacy policy; the relay serves it at `/privacy`).
 - **Testing on real phones:** [`docs/FIELD_TEST_PLAN.md`](docs/FIELD_TEST_PLAN.md); analyse recordings with `python3 tools/analyze_recording.py <file.csv>`
 
 ## Install the test build

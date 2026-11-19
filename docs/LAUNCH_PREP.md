@@ -9,22 +9,23 @@ items, in order, each green in CI before the next.
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
-2026, 06:42 UTC._
+2026, 06:58 UTC._
 
-- **Now:** item 6 (release readiness: Facebook switched off without a Meta app, Moshpoint+ for
-  everyone, the upload key check and a signed-bundle rehearsal), pushed for its CI check. Next:
-  item 7 (drafted).
+- **Now:** item 7 (docs/RELEASE_CHECKLIST.md, the Play Console answers, the store images),
+  pushed for its CI check. Items 1 to 6 are done and green.
 - **Done:** item 1, green in run 363 (493fd3b); item 2, green in run 364 (d88c2bf); item 3,
   green in run 365 (838f941: its step printed "OK: SpotLinkActivity with one autoVerify filter
   for https://relay.example.invalid/spot", "OK: no SpotLinkActivity and no verified link" and
   "OK: the release APK has no SpotLinkActivity (no relay of its own)"); item 4, green in run 366
-  (da28245; core and server tests passed in CI with the fix); item 5, green in run 367 (de83af6).
-- **Screenshots:** unchanged after items 1 to 4 (phone 2,320 and watch 546 identical to
-  e2d5384's by blob hash). After item 5: phone 2,312 identical, 8 changed, all
-  `smallPhoneLargeFontTextedSpotMap` (fr, in, nl, pl, sv, th, tr, vi: the languages whose title
-  was cut to a dot or a few letters; looked at: Polish now shows "Mapa" and its status, the
-  buttons on a line under them); watch 546 identical.
-- **Last green run:** 367 (de83af6, item 5; 06:35 UTC).
+  (da28245; core and server tests passed in CI with the fix); item 5, green in run 367
+  (de83af6); item 6, green in run 368 (e6e70c3: the Facebook check, the throwaway-key rehearsal
+  and the 16 KB check of its bundle all passed).
+- **Screenshots:** unchanged after items 1 to 4 and 6 (phone 2,320 and watch 546 identical to
+  e2d5384's by blob hash, apart from item 5's). After item 5: phone 2,312 identical, 8 changed,
+  all `smallPhoneLargeFontTextedSpotMap` (fr, in, nl, pl, sv, th, tr, vi: the languages whose
+  title was cut to a dot or a few letters; looked at: Polish now shows "Mapa" and its status,
+  the buttons on a line under them); watch 546 identical.
+- **Last green run:** 368 (e6e70c3, item 6; 06:58 UTC).
 - **Baseline:** core 658 and server 108 tests pass locally at e2d5384 (scratch Gradle build of
   only `:core` and `:server`, Maven Central only); server 115 with items 2 and 4, core 660 with
   item 6.
@@ -268,6 +269,53 @@ app takes a 403 quietly (DiscoverClient: hand entry only, asked again a day late
   16 KB check then covers the bundle too. Once the secrets are set it skips itself.
 - The release debug-text check is unchanged.
 
+**Result (run 368):** "A Meta app is configured for this repository's builds: no"; "OK: no
+Facebook component at all" for both release manifests and for the release APK; "OK: Facebook
+login there, its SDK started only by the button" with the made-up Meta app; "OK: the upload key
+decodes, its alias is in the keystore, and both passwords work", "OK: the key check refuses a
+wrong key password and a missing secret", "OK: app-release.aab (15M) is signed with the upload
+key it was given" (the rehearsal took 74 seconds); the 16 KB check passed with the bundle. The
+report-only manifest comparison lists the five Facebook components as gone, as expected. No
+screenshot changed.
+
+## Item 7: the owner's launch checklist
+
+**Built:**
+
+- **docs/RELEASE_CHECKLIST.md**, the owner's steps in order, for a phone, each with where to
+  tap and what to paste (placeholders only): 0, the default branch (so the Run workflow buttons
+  show); 1, the Play Console account (personal: US$25, ID check, the Play Console app, and the
+  closed test of 12 testers for 14 days in a row); 2, creating the app; 3, the upload key
+  (keytool on a computer or Termux) and the four signing secrets, checked by a manual Android
+  build (Upload key works, the signed bundle, its artifact); 4, Fly.io and the Deploy server
+  workflow (the organization token and the relay's secrets); 5, `MOSHPOINT_SERVER`, then
+  `MOSHPOINT_APP_CERTS` with Play's app signing fingerprint after the first upload; 6, the
+  privacy policy URL (the relay's `/privacy`); 7, App content, every item's answer, the content
+  rating (IARC, from PLAY_STORE.md), 18+ only, Data safety (PLAY_STORE.md) and the foreground
+  service declarations (connectedDevice and location, what each video shows, recorded with the
+  test build before the first upload); 8, the store listing (short and full description in
+  English, the images, category Events); 9, the closed test; 10, applying for production;
+  11, a staged rollout (10%, 50%, 100%, halt if needed). Then what comes after the first
+  release.
+- **docs/store/play/**, the images to upload, made by **tools/store_images.py** (Pillow) from
+  docs/store and docs/screenshots: the icon (512 × 512, 32-bit), the feature graphic (1024 × 500,
+  24-bit) and eight phone screenshots, 500 × 1000 with no transparency (the test screenshots are
+  461 × 1000 with an alpha channel and taller than Play's 2:1, so each is padded at the sides with
+  its own edge colour). Chosen to tell the story with made-up names only: welcome,
+  finderOneFriend, homeMain, finderFarAway, privateThread, hypeGroup, venueCard, upNext (not
+  crewChat or offlineChat, which show a real band, finderGroup or finderBigCrew, a real band and
+  a real festival, the map, a placeholder in tests, or Moshpoint+).
+- **docs/PLAY_STORE.md**: points to the checklist; the store listing (the new short and full
+  description, the images); the Data safety answers checked against the app as it is now (gig
+  search no longer goes to Ticketmaster or anyone else: the old search is gone and smart search
+  asks only our relay; the install code declared under Device or other IDs; reports' name and
+  crew key under Personal info; no Facebook rows until a Meta app is configured; retention as
+  the relay keeps it); one foreground-service video per type.
+- **docs/SECRETS.md**: the fill-in checklist gains `FLY_API_TOKEN` (INSERTFLYAPITOKENHERE) and
+  `MOSHPOINT_APP_CERTS` (INSERTPLAYSHA256HERE), and the relay's secrets now say they go in
+  GitHub (the Deploy server workflow copies them). **README**: the checklist first under
+  Releasing.
+
 ## Open questions
 
 1. **The Run workflow button and the default branch.** The repository's default branch is
@@ -275,9 +323,24 @@ app takes a 403 quietly (DiscoverClient: hand entry only, asked again a day late
    `workflow_dispatch` workflow has to be on the default branch to be run from the web page
    (Android build's manual runs on `ccr-5839ed7c-1q0ztj` may have come through the API). If the
    owner can't see Deploy server or its Run workflow button, the fix is one setting: make
-   `ccr-5839ed7c-1q0ztj` the default branch (SERVER_PRODUCTION.md says how). That's the owner's
-   call; nothing here changes it.
+   `ccr-5839ed7c-1q0ztj` the default branch (RELEASE_CHECKLIST.md, step 0, and SERVER_PRODUCTION.md
+   say how). That's the owner's call; nothing here changes it.
 2. **Who the developer is.** The policy names "the developer named on its Google Play page"
    rather than a legal entity, so nothing is left to fill in. If the owner wants their legal name
    or company there, it's one line at the top of docs/PRIVACY.md (then
    `python3 tools/privacy_page.py`).
+3. **Fly.io's pages and prices weren't checked from here** (fly.io and docs.github.com don't
+   resolve from this environment). The commands were checked in flyctl's own source; the
+   dashboard's labels (Tokens, Billing), the organization-token steps, "about US$10 a month" and
+   whether the `syd` region needs anything more were written from memory. If a label differs,
+   SERVER_PRODUCTION.md and RELEASE_CHECKLIST.md step 4 are the two places to fix.
+4. **Data safety: the install code is declared** under Device or other IDs (collected, processed
+   ephemerally, not shared, required with the relay). It's a random server-signed code kept only
+   in the relay's memory for rate limits; declaring it is the cautious reading of Play's
+   definitions. The owner can drop the row if Google's guidance says an ephemeral, random,
+   app-instance code doesn't count.
+5. **The closed test applies to personal developer accounts** made after November 2023 (12
+   testers, 14 days in a row). The checklist assumes a personal account; an organization account
+   (needs a D-U-N-S number) skips it.
+6. **CI time:** until the four signing secrets exist, every phone build also rehearses the signed
+   bundle with a throwaway key (item 6): 74 seconds in run 368. It skips itself once they're set.

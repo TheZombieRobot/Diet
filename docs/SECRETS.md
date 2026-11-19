@@ -40,9 +40,9 @@ Every key the project will need, with a one-word placeholder.
 
 | Name | Placeholder | Get it from | Paste the real value into |
 |---|---|---|---|
-| `MOSHPOINT_TOKEN_SECRET` | INSERTTOKENSECRETHERE | Generate: `openssl rand -hex 32` | That relay's Fly secrets (a different one per relay) |
-| `MOSHPOINT_CONTACT` | INSERTCONTACTEMAILHERE | Your support email | That relay's Fly secrets |
-| `MOSHPOINT_ADMIN_TOKEN` | INSERTADMINTOKENHERE | Generate: `openssl rand -hex 32` | That relay's Fly secrets (a different one per relay), and your password manager |
+| `MOSHPOINT_TOKEN_SECRET` | INSERTTOKENSECRETHERE | Generate: `openssl rand -hex 32` (or 64 letters and digits from your password manager) | Secrets tab (the Deploy server workflow copies it to the relay), or that relay's Fly secrets from a computer; a different one per relay |
+| `MOSHPOINT_CONTACT` | INSERTCONTACTEMAILHERE | Your support email (shown on the privacy page) | Secrets tab (copied to the relay as above), or that relay's Fly secrets |
+| `MOSHPOINT_ADMIN_TOKEN` | INSERTADMINTOKENHERE | Generate as above | Secrets tab (copied to the relay as above), or that relay's Fly secrets; a different one per relay, and keep it in your password manager |
 
 **Building and publishing the app (GitHub → repo → Settings → Secrets and variables → Actions):**
 
@@ -53,7 +53,9 @@ Every key the project will need, with a one-word placeholder.
 | `MOSHPOINT_KEY_ALIAS` | INSERTKEYALIASHERE | Chosen when you create the keystore | Secrets tab |
 | `MOSHPOINT_KEY_PASSWORD` | INSERTKEYPASSWORDHERE | Chosen when you create the keystore | Secrets tab |
 | `RELEASES_TOKEN` (optional) | INSERTRELEASESTOKENHERE | A GitHub fine-grained token for the builds repo | Secrets tab |
-| `MOSHPOINT_SERVER` | INSERTRELAYADDRESSHERE | e.g. https://moshpoint-relay.fly.dev (not a secret) | Variables tab |
+| `FLY_API_TOKEN` | INSERTFLYAPITOKENHERE | Fly dashboard → Tokens → an organization token (SERVER_PRODUCTION.md, Deploy from your phone) | Secrets tab |
+| `MOSHPOINT_SERVER` | INSERTRELAYADDRESSHERE | The Deploy server run's summary, e.g. https://moshpoint-relay.fly.dev (not a secret) | Variables tab |
+| `MOSHPOINT_APP_CERTS` | INSERTPLAYSHA256HERE, then the debug key's fingerprint | Play Console → Test and release → App integrity → App signing key certificate → SHA-256 (not a secret; the debug one is in SERVER_PRODUCTION.md) | Variables tab, then run Deploy server |
 
 **Later, with billing:**
 - A Google Play service account, for checking purchases on the paid relay: its JSON goes in that relay's Fly secrets.

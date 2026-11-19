@@ -1,7 +1,9 @@
 # Play Store release checklist
 
 Things to do before publishing Moshpoint on Google Play. Items marked **(you)** need your
-accounts or decisions; the rest can be done in the repo.
+accounts or decisions; the rest can be done in the repo. **Your launch steps, in order and
+phone-friendly, are in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md)**; this file is the reference
+behind them (every Play Console answer, and why).
 
 ## Before submitting
 
@@ -57,27 +59,56 @@ accounts or decisions; the rest can be done in the repo.
       watch never shows "Unlock" with nothing to buy. CI builds a signed watch bundle
       (`moshpoint-watch-release-aab`) whenever the signing secrets are set.
 
-## Store listing (draft)
+## Store listing
 
-**Graphics** (in `docs/store/`): app icon `icon-512.png`, feature graphic `feature-1024x500.png`
-(source `feature.html`, open in Chrome). Phone screenshots: use `docs/screenshots/` (updated by CI on every build)
-or, better, real ones from the field test.
+**Graphics, ready to upload** in `docs/store/play/` (made by `tools/store_images.py` from
+`docs/store/` and `docs/screenshots/`; run it again after the screenshots change, and commit the
+folder):
+
+- App icon `icon-512.png`: 512 × 512, 32-bit PNG.
+- Feature graphic `feature-1024x500.png`: **1024 × 500**, 24-bit PNG, no transparency (source
+  `docs/store/feature.html`, open in Chrome).
+- Phone screenshots `screenshot-1.png` to `screenshot-8.png`, in this order: 500 × 1000, 24-bit
+  PNG. Play takes screenshots at most twice as tall as wide and with no transparency; the test
+  screenshots are 461 × 1000 with transparency, so the script pads each at the sides with its own
+  edge colour.
+  1. `welcome`: the welcome
+  2. `finderOneFriend`: finding Sam up close, the glowing arrow
+  3. `homeMain`: the crew on the home screen, tonight
+  4. `finderFarAway`: finding Sam 140 m away, by GPS
+  5. `privateThread`: private messages at the gig with no signal
+  6. `hypeGroup`: a gig planned ahead with the crew ("Ivory Tide")
+  7. `venueCard`: a gig's card, Neon Paddock at Kauri Fields
+  8. `upNext`: the crews coming up
+
+  Made-up names only: not `crewChat` or `offlineChat` (a real band in the chat), `finderGroup`
+  (a real band in its title) or `finderBigCrew` (a real festival's name), not the map (the tests
+  draw a placeholder where it goes), and nothing about Moshpoint+ (free for now). Real
+  screenshots from the field test are better later (at most twice as tall as wide).
 
 **App name:** Moshpoint
 
-**Short description (80 chars):**
-Find your mates at gigs. Tap a friend, follow the glowing arrow.
+**Short description (80 characters at most; this is 62):**
+Find your mates at gigs. Tap a mate, follow the glowing arrow.
 
 **Full description:**
-> Lost your crew in the mosh pit? Open Moshpoint, tap a mate, and a glowing arrow points
-> straight to them, with the distance counting down as you close in.
+> Lost your crew in the crowd? Open Moshpoint, tap a mate, and a glowing arrow points straight
+> to them, with the distance counting down as you close in.
 >
-> • Works up close and far away: UWB, Wi-Fi Aware, Bluetooth and GPS, picked automatically.
-> • No signal at the venue? Locations hop phone to phone through the crowd.
-> • One QR for the whole night: start a gig group, everyone scans, everyone can find everyone.
-> • Spin to scan: no UWB? Turn on the spot and Moshpoint works out which way they are.
-> • Private by design: no account, rotating codes, end-to-end encrypted locations. You're only
->   findable while you go live.
+> • Up close or far away: UWB, Wi-Fi Aware, Bluetooth and GPS, picked for you.
+> • No signal at the venue? Locations and crew messages hop phone to phone through your crew and
+>   the crowd.
+> • One QR for the whole night: start a crew, everyone scans it, everyone can find everyone.
+> • Crew chat, quick pings ("On my way", "Meet at the pin") and private messages, with or
+>   without signal.
+> • Drop a meet-up pin, or pin "I'm here" on your exact spot.
+> • The venue's street map is saved on your phone before the gig, so it works with no signal.
+> • Share photos and clips with your crew, and keep the night's Story on your phone.
+> • Text my spot: when data is down, send your spot as an ordinary text.
+> • Private by design: no account, codes that change every few minutes, and locations and
+>   messages encrypted end to end. You're only findable while you go live.
+>
+> Moshpoint is for people aged 18 and over.
 
 **Category:** Events (Social would bring in the Child Safety Standards policy). **Content
 rating:** from the questionnaire below; not "Everyone": crews chat, share photos and share
@@ -85,32 +116,36 @@ their location.
 
 ## Data safety form (answers)
 
-Corrected in wave 2b (audit/release.md). The old draft was wrong on three points: it said the
-app **shares nothing** (it shares search words and a rough area with outside services, and
-Meta gets login data), that everything on the server is **deleted after 15 minutes** (only
-locations are; moments stay 24 hours, crew chat 3 days, profile photos 8 days), and that there
-is **no user-generated content** (crew chat, moments and private messages are).
+For the first release (19 November 2026), checked against the app as it is: no account, the
+relay built in (`MOSHPOINT_SERVER`), Discover refused by the relay, no Facebook login (no Meta
+app configured, so none of the Facebook SDK is in the manifest), everything free. Corrected
+again from wave 2b's draft: gig search no longer goes to Ticketmaster or anyone else (the app's
+old gig search is gone; smart search asks only our relay, which answers from its own lists), the
+install code is declared (an app-instance id our relay uses for its limits), and the Facebook
+rows are out until a Meta app is configured.
 
 What Play counts: data that leaves the phone in a form someone other than the user's own people
 can read. Everything end-to-end encrypted (locations, chat, private messages, moments, profile
 photos, pings, pins) is unreadable by us and by the relay, which Play's form treats as not
-collected; it still goes in the privacy policy.
+collected; it is still in the privacy policy.
 
 | Question | Answer |
 |---|---|
 | Does the app collect or share any of the required user data types? | **Yes** |
 | Is all of the user data encrypted in transit? | **Yes** (HTTPS everywhere; locations, messages and photos are also end-to-end encrypted) |
-| Do you provide a way for users to request that their data is deleted? | **Yes**: there is no account; deleting the app deletes everything on the phone, and the relay's copies expire on their own (locations 15 min, moments 24 h, crew chat 3 days, profile photos 8 days). Facebook login can be removed at facebook.com |
-| **Location → Approximate location** | **Shared** (not collected): when the person types a venue, its name and a box about 300 km across go to OpenStreetMap's Nominatim (through our relay, or directly from a build without it); the map area being viewed goes to OpenFreeMap for map tiles. Optional, App functionality. Not used for ads or analytics |
-| Location → Precise location | **Not collected or shared** (only ever sent end-to-end encrypted to the user's own crew and friends). Text my spot (Moshpoint+) writes the person's position into a text in their own texting app, which they address and send themselves: a transfer the person starts and expects, not collection or sharing by the app |
-| **App activity → Other actions / In-app search history** | **Shared**: the words typed into gig search go (through our relay) to Ticketmaster, Bandsintown and SeatGeek, or straight to Ticketmaster from a build without our relay. Optional, App functionality. Nothing about the person goes with them |
-| **Personal info → Name; Photos → profile photo** (only if "Continue with Facebook" is used) | **Collected** by Meta's SDK when the person chooses Facebook login: Meta receives what its login needs (see Meta's own Data safety guidance for the Facebook Login SDK), and the app receives the name and profile photo, which stay on the phone or go end-to-end encrypted to friends. Optional, App functionality |
-| **Messages → Other in-app messages; Photos and videos → Photos, Videos** | **Collected, only when a user reports one** (docs/REPORT_BLOCK.md): the reporter's phone sends the reported message's text, or the photo (smaller) or four frames of the clip (smaller), with the poster's name and crew key, to our relay, where the owner reads it; kept 90 days. Optional (nothing goes unless someone taps Send report). Purpose: **Fraud prevention, security, and compliance**. Not shared. Everything else in these types is end-to-end encrypted and **not collected** |
+| Do you provide a way for users to request that their data is deleted? | **Yes**: there is no account; deleting the app deletes everything on the phone, the relay's copies expire on their own (locations, pings and pins 15 minutes, moments 24 hours, crew chat and private messages 72 hours, profile photos 8 days, reports 90 days), and anything else on request at the contact address (INSERTCONTACTEMAILHERE) |
+| **Location → Approximate location** | **Collected and shared.** Collected (by our relay, processed ephemerally: never stored or logged): the region Coming up near you asks about (in New Zealand the island, elsewhere a region from the relay's list, picked on the phone; never the position). Shared: when the person types a venue, its name and a box about 300 km across go through our relay to OpenStreetMap's Nominatim; the map area being viewed goes to OpenFreeMap for map tiles. Optional. Purpose: App functionality. Not for ads or analytics |
+| Location → Precise location | **Not collected or shared** (only ever sent end-to-end encrypted to the user's own crew and friends). Text my spot writes the person's position into a text in their own texting app, which they address and send themselves: a transfer the person starts and expects, not collection or sharing by the app |
+| **App activity → In-app search history** | **Collected, not shared:** what's typed into the plan's smart search goes to our relay, which answers from lists it already holds (no outside service sees it) and keeps nothing (processed ephemerally). Optional. Purpose: App functionality |
+| **Device or other IDs** | **Collected, not shared:** the install code, a random value our relay hands the app at first start and the app sends back with each request (nothing about the device or the person; the relay holds it in memory for its rate limits and never stores or logs it). Required (it comes with using the relay). Purpose: Fraud prevention, security, and compliance |
+| **Messages → Other in-app messages; Photos and videos → Photos, Videos** | **Collected, only when a user reports one** (docs/REPORT_BLOCK.md): the reporter's phone sends the reported message's text, or the photo (smaller) or four frames of the clip (smaller), to our relay, where the owner reads it; kept 90 days. Optional (nothing goes unless someone taps Send report). Purpose: **Fraud prevention, security, and compliance**. Not shared. Everything else in these types is end-to-end encrypted and **not collected** |
+| **Personal info → Name; User IDs** | **Collected, only in a report:** the reported poster's display name and their key in that crew (their identity in that crew only), so the owner can act on it. Optional. Purpose: Fraud prevention, security, and compliance. Not shared |
+| Personal info → Name, photo (Facebook login) | **Not collected** in the first release: no Meta app is configured, so "Continue with Facebook" isn't there and none of the Facebook SDK starts or is in the manifest. If Facebook login is ever configured (docs/FACEBOOK.md), add Name and Photos (collected by Meta's SDK at login, see Meta's own Data safety guidance) |
 | Audio | **Not collected** (a reported clip sends still frames, never its sound) |
-| Contacts, calendar, app info and performance, device or other IDs, financial, health | **Not collected** (no analytics, crash reporting or advertising ID; the Facebook SDK's analytics and ad ID are off and the AD_ID permission is removed) |
-| Contacts and SMS | **Not collected, no SMS to contacts any more.** Need help used to keep one emergency contact on the phone and open a text to it; it was removed on 16 November 2026, and the app deletes a stored contact on the first start after updating. The app never reads the phone's contacts, sends or reads texts, or asks for SMS or call permissions. Text my spot (Moshpoint+) only opens the phone's own texting app with a text written in (`ACTION_SENDTO`, no number): the person picks who and presses Send |
-| Is collection required or optional? | **Optional** for everything above |
-| Purposes | App functionality; reports only: fraud prevention, security, and compliance (moderation). Never advertising, analytics or personalisation |
+| Contacts, calendar, app info and performance, financial, health, web browsing | **Not collected** (no analytics, crash reporting or advertising ID; the AD_ID permission is removed) |
+| Contacts and SMS | **Not collected.** The app never reads the phone's contacts, sends or reads texts, or asks for SMS or call permissions. Text my spot only opens the phone's own texting app with a text written in (`ACTION_SENDTO`, no number): the person picks who and presses Send. (Need help's emergency contact, in earlier test builds, is deleted from the phone on the first start after updating) |
+| Is collection required or optional? | **Optional** for everything above except the install code (required with the relay) |
+| Purposes | App functionality; reports and the install code: fraud prevention, security, and compliance. Never advertising, analytics or personalisation |
 
 ## User Generated Content policy (answers)
 
@@ -185,6 +220,10 @@ is, why it can't wait, and for a short video of it. The app has two services wit
 
    Video: on the watch, tap a mate; show the phone's notification with its screen off; stop on
    the watch.
+
+Play asks for one video per **type**, not per service. The first release has no watch app, so
+record both with Go live (RELEASE_CHECKLIST.md, step 7, says what each shows) and give both
+tasks above in the text.
 
 The app requests no background location (`ACCESS_BACKGROUND_LOCATION`): location is used only
 in these user-started foreground services, so the Location permissions declaration doesn't
