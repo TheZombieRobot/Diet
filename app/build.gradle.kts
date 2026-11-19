@@ -1,3 +1,6 @@
+import java.net.URI
+import java.util.Locale
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -21,9 +24,10 @@ val server = prop("moshpoint.server", "moshpoint.serverUrl")
 // only with a relay of our own built in, as a plain https address (the same test core SpotLink
 // makes before it builds a link). With none, there is no link to open: the activity and its
 // filter (src/spotLinks/AndroidManifest.xml) aren't in the manifest at all.
-val spotLinkHost: String? = runCatching { java.net.URI(server.trim().trimEnd('/')) }.getOrNull()
+// (URI and Locale are imported above: in a build script `java.` means the project's java extension.)
+val spotLinkHost: String? = runCatching { URI(server.trim().trimEnd('/')) }.getOrNull()
     ?.takeIf { "https".equals(it.scheme, ignoreCase = true) && it.rawUserInfo == null && (it.port == -1 || it.port == 443) }
-    ?.host?.lowercase(java.util.Locale.ROOT)?.takeIf { it.isNotBlank() }
+    ?.host?.lowercase(Locale.ROOT)?.takeIf { it.isNotBlank() }
 
 android {
     namespace = "nz.waveformlabs.moshpoint"
