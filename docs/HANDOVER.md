@@ -106,9 +106,6 @@ Where things live: docs/CODE_STRUCTURE.md.
    - On Bluetooth-only phones, show an honest wide arrow instead of a sharp needle.
    - Make the distance trend the main signal ("closer… 12 m… 6 m").
    - Offer Light me up automatically within about 15 m.
-   - Make Light me up easy to pick out when a whole crowd's phones are lit: flash in the mate's
-     own colour and a rhythm that's unique to them (owner's idea, 19 November), shown to the
-     finder as the thing to look for.
    - Try Bluetooth 5's long-range mode (LE Coded PHY) in the field test, on phones that support it
      (`isLeCodedPhySupported`): an extended advert on Coded alongside the normal one. Compare its
      range and detection in a packed crowd against battery cost. Wave 2c dropped Coded scanning
@@ -127,6 +124,18 @@ Where things live: docs/CODE_STRUCTURE.md.
   artwork, and no band names in any AI prompt.
 - Ticket affiliates (Ticketmaster through Impact; Ticketek's partner programme).
 - A festival partnership.
+- **Camera finder** (owner's idea, 19 November; a possible standout feature, prototype after the
+  field test):
+  - The mate's phone flashes a coded pattern with its torch (much brighter than the screen) or
+    its screen.
+  - The finder raises their camera, and the app spots that exact pattern in the video and marks
+    the mate on screen.
+  - Bluetooth gets you within about 20 m; the camera picks them out.
+  - Hard parts:
+    - stage strobes and other phones (use a pseudo-random code and the mate's colour);
+    - a tiny light at 30 m;
+    - auto-exposure, so lock it;
+    - keeping the flash rate reasonable.
 
 ## The owner's sign-ups (steps in docs/RELEASE_CHECKLIST.md, docs/SERVER_PRODUCTION.md)
 
