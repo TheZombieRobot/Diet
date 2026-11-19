@@ -8,43 +8,25 @@ handover planned stage 5 part 2 and asked the open questions answered here).
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
-2026._
+2026, 04:35 UTC._
 
-- **Item 1 (texted spots open in Moshpoint): done, green in CI:** run 355 (aaaf854), then run
-  356 (856d390) with the place-row fix below; run 354 failed on the build script (see
-  Decisions). Screenshots against dad5a3f's sets, by blob hash, after run 356: phone 2,215
-  identical, none changed or gone, 105 new (the five `SpotSnapshotTest` shots of item 1 in 21
-  languages); watch 546 identical. Reviewed in en, de, ar (right to left), ja, small phone and
-  large font. Run 355's German small phone with large text showed Sam's spot as a column one
-  letter wide beside Walk, Find and ✕; the map list's place rows now put their buttons on a
-  line of their own under the text when the text's longest word wouldn't fit beside them
-  (`ListRow` in `MapScreen.kt`). Run 356 changed only that shot, in 11 languages (de, en,
-  en-rUS, es, es-rES, fr, in, it, nl, pl, pt), all readable now; the existing `mapScreen` shots
-  stayed identical, so side by side is exactly as before wherever it fits.
-- **Item 2 ("Heading home 🏠" as a plain quick ping): done, green in CI** (run 357, 12540f0).
-  Screenshots against dad5a3f's sets: `textMySpot` and `smallPhoneLargeFontTextMySpot` changed
-  in all 21 languages (the ping row scrolled to its end: Heading home now before Text my spot),
-  nothing else; watch identical. Reviewed in en, de, ar (right to left), ja, small phone and
-  large font: the chip reads in full, cyan like the other pings. Crew chat and Message crew
-  shots that show the row from its start didn't change (the sixth chip is off screen there).
-- **Item 3 (an older build's check-in reads as "<name> is heading home"): done, green in CI**
-  (run 358, 9db9044, on its second attempt). No screenshot changed, as expected (no screenshot
-  test shows an older build's check-in). The first attempt failed on a server test that has
-  nothing to do with these items (`ReportTest.aReportIsStoredAndTheOwnerCanListAndDeleteIt`;
-  open question 5); only the failed job was run again, on the same commit.
-- **Item 4 (crew chat read over satellite): done, green in CI** (run 359, b39bc3d). No
-  screenshot changed, as expected (nothing on screen is new).
-- **Item 5 (Text my spot and satellite in "What's in Moshpoint+"): done, green in CI** (run 360,
-  9a9e279). Screenshots: `plusInfo` changed in all 21 languages (the two new rows after the
-  watch's), and `smallPhoneLargeFontPlusInfo` only in Arabic (the rows are below the fold there;
-  in Arabic the top of the next one shows at the bottom edge), nothing else; reviewed in en, de,
-  ar (right to left) and ja.
-- **Item 6 (`WatchPings.followUp` removed): built, pushed for CI.** Core tests green locally
-  (658; server 108), translations (both checks) and secrets pass.
-- **Exact next step:** read item 6's run (no screenshot should change, phone or watch). Then
-  the six items are done: send the report to the session that started this one.
-- **Last green run:** 360 (9a9e279, item 5). Baseline for screenshot comparisons: dad5a3f's
-  `ui-screenshots` and `ui-screenshots-watch`.
+- **All six items are done, each green in CI before the next:** item 1 in runs 355 and 356
+  (aaaf854, 856d390), item 2 in 357 (12540f0), item 3 in 358 (9db9044, on a second attempt
+  after an unrelated flaky server test, open question 5), item 4 in 359 (b39bc3d), item 5 in
+  360 (9a9e279), item 6 in 361 (9825008).
+- **Screenshots, the whole branch against dad5a3f's sets, by blob hash:** phone 2,151
+  identical, none gone; 105 new, item 1's (`textedSpotMap`, `smallPhoneLargeFontTextedSpotMap`,
+  `textedSpotFinder`, `smallPhoneLargeFontTextedSpotFinder`, `textedSpotFinderWaiting`, each in
+  21 languages); 64 changed: `textMySpot` and `smallPhoneLargeFontTextMySpot` in 21 languages
+  (item 2: Heading home in the ping row), `plusInfo` in 21 and `smallPhoneLargeFontPlusInfo` in
+  Arabic only (item 5: the two new rows). Watch: 546 identical. Every other screen is
+  unchanged, the map screen's own shots included.
+- **Exact next step:** nothing left of the six. For the owner: the open questions below (2 and
+  3 before a build with a relay ships), and the field tests for these items (FIELD_TEST_PLAN
+  4f A, 4m, 4n, 4o, 4p, and 4k B step 4).
+- **Last green run:** 361 (9825008, item 6). The branch head after it is this handover
+  ([skip ci]). Baseline for screenshot comparisons: dad5a3f's `ui-screenshots` and
+  `ui-screenshots-watch`.
 
 ### The six items
 
@@ -53,7 +35,7 @@ _Keep this section current: whoever picks this up next starts here. Last updated
 3. An older build's check-in shown as "<name> is heading home". **Done: green in run 358.**
 4. Crew chat read over satellite. **Done: green in run 359.**
 5. Text my spot and satellite in "What's in Moshpoint+". **Done: green in run 360.**
-6. `WatchPings.followUp`: removed, as only Need help used it. **Built; CI pending.**
+6. `WatchPings.followUp`: removed, as only Need help used it. **Done: green in run 361.**
 
 ### Item 1: what was built
 
