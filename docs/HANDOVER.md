@@ -106,6 +106,10 @@ Where things live: docs/CODE_STRUCTURE.md.
    - On Bluetooth-only phones, show an honest wide arrow instead of a sharp needle.
    - Make the distance trend the main signal ("closer… 12 m… 6 m").
    - Offer Light me up automatically within about 15 m.
+   - Try Bluetooth 5's long-range mode (LE Coded PHY) in the field test, on phones that support it
+     (`isLeCodedPhySupported`): an extended advert on Coded alongside the normal one. Compare its
+     range and detection in a packed crowd against battery cost. Wave 2c dropped Coded scanning
+     because nothing sent it.
 7. **Pricing research after the field test.**
    - Crew pass or per person?
    - Gig, festival and season passes; the first gig free.
