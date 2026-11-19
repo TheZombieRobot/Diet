@@ -398,3 +398,17 @@ only, at most 24, set as text), and opens it in Google Maps, with a "Get Moshpoi
 `Content-Security-Policy` allows only its own script and nothing from anywhere else; it sends no
 referrer and nothing back to us. Any query is ignored.
 
+### The app's side (docs/SPOT_LINKS.md, item 1)
+
+- **Sending:** Text my spot puts this link in the text whenever the build has a relay of its own
+  (`MOSHPOINT_SERVER`, a plain https address); otherwise the Google Maps link. The plain
+  coordinates are in the text either way.
+- **Opening:** builds with a relay declare an App Link for `https://<relay host>/spot`
+  (`android:autoVerify="true"`; the host comes from the build's server through a manifest
+  placeholder, `app/src/spotLinks/AndroidManifest.xml`). Builds without one have no such filter.
+  Android checks `/.well-known/assetlinks.json` on the relay when the app is installed, so the
+  relay must serve it (with the signing key's fingerprint) before such a build ships.
+- **Nothing reaches the relay:** opening a link in the app makes no request at all; the spot is
+  read from the link on the phone. Only a phone *without* the app asks the relay, for `/spot`
+  and `/spot.js`, and the spot after `#` never leaves that browser.
+

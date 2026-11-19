@@ -29,10 +29,7 @@ internal class MainLaunchers(a: MainActivity) {
         openMap = a.map::openMap,
         findFriend = { id ->
             a.map.closeMap()
-            a.finder.pendingStop?.cancel()
-            a.finder.engine.track(setOf(id))
-            a.finder.engine.start()
-            a.finder.finding = true
+            a.finder.lookFor(setOf(id))
         },
     )
 

@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -97,6 +98,8 @@ private class ArrowsInput(
     val colours: Map<String, androidx.compose.runtime.State<Color>>,
     val friendOf: (String) -> Friend?,
     val floors: Map<String, String>,
+    val places: Map<String, String> = emptyMap(),
+    val pin: androidx.compose.ui.graphics.ImageBitmap? = null,
 )
 
 @Composable
@@ -109,6 +112,11 @@ internal fun Arrows(
     floors: Map<String, String> = emptyMap(),
     /** The same for screen readers ("upstairs"). */
     floorsSpoken: Map<String, String> = emptyMap(),
+    /**
+     * Places among [arrows] (a spot a mate texted, docs/SPOT_LINKS.md), with their names: the
+     * map's meet-up pin stands at the tip instead of a face.
+     */
+    places: Map<String, String> = emptyMap(),
 ) {
     // Where each mate's bubble was drawn, so a tap can pick them (not state: drawing only).
     val tips = remember { HashMap<String, Offset>() }
@@ -134,7 +142,7 @@ internal fun Arrows(
 
     // Screen readers: "Sam, 12 metres, at 2 o'clock".
     val spoken = arrows.joinToString(". ") { a ->
-        val name = friendOf(a.friendId)?.name ?: Txt.s(R.string.find_friend_fallback)
+        val name = friendOf(a.friendId)?.name ?: places[a.friendId] ?: Txt.s(R.string.find_friend_fallback)
         val clock = (((a.relativeDeg + 360) % 360) / 30).let { kotlin.math.round(it).toInt() }.let { if (it == 0) 12 else it }
         val dist = a.distanceM?.let { spokenDistance(it) }
         val where = when {
@@ -154,7 +162,9 @@ internal fun Arrows(
             }
         }
     } else Modifier
-    val input = androidx.compose.runtime.rememberUpdatedState(ArrowsInput(arrows, angles, colours, friendOf, floors))
+    // The map's meet-up pin, for places (made once, only when there's a place to point at).
+    val pin = remember(places.isNotEmpty()) { if (places.isNotEmpty()) nz.waveformlabs.moshpoint.ui.map.placeBitmap(true).asImageBitmap() else null }
+    val input = androidx.compose.runtime.rememberUpdatedState(ArrowsInput(arrows, angles, colours, friendOf, floors, places, pin))
     // The drawing stays put across recompositions; what depends only on the screen's size (the
     // arrow's path, the glow's strokes) is made once, and brushes once per colour, not per frame
     // (performance P1-5). Its own layer: a frame redraws the arrows and nothing around them.
@@ -211,8 +221,18 @@ internal fun Arrows(
                     tips[a.friendId] = tip
                     haloGlow(tip, avatarR, 16.dp.toPx(), own, 0.75f * breathe)
                     drawCircle(Mosh.Avatar, radius = avatarR, center = tip)
-                    val photo = Faces.of(a.friendId, friend?.name)
-                    if (photo != null) {
+                    val placePin = f.pin?.takeIf { a.friendId in f.places }
+                    val photo = if (placePin != null) null else Faces.of(a.friendId, friend?.name)
+                    if (placePin != null) {
+                        // A place: the pin it has on the map, standing in the circle.
+                        val h = avatarR * 1.3f
+                        val w = h * placePin.width / placePin.height
+                        drawImage(
+                            placePin,
+                            dstOffset = IntOffset((tip.x - w / 2).toInt(), (tip.y - h / 2).toInt()),
+                            dstSize = IntSize(w.toInt(), h.toInt()),
+                        )
+                    } else if (photo != null) {
                         face.reset()
                         face.addOval(Rect(tip, avatarR - 3.dp.toPx()))
                         clipPath(face) {
@@ -316,6 +336,7 @@ internal fun methodLabel(m: Method) = when (m) {
     Method.WIFI_AWARE -> "Wi-Fi"
     Method.BLE_RSSI -> "BT"
     Method.HERE_PIN -> "pin"
+    Method.PLACE -> "place"
 }
 
 /** A distance for screen readers ("12 metres", "1.2 kilometres"), from the same rounding as the on-screen label. */

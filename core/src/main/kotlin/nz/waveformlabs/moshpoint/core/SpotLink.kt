@@ -22,6 +22,20 @@ object SpotLink {
     /** A spot from a link: where, and whose (null: show "Texted spot"). */
     data class Spot(val lat: Double, val lon: Double, val name: String?)
 
+    /** Texted spots kept on the phone at most (saved places, docs/SPOT_LINKS.md): past this, the oldest go. */
+    const val MAX_KEPT = 20
+
+    /**
+     * The texted spots to keep, oldest first, once [opened] is opened ([spotOf] says which spot
+     * each kept one is): the same spot opened again moves to the end, as the newest, rather than
+     * being kept twice, and only the newest [MAX_KEPT] stay. However many links arrive, they
+     * can't fill the phone.
+     */
+    fun <T> keep(kept: List<T>, opened: T, spotOf: (T) -> Spot): List<T> {
+        val spot = spotOf(opened)
+        return (kept.filter { spotOf(it) != spot } + opened).takeLast(MAX_KEPT)
+    }
+
     /**
      * Our link for a spot, or null with no relay of our own ([server] blank, or not a plain
      * https address): the text then uses the Google Maps link ([SpotText.link]), never a third

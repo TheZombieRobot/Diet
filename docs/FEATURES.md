@@ -98,12 +98,23 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **Crew pings:** On my way, Where are you?, Stay put, Meet at the pin, All good.
 - **Text my spot (Moshpoint+):** for members who switch it on in Settings (it's off until they
   do), a violet button after the pings, in Message crew and in the crew chat. It opens the
-  phone's own texting app with a text already written: "Here's my spot:", a Google Maps link and
-  the plain coordinates (5 decimals), which still make sense with no data. You pick who gets it
-  and press Send: Moshpoint never sends or reads a text itself and asks for no SMS permission.
-  With no location fix the text says so plainly; on a phone with no texting app (a tablet) the
-  button says so. With no signal, a phone whose carrier texts by satellite sends it that way
-  (some plans charge for it). (untested)
+  phone's own texting app with a text already written: "Here's my spot:", a link and the plain
+  coordinates (5 decimals), which still make sense with no data. The link is our own
+  (`https://<relay>/spot#…`, with your first name) when the build has a relay of its own, and a
+  Google Maps link otherwise. You pick who gets it and press Send: Moshpoint never sends or reads
+  a text itself and asks for no SMS permission. With no location fix the text says so plainly; on
+  a phone with no texting app (a tablet) the button says so. With no signal, a phone whose
+  carrier texts by satellite sends it that way (some plans charge for it). (untested)
+- **Texted spots open in Moshpoint (free):** a mate taps the link in that text and Moshpoint opens
+  it (an App Link; without the app, the relay's page opens Google Maps). The spot is kept as a
+  saved place on the map: the meet-up pin, named after the sender ("Texted spot" if the link has
+  no name), with Walk, **Find** and ✕ in the map's list. Find points the finder's arrow at it,
+  with the distance, from the phone's own GPS and compass: no data or signal needed, and no
+  Bluetooth, UWB or Wi-Fi started (no mate's phone hears that anyone is looking). A link can't do
+  anything else: no setting changes, no crew is joined, Live isn't touched. Only valid coordinates
+  are taken, and the name is cut to 24 plain letters. The same link opened twice is kept once; at
+  most 20 texted spots are kept, the oldest go first. Details: [SPOT_LINKS.md](SPOT_LINKS.md).
+  (untested)
 - **Removed (owner's decision, 16 November 2026):** Need help (the crew alert, the text to an
   emergency contact, the Call 111 button, the satellite SOS hint) and Check In ("Heading home"
   with a timer, "I'm home safe", the overdue alert). A gig app doesn't need its own emergency

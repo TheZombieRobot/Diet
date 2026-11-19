@@ -13,4 +13,15 @@
     <string name="spot_text_no_fix">My phone can\'t tell where I am right now.</string>
     <!-- Shown for a moment when the phone (a tablet, say) has no app that can send a text -->
     <string name="spot_text_no_app">This phone has no texting app.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md): a mate's phone opens the link in the text as a saved place on
+         the map, and the finder can point at it with no data or signal. -->
+    <!-- A spot a mate texted, opened from the link in their text (it opens in Moshpoint): its name on the map and in the finder when the link has no name, and under the sender's name otherwise. Short -->
+    <string name="spot_link_texted">Texted spot</string>
+    <!-- Shown for a moment when such a link was cut short or changed on the way and has no spot in it -->
+    <string name="spot_link_broken">Moshpoint can\'t read a spot from this link.</string>
+    <!-- The finder pointed at a texted spot, before this phone has a location fix. Heading -->
+    <string name="spot_finder_waiting">Waiting for GPS…</string>
+    <!-- Under that heading. The arrow to the spot needs only this phone's own GPS and compass -->
+    <string name="spot_finder_waiting_help">The arrow appears once this phone knows where it is. Outside, GPS works with no data or signal.</string>
 </resources>

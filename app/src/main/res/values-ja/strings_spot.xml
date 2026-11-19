@@ -6,4 +6,10 @@
     <string name="spot_text_line">今ここにいます：</string>
     <string name="spot_text_no_fix">スマホが今いる場所をつかめていません。</string>
     <string name="spot_text_no_app">このスマホにはメッセージアプリがありません。</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">SMSで届いた場所</string>
+    <string name="spot_link_broken">Moshpointはこのリンクから場所を読み取れません。</string>
+    <string name="spot_finder_waiting">GPSを待っています…</string>
+    <string name="spot_finder_waiting_help">スマホが現在地をつかむと矢印が表示されます。屋外なら、GPSはデータ通信も電波もなしで使えます。</string>
 </resources>

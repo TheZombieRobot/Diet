@@ -8,6 +8,23 @@ plugins {
     alias(libs.plugins.aboutlibraries)
 }
 
+// A blank -P value (unset CI variable) falls back to the value in gradle.properties.
+fun prop(name: String, fallback: String) =
+    (project.findProperty(name) as String?)?.takeIf { it.isNotBlank() }
+        ?: (project.findProperty(fallback) as String?).orEmpty()
+
+// Relay server for GPS mode. Empty = GPS sharing off. Set with
+// -Pmoshpoint.server=https://your-server or in gradle.properties.
+val server = prop("moshpoint.server", "moshpoint.serverUrl")
+
+// Texted spots open in the app (docs/SPOT_LINKS.md): an App Link for https://<this host>/spot,
+// only with a relay of our own built in, as a plain https address (the same test core SpotLink
+// makes before it builds a link). With none, there is no link to open: the activity and its
+// filter (src/spotLinks/AndroidManifest.xml) aren't in the manifest at all.
+val spotLinkHost: String? = runCatching { java.net.URI(server.trim().trimEnd('/')) }.getOrNull()
+    ?.takeIf { "https".equals(it.scheme, ignoreCase = true) && it.rawUserInfo == null && (it.port == -1 || it.port == 443) }
+    ?.host?.lowercase(java.util.Locale.ROOT)?.takeIf { it.isNotBlank() }
+
 android {
     namespace = "nz.waveformlabs.moshpoint"
     // Android 16 (API 36): what Google Play requires since 31 August 2026 (docs/ANDROID_16.md).
@@ -26,17 +43,14 @@ android {
         // copies are only for emulators. Roughly halves the download.
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
 
-        // Relay server for GPS mode. Empty = GPS sharing off. Set with
-        // -Pmoshpoint.server=https://your-server or in gradle.properties.
+        // Relay server for GPS mode (see `server` above). Empty = GPS sharing off.
+        buildConfigField("String", "MOSHPOINT_SERVER", "\"$server\"")
+        // The host texted spots' links open from (empty with no relay: then it's unused).
+        manifestPlaceholders["spotLinkHost"] = spotLinkHost.orEmpty()
 
         // Log in with Facebook (name + photo). Off unless a Meta app is configured:
         // -Pmoshpoint.facebookAppId=... -Pmoshpoint.facebookClientToken=... (see docs/FACEBOOK.md).
         // A blank -P value (unset CI variable) falls back to the values in gradle.properties.
-        fun prop(name: String, fallback: String) =
-            (project.findProperty(name) as String?)?.takeIf { it.isNotBlank() }
-                ?: (project.findProperty(fallback) as String?).orEmpty()
-        val server = prop("moshpoint.server", "moshpoint.serverUrl")
-        buildConfigField("String", "MOSHPOINT_SERVER", "\"$server\"")
         val fbAppId = prop("moshpoint.facebookAppId", "moshpoint.fb.appId")
         val fbToken = prop("moshpoint.facebookClientToken", "moshpoint.fb.clientToken")
         resValue("string", "facebook_app_id", fbAppId)
@@ -126,6 +140,13 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+// The App Link for texted spots (see spotLinkHost above), in every build type, only with a relay.
+androidComponents {
+    onVariants { variant ->
+        if (spotLinkHost != null) variant.sources.manifests.addStaticManifestFile("src/spotLinks/AndroidManifest.xml")
     }
 }
 

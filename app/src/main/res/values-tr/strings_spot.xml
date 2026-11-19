@@ -6,4 +6,10 @@
     <string name="spot_text_line">Buradayım:</string>
     <string name="spot_text_no_fix">Telefonum şu an nerede olduğumu bulamıyor.</string>
     <string name="spot_text_no_app">Bu telefonda mesaj uygulaması yok.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">SMS ile gelen konum</string>
+    <string name="spot_link_broken">Moshpoint bu bağlantıdan konum okuyamıyor.</string>
+    <string name="spot_finder_waiting">GPS bekleniyor…</string>
+    <string name="spot_finder_waiting_help">Telefon nerede olduğunu bulunca ok görünür. Açık havada GPS, veri ya da sinyal olmadan da çalışır.</string>
 </resources>

@@ -6,4 +6,10 @@
     <string name="spot_text_line">Jag är här:</string>
     <string name="spot_text_no_fix">Min telefon vet inte var jag är just nu.</string>
     <string name="spot_text_no_app">Den här telefonen har ingen meddelandeapp.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">Plats via sms</string>
+    <string name="spot_link_broken">Moshpoint kan inte läsa någon plats från den här länken.</string>
+    <string name="spot_finder_waiting">Väntar på GPS…</string>
+    <string name="spot_finder_waiting_help">Pilen dyker upp när telefonen vet var den är. Utomhus fungerar GPS utan data och täckning.</string>
 </resources>

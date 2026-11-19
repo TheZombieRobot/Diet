@@ -116,6 +116,8 @@ class MainActivity : ComponentActivity() {
             intent.removeExtra(EXTRA_OPEN_MAP)
             map.openMap()
         }
+        // A spot a mate texted, from its link: saved as a place and shown on the map (docs/SPOT_LINKS.md).
+        map.openSpotLink(intent)
         if (intent.getBooleanExtra(EXTRA_OPEN_CHAT, false)) {
             intent.removeExtra(EXTRA_OPEN_CHAT)
             chat.openChat(intent.getStringExtra(EXTRA_CHAT_CREW))
@@ -204,6 +206,7 @@ class MainActivity : ComponentActivity() {
             finder.handleFindCrew(intent)
             finder.handleFindMate(intent)
             if (intent?.getBooleanExtra(EXTRA_OPEN_MAP, false) == true) map.openMap()
+            map.openSpotLink(intent) // a texted spot's link (docs/SPOT_LINKS.md)
             if (intent?.getBooleanExtra(EXTRA_OPEN_CHAT, false) == true) chat.openChat(intent.getStringExtra(EXTRA_CHAT_CREW))
             chat.openPrivateFrom(intent)
             // An invite shared from another app, as in onNewIntent: after the finder engine and
@@ -260,6 +263,7 @@ class MainActivity : ComponentActivity() {
             }
         }
         finder.stopEngineSoon()
+        finder.pausePlace()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -299,7 +303,10 @@ class MainActivity : ComponentActivity() {
             holdingGroup = true
         }
         finder.pendingStop?.cancel()
-        if (finder.finding || map.mapEngine) finder.engine.start()
+        // Finding a place uses GPS and the compass only, never the engine's radios (docs/SPOT_LINKS.md).
+        if ((finder.finding && finder.place == null) || map.mapEngine) finder.engine.start()
+        else if (finder.place != null) finder.stopEngineSoon()
+        finder.resumePlace()
     }
 
     override fun onDestroy() {

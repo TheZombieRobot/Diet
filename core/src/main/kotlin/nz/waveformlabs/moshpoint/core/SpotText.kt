@@ -30,9 +30,15 @@ object SpotText {
      * The whole text. [line] opens it ("Here's my spot:"); with no usable fix it's [noFix]
      * alone ("My phone can't tell where I am right now."), said plainly, so the person can still
      * text and say where they are in their own words.
+     *
+     * The link (docs/SPOT_LINKS.md): with a relay of our own built in ([server]), our
+     * [SpotLink], which opens in Moshpoint on a mate's phone and in Google Maps (through the
+     * relay's `/spot` page) anywhere else, with [name] (the sender's first name) on the pin;
+     * with none, the Google Maps [link]. The plain coordinates follow either way.
      */
-    fun message(line: String, noFix: String, lat: Double?, lon: Double?): String {
+    fun message(line: String, noFix: String, lat: Double?, lon: Double?, server: String = "", name: String? = null): String {
         if (!usable(lat, lon)) return noFix
-        return "$line\n${link(lat!!, lon!!)}\n${coordinates(lat, lon)}"
+        val where = SpotLink.build(server, lat!!, lon!!, name) ?: link(lat, lon)
+        return "$line\n$where\n${coordinates(lat, lon)}"
     }
 }

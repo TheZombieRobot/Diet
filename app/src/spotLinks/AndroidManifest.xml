@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Texted spots open in the app (docs/SPOT_LINKS.md). Added to the manifest only when a relay of
+     our own is built in (MOSHPOINT_SERVER, a plain https address: app/build.gradle.kts), so a build
+     without one has neither this activity nor its link. The relay proves the app may open its
+     links with /.well-known/assetlinks.json (docs/RELAY_API.md, section 13). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- https://<relay host>/spot#<lat>,<lon>[,<name>]: the spot rides after the #, which never
+             leaves the phone. The activity checks it strictly, hands it to MainActivity and closes. -->
+        <activity
+            android:name=".SpotLinkActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="${spotLinkHost}"
+                    android:path="/spot"
+                    android:scheme="https" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

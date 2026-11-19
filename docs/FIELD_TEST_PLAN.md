@@ -1074,6 +1074,35 @@ signal. **A** is that phone; **B** is a mate with normal signal, in A's crew.
 - [ ] Back to normal signal: everything that waited goes, as usual, within a minute.
 - [ ] Note how long each message took, and what the carrier charged, if it shows.
 
+## 4o. Texted spots open in Moshpoint (two phones, 20 min)
+
+New on 19 November 2026 (docs/SPOT_LINKS.md, item 1). Needs a test build with our own relay
+(`MOSHPOINT_SERVER`), and that relay deployed with `/spot` and `/.well-known/assetlinks.json`.
+**A** sends (Moshpoint+, Text my spot on); **B** has Moshpoint (free is fine); **C** is a phone
+without Moshpoint (or a laptop's browser).
+
+- [ ] On A, Text my spot outdoors: the link in the text is `https://<relay>/spot#…` with A's first
+  name at the end, then the coordinates. Send it to B and to C.
+- [ ] On B, tap the link: Moshpoint opens straight away (no "Open with" question, no browser), on
+  the map, looking at the spot and at B. The pin is the pink meet-up pin, labelled with A's name.
+  If Android asks which app to use instead, App Link verification failed: note it, and check
+  `https://<relay>/.well-known/assetlinks.json` in a browser.
+- [ ] B's map list: A's name, "Texted spot" and the distance under it, with **Walk**, **Find** and
+  **✕**. Nothing else changed: same crew, Live as it was, no setting moved.
+- [ ] Tap **Find**: the finder shows A's name, "Texted spot", the pink pin at the arrow's tip and
+  the distance. Walk towards it: the arrow follows the compass and the distance drops. Within
+  about 30 m it says **Rough** ("From GPS: firms up as you walk"), as for a mate's GPS.
+- [ ] Turn on flight mode (no data, no signal) and keep walking: the arrow and distance keep
+  working. Back: the finder closes. **Show on map** shows the spot.
+- [ ] Indoors with no fix yet: the finder says "Waiting for GPS…" until a fix comes.
+- [ ] Tap the same link again: still one entry in the list. ✕ removes it; restarting the app
+  keeps the others.
+- [ ] Edit the link so it's cut short (`…/spot#-36.84`) and tap it on B: "Moshpoint can't read a
+  spot from this link." and nothing else happens.
+- [ ] On C, tap the link: the relay's page opens Google Maps at the spot, with "Get Moshpoint".
+- [ ] A build without a relay (if you have one): the text has a Google Maps link, and B's phone
+  offers no Moshpoint for `/spot` links.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).

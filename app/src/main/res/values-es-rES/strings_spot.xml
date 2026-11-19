@@ -6,4 +6,10 @@
     <string name="spot_text_line">Aquí estoy:</string>
     <string name="spot_text_no_fix">Mi móvil no sabe dónde estoy ahora mismo.</string>
     <string name="spot_text_no_app">Este móvil no tiene app de mensajes.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">Ubicación por SMS</string>
+    <string name="spot_link_broken">Moshpoint no puede leer una ubicación en este enlace.</string>
+    <string name="spot_finder_waiting">Esperando el GPS…</string>
+    <string name="spot_finder_waiting_help">La flecha aparece en cuanto tu móvil sepa dónde está. Al aire libre, el GPS funciona sin datos ni cobertura.</string>
 </resources>

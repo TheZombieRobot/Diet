@@ -1,16 +1,21 @@
 package nz.waveformlabs.moshpoint.main
 
+import android.content.Intent
 import android.location.Location
 import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
+import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.MainActivity
+import nz.waveformlabs.moshpoint.SpotLinkActivity
 import nz.waveformlabs.moshpoint.core.LatLon
+import nz.waveformlabs.moshpoint.core.SpotLink
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.locate.MapFeed
+import nz.waveformlabs.moshpoint.map.Spots
 import nz.waveformlabs.moshpoint.ui.map.VenueView
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 
@@ -30,7 +35,35 @@ internal class MapState(private val a: MainActivity) {
     /** When the map was last opened (time since boot), for [mapFirstFix]. */
     private var mapOpenedAtMs = 0L
 
+    /** A place the map was asked to show ([openMapOn]); [n] goes up with each ask. Null: as usual. */
+    class Focus(val n: Int, val at: LatLon)
+
+    var focus by mutableStateOf<Focus?>(null)
+        private set
+
+    /** The map, looking at [at] (and us): a texted spot just opened, or the one being found. */
+    fun openMapOn(at: LatLon) {
+        val n = (focus?.n ?: 0) + 1
+        openMap()
+        focus = Focus(n, at)
+    }
+
+    /**
+     * A spot a mate texted, opened from its link (SpotLinkActivity, docs/SPOT_LINKS.md): kept as
+     * a saved place and shown on the map. That's all a link can do: no setting, crew or Live is
+     * touched. Free for everyone.
+     */
+    fun openSpotLink(intent: Intent?) {
+        val link = intent?.getStringExtra(SpotLinkActivity.EXTRA_LINK) ?: return
+        intent.removeExtra(SpotLinkActivity.EXTRA_LINK)
+        // Any app can start MainActivity with this extra: parsed again, as strictly (core SpotLink).
+        val spot = SpotLink.parse(link, BuildConfig.MOSHPOINT_SERVER) ?: return
+        val saved = Spots.addTexted(spot)
+        openMapOn(LatLon(saved.lat, saved.lon))
+    }
+
     fun openMap() {
+        focus = null
         mapOpenedAtMs = SystemClock.elapsedRealtime()
         // At the gig (gig day, and this phone at the venue) the map opens zoomed into the venue.
         mapVenue = venueViewFor(a.lastKnownLocation())

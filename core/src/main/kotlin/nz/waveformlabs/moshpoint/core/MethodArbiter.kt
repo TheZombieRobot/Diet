@@ -47,7 +47,8 @@ class MethodArbiter(
     companion object {
         private val CLOSE_RANGE = setOf(Method.UWB, Method.WIFI_AWARE, Method.BLE_RSSI)
         // A pinned spot is exact, but the arrow to it starts at our own GPS: as unsure up close.
-        private val GPS_LIKE = setOf(Method.GPS_SERVER, Method.CROWD_RELAY, Method.HERE_PIN)
+        // (So does the arrow to a place; no close-range method ever measures one.)
+        private val GPS_LIKE = setOf(Method.GPS_SERVER, Method.CROWD_RELAY, Method.HERE_PIN, Method.PLACE)
         const val GPS_USELESS_BELOW_M = 20.0
     }
 

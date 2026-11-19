@@ -59,6 +59,21 @@ class SpotLinkTest {
         }
     }
 
+    /** Opening the same link again keeps it once, as the newest; the oldest go past MAX_KEPT. */
+    @Test fun keptOnceAndNotTooMany() {
+        val sam = SpotLink.Spot(-36.8485, 174.7633, "Sam")
+        val jo = SpotLink.Spot(-36.8470, 174.7700, "Jo")
+        val nameless = SpotLink.Spot(-36.8485, 174.7633, null)
+        assertEquals(listOf(jo, sam), SpotLink.keep(listOf(sam, jo), sam) { it })
+        assertEquals(listOf(sam, jo, nameless), SpotLink.keep(listOf(sam, jo), nameless) { it }, "same place, no name: another spot")
+        val many = (1..30).map { SpotLink.Spot(-36.0 - it / 1000.0, 174.0, null) }
+        val kept = many.fold(emptyList<SpotLink.Spot>()) { list, s -> SpotLink.keep(list, s) { it } }
+        assertEquals(many.takeLast(SpotLink.MAX_KEPT), kept)
+        // The app keeps its own records (an id, a time); only the spot in each decides.
+        data class Saved(val id: Int, val spot: SpotLink.Spot)
+        assertEquals(listOf(Saved(2, jo), Saved(3, sam)), SpotLink.keep(listOf(Saved(1, sam), Saved(2, jo)), Saved(3, sam)) { it.spot })
+    }
+
     @Test fun theNameIsShortAndPlain() {
         val long = "A".repeat(80)
         assertEquals("A".repeat(SpotLink.MAX_NAME), SpotLink.parse("https://moshpoint-relay.fly.dev/spot#1,2,$long", relay)?.name)

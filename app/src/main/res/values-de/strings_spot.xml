@@ -6,4 +6,10 @@
     <string name="spot_text_line">Hier bin ich:</string>
     <string name="spot_text_no_fix">Mein Handy weiß gerade nicht, wo ich bin.</string>
     <string name="spot_text_no_app">Dieses Handy hat keine SMS-App.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">SMS-Standort</string>
+    <string name="spot_link_broken">Moshpoint kann aus diesem Link keinen Standort lesen.</string>
+    <string name="spot_finder_waiting">Warte auf GPS…</string>
+    <string name="spot_finder_waiting_help">Der Pfeil erscheint, sobald dein Handy weiß, wo es ist. Draußen klappt GPS ohne Daten und ohne Netz.</string>
 </resources>

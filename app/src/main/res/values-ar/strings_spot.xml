@@ -6,4 +6,10 @@
     <string name="spot_text_line">هذا مكاني:</string>
     <string name="spot_text_no_fix">هاتفي لا يستطيع تحديد مكاني الآن.</string>
     <string name="spot_text_no_app">لا يوجد على هذا الهاتف تطبيق رسائل.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">مكان وصل برسالة</string>
+    <string name="spot_link_broken">لا يستطيع Moshpoint قراءة مكان من هذا الرابط.</string>
+    <string name="spot_finder_waiting">بانتظار GPS…</string>
+    <string name="spot_finder_waiting_help">يظهر السهم حين يعرف هاتفك مكانه. في الخارج يعمل GPS بلا بيانات ولا إشارة.</string>
 </resources>

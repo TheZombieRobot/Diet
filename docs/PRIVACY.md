@@ -36,7 +36,12 @@ text itself.
 Text my spot (Moshpoint+, only if you switch it on in Settings) opens your own texting app with
 your location already written in: a map link and the coordinates. You choose who gets it and
 press Send yourself. Moshpoint doesn't see the text or who it goes to, keeps no copy, and needs
-no SMS permission.
+no SMS permission. The link carries your first name and your spot after a `#`, which browsers
+never send anywhere: our server only ever sees that someone opened the page, never where.
+
+When a mate's link opens in your Moshpoint, the spot (and their first name) is read on your
+phone and kept there as a saved place until you remove it; nothing is sent anywhere, and the
+finder's arrow to it uses only your phone's own GPS and compass.
 
 "Use satellite when there's no signal" (Moshpoint+, off until you switch it on) lets crew
 messages and your shared location go over your phone's satellite connection when there's no

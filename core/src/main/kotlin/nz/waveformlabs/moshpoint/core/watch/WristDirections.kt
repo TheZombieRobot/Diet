@@ -17,8 +17,8 @@ import nz.waveformlabs.moshpoint.core.TrendTracker
  * very different ways:
  *
  * - [POSE_FREE]: plain geometry between two GPS positions (or our GPS and a mate's pinned
- *   "I'm here" spot). It doesn't matter where the phone is or which way up: in a pocket it is
- *   as right as in the hand.
+ *   "I'm here" spot, or a place such as a texted spot). It doesn't matter where the phone is or
+ *   which way up: in a pocket it is as right as in the hand.
  * - [NEEDS_PHONE_HELD]: measured against the phone's own compass heading. UWB adds the angle
  *   at the phone's antennas to that heading; spin-to-scan fits signal against it while you
  *   turn with the phone on your chest; walk-and-watch treats it as the way you're walking. In
@@ -27,7 +27,7 @@ import nz.waveformlabs.moshpoint.core.TrendTracker
  *   good; the direction doesn't.
  */
 object WristDirections {
-    val POSE_FREE: Set<Method> = setOf(Method.GPS_SERVER, Method.CROWD_RELAY, Method.HERE_PIN)
+    val POSE_FREE: Set<Method> = setOf(Method.GPS_SERVER, Method.CROWD_RELAY, Method.HERE_PIN, Method.PLACE)
     val NEEDS_PHONE_HELD: Set<Method> = setOf(Method.UWB, Method.SPIN_SCAN, Method.WALK)
 
     /** Can a bearing from [method] be shown on the wrist? */

@@ -6,4 +6,10 @@
     <string name="spot_text_line">Aku di sini:</string>
     <string name="spot_text_no_fix">HP-ku belum tahu aku di mana sekarang.</string>
     <string name="spot_text_no_app">HP ini nggak punya aplikasi pesan.</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">Lokasi dari SMS</string>
+    <string name="spot_link_broken">Moshpoint nggak bisa baca lokasi dari link ini.</string>
+    <string name="spot_finder_waiting">Menunggu GPS…</string>
+    <string name="spot_finder_waiting_help">Panah muncul begitu HP-mu tahu posisinya. Di luar ruangan, GPS tetap jalan tanpa data atau sinyal.</string>
 </resources>

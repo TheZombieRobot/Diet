@@ -75,8 +75,11 @@ class MapTrail(val color: Int, val points: List<Pair<Double, Double>>)
 /** A crew photo pinned where it was taken: [icon] is its pin ([momentIcon]). */
 class MapMoment(val key: String, val label: String, val lat: Double, val lon: Double, val icon: Bitmap)
 
-/** A saved spot or the crew's meet-up pin. */
-data class MapPlace(val id: String, val name: String, val lat: Double, val lon: Double, val meetUp: Boolean)
+/**
+ * A saved spot or the crew's meet-up pin. [texted]: a spot a mate texted (docs/SPOT_LINKS.md),
+ * drawn with the meet-up pin and named after the sender ([name] is its label).
+ */
+data class MapPlace(val id: String, val name: String, val lat: Double, val lon: Double, val meetUp: Boolean, val texted: Boolean = false)
 
 /** Free OpenStreetMap vector maps, no API key (openfreemap.org): bright, night-blue, and dark. (Name as a string resource, URL.) */
 val MAP_STYLES = listOf(
@@ -333,7 +336,7 @@ fun FriendMap(
             FeatureCollection.fromFeatures(
                 places.map { p ->
                     Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).apply {
-                        addStringProperty("icon", if (p.meetUp) "place-meet" else "place-spot")
+                        addStringProperty("icon", if (p.meetUp || p.texted) "place-meet" else "place-spot")
                         addStringProperty("label", if (p.meetUp) Txt.s(R.string.find_meet_label, p.name) else p.name)
                     }
                 },
@@ -480,8 +483,11 @@ internal fun pinBitmap(p: MapPin): Bitmap {
     return out
 }
 
-/** A map pin: hot pink for the crew meet-up, cyan for your own spots. */
-private fun placeBitmap(meetUp: Boolean): Bitmap {
+/**
+ * A map pin: hot pink for the crew meet-up (and a spot a mate texted), cyan for your own spots.
+ * The finder draws the pink one at the tip of a place's arrow.
+ */
+internal fun placeBitmap(meetUp: Boolean): Bitmap {
     val w = 64
     val h = 84
     val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)

@@ -134,8 +134,9 @@ internal fun DistanceReadout(distanceM: Double?) {
     }
 }
 
+/** Nothing to point at yet: [name] is who (or what) we're looking for; [heading] and [help] replace the words for a mate. */
 @Composable
-internal fun Searching(name: String) {
+internal fun Searching(name: String, heading: String? = null, help: String? = null) {
     val searchingCd = stringResource(R.string.find_searching_cd)
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(30.dp)) {
         Box(Modifier.size(240.dp).semantics { contentDescription = searchingCd }, contentAlignment = Alignment.Center) {
@@ -153,10 +154,10 @@ internal fun Searching(name: String) {
             })
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.widthIn(max = 290.dp)) {
-            Text(stringResource(R.string.find_looking_for, name), style = Mosh.Heading, textAlign = TextAlign.Center)
+            Text(heading ?: stringResource(R.string.find_looking_for, name), style = Mosh.Heading, textAlign = TextAlign.Center)
             Spacer(Modifier.height(10.dp))
             Text(
-                stringResource(R.string.find_searching_help),
+                help ?: stringResource(R.string.find_searching_help),
                 style = Mosh.Body, textAlign = TextAlign.Center,
             )
         }

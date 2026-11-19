@@ -151,12 +151,7 @@ internal fun HomeContent(a: MainActivity) {
             },
         ),
         crewActions = HomeCrewActions(
-            onFind = { ids ->
-                a.finder.pendingStop?.cancel()
-                a.finder.engine.track(ids)
-                a.finder.engine.start()
-                a.finder.finding = true
-            },
+            onFind = { ids -> a.finder.lookFor(ids) },
             onRemove = { id ->
                 val f = FriendsRepository.friends.firstOrNull { it.id == id }
                 val g = GroupSync.group.value

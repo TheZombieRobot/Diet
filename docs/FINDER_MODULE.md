@@ -72,6 +72,7 @@ imports; only the Gradle namespace (for `BuildConfig`) is new.
 | `PocketFinder.kt` | The finder for the watch with the phone in a pocket | app `watch/` (stage 3) |
 | `Findable.kt` (new, stage 3) | Being findable: the advert with our rotating code (rotating, and following identity changes), Wi-Fi Aware publish, the UWB responder, the low-power listen for lookers, fast advert while someone looks | taken out of `VisibilityService` |
 | `FinderMate.kt`, `FinderPlugins.kt`, `FinderLog.kt` (new) | What the app plugs in (below) | — |
+| `PlaceFinder.kt`, `FinderPlace.kt` (added 19 November 2026) | Finding a place (a spot a mate texted, docs/SPOT_LINKS.md): GPS and compass only, through core `PlaceRule` and a `MethodArbiter` of its own. Separate from `LocatorEngine` on purpose: nothing about finding mates changes, no radio starts and no "looking" advert goes out for a place | new |
 
 ### What stays in the app, and why
 

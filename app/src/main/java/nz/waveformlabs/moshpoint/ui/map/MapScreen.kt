@@ -107,6 +107,11 @@ fun MapScreen(
     onImHere: ((Double, Double) -> Unit)? = null,
     /** ✕ beside our own pin. */
     onClearMyPin: () -> Unit = {},
+    /** "Find" beside a spot a mate texted (docs/SPOT_LINKS.md): the finder's arrow to it, from GPS and the compass. */
+    onFindPlace: ((MapPlace) -> Unit)? = null,
+    /** A place to look at first (a texted spot just opened): the map shows it, and us, once for each new [focusKey]. */
+    focusOn: LatLon? = null,
+    focusKey: Int = 0,
 ) {
     var dropAt by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -158,8 +163,15 @@ fun MapScreen(
     var camera by remember { mutableStateOf(MapFocus(0, emptyList())) }
     var fittedOnce by remember { mutableStateOf(false) }
     var venueFitted by remember { mutableStateOf(false) }
+    var focused by remember { mutableIntStateOf(0) }
     val everyone = pins.map { LatLng(it.lat, it.lon) } + listOfNotNull(me?.let { LatLng(it.lat, it.lon) })
-    if (venueView != null && !venueFitted) {
+    if (focusOn != null && focusKey != focused) {
+        // Asked to look at a place (a texted spot just opened): it, and us, before anything else.
+        focused = focusKey
+        venueFitted = true
+        fittedOnce = true
+        camera = MapFocus(camera.n + 1, listOfNotNull(LatLng(focusOn.lat, focusOn.lon), me?.let { LatLng(it.lat, it.lon) }))
+    } else if (venueView != null && !venueFitted) {
         // Once: when the map opens at the gig, or when its first position a moment later says so.
         venueFitted = true
         fittedOnce = true
@@ -270,29 +282,42 @@ fun MapScreen(
                     }
                 }
                 items(places, key = { "place-" + it.id }) { p ->
+                    // A spot a mate texted wears the meet-up pin's pink, like its pin on the map.
+                    val pink = p.meetUp || p.texted
+                    val texted = stringResource(R.string.spot_link_texted)
                     Row(
                         Modifier.fillMaxWidth().clickable { focus(listOf(LatLng(p.lat, p.lon))) }.padding(horizontal = 14.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(
                             Modifier.width(40.dp).heightIn(min = 40.dp).background(
-                                if (p.meetUp) Mosh.Pink.copy(alpha = 0.25f) else Mosh.Cyan.copy(alpha = 0.2f), RoundedCornerShape(12.dp),
+                                if (pink) Mosh.Pink.copy(alpha = 0.25f) else Mosh.Cyan.copy(alpha = 0.2f), RoundedCornerShape(12.dp),
                             ),
                             contentAlignment = Alignment.Center,
-                        ) { Text(if (p.meetUp) "★" else "●", style = Mosh.Label.copy(color = if (p.meetUp) Mosh.Pink else Mosh.Cyan)) }
+                        ) { Text(if (p.meetUp) "★" else "●", style = Mosh.Label.copy(color = if (pink) Mosh.Pink else Mosh.Cyan)) }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(if (p.meetUp) stringResource(R.string.find_meet_label, p.name) else p.name, style = Mosh.Label.copy(fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
                                 listOfNotNull(
                                     me?.let { distanceLabel(Geo.distanceM(it, LatLon(p.lat, p.lon))) },
-                                    if (p.meetUp) stringResource(R.string.find_place_crew_meetup) else stringResource(R.string.find_place_only_you),
+                                    when {
+                                        p.meetUp -> stringResource(R.string.find_place_crew_meetup)
+                                        // Named after the sender: say what it is (unnamed, it's already called that).
+                                        p.texted -> texted.takeIf { it != p.name }
+                                        else -> stringResource(R.string.find_place_only_you)
+                                    },
                                 ).joinToString(" · "),
                                 style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 16.sp, color = Mosh.TextFaint),
                             )
                         }
                         TextButton(onClick = { onDirections(p.lat, p.lon) }) { Text(stringResource(R.string.find_walk), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-                        if (onRide != null && !p.meetUp) TextButton(onClick = { onRide(p.lat, p.lon) }) { Text(stringResource(R.string.find_ride), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
+                        if (p.texted && onFindPlace != null) {
+                            // Its arrow needs no data: GPS and the compass (Walk opens directions, which do).
+                            TextButton(onClick = { onFindPlace(p) }) { Text(stringResource(R.string.find_find), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink)) }
+                        } else if (onRide != null && !p.meetUp) {
+                            TextButton(onClick = { onRide(p.lat, p.lon) }) { Text(stringResource(R.string.find_ride), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
+                        }
                         TextButton(onClick = { onRemovePlace(p) }) { Text("✕", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextFaint)) }
                     }
                 }

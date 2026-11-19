@@ -18,13 +18,19 @@ import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.debug.FieldRecorder
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
+import nz.waveformlabs.moshpoint.locate.FinderPlace
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
+import nz.waveformlabs.moshpoint.locate.PlaceFinder
 import nz.waveformlabs.moshpoint.safety.TorchStrobe
 import nz.waveformlabs.moshpoint.sharing.Sharing
+import nz.waveformlabs.moshpoint.ui.map.MapPlace
 
 /**
  * The finder screen: the finder engine (created in onCreate), whether it's looking, "Light me
  * up", and the notification taps that open it. Owned by [MainActivity].
+ *
+ * It finds mates ([lookFor], the engine) or a place ([findPlace]: a spot a mate texted, by GPS
+ * and compass alone, docs/SPOT_LINKS.md), never both: looking for mates lets the place go.
  */
 internal class FinderState(private val a: MainActivity) {
     lateinit var engine: LocatorEngine
@@ -46,10 +52,7 @@ internal class FinderState(private val a: MainActivity) {
         val ids = FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members }.map { it.id }.toSet()
         if (ids.isEmpty()) return
         a.map.closeMap()
-        pendingStop?.cancel()
-        engine.track(ids)
-        engine.start()
-        finding = true
+        lookFor(ids)
     }
 
     /** Opened from "X is lighting up their screen": the finder on them, to spot the flashing screen. */
@@ -58,10 +61,7 @@ internal class FinderState(private val a: MainActivity) {
         intent.removeExtra(MainActivity.EXTRA_FIND_MATE)
         if (FriendsRepository.byId(id) == null || !::engine.isInitialized) return
         a.map.closeMap()
-        pendingStop?.cancel()
-        engine.track(setOf(id))
-        engine.start()
-        finding = true
+        lookFor(setOf(id))
     }
 
     /** Opened from "X is looking for you": find them and light up straight away. */
@@ -69,11 +69,66 @@ internal class FinderState(private val a: MainActivity) {
         val id = intent?.getStringExtra(MainActivity.EXTRA_LIGHT_FOR) ?: return
         intent.removeExtra(MainActivity.EXTRA_LIGHT_FOR)
         if (FriendsRepository.byId(id) == null || !::engine.isInitialized) return
+        lookFor(setOf(id))
+        setBeacon(true)
+    }
+
+    /**
+     * The finder on [ids] (mates), from wherever it's opened: the engine looks for them and the
+     * screen shows them. Any place being found is let go first.
+     */
+    fun lookFor(ids: Set<String>) {
+        endPlace()
         pendingStop?.cancel()
-        engine.track(setOf(id))
+        engine.track(ids)
         engine.start()
         finding = true
-        setBeacon(true)
+    }
+
+    /** The place being found instead of mates (a spot a mate texted, docs/SPOT_LINKS.md), or null. */
+    var place by mutableStateOf<FinderPlace?>(null)
+        private set
+
+    /** GPS and compass only (finder module): made the first time a place is found. */
+    private var places: PlaceFinder? = null
+
+    /** The place's arrow (empty with no place). */
+    val placeArrows get() = placeFinder().arrows
+
+    private fun placeFinder(): PlaceFinder = places ?: PlaceFinder(a.applicationContext, a.lifecycleScope).also { places = it }
+
+    /**
+     * The finder on [p] (from the map): its arrow and distance from this phone's GPS and compass,
+     * with no data or signal. The mate engine and Light me up stop, as they do when the finder
+     * closes; nothing is broadcast while a place is found.
+     */
+    fun findPlace(p: MapPlace) {
+        a.map.closeMap()
+        setBeacon(false)
+        if (::engine.isInitialized) stopEngineSoon()
+        val target = FinderPlace(p.id, p.name, p.lat, p.lon)
+        placeFinder().find(target)
+        placeFinder().start()
+        place = target
+        finding = true
+    }
+
+    /** No place any more (the finder closed, or mates are being found instead). */
+    fun endPlace() {
+        if (place == null) return
+        place = null
+        places?.stop()
+        places?.find(null)
+    }
+
+    /** The app is on screen again: the place being found (if any) gets its GPS and compass back. */
+    fun resumePlace() {
+        if (place != null) places?.start()
+    }
+
+    /** The app left the screen: GPS and compass off for the place (it stays, for [resumePlace]). */
+    fun pausePlace() {
+        places?.stop()
     }
 
     /** Message asking mates to open the app and go live. */

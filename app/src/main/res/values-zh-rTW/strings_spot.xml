@@ -6,4 +6,10 @@
     <string name="spot_text_line">我在這裡：</string>
     <string name="spot_text_no_fix">我的手機現在定位不到我在哪裡。</string>
     <string name="spot_text_no_app">這支手機沒有簡訊 App。</string>
+
+    <!-- Texted spots open in Moshpoint (docs/SPOT_LINKS.md). -->
+    <string name="spot_link_texted">簡訊裡的位置</string>
+    <string name="spot_link_broken">Moshpoint 無法從這個連結讀取位置。</string>
+    <string name="spot_finder_waiting">正在等待 GPS…</string>
+    <string name="spot_finder_waiting_help">手機定位到自己的位置後，箭頭就會出現。在戶外，GPS 不需要行動數據或訊號也能用。</string>
 </resources>
