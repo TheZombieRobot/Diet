@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 import java.util.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -66,6 +67,35 @@ class ReportTest {
         assertEquals(HttpStatusCode.NoContent, client.delete("/v1/admin/reports/$id") { header("Authorization", "Bearer $admin") }.status)
         assertEquals(HttpStatusCode.NotFound, client.delete("/v1/admin/reports/$id") { header("Authorization", "Bearer $admin") }.status)
         assertEquals(1, JSONArray(client.get("/v1/admin/reports") { header("Authorization", "Bearer $admin") }.bodyAsText()).length())
+    }
+
+    @Test fun reportsInTheSameMillisecondListInTheOrderTheyCame() {
+        // The relay's clock stands still: every report arrives in the same millisecond. Their ids
+        // used to tie on time, so the random part decided the order (the flaky test above).
+        repeat(25) {
+            val r = relay(clock = { 1_800_000_000_000L })
+            val ids = (1..4).map { n -> assertNotNull(r.reports.add(assertNotNull(ReportRules.parse(message("m$n").toString().toByteArray(), 1_800_000_000L)))) }
+            assertEquals(ids.reversed(), r.reports.list(10).map { it.getString("id") }, "newest first")
+            assertEquals(listOf("m4", "m3", "m2", "m1"), r.reports.list(10).map { it.getString("text") })
+            assertTrue(ids.all { ReportStore.ID.matches(it) })
+            r.close()
+        }
+    }
+
+    @Test fun theOrderHoldsAcrossARestartEvenIfTheClockWentBack() {
+        val dir = File(tempDataDir(), "reports")
+        var now = 1_800_000_000_000L
+        val rep = assertNotNull(ReportRules.parse(message().toString().toByteArray(), now / 1000))
+        val first = ReportStore(dir, ReportStore.TTL_MS, 100, { now })
+        val a = assertNotNull(first.add(rep))
+        val b = assertNotNull(first.add(rep))
+        // The relay restarts, and its clock is now a few seconds behind (a time sync).
+        now -= 5_000
+        val second = ReportStore(dir, ReportStore.TTL_MS, 100, { now })
+        val c = assertNotNull(second.add(rep))
+        assertEquals(listOf(c, b, a), second.list(10).map { it.getString("id") })
+        // Kept 90 days from when they came: nothing goes early.
+        assertEquals(0, second.sweep())
     }
 
     @Test fun aWrongOrMissingTokenIsRefusedAndNoTokenMeansNoAdminRoutes() = testApplication {

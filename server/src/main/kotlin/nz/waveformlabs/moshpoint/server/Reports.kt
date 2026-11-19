@@ -85,7 +85,9 @@ object ReportRules {
 
 /**
  * Reports on the relay's volume, one JSON file each (`reports/<id>.json`), kept [ttlMs] (90 days)
- * and at most [maxCount] at a time. The id is the time it arrived and a random part.
+ * and at most [maxCount] at a time. The id is the time it arrived and a random part, and the time
+ * part only ever goes up (a report in the same millisecond as the last one is put a millisecond
+ * later), so listing by id is the order they came in, every time.
  */
 class ReportStore(
     private val dir: File,
@@ -100,13 +102,19 @@ class ReportStore(
 
     private fun files(): List<File> = dir.listFiles { f -> f.isFile && f.name.endsWith(".json") && ID.matches(f.name.removeSuffix(".json")) }?.toList().orEmpty()
 
+    /** The newest id's time part (from the reports already kept, after a restart): every new one is later. */
+    private var last: Long = files().maxOfOrNull { it.name.substringBefore('-').toLong() } ?: 0L
+
     val count: Int get() = files().size
 
     /** Stores [report] and returns its id, or null when the store is full. */
     @Synchronized
     fun add(report: JSONObject): String? {
         if (files().size >= maxCount) return null
-        val now = clock()
+        // Two reports in one millisecond used to tie on time and list in either order (the random
+        // part decided). Never earlier than the last one, even if the clock is set back.
+        val now = maxOf(clock(), last + 1)
+        last = now
         val id = "%013d-%s".format(now, ByteArray(6).also { random.nextBytes(it) }.joinToString("") { "%02x".format(it) })
         val out = JSONObject(report.toString()).put("id", id).put("receivedSec", now / 1000)
         val tmp = File(dir, "$id.tmp")
@@ -118,7 +126,7 @@ class ReportStore(
         return id
     }
 
-    /** Newest first, at most [limit]. */
+    /** Newest first (the order they came in, reversed), at most [limit]. */
     fun list(limit: Int): List<JSONObject> =
         files().sortedByDescending { it.name }.take(limit).mapNotNull { f -> runCatching { JSONObject(f.readText(Charsets.UTF_8)) }.getOrNull() }
 

@@ -256,7 +256,9 @@ _Keep this section current: whoever picks this up next starts here. Last updated
    (seen in Polish in `smallPhoneLargeFontTextedSpotMap`: Pinezka, Wszyscy and Ja take the
    width). It was like that before these items (no earlier test drew that case) and isn't
    changed here; fix it the same way as the place rows?
-5. **A flaky server test:** `ReportTest.aReportIsStoredAndTheOwnerCanListAndDeleteIt` posts two
+5. **Answered (docs/LAUNCH_PREP.md, item 4):** the relay now gives each report a later time part
+   than the last (`ReportStore.add`), so the list is always in the order they came; the test is
+   unchanged. The original question: **A flaky server test:** `ReportTest.aReportIsStoredAndTheOwnerCanListAndDeleteIt` posts two
    reports and expects the newer first, but a report's id is its arrival millisecond and a
    random part (`ReportStore.add`), and the list is sorted by id: two reports in the same
    millisecond come back in either order. It failed once here (run 358's first attempt) with

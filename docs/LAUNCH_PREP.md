@@ -9,14 +9,16 @@ items, in order, each green in CI before the next.
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 19 November
-2026, 05:40 UTC._
+2026, 05:58 UTC._
 
-- **Now:** item 3 (the spot links' App Link checked in the release manifest), pushed for its CI
-  check.
-- **Done:** item 1, green in run 363 (493fd3b); item 2, green in run 364 (d88c2bf). Screenshots
-  unchanged after each (phone 2,320 and watch 546 identical to e2d5384's by blob hash).
-- **Last green run:** 364 (d88c2bf, item 2; 05:37 UTC). Item 3 was committed as 43267e9 with
-  `[skip ci]` while 364 ran, and is checked by the run after it.
+- **Now:** item 4 (the flaky `ReportTest`: reports in the same millisecond), pushed for its CI
+  check. Next: item 5 (the map's top bar), drafted.
+- **Done:** item 1, green in run 363 (493fd3b); item 2, green in run 364 (d88c2bf); item 3,
+  green in run 365 (838f941: its step printed "OK: SpotLinkActivity with one autoVerify filter
+  for https://relay.example.invalid/spot", "OK: no SpotLinkActivity and no verified link" and
+  "OK: the release APK has no SpotLinkActivity (no relay of its own)"). Screenshots unchanged
+  after each (phone 2,320 and watch 546 identical to e2d5384's by blob hash).
+- **Last green run:** 365 (838f941, item 3; 05:54 UTC).
 - **Baseline:** core 658 and server 108 tests pass locally at e2d5384 (scratch Gradle build of
   only `:core` and `:server`, Maven Central only).
 
@@ -163,6 +165,27 @@ checked with PyYAML and shellcheck locally, and CI checks its triggers and pins.
   own setting must match it (aapt2): the activity is there exactly when `MOSHPOINT_SERVER` is a
   plain https address (`check_spot_link.py --host`, the build script's own rule).
 - Builds still never need `MOSHPOINT_SERVER`: the step sets the relay itself.
+
+## Item 4: the flaky ReportTest (two reports in the same millisecond)
+
+**The cause:** a report's id is its arrival time in milliseconds and a random part, and the
+owner's list is sorted by id, newest first. Two reports in the same millisecond tied on time, so
+the random part decided which listed first: `aReportIsStoredAndTheOwnerCanListAndDeleteIt`
+(two posts back to back, the newer expected first) failed about half the time they landed in
+one millisecond (run 358's first attempt).
+
+**Fixed in the relay, not the test:** `ReportStore` keeps the newest time part it has handed out
+(read back from the stored reports when it starts) and gives each new report a time part at
+least a millisecond later (`maxOf(clock(), last + 1)`). The order is now the order they came in,
+every time, including after a restart with the clock set back. Ids keep their format
+(13 digits, a dash, 12 hex); a report in a burst may be stamped a millisecond or so later than
+it came, which only keeps it a millisecond longer. The test itself is unchanged.
+
+**New tests (ReportTest):** `reportsInTheSameMillisecondListInTheOrderTheyCame` (a clock that
+stands still, four reports, 25 times over: newest first every time) and
+`theOrderHoldsAcrossARestartEvenIfTheClockWentBack` (two reports, a new store on the same
+folder with the clock 5 seconds behind: the third still lists first, nothing swept early).
+`ReportTest`: 12 tests pass locally.
 
 ## Open questions
 
