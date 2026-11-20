@@ -1,6 +1,6 @@
 // Nightfall Mobs - in-game logic.
 // Everything here runs on the host (the Windows PC). Guests on console need nothing extra.
-import { world, system, ItemStack, EquipmentSlot, EntityDamageCause, PlayerPermissionLevel } from "@minecraft/server";
+import { world, system, Difficulty, ItemStack, EquipmentSlot, EntityDamageCause, PlayerPermissionLevel } from "@minecraft/server";
 import { ActionFormData, FormCancelationReason, ModalFormData } from "@minecraft/server-ui";
 import {
   DEFAULT_DIFFICULTY,
@@ -363,6 +363,7 @@ function spawnWave(dimension, target, fallbackCentre, members) {
 
 function callHorde(stalker) {
   if (!hordesEnabled || disabledToggles.has(STALKER_TOGGLE)) return;
+  if (world.getDifficulty() === Difficulty.Peaceful) return; // no hordes on Peaceful worlds
   const dimension = stalker.dimension;
   const location = stalker.location;
   const target = dimension.getPlayers({ location, closest: 1, maxDistance: HORDE.areaRadius })[0];

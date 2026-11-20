@@ -1,4 +1,4 @@
-# Nightfall Mobs (Minecraft Bedrock add-on) - v0.2.0
+# Nightfall Mobs (Minecraft Bedrock add-on) - v0.2.1
 
 Three new night mobs for survival, built as a **separate add-on** from Hearts & Lives. It works alone or next to it:
 it never touches `player.json` or any vanilla file, and uses its own `nightfall:` names.
@@ -32,7 +32,8 @@ Every player gets a **Nightfall Guide** the first time they join. Hold it and pr
 - The **world host** (any operator) also gets buttons for **Easy / Normal / Hard / Extreme**, **Hordes On/Off** and **Choose Mobs**.
 - Lost it or threw it away? Craft a new one anywhere: **1 planks + 1 stick** (works in the 2x2 inventory grid).
 
-The setting is saved with the world and changes mobs that are already alive. Minecraft's own world difficulty still
+The setting is saved with the world and changes mobs that are already alive. Changing it probably also heals
+Nightfall mobs that are already hurt. The "Hit" numbers in the guide are for world difficulty Normal. Minecraft's own world difficulty still
 applies on top, as it does for vanilla mobs.
 
 ## Choosing mobs
@@ -55,11 +56,11 @@ also covers the four horde zombies). All three are On by default.
 ## Install (Windows host)
 
 ```powershell
-Invoke-Item -LiteralPath '<path to>\dist\nightfall-mobs-v0.2.0.mcaddon'
+Invoke-Item -LiteralPath '<path to>\dist\nightfall-mobs-v0.2.1.mcaddon'
 ```
 
-Then in the world settings turn on **both** packs: `Nightfall Mobs BP v0.2.0` (Behaviour Packs) and
-`Nightfall Mobs RP v0.2.0` (Resource Packs). No experimental toggles are needed. Use a **copy** of a world you
+Then in the world settings turn on **both** packs: `Nightfall Mobs BP v0.2.1` (Behaviour Packs) and
+`Nightfall Mobs RP v0.2.1` (Resource Packs). No experimental toggles are needed. Use a **copy** of a world you
 care about for the first tests.
 
 ## Build from source
@@ -80,7 +81,7 @@ Where things live:
 - `src/scripts/balance.js` - **every number** (health, damage, speed, horde size, loot, spawn rates) and the mob switch groups. Change balance here only.
 - `src/scripts/main.js` - the in-game logic (guide book, difficulty, mob switches, hordes, loot, gear).
 - `tools/` - generates the entity files, models, textures and the package from the tables above.
-- `test/` - 51 checks: the maths rules, every pack file, and the game script run against stand-in Minecraft modules.
+- `test/` - 52 checks: the maths rules, every pack file, and the game script run against stand-in Minecraft modules.
 
 ## What still needs a real test
 

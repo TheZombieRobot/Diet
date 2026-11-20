@@ -1,6 +1,6 @@
 {
   "name": "nightfall-mobs",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Nightfall Mobs - a Minecraft Bedrock add-on: Gloomhound, Thornskulk and the Horde Stalker.",
   "type": "module",

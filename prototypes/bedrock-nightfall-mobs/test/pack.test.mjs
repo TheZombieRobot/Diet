@@ -142,6 +142,7 @@ test("loot tables and recipes only use items that exist", () => {
   for (const file of fs.readdirSync(path.join(build, "BP/recipes/nightfall"))) {
     const recipe = Object.values(read(`BP/recipes/nightfall/${file}`)).find((v) => typeof v === "object");
     assert.ok(itemIds.includes(recipe.result.item));
+    assert.deepEqual(recipe.unlock, { context: "AlwaysUnlocked" }, "vanilla writes the context form as an object, not a list");
     for (const ingredient of [...Object.values(recipe.key ?? {}), ...(recipe.ingredients ?? [])]) {
       if (ingredient.item) assert.ok(known(ingredient.item), ingredient.item);
     }

@@ -40,6 +40,10 @@ state below changes.
 
 ## Open items
 
+- An audit against Mojang's vanilla packs and schemas (v0.2.1) found one real error (recipe `unlock` shape, fixed).
+  Still unconfirmed and worth watching in the first game test: world difficulty scaling the damage of custom mobs,
+  whether Peaceful removes them, the Shadow Hood sitting correctly on a player's head, and ambient sounds playing.
+
 - First real-game test (README has the step list). Most likely to need tuning: the light threshold, Stalker spawn
   rate, how long a horde takes to kill a careless player (about 3 seconds unarmoured on Normal is the tightest number).
 - Horde Claw and Tattered Cloth have no recipes yet; Horde Toxin, traps, lures and horde armour are undecided. These

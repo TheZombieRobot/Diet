@@ -65,6 +65,7 @@ export const world = withProps({
   sendMessage: (m) => __test.messages.push(m),
   getAllPlayers: () => __test.players.slice(),
   getDimension: () => dimension,
+  getDifficulty: () => __test.worldDifficulty ?? "Normal",
 });
 
 export const system = {
@@ -87,6 +88,7 @@ export class ItemStack {
     this.amount = amount;
   }
 }
+export const Difficulty = { Peaceful: "Peaceful", Easy: "Easy", Normal: "Normal", Hard: "Hard" };
 export const EquipmentSlot = { Head: "Head", Offhand: "Offhand" };
 export const EntityDamageCause = { entityAttack: "entityAttack", thorns: "thorns" };
 export const PlayerPermissionLevel = { Visitor: 0, Member: 1, Operator: 2, Custom: 3 };

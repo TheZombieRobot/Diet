@@ -160,6 +160,8 @@ function buildEntities() {
         [id("lurking")]: {
           "minecraft:movement": { value: skulk.speed },
           "minecraft:on_target_acquired": { event: id("spot_prey"), target: "self" },
+          // Already hunting when it stepped out of the light: it can burst again once it is dark.
+          "minecraft:environment_sensor": { triggers: [{ filters: canBurst, event: id("spot_prey") }] },
         },
         [id("bursting")]: {
           "minecraft:movement": { value: skulk.burstSpeed },
@@ -308,7 +310,7 @@ const ITEMS = {
   bark_hide: { name: "Bark Hide", category: "items", stack: 64 },
   horde_claw: { name: "Horde Claw", category: "items", stack: 64 },
   tattered_cloth: { name: "Tattered Cloth", category: "items", stack: 64 },
-  night_guide: { name: "Nightfall Guide", category: "items", stack: 1 },
+  night_guide: { name: "Nightfall Guide", category: "items", stack: 1, extra: { "minecraft:interact_button": true } },
   bramble_charm: { name: "Bramble Charm", category: "equipment", stack: 1, extra: { "minecraft:allow_off_hand": true } },
   shadow_hood: {
     name: "Shadow Hood",
@@ -339,7 +341,7 @@ function buildItems() {
 }
 
 function buildRecipes() {
-  const unlock = [{ context: "AlwaysUnlocked" }];
+  const unlock = { context: "AlwaysUnlocked" };
   // The guide is handed out on first join. If it gets thrown away it is cheap to make again.
   putJson(`BP/recipes/${NS}/night_guide.json`, {
     format_version: "1.20.10",

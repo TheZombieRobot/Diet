@@ -417,3 +417,15 @@ test("every form text is plain ASCII plus the section-sign colour codes", () => 
   for (const text of texts.filter((x) => x !== undefined)) assert.match(text, /^[\x20-\x7e\n\u00a7]*$/, text);
   for (const message of [...t.messages, ...host.chat]) assert.match(message, /^[\x20-\x7e\n\u00a7]*$/, message);
 });
+
+test("no horde is called on a Peaceful world", () => {
+  for (const m of members()) m.isValid = false;
+  const before = t.entities.length;
+  t.worldDifficulty = "Peaceful";
+  const stalker = makeEntity("nightfall:horde_stalker", { x: 25, y: 64, z: 0 }, ["nightfall"]);
+  world.afterEvents.dataDrivenEntityTrigger.emit({ entity: stalker, eventId: "nightfall:call_horde" });
+  t.advance(400);
+  t.worldDifficulty = undefined;
+  assert.equal(t.entities.length, before);
+  assert.equal(t.timeouts.length, 0);
+});
