@@ -1,0 +1,12 @@
+{
+  "name": "nightfall-mobs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nightfall Mobs - a Minecraft Bedrock add-on: Gloomhound, Thornskulk and the Horde Stalker.",
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "test": "node --test \"test/*.test.mjs\"",
+    "validate": "npm run build && npm test"
+  }
+}
