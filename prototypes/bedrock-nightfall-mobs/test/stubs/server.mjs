@@ -18,6 +18,10 @@ export function makeEntity(typeId, location, families = []) {
   const entity = withProps({ typeId, id: String(nextId++), isValid: true, location, families, events: [], damage: [], effects: [] });
   entity.dimension = dimension;
   entity.triggerEvent = (name) => entity.events.push(name);
+  entity.remove = () => {
+    if (!entity.isValid) throw new Error("InvalidEntityError");
+    entity.isValid = false;
+  };
   entity.applyDamage = (amount, options) => entity.damage.push({ amount, options });
   entity.addEffect = (type, duration, options) => entity.effects.push({ type, duration, options });
   return entity;

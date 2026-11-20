@@ -132,6 +132,18 @@ export const MOBS = {
   },
 };
 
+// The host can switch whole groups of mobs off (Nightfall Guide > Choose Mobs). Each toggle covers
+// the listed MOBS keys; the Horde Stalker toggle also covers the four horde members its call spawns.
+// Labels are plain ASCII: they are shown on forms read on a TV.
+export const MOB_TOGGLES = {
+  gloomhound: { label: "Gloomhound", mobs: ["gloomhound"] },
+  thornskulk: { label: "Thornskulk", mobs: ["thornskulk"] },
+  horde_stalker: {
+    label: "Horde Stalker",
+    mobs: ["horde_stalker", "horde_shambler", "horde_skitter", "horde_grasper", "horde_brute"],
+  },
+};
+
 // Brightness is the game's 0..1 value (the vanilla spider uses 0.49).
 // About 0.30 is light level 10 (within ~4 blocks of a torch); 0.20 is light level 7.
 export const LIGHT = { enterLight: 0.3, enterDark: 0.2 };

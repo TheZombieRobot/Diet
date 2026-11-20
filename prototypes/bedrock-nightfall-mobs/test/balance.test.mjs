@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { DIFFICULTIES, GRASPER, HORDE, LIGHT, MOBS, SPAWNS, VANILLA, hordeSize } from "../src/scripts/balance.js";
+import { DIFFICULTIES, GRASPER, HORDE, LIGHT, MOBS, MOB_TOGGLES, SPAWNS, VANILLA, hordeSize } from "../src/scripts/balance.js";
 import { farEnoughFromAll, horizontalDistance, maxLootBudget, planHorde, ringPoint, rollLootBudget } from "../src/scripts/horde.js";
 import { rng } from "../tools/lib/paint.mjs";
 
@@ -115,4 +115,13 @@ test("natural spawns are rare next to vanilla (zombie weight 100, enderman 10)",
   for (const [key, spawn] of Object.entries(SPAWNS)) assert.ok(spawn.weight <= 10, key);
   assert.equal(SPAWNS.horde_stalker.densitySurface, 1);
   assert.deepEqual(SPAWNS.horde_stalker.herd, [1, 1]);
+});
+
+test("mob toggles: every mob belongs to exactly one toggle, the Stalker toggle covers the horde, labels are plain ASCII", () => {
+  const covered = Object.values(MOB_TOGGLES).flatMap((group) => group.mobs);
+  assert.deepEqual([...covered].sort(), Object.keys(MOBS).sort());
+  assert.equal(new Set(covered).size, covered.length);
+  assert.deepEqual(Object.keys(MOB_TOGGLES), SOLO);
+  assert.deepEqual(MOB_TOGGLES.horde_stalker.mobs.slice(1).sort(), MEMBERS.sort());
+  for (const group of Object.values(MOB_TOGGLES)) assert.match(group.label, /^[A-Za-z ]+$/);
 });

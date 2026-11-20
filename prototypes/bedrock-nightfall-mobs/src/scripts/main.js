@@ -1,7 +1,7 @@
 // Nightfall Mobs - in-game logic.
 // Everything here runs on the host (the Windows PC). Guests on console need nothing extra.
 import { world, system, ItemStack, EquipmentSlot, EntityDamageCause, PlayerPermissionLevel } from "@minecraft/server";
-import { ActionFormData } from "@minecraft/server-ui";
+import { ActionFormData, FormCancelationReason, ModalFormData } from "@minecraft/server-ui";
 import {
   DEFAULT_DIFFICULTY,
   DIFFICULTIES,
@@ -10,6 +10,7 @@ import {
   GRASPER,
   HORDE,
   MOBS,
+  MOB_TOGGLES,
   NAMESPACE,
   hordeSize,
   isDifficulty,
@@ -21,6 +22,8 @@ const PROP_HORDES = `${NAMESPACE}:hordes`;
 const PROP_GUIDE_GIVEN = `${NAMESPACE}:guide_given`;
 const PROP_APPLIED = `${NAMESPACE}:applied`;
 const PROP_LOOT = `${NAMESPACE}:loot`;
+const PROP_DISABLED_MOBS = `${NAMESPACE}:disabled_mobs`;
+const PROP_SETUP_DONE = `${NAMESPACE}:setup_done`;
 
 const GUIDE_ITEM = `${NAMESPACE}:night_guide`;
 const HOOD_ITEM = `${NAMESPACE}:shadow_hood`;
@@ -34,9 +37,18 @@ const MEMBER_IDS = new Set(
     .map(([key]) => `${NAMESPACE}:${key}`)
 );
 const DIMENSIONS = ["overworld", "nether", "the_end"];
+const TOGGLE_KEYS = Object.keys(MOB_TOGGLES);
+const TOGGLE_OF_TYPE = new Map(
+  Object.entries(MOB_TOGGLES).flatMap(([toggle, group]) => group.mobs.map((mob) => [`${NAMESPACE}:${mob}`, toggle]))
+);
+const STALKER_TOGGLE = "horde_stalker";
+const SETUP_RETRY_TICKS = 40;
+const SETUP_MAX_RETRIES = 15;
 
 let difficulty = DEFAULT_DIFFICULTY;
 let hordesEnabled = true;
+let disabledToggles = new Set();
+let setupRunning = false;
 let ready = false;
 const grasperCooldownUntil = new Map();
 
@@ -46,7 +58,20 @@ function loadSettings() {
   const savedDifficulty = world.getDynamicProperty(PROP_DIFFICULTY);
   difficulty = typeof savedDifficulty === "string" && isDifficulty(savedDifficulty) ? savedDifficulty : DEFAULT_DIFFICULTY;
   hordesEnabled = world.getDynamicProperty(PROP_HORDES) !== false;
+  disabledToggles = parseDisabledToggles(world.getDynamicProperty(PROP_DISABLED_MOBS));
   ready = true;
+}
+
+// Saved as a JSON array of toggle keys. Anything missing or unreadable means every mob is on.
+function parseDisabledToggles(raw) {
+  if (typeof raw !== "string") return new Set();
+  try {
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list)) return new Set();
+    return new Set(list.filter((key) => TOGGLE_KEYS.includes(key)));
+  } catch {
+    return new Set();
+  }
 }
 
 function canChangeSettings(player) {
@@ -78,10 +103,56 @@ function setHordes(enabled, changedBy) {
   world.sendMessage(`§5[Nightfall]§r Hordes are now §e${enabled ? "On" : "Off"}§r (set by ${changedBy.name}).`);
 }
 
+// Spawn rules are static JSON and cannot be switched off, so a disabled mob is removed in script.
+function isMobDisabled(typeId) {
+  const toggle = TOGGLE_OF_TYPE.get(typeId);
+  return toggle !== undefined && disabledToggles.has(toggle);
+}
+
+function removeIfDisabled(entity) {
+  try {
+    if (!ready || !entity.isValid || !isMobDisabled(entity.typeId)) return false;
+    entity.remove();
+    return true;
+  } catch {
+    return false; // already gone
+  }
+}
+
+function removeDisabledEntities() {
+  if (disabledToggles.size === 0) return;
+  for (const id of DIMENSIONS) {
+    try {
+      for (const entity of world.getDimension(id).getEntities({ families: ["nightfall"] })) removeIfDisabled(entity);
+    } catch {
+      // dimension not available - nothing to remove there
+    }
+  }
+}
+
+function onEntityAppears(entity) {
+  if (!removeIfDisabled(entity)) applyDifficulty(entity);
+}
+
+function setDisabledToggles(next, changedBy) {
+  const changed = TOGGLE_KEYS.some((key) => next.has(key) !== disabledToggles.has(key));
+  disabledToggles = next;
+  world.setDynamicProperty(PROP_DISABLED_MOBS, JSON.stringify(TOGGLE_KEYS.filter((key) => next.has(key))));
+  if (changed) {
+    const parts = TOGGLE_KEYS.map((key) => `${MOB_TOGGLES[key].label} ${next.has(key) ? "Off" : "On"}`);
+    world.sendMessage(`§5[Nightfall]§r Mobs: §e${parts.join(", ")}§r (set by ${changedBy.name}).`);
+  }
+  removeDisabledEntities();
+}
+
+function offMobLabels() {
+  return TOGGLE_KEYS.filter((key) => disabledToggles.has(key)).map((key) => MOB_TOGGLES[key].label);
+}
+
 // Mobs carry one set of stats per difficulty (see the entity files). This picks the right set.
 function applyDifficulty(entity) {
   try {
-    if (!ready || !entity.isValid || !MOB_IDS.has(entity.typeId)) return;
+    if (!ready || !entity.isValid || !MOB_IDS.has(entity.typeId) || isMobDisabled(entity.typeId)) return;
     if (entity.getDynamicProperty(PROP_APPLIED) === difficulty) return;
     entity.triggerEvent(`${NAMESPACE}:set_${difficulty}`);
     entity.setDynamicProperty(PROP_APPLIED, difficulty);
@@ -101,26 +172,28 @@ function giveGuide(player) {
 
 function statLine(key) {
   const mob = MOBS[key];
+  if (isMobDisabled(`${NAMESPACE}:${key}`)) return `§7${mob.name} - Off§r`;
   return `§e${mob.name}§r  Health ${mob.health[difficulty]}  Hit ${mob.damage[difficulty]}`;
 }
 
 function showMobGuide(player) {
-  const body = [
-    `Difficulty: §e${DIFFICULTY_LABELS[difficulty]}§r`,
-    "",
-    statLine("gloomhound"),
-    "Fast. Leaps at you. Slow near torches.",
-    "",
-    statLine("thornskulk"),
-    "Hides like a bush. Rushes, then gets tired.",
-    "",
-    statLine("horde_stalker"),
-    hordesEnabled
-      ? `Screams, then calls ${hordeSize(difficulty)} weak zombies. Stop it fast!`
-      : "Hordes are switched off.",
-    "",
-    "Horde zombies are weak but many. Use doors, walls and high ground. They burn at sunrise.",
-  ].join("\n");
+  const lines = [`Difficulty: §e${DIFFICULTY_LABELS[difficulty]}§r`, ""];
+  // A mob that is switched off shows only its "- Off" line.
+  lines.push(statLine("gloomhound"));
+  if (!isMobDisabled(`${NAMESPACE}:gloomhound`)) lines.push("Fast. Leaps at you. Slow near torches.");
+  lines.push("", statLine("thornskulk"));
+  if (!isMobDisabled(`${NAMESPACE}:thornskulk`)) lines.push("Hides like a bush. Rushes, then gets tired.");
+  lines.push("", statLine("horde_stalker"));
+  if (!isMobDisabled(STALKER)) {
+    lines.push(
+      hordesEnabled
+        ? `Screams, then calls ${hordeSize(difficulty)} weak zombies. Stop it fast!`
+        : "Hordes are switched off.",
+      "",
+      "Horde zombies are weak but many. Use doors, walls and high ground. They burn at sunrise."
+    );
+  }
+  const body = lines.join("\n");
   new ActionFormData()
     .title("Night Mobs")
     .body(body)
@@ -136,6 +209,8 @@ function showGuide(player) {
   const canChange = canChangeSettings(player);
   const form = new ActionFormData().title("Nightfall Guide");
   const lines = [`Difficulty: §e${DIFFICULTY_LABELS[difficulty]}§r`, `Hordes: §e${hordesEnabled ? "On" : "Off"}§r`];
+  const off = offMobLabels();
+  lines.push(off.length > 0 ? `Mobs Off: §e${off.join(", ")}§r` : "Mobs: all On");
   if (!canChange) lines.push("", "Only the world host can change these.");
   form.body(lines.join("\n"));
 
@@ -155,6 +230,8 @@ function showGuide(player) {
       setHordes(!hordesEnabled, player);
       showGuide(player);
     });
+    form.button("Choose Mobs", "textures/items/nightfall/thorn_core");
+    actions.push(() => showChooseMobs(player));
   }
   form
     .show(player)
@@ -165,6 +242,72 @@ function showGuide(player) {
       actions[response.selection]?.();
     })
     .catch(() => {});
+}
+
+// ---------------------------------------------------------------- choosing mobs
+
+// Shows the toggles. Resolves to "saved", "denied", "busy", "closed" or "error".
+function openMobForm(player) {
+  const form = new ModalFormData().title("Choose Mobs");
+  for (const key of TOGGLE_KEYS) form.toggle(MOB_TOGGLES[key].label, { defaultValue: !disabledToggles.has(key) });
+  form.submitButton("Save");
+  return form
+    .show(player)
+    .then((response) => {
+      if (response.canceled || !Array.isArray(response.formValues)) {
+        return response.cancelationReason === FormCancelationReason.UserBusy ? "busy" : "closed";
+      }
+      // Re-check: the player may have lost operator rights while the form was open.
+      if (!canChangeSettings(player)) return "denied";
+      const next = new Set(TOGGLE_KEYS.filter((key, index) => response.formValues[index] === false));
+      setDisabledToggles(next, player);
+      return "saved";
+    })
+    .catch(() => "error");
+}
+
+function showChooseMobs(player) {
+  if (!canChangeSettings(player)) return;
+  openMobForm(player).then((outcome) => {
+    if (outcome === "saved") showGuide(player);
+  });
+}
+
+// The first time a host joins a new world: pick mobs, then pick difficulty in the guide.
+function maybeStartSetup(player) {
+  if (setupRunning || world.getDynamicProperty(PROP_SETUP_DONE) === true || !canChangeSettings(player)) return;
+  setupRunning = true;
+  attemptSetup(player, 0);
+}
+
+function attemptSetup(player, retries) {
+  let canContinue = false;
+  try {
+    canContinue = player.isValid && canChangeSettings(player);
+  } catch {
+    // player left
+  }
+  if (!canContinue) {
+    setupRunning = false;
+    return;
+  }
+  openMobForm(player).then((outcome) => {
+    if (outcome === "busy" && retries < SETUP_MAX_RETRIES) {
+      // Forms opened right after joining are often refused as "UserBusy". Try again shortly.
+      system.runTimeout(() => attemptSetup(player, retries + 1), SETUP_RETRY_TICKS);
+      return;
+    }
+    setupRunning = false;
+    if (outcome === "error") return;
+    try {
+      player.sendMessage("§5[Nightfall]§r You can change the mobs any time from the §eNightfall Guide§r.");
+      if (outcome === "busy") return; // gave up quietly; asked again the next time the host joins
+      world.setDynamicProperty(PROP_SETUP_DONE, true);
+      showGuide(player);
+    } catch {
+      // player left
+    }
+  });
 }
 
 // ---------------------------------------------------------------- hordes
@@ -198,6 +341,7 @@ function findSpawnSpot(dimension, centre, playerLocations) {
 }
 
 function spawnWave(dimension, target, fallbackCentre, members) {
+  if (disabledToggles.has(STALKER_TOGGLE)) return; // switched off while the horde was on its way
   let centre = fallbackCentre;
   try {
     if (target.isValid && target.dimension.id === dimension.id) centre = target.location;
@@ -218,7 +362,7 @@ function spawnWave(dimension, target, fallbackCentre, members) {
 }
 
 function callHorde(stalker) {
-  if (!hordesEnabled) return;
+  if (!hordesEnabled || disabledToggles.has(STALKER_TOGGLE)) return;
   const dimension = stalker.dimension;
   const location = stalker.location;
   const target = dimension.getPlayers({ location, closest: 1, maxDistance: HORDE.areaRadius })[0];
@@ -244,23 +388,26 @@ function callHorde(stalker) {
 
 world.afterEvents.worldLoad.subscribe(() => {
   loadSettings();
+  removeDisabledEntities();
 });
 
 world.afterEvents.playerSpawn.subscribe((event) => {
   if (!event.initialSpawn) return;
   const player = event.player;
-  if (player.getDynamicProperty(PROP_GUIDE_GIVEN)) return;
-  player.setDynamicProperty(PROP_GUIDE_GIVEN, true);
-  giveGuide(player);
-  player.sendMessage("§5[Nightfall]§r You got a §eNightfall Guide§r. Use it to see the night mobs and the difficulty.");
+  if (!player.getDynamicProperty(PROP_GUIDE_GIVEN)) {
+    player.setDynamicProperty(PROP_GUIDE_GIVEN, true);
+    giveGuide(player);
+    player.sendMessage("§5[Nightfall]§r You got a §eNightfall Guide§r. Use it to see the night mobs and the difficulty.");
+  }
+  maybeStartSetup(player);
 });
 
 world.afterEvents.itemUse.subscribe((event) => {
   if (event.itemStack?.typeId === GUIDE_ITEM) showGuide(event.source);
 });
 
-world.afterEvents.entitySpawn.subscribe((event) => applyDifficulty(event.entity));
-world.afterEvents.entityLoad.subscribe((event) => applyDifficulty(event.entity));
+world.afterEvents.entitySpawn.subscribe((event) => onEntityAppears(event.entity));
+world.afterEvents.entityLoad.subscribe((event) => onEntityAppears(event.entity));
 
 world.afterEvents.dataDrivenEntityTrigger.subscribe(
   (event) => {
